@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETE Rule Engine</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar">
+            <div class="nav-brand">RETE Rule Engine</div>
+            <div class="nav-menu">
+                <a href="#" class="nav-link" data-page="rules">Rules</a>
+                <a href="#" class="nav-link" data-page="create">Create Rule</a>
+                <a href="#" class="nav-link" data-page="test">Test Sandbox</a>
+                <a href="#" class="nav-link" data-page="graph">Dependencies</a>
+                <a href="#" class="nav-link" data-page="metrics">Metrics</a>
+                <a href="#" class="nav-link" id="logout-btn">Logout</a>
+            </div>
+            <div id="user-info"></div>
+        </nav>
+
+        <main class="container">
+            <!-- RULES PAGE -->
+            <div id="rules-page" class="page">
+                <div class="page-header">
+                    <h1>Rules</h1>
+                    <div class="filters">
+                        <input type="text" id="search-rules" placeholder="Search rules...">
+                        <select id="filter-group"><option value="">All Groups</option></select>
+                        <select id="filter-enabled">
+                            <option value="">All Status</option>
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="rules-list"></div>
+            </div>
+
+            <!-- CREATE PAGE -->
+            <div id="create-page" class="page" style="display:none;">
+                <h1>Create Rule</h1>
+                <form id="rule-form">
+                    <!-- Basic Info -->
+                    <div class="form-section">
+                        <h2>Basic Information</h2>
+                        <div class="form-group">
+                            <label>Name *</label>
+                            <input type="text" id="rule-name" required placeholder="High Value Transaction Alert">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="rule-description" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Group</label>
+                                <input type="text" id="rule-group" placeholder="fraud_detection">
+                            </div>
+                            <div class="form-group">
+                                <label>Priority</label>
+                                <input type="number" id="rule-priority" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label><input type="checkbox" id="rule-enabled" checked> Enabled</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conditions -->
+                    <div class="form-section">
+                        <h2>Conditions</h2>
+                        <div class="tab-navigation">
+                            <button type="button" class="tab-btn active" data-tab="visual">Visual Builder</button>
+                            <button type="button" class="tab-btn" data-tab="json">JSON Editor</button>
+                        </div>
+                        <div class="tab-content">
+                            <div id="visual-tab" class="tab-pane active">
+                                <div class="builder-help">Build your conditions visually. Changes sync automatically to JSON.</div>
+                                <div id="condition-builder" class="condition-builder"></div>
+                            </div>
+                            <div id="json-tab" class="tab-pane">
+                                <div class="builder-help">Paste or edit JSON directly. Changes sync automatically to Visual Builder.</div>
+                                <textarea id="condition-dsl" rows="15" placeholder='{"type":"condition","field":"amount","op":">","value":100}'></textarea>
+                                <div class="json-status" id="json-status"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action -->
+                    <div class="form-section">
+                        <h2>Action</h2>
+                        <div class="form-group">
+                            <label>Action Code (Python) *</label>
+                            <textarea id="rule-action" rows="3" required placeholder="send_alert('high_value')"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Rule</button>
+                        <button type="button" class="btn" id="cancel-rule">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- EDIT PAGE -->
+            <div id="edit-page" class="page" style="display:none;">
+                <h1>Edit Rule</h1>
+                <form id="edit-form">
+                    <input type="hidden" id="edit-rule-id">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="edit-rule-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="edit-rule-description"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Group</label>
+                            <input type="text" id="edit-rule-group">
+                        </div>
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <input type="number" id="edit-rule-priority">
+                        </div>
+                        <div class="form-group">
+                            <label><input type="checkbox" id="edit-rule-enabled"> Enabled</label>
+                        </div>
+                    </div>
+
+                    <!-- Condition Builder -->
+                    <div class="form-group">
+                        <label>Condition Builder</label>
+                        <div id="edit-condition-builder" class="condition-builder"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>DSL JSON</label>
+                        <textarea id="edit-condition-dsl" rows="6"></textarea>
+                        <div class="json-status" id="edit-json-status"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Action</label>
+                        <textarea id="edit-rule-action" rows="4" required></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Update Rule</button>
+                        <button type="button" class="btn" id="view-versions">View Versions</button>
+                        <button type="button" class="btn" id="cancel-edit">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TEST, GRAPH, METRICS pages -->
+            <div id="test-page" class="page" style="display:none;">
+                <h1>Test Sandbox</h1>
+                <textarea id="test-event" rows="15" placeholder='{"amount":150}'></textarea>
+                <button id="run-test" class="btn btn-primary">Run Test</button>
+                <div id="test-results"></div>
+            </div>
+
+            <div id="graph-page" class="page" style="display:none;">
+                <h1>Dependency Graph</h1>
+                <div id="dependency-graph"></div>
+            </div>
+
+            <div id="metrics-page" class="page" style="display:none;">
+                <h1>Metrics</h1>
+                <div id="metrics-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JS -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="/js/editor.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/rule-builder.js"></script>
+    <script src="/js/rule-editor.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/rule-list.js"></script>
+    <script src="/js/test-sandbox.js"></script>
+    <script src="/js/dependency-graph.js"></script>
+    <script src="/js/metrics-viewer.js"></script>
+    <script src="/js/version-diff.js"></script>
+</body>
+</html>
