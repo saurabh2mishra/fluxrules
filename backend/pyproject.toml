@@ -1,11 +1,30 @@
 [project]
-name = "backend"
+name = "GRE"
 version = "0.1.0"
-description = "Add your description here"
+description = "General Rules Engine"
 readme = "README.md"
 requires-python = ">=3.11"
+
 dependencies = [
-    "email-validator>=2.3.0",
-    "pydantic>=2.12.5",
-    "pytest>=9.0.2",
+    "fastapi[standard]>=0.104.1",
+    "sqlalchemy>=2.0.23",
+    "pydantic>=2.4.2",
+    "pydantic-settings>=2.0.3",
+    "python-jose[cryptography]>=3.3.0",
+    "bcrypt>=4.0.1",
+    "python-multipart>=0.0.6",
+    "redis>=5.0.1",
+    "prometheus-client>=0.19.0",
+    "durable-rules>=2.0.28",
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "httpx>=0.25.1",
+    "email-validator>=2.1.0",
 ]
+
+[tool.uv]
+native-tls = true
+
+[[tool.uv.index]]
+name = "nexus-python"
+url = "https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/simple/"

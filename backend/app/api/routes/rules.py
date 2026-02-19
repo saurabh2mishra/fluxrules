@@ -60,6 +60,84 @@ def get_rule(
         raise HTTPException(status_code=404, detail="Rule not found")
     return serialize_rule(rule)
 
+@router.post("/validate", response_model=dict)
+def validate_rule(
+    rule: RuleCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Validate a rule before saving - check for conflicts and similar rules"""
+    detector = ConflictDetector(db)
+    conflicts = detector.check_new_rule_conflicts(rule)
+    
+    # Find similar rules (same group or similar conditions)
+    similar_rules = []
+    existing_rules = db.query(Rule).filter(Rule.enabled == True).all()
+    
+    for existing in existing_rules:
+        similarity_score = 0
+        reasons = []
+        
+        # Check if same group
+        if (rule.group and existing.group and rule.group == existing.group):
+            similarity_score += 30
+            reasons.append(f"Same group: '{rule.group}'")
+        
+        # Check if similar name
+        if rule.name and existing.name:
+            name_lower = rule.name.lower()
+            existing_lower = existing.name.lower()
+            if name_lower in existing_lower or existing_lower in name_lower:
+                similarity_score += 20
+                reasons.append(f"Similar name")
+        
+        # Check for overlapping fields in conditions
+        try:
+            new_fields = extract_fields(rule.condition_dsl)
+            existing_dsl = json.loads(existing.condition_dsl) if isinstance(existing.condition_dsl, str) else existing.condition_dsl
+            existing_fields = extract_fields(existing_dsl)
+            
+            common_fields = new_fields & existing_fields
+            if common_fields:
+                similarity_score += len(common_fields) * 10
+                reasons.append(f"Common fields: {', '.join(common_fields)}")
+        except Exception:
+            pass
+        
+        if similarity_score >= 30:
+            similar_rules.append({
+                "rule_id": existing.id,
+                "rule_name": existing.name,
+                "group": existing.group,
+                "similarity_score": similarity_score,
+                "reasons": reasons
+            })
+    
+    # Sort by similarity score
+    similar_rules.sort(key=lambda x: x["similarity_score"], reverse=True)
+    
+    return {
+        "valid": len(conflicts) == 0,
+        "conflicts": conflicts,
+        "similar_rules": similar_rules[:5],  # Top 5 similar rules
+        "message": "No conflicts found. Rule is ready to save." if len(conflicts) == 0 else "Conflicts detected. Please review before saving."
+    }
+
+def extract_fields(condition_dsl: dict) -> set:
+    """Extract all field names from a condition DSL"""
+    fields = set()
+    if not condition_dsl:
+        return fields
+    
+    if condition_dsl.get("type") == "condition" and condition_dsl.get("field"):
+        fields.add(condition_dsl["field"])
+    
+    if condition_dsl.get("children"):
+        for child in condition_dsl["children"]:
+            fields.update(extract_fields(child))
+    
+    return fields
+
 @router.post("", response_model=RuleResponse)
 def create_rule(
     rule: RuleCreate,

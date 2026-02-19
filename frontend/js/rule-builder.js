@@ -9,6 +9,9 @@ function initRuleBuilder() {
 
     renderConditionBuilder('condition-builder');
 
+    // Tab switching for Visual Builder / JSON Editor
+    setupTabSwitching();
+
     document.getElementById('rule-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         await saveRule();
@@ -18,33 +21,85 @@ function initRuleBuilder() {
         showPage('rules');
     });
 
+    // Test Rule button
+    document.getElementById('test-rule-btn')?.addEventListener('click', async () => {
+        await testRule();
+    });
+
     const dslTextarea = document.getElementById('condition-dsl');
     if (dslTextarea) {
-        // Always set textarea value to string when loading
-        dslTextarea.value = JSON.stringify(conditionTree, null, 2);
+        // Set initial full schema
+        syncFullSchemaToTextarea();
 
         dslTextarea.addEventListener('input', (e) => {
             try {
-                // Only parse if value is a string
                 if (typeof e.target.value === 'string') {
-                    conditionTree = JSON.parse(e.target.value);
-                    renderConditionBuilder('condition-builder');
+                    const parsed = JSON.parse(e.target.value);
+                    // Sync form fields from JSON
+                    if (parsed.name !== undefined) {
+                        document.getElementById('rule-name').value = parsed.name || '';
+                    }
+                    if (parsed.description !== undefined) {
+                        document.getElementById('rule-description').value = parsed.description || '';
+                    }
+                    if (parsed.group !== undefined) {
+                        document.getElementById('rule-group').value = parsed.group || '';
+                    }
+                    if (parsed.priority !== undefined) {
+                        document.getElementById('rule-priority').value = parsed.priority || 0;
+                    }
+                    if (parsed.enabled !== undefined) {
+                        document.getElementById('rule-enabled').checked = parsed.enabled;
+                    }
+                    if (parsed.action !== undefined) {
+                        document.getElementById('rule-action').value = parsed.action || '';
+                    }
+                    // Update condition tree from condition_dsl
+                    if (parsed.condition_dsl) {
+                        conditionTree = parsed.condition_dsl;
+                        renderConditionBuilderOnly('condition-builder');
+                    }
                 }
             } catch (err) {
-                // Invalid JSON
+                // Invalid JSON - ignore
             }
         });
-        // When DSL JSON is pasted/edited, sync only the condition builder, not the other fields
-        dslTextarea.addEventListener('blur', () => {
-            // Re-sync form fields from their own inputs
-            document.getElementById('rule-name').value = document.getElementById('rule-name').value;
-            document.getElementById('rule-description').value = document.getElementById('rule-description').value;
-            document.getElementById('rule-group').value = document.getElementById('rule-group').value;
-            document.getElementById('rule-priority').value = document.getElementById('rule-priority').value;
-            document.getElementById('rule-enabled').checked = document.getElementById('rule-enabled').checked;
-            document.getElementById('rule-action').value = document.getElementById('rule-action').value;
-        });
     }
+
+    // Sync JSON when form fields change
+    ['rule-name', 'rule-description', 'rule-group', 'rule-priority', 'rule-action'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', syncFullSchemaToTextarea);
+    });
+    document.getElementById('rule-enabled')?.addEventListener('change', syncFullSchemaToTextarea);
+}
+
+// Build the full rule schema for JSON Editor
+function getFullRuleSchema() {
+    return {
+        name: document.getElementById('rule-name')?.value.trim() || '',
+        description: document.getElementById('rule-description')?.value.trim() || null,
+        group: document.getElementById('rule-group')?.value.trim() || null,
+        priority: parseInt(document.getElementById('rule-priority')?.value) || 0,
+        enabled: document.getElementById('rule-enabled')?.checked ?? true,
+        condition_dsl: conditionTree || { type: 'group', op: 'AND', children: [] },
+        action: document.getElementById('rule-action')?.value.trim() || ''
+    };
+}
+
+// Sync full schema to textarea
+function syncFullSchemaToTextarea() {
+    const dslTextarea = document.getElementById('condition-dsl');
+    if (dslTextarea) {
+        dslTextarea.value = JSON.stringify(getFullRuleSchema(), null, 2);
+    }
+}
+
+// Render condition builder without syncing to textarea (to avoid loops)
+function renderConditionBuilderOnly(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    container.appendChild(buildGroupNode(conditionTree, []));
 }
 
 function renderConditionBuilder(containerId) {
@@ -187,43 +242,53 @@ let syncTimeout;
 function syncToTextarea(containerId) {
     clearTimeout(syncTimeout);
     syncTimeout = setTimeout(() => {
-        const textarea = containerId === 'condition-builder' 
-            ? document.getElementById('condition-dsl')
-            : document.getElementById('edit-condition-dsl');
-        if (textarea) {
-            textarea.value = JSON.stringify(conditionTree, null, 2);
+        if (containerId === 'condition-builder') {
+            // For create page, sync full schema
+            syncFullSchemaToTextarea();
+        } else {
+            // For edit page, sync only condition tree
+            const textarea = document.getElementById('edit-condition-dsl');
+            if (textarea) {
+                textarea.value = JSON.stringify(conditionTree, null, 2);
+            }
         }
     }, 300);
 }
 
 async function saveRule() {
-    const name = document.getElementById('rule-name').value;
-    const description = document.getElementById('rule-description').value;
-    const group = document.getElementById('rule-group').value;
-    const priority = parseInt(document.getElementById('rule-priority').value);
+    // Get values from form fields (they are synced with JSON Editor)
+    const name = document.getElementById('rule-name').value.trim();
+    const description = document.getElementById('rule-description').value.trim();
+    const group = document.getElementById('rule-group').value.trim();
+    const priority = parseInt(document.getElementById('rule-priority').value) || 0;
     const enabled = document.getElementById('rule-enabled').checked;
-    const action = document.getElementById('rule-action').value;
+    const action = document.getElementById('rule-action').value.trim();
     
-    let dslObj;
-    try {
-        const dslText = document.getElementById('condition-dsl').value;
-        dslObj = JSON.parse(dslText);
-    } catch (e) {
-        alert('Invalid condition DSL JSON: ' + e.message);
+    // Validation
+    if (!name) {
+        alert('Please enter a rule name.');
         return;
     }
+    if (!action) {
+        alert('Please enter an action code.');
+        return;
+    }
+    
+    // Use conditionTree for condition_dsl
+    const conditionDsl = conditionTree || { type: 'group', op: 'AND', children: [] };
 
-    // Merge form fields into DSL JSON
-    dslObj.name = name;
-    dslObj.description = description;
-    dslObj.group = group;
-    dslObj.action = action;
-
+    // Build rule data matching backend RuleCreate schema
     const ruleData = {
-        ...dslObj,
-        priority,
-        enabled
+        name: name,
+        description: description || null,
+        group: group || null,
+        priority: priority,
+        enabled: enabled,
+        condition_dsl: conditionDsl,
+        action: action
     };
+
+    console.log('Sending rule data:', JSON.stringify(ruleData, null, 2));
 
     try {
         const response = await fetchWithAuth(`${API_BASE}/rules`, {
@@ -231,21 +296,199 @@ async function saveRule() {
             body: JSON.stringify(ruleData)
         });
 
+        console.log('Response status:', response.status);
+
         if (response.ok) {
             alert('Rule created successfully!');
             showPage('rules');
             loadRules();
         } else {
-            const error = await response.json();
-            if (error.detail && error.detail.conflicts) {
-                let msg = error.detail.message + '\n\n';
-                error.detail.conflicts.forEach(c => msg += `- ${c.description}\n`);
-                alert(msg);
-            } else {
-                alert('Error: ' + JSON.stringify(error.detail || error));
+            // Try to parse error response as JSON
+            let errorMsg = 'Error creating rule';
+            try {
+                const responseData = await response.json();
+                console.log('Error response:', responseData);
+                
+                if (responseData.detail && responseData.detail.conflicts) {
+                    errorMsg = responseData.detail.message + '\n\n';
+                    responseData.detail.conflicts.forEach(c => errorMsg += `- ${c.description}\n`);
+                } else if (Array.isArray(responseData.detail)) {
+                    errorMsg = 'Validation errors:\n';
+                    responseData.detail.forEach(err => {
+                        errorMsg += `- ${err.loc.join('.')}: ${err.msg}\n`;
+                    });
+                } else {
+                    errorMsg = 'Error: ' + JSON.stringify(responseData.detail || responseData);
+                }
+            } catch (parseError) {
+                // Response is not JSON
+                const text = await response.text().catch(() => '');
+                errorMsg = `Error (${response.status}): ${text || response.statusText}`;
             }
+            alert(errorMsg);
         }
     } catch (error) {
+        console.error('Save rule error:', error);
         alert('Error: ' + error.message);
     }
+}
+
+// Tab switching for Visual Builder / JSON Editor
+function switchTab(tabName) {
+    console.log('switchTab called with:', tabName);
+    
+    // Update tab buttons
+    const tabButtons = document.querySelectorAll('.tab-navigation .tab-btn');
+    tabButtons.forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update tab panes
+    const visualTab = document.getElementById('visual-tab');
+    const jsonTab = document.getElementById('json-tab');
+    
+    if (tabName === 'visual') {
+        if (visualTab) visualTab.classList.add('active');
+        if (jsonTab) jsonTab.classList.remove('active');
+    } else if (tabName === 'json') {
+        if (visualTab) visualTab.classList.remove('active');
+        if (jsonTab) jsonTab.classList.add('active');
+        
+        // Sync full rule schema to JSON textarea
+        syncFullSchemaToTextarea();
+    }
+}
+
+function setupTabSwitching() {
+    // This function is kept for backward compatibility but switchTab handles everything now
+}
+
+// Test Rule - Validate before saving
+async function testRule() {
+    const name = document.getElementById('rule-name').value.trim();
+    const description = document.getElementById('rule-description').value.trim();
+    const group = document.getElementById('rule-group').value.trim();
+    const priority = parseInt(document.getElementById('rule-priority').value) || 0;
+    const enabled = document.getElementById('rule-enabled').checked;
+    const action = document.getElementById('rule-action').value.trim();
+    
+    const resultsSection = document.getElementById('test-results-section');
+    const resultsDiv = document.getElementById('test-results');
+    
+    // Basic validation
+    if (!name) {
+        showTestResults('error', '❌ Validation Failed', '<p>Please enter a rule name.</p>');
+        return;
+    }
+    if (!action) {
+        showTestResults('error', '❌ Validation Failed', '<p>Please enter an action code.</p>');
+        return;
+    }
+    
+    // Use conditionTree for condition_dsl
+    const conditionDsl = conditionTree || { type: 'group', op: 'AND', children: [] };
+    
+    // Build rule data
+    const ruleData = {
+        name: name,
+        description: description || null,
+        group: group || null,
+        priority: priority,
+        enabled: enabled,
+        condition_dsl: conditionDsl,
+        action: action
+    };
+    
+    // Show loading state
+    showTestResults('warning', '🔄 Testing...', '<p>Validating rule and checking for conflicts...</p>');
+    
+    try {
+        const response = await fetchWithAuth(`${API_BASE}/rules/validate`, {
+            method: 'POST',
+            body: JSON.stringify(ruleData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            showTestResults('error', '❌ Validation Error', `<p>Server error: ${errorText}</p>`);
+            return;
+        }
+        
+        const result = await response.json();
+        console.log('Validation result:', result);
+        
+        let html = '';
+        
+        // Show conflicts
+        if (result.conflicts && result.conflicts.length > 0) {
+            html += '<div class="conflicts-section">';
+            html += '<h4>⚠️ Conflicts Found:</h4>';
+            result.conflicts.forEach(conflict => {
+                html += `<div class="conflict-item">
+                    <strong>${conflict.type === 'duplicate_condition' ? '🔄 Duplicate Condition' : '⚡ Priority Collision'}</strong>
+                    <p>${conflict.description}</p>
+                    <small>Existing Rule: <a href="#" onclick="viewRule(${conflict.existing_rule_id}); return false;">${conflict.existing_rule_name}</a> (ID: ${conflict.existing_rule_id})</small>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        
+        // Show similar rules
+        if (result.similar_rules && result.similar_rules.length > 0) {
+            html += '<div class="similar-section" style="margin-top: 1rem;">';
+            html += '<h4>📋 Similar Existing Rules:</h4>';
+            html += '<p style="font-size: 0.875rem; margin-bottom: 0.5rem;">These rules have similarities with your new rule:</p>';
+            result.similar_rules.forEach(rule => {
+                html += `<div class="similar-rule" onclick="viewRule(${rule.rule_id})">
+                    <strong>${rule.rule_name}</strong>
+                    <span style="float: right; font-size: 0.75rem; color: #666;">Similarity: ${rule.similarity_score}%</span>
+                    <br><small>Group: ${rule.group || 'default'} | Reasons: ${rule.reasons.join(', ')}</small>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        
+        // Determine overall status
+        if (result.conflicts && result.conflicts.length > 0) {
+            html = `<p><strong>⚠️ ${result.conflicts.length} conflict(s) found.</strong> Please resolve before saving.</p>` + html;
+            showTestResults('warning', '⚠️ Conflicts Detected', html);
+        } else if (result.similar_rules && result.similar_rules.length > 0) {
+            html = `<p><strong>✅ No conflicts found.</strong> However, similar rules exist. Please review to avoid duplicates.</p>` + html;
+            showTestResults('success', '✅ Rule Valid (With Suggestions)', html);
+        } else {
+            html = `<p><strong>✅ No conflicts or similar rules found.</strong> Your rule is ready to save!</p>`;
+            showTestResults('success', '✅ Rule Valid', html);
+        }
+        
+    } catch (error) {
+        console.error('Test rule error:', error);
+        showTestResults('error', '❌ Error', `<p>Failed to validate rule: ${error.message}</p>`);
+    }
+}
+
+function showTestResults(type, title, content) {
+    const resultsSection = document.getElementById('test-results-section');
+    const resultsDiv = document.getElementById('test-results');
+    
+    if (resultsSection && resultsDiv) {
+        resultsSection.style.display = 'block';
+        resultsDiv.className = `test-results ${type}`;
+        resultsDiv.innerHTML = `<h3>${title}</h3>${content}`;
+        
+        // Scroll to results
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// View an existing rule (for clicking on similar/conflicting rules)
+function viewRule(ruleId) {
+    // This would navigate to the edit page for the rule
+    // For now, just alert
+    alert(`View rule ID: ${ruleId}\nNavigating to edit page...`);
+    // TODO: Implement navigation to edit rule page
+    // editRule(ruleId);
 }
