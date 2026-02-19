@@ -3,7 +3,7 @@
 
 set -e
 
-echo "Setting up RETE Rule Engine Platform..."
+echo "Setting up General Rule Engine Platform..."
 
 cd backend
 python3.11 -m venv venv
