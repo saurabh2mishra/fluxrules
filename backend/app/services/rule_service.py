@@ -4,6 +4,26 @@ from app.models.rule import Rule, RuleVersion
 from app.schemas.rule import RuleCreate, RuleUpdate
 from app.services.audit_service import AuditService
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Try to import cache invalidation
+try:
+    from app.engine.optimized_rete_engine import RuleCache
+    _rule_cache = RuleCache()
+    CACHE_AVAILABLE = True
+except ImportError:
+    _rule_cache = None
+    CACHE_AVAILABLE = False
+
+
+def invalidate_rule_cache(group: Optional[str] = None):
+    """Invalidate rule cache when rules change."""
+    if CACHE_AVAILABLE and _rule_cache:
+        _rule_cache.invalidate(group)
+        logger.debug(f"Rule cache invalidated for group: {group or 'all'}")
+
 
 class RuleService:
     def __init__(self, db: Session):
@@ -41,11 +61,20 @@ class RuleService:
             current_version=1
         )
         self.db.add(rule)
+        self.db.flush()  # Get the ID without committing
+        
+        # Create version without separate commit
+        self._create_version(rule, user_id, auto_commit=False)
+        
+        # Log action without separate commit
+        self.audit_service.log_action("create", "rule", rule.id, user_id, "Rule created", auto_commit=False)
+        
+        # Single commit for everything
         self.db.commit()
         self.db.refresh(rule)
         
-        self._create_version(rule, user_id)
-        self.audit_service.log_action("create", "rule", rule.id, user_id, "Rule created")
+        # Invalidate cache after creating rule
+        invalidate_rule_cache(rule_data.group)
         
         return rule
     
@@ -53,6 +82,8 @@ class RuleService:
         rule = self.get_rule(rule_id)
         if not rule:
             return None
+        
+        old_group = rule.group
         
         update_data = rule_data.dict(exclude_unset=True)
         if "condition_dsl" in update_data:
@@ -70,18 +101,30 @@ class RuleService:
         self._create_version(rule, user_id)
         self.audit_service.log_action("update", "rule", rule.id, user_id, "Rule updated")
         
+        # Invalidate cache for both old and new group
+        invalidate_rule_cache(old_group)
+        if rule.group != old_group:
+            invalidate_rule_cache(rule.group)
+        
         return rule
     
     def delete_rule(self, rule_id: int) -> bool:
         rule = self.get_rule(rule_id)
         if not rule:
             return False
+        
+        group = rule.group
+        
         self.db.delete(rule)
         self.db.commit()
         self.audit_service.log_action("delete", "rule", rule_id, None, "Rule deleted")
+        
+        # Invalidate cache after deletion
+        invalidate_rule_cache(group)
+        
         return True
     
-    def _create_version(self, rule: Rule, user_id: int):
+    def _create_version(self, rule: Rule, user_id: int, auto_commit: bool = True):
         version = RuleVersion(
             rule_id=rule.id,
             version=rule.current_version,
@@ -96,7 +139,8 @@ class RuleService:
             created_by=user_id
         )
         self.db.add(version)
-        self.db.commit()
+        if auto_commit:
+            self.db.commit()
     
     def get_rule_versions(self, rule_id: int) -> List[RuleVersion]:
         return self.db.query(RuleVersion).filter(

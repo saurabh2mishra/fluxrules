@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     
     WORKER_CONCURRENCY: int = 4
     
+    # Engine settings
+    USE_OPTIMIZED_ENGINE: bool = True  # Set to False to use simple engine
+    RULE_CACHE_TTL: int = 300  # Cache TTL in seconds (5 minutes)
+    RULE_LOCAL_CACHE_TTL: int = 60  # Local cache TTL in seconds
+    
     class Config:
         case_sensitive = True
         env_file = ".env"

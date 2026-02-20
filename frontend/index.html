@@ -3,28 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RETE Rule Engine</title>
+    <title>General Rule Engine</title>
     <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
-    <div id="app">
-        <nav class="navbar">
-            <div class="nav-brand">General Rule Engine</div>
-            <div class="nav-menu">
-                <a href="#" class="nav-link" data-page="rules">Rules</a>
-                <a href="#" class="nav-link" data-page="create">Create Rule</a>
-                <a href="#" class="nav-link" data-page="test">Test Sandbox</a>
-                <a href="#" class="nav-link" data-page="graph">Dependencies</a>
-                <a href="#" class="nav-link" data-page="metrics">Metrics</a>
-                <a href="#" class="nav-link" id="logout-btn">Logout</a>
+    <div id="app" style="display: flex; min-height: 100vh;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" style="width: 240px; min-width: 200px; display: flex; flex-direction: column; align-items: stretch;">
+            <a href="#" class="nav-brand" data-page="home" style="padding: 2rem 1rem 1rem 1.5rem; font-size: 1.3rem; font-weight: bold; color: var(--primary); text-decoration: none; cursor: pointer;">
+                General Rule Engine
+            </a>
+            <nav class="nav-menu" style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem; padding: 0 1rem; margin-bottom: 0;">
+                <a href="#" class="nav-link" data-page="home">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Home</span></span>
+                </a>
+                <a href="#" class="nav-link" data-page="rules">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" stroke="var(--primary)" stroke-width="2"/><path d="M3 9h18" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Rules</span></span>
+                </a>
+                <a href="#" class="nav-link" data-page="create">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Create Rule</span></span>
+                </a>
+                <a href="#" class="nav-link" data-page="test">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--primary)" stroke-width="2"/><path d="M9 9h6v6H9z" fill="var(--primary)" opacity="0.2"/></svg> <span style="margin-left: 0.75rem;">Test Sandbox</span></span>
+                </a>
+                <a href="#" class="nav-link" data-page="graph">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="2"/><path d="M12 6v6l4 2" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Dependencies</span></span>
+                </a>
+                <a href="#" class="nav-link" data-page="metrics">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--primary)" stroke-width="2"/><path d="M7 17v-4m5 4V7m5 10v-2" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Metrics</span></span>
+                </a>
+            </nav>
+            <!-- User Info & Logout at bottom -->
+            <div style="padding: 1rem; border-top: 1px solid var(--border);">
+                <div id="user-info" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="var(--primary)" stroke-width="2"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="var(--primary)" stroke-width="2"/></svg>
+                    <span id="username-display">User</span>
+                </div>
+                <a href="#" class="nav-link" id="logout-btn" style="margin: 0;">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M16 17l5-5-5-5M21 12H9" stroke="var(--danger)" stroke-width="2"/><rect x="3" y="3" width="12" height="18" rx="2" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem; color: var(--danger);">Logout</span></span>
+                </a>
             </div>
-            <div id="user-info"></div>
-        </nav>
+        </aside>
+        <main class="main-content container" style="flex: 1; position: relative;">
+            <!-- Dark Mode Toggle - Top Right -->
+            <button class="dark-toggle" id="dark-toggle" title="Toggle dark mode" style="position: fixed; top: 0.25rem; right: 0.25rem; background: none; border: none; cursor: pointer; padding: 0.4rem; z-index: 1000;">
+                <span id="dark-toggle-icon" style="font-size: 1.3rem;">🌙</span>
+            </button>
+            <!-- HOME/LANDING PAGE -->
+            <div id="home-page" class="page" style="display: block;">
+                <div class="landing-hero" style="text-align: center; padding: 3rem 2rem;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--primary);">General Rule Engine</h1>
+                    <p style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 0.5rem;">
+                        A high-performance rule management platform.
+                    </p>
+                    <p class="hero-subtitle" style="font-size: 1.3rem; max-width: 600px; margin: 0 auto 2rem; min-height: 1.6em;">
+                        <span class="typed-text"></span><span class="cursor">|</span>
+                    </p>
+                </div>
+            </div>
 
-        <main class="container">
             <!-- RULES PAGE -->
-            <div id="rules-page" class="page">
+            <div id="rules-page" class="page" style="display: none;">
                 <div class="page-header">
                     <h1>Rules</h1>
                     <div class="filters">
@@ -43,71 +84,96 @@
             <!-- CREATE PAGE -->
             <div id="create-page" class="page" style="display:none;">
                 <h1>Create Rule</h1>
+                <!-- Stepper UI -->
+                <div class="stepper" id="rule-stepper">
+                    <div class="step" data-step="0"><span>1</span> Basic Info</div>
+                    <div class="step" data-step="1"><span>2</span> Conditions</div>
+                    <div class="step" data-step="2"><span>3</span> Action</div>
+                    <div class="step" data-step="3"><span>4</span> Review & Save</div>
+                </div>
                 <form id="rule-form">
-                    <!-- Basic Info -->
-                    <div class="form-section">
-                        <h2>Basic Information</h2>
-                        <div class="form-group">
-                            <label>Name *</label>
-                            <input type="text" id="rule-name" required placeholder="High Value Transaction Alert">
-                        </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea id="rule-description" rows="2"></textarea>
-                        </div>
-                        <div class="form-row">
+                    <!-- Step 1: Basic Info -->
+                    <div class="form-step" data-step="0">
+                        <div class="form-section">
                             <div class="form-group">
-                                <label>Group</label>
-                                <input type="text" id="rule-group" placeholder="fraud_detection">
+                                <label>Name *</label>
+                                <input type="text" id="rule-name" required placeholder="High Value Transaction Alert">
                             </div>
                             <div class="form-group">
-                                <label>Priority</label>
-                                <input type="number" id="rule-priority" value="0">
+                                <label>Description</label>
+                                <textarea id="rule-description" rows="2"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Group</label>
+                                    <input type="text" id="rule-group" placeholder="fraud_detection">
+                                </div>
+                                <div class="form-group">
+                                    <label>Priority</label>
+                                    <input type="number" id="rule-priority" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label><input type="checkbox" id="rule-enabled" checked> Enabled</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Step 2: Conditions -->
+                    <div class="form-step" data-step="1" style="display:none;">
+                        <div class="form-section">
+                            <h2>Conditions</h2>
+                            <div class="tab-navigation">
+                                <button type="button" class="tab-btn active" data-tab="visual" onclick="switchTab('visual')">Visual Builder</button>
+                                <button type="button" class="tab-btn" data-tab="json" onclick="switchTab('json')">JSON Editor</button>
+                            </div>
+                            <div class="tab-content">
+                                <div id="visual-tab" class="tab-pane active">
+                                    <div class="builder-help">Build your conditions visually. Changes sync automatically to JSON.</div>
+                                    <div id="condition-builder" class="condition-builder"></div>
+                                </div>
+                                <div id="json-tab" class="tab-pane">
+                                    <div class="builder-help">Edit the full rule schema as JSON. Changes sync automatically with the form fields.</div>
+                                    <textarea id="condition-dsl" rows="15" placeholder='{"name":"","description":"","group":"","priority":0,"enabled":true,"condition_dsl":{"type":"group","op":"AND","children":[]},"action":""}'></textarea>
+                                    <div class="json-status" id="json-status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Step 3: Action -->
+                    <div class="form-step" data-step="2" style="display:none;">
+                        <div class="form-section">
+                            <h2>Action</h2>
+                            <div class="form-group">
+                                <label>Select Action *</label>
+                                <select id="rule-action-select" class="form-control">
+                                    <option value="">-- Select an action --</option>
+                                </select>
+                                <small class="form-help" id="action-description"></small>
                             </div>
                             <div class="form-group">
-                                <label><input type="checkbox" id="rule-enabled" checked> Enabled</label>
+                                <label>Action Parameters (JSON, optional)</label>
+                                <textarea id="rule-action-params" rows="3" placeholder='{"message": "Alert triggered", "priority": "high"}'></textarea>
                             </div>
+                            <input type="hidden" id="rule-action">
                         </div>
                     </div>
-
-                    <!-- Conditions -->
-                    <div class="form-section">
-                        <h2>Conditions</h2>
-                        <div class="tab-navigation">
-                            <button type="button" class="tab-btn active" data-tab="visual" onclick="switchTab('visual')">Visual Builder</button>
-                            <button type="button" class="tab-btn" data-tab="json" onclick="switchTab('json')">JSON Editor</button>
+                    <!-- Step 4: Review & Save -->
+                    <div class="form-step" data-step="3" style="display:none;">
+                        <div class="form-section">
+                            <h2>Review & Save</h2>
+                            <pre id="rule-review-json" class="review-json-box"></pre>
                         </div>
-                        <div class="tab-content">
-                            <div id="visual-tab" class="tab-pane active">
-                                <div class="builder-help">Build your conditions visually. Changes sync automatically to JSON.</div>
-                                <div id="condition-builder" class="condition-builder"></div>
-                            </div>
-                            <div id="json-tab" class="tab-pane">
-                                <div class="builder-help">Edit the full rule schema as JSON. Changes sync automatically with the form fields.</div>
-                                <textarea id="condition-dsl" rows="15" placeholder='{"name":"","description":"","group":"","priority":0,"enabled":true,"condition_dsl":{"type":"group","op":"AND","children":[]},"action":""}'></textarea>
-                                <div class="json-status" id="json-status"></div>
-                            </div>
+                        <div id="test-results-section" class="form-section" style="display:none;">
+                            <h2>Test Results</h2>
+                            <div id="test-results" class="test-results"></div>
                         </div>
                     </div>
-
-                    <!-- Action -->
-                    <div class="form-section">
-                        <h2>Action</h2>
-                        <div class="form-group">
-                            <label>Action Code (Python) *</label>
-                            <textarea id="rule-action" rows="3" required placeholder="send_alert('high_value')"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Test Results Section -->
-                    <div id="test-results-section" class="form-section" style="display:none;">
-                        <h2>Test Results</h2>
-                        <div id="test-results" class="test-results"></div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="test-rule-btn">🧪 Test Rule</button>
-                        <button type="submit" class="btn btn-primary">Save Rule</button>
+                    <!-- Stepper Navigation -->
+                    <div class="form-actions stepper-actions">
+                        <button type="button" class="btn" id="step-back" style="display:none;">Back</button>
+                        <button type="button" class="btn btn-primary" id="step-next">Next</button>
+                        <button type="button" class="btn btn-secondary" id="test-rule-btn" style="display:none;">🧪 Test Rule</button>
+                        <button type="button" class="btn btn-primary" id="save-rule-btn" style="display:none;">Save Rule</button>
                         <button type="button" class="btn" id="cancel-rule">Cancel</button>
                     </div>
                 </form>
@@ -167,9 +233,16 @@
             <!-- TEST, GRAPH, METRICS pages -->
             <div id="test-page" class="page" style="display:none;">
                 <h1>Test Sandbox</h1>
-                <textarea id="test-event" rows="15" placeholder='{"amount":150}'></textarea>
-                <button id="run-test" class="btn btn-primary">Run Test</button>
-                <div id="test-results"></div>
+                <p class="page-description">Test your rules by simulating events. Enter a JSON event and see which rules match.</p>
+                <div class="form-section">
+                    <label for="test-event">Event JSON:</label>
+                    <textarea id="test-event" rows="10" placeholder='{"amount": 15000, "type": "transfer", "country": "US"}'></textarea>
+                </div>
+                <div class="form-actions">
+                    <button id="run-test" class="btn btn-primary">▶ Run Test</button>
+                    <button id="clear-test" class="btn">Clear</button>
+                </div>
+                <div id="sandbox-results" class="test-results-container"></div>
             </div>
 
             <div id="graph-page" class="page" style="display:none;">
@@ -183,9 +256,9 @@
             </div>
         </main>
     </div>
-
     <!-- JS -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="/js/toast.js"></script>
     <script src="/js/editor.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/rule-builder.js"></script>
@@ -196,5 +269,7 @@
     <script src="/js/dependency-graph.js"></script>
     <script src="/js/metrics-viewer.js"></script>
     <script src="/js/version-diff.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
 </body>
 </html>

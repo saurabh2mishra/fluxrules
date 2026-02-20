@@ -31,7 +31,8 @@ client = TestClient(app)
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert "message" in response.json()
+    # Root now serves HTML frontend
+    assert "<!DOCTYPE html>" in response.text or "message" in response.text
 
 def test_health():
     response = client.get("/health")

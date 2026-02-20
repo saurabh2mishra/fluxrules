@@ -1,5 +1,10 @@
 // frontend/js/dependency-graph.js
 async function loadDependencyGraph() {
+    const container = document.getElementById('dependency-graph');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="loading">Loading dependency graph...</div>';
+    
     try {
         const response = await fetchWithAuth(`${API_BASE}/rules/graph/dependencies`);
         const graph = await response.json();
@@ -7,6 +12,7 @@ async function loadDependencyGraph() {
         renderGraph(graph);
     } catch (error) {
         console.error('Error loading graph:', error);
+        container.innerHTML = '<div class="error-message">Error loading dependency graph. Please try again.</div>';
     }
 }
 
@@ -15,6 +21,45 @@ function renderGraph(graph) {
     if (!container) return;
 
     container.innerHTML = '';
+    
+    // Show message if no rules or no connections
+    if (!graph.nodes || graph.nodes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div style="font-size:2.5rem;">🕸️</div>
+                <h3>No Rules Found</h3>
+                <p>There are no rules to display in the dependency graph.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    if (graph.nodes.length === 1) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div style="font-size:2.5rem;">🕸️</div>
+                <h3>Single Rule</h3>
+                <p>You have 1 rule: <strong>${graph.nodes[0].name}</strong></p>
+                <p>Dependencies will appear when multiple rules share fields.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    if (graph.edges.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div style="font-size:2.5rem;">🕸️</div>
+                <h3>No Dependencies Found</h3>
+                <p>You have ${graph.nodes.length} rules, but they don't share any fields.</p>
+                <p>Rules are connected when they check the same fields (e.g., both check "amount").</p>
+                <div class="rule-list-mini">
+                    ${graph.nodes.map(n => `<span class="rule-chip">${n.name}</span>`).join('')}
+                </div>
+            </div>
+        `;
+        return;
+    }
 
     const width = container.clientWidth || 1000;
     const height = 600;

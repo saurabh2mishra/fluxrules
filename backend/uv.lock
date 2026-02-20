@@ -286,12 +286,6 @@ wheels = [
 ]
 
 [[package]]
-name = "durable-rules"
-version = "2.0.28"
-source = { registry = "https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/simple/" }
-sdist = { url = "https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/packages/durable-rules/2.0.28/durable_rules-2.0.28.tar.gz", hash = "sha256:053b26f5e48d312d4fa27995243f954671be6eece477f150c059c364eb4d7d61" }
-
-[[package]]
 name = "ecdsa"
 version = "0.19.1"
 source = { registry = "https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/simple/" }
@@ -484,7 +478,6 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "bcrypt" },
-    { name = "durable-rules" },
     { name = "email-validator" },
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
@@ -499,10 +492,14 @@ dependencies = [
     { name = "sqlalchemy" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "httpx" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "bcrypt", specifier = ">=4.0.1" },
-    { name = "durable-rules", specifier = ">=2.0.28" },
     { name = "email-validator", specifier = ">=2.1.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.104.1" },
     { name = "httpx", specifier = ">=0.25.1" },
@@ -516,6 +513,9 @@ requires-dist = [
     { name = "redis", specifier = ">=5.0.1" },
     { name = "sqlalchemy", specifier = ">=2.0.23" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "httpx", specifier = ">=0.28.1" }]
 
 [[package]]
 name = "greenlet"

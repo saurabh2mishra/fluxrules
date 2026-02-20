@@ -13,9 +13,37 @@ from app.models.user import User
 from app.models.rule import Rule
 from app.engine.rete_engine import ReteEngine
 from app.engine.dependency_graph import DependencyGraphBuilder
-from app.services.conflict_detector import ConflictDetector
+# Use optimized conflict detector for better performance
+try:
+    from app.services.optimized_conflict_detector import OptimizedConflictDetector as ConflictDetector, invalidate_conflict_cache
+except ImportError:
+    from app.services.conflict_detector import ConflictDetector
+    def invalidate_conflict_cache():
+        pass
+from app.engine.actions import get_available_actions, execute_action
 
 router = APIRouter(prefix="/rules", tags=["rules"])
+
+@router.get("/actions/available")
+def list_available_actions(
+    current_user: User = Depends(get_current_user)
+):
+    """Get list of all available action functions that can be used in rules"""
+    actions = get_available_actions()
+    
+    # Group by category
+    categorized = {}
+    for action in actions:
+        category = action["category"]
+        if category not in categorized:
+            categorized[category] = []
+        categorized[category].append(action)
+    
+    return {
+        "actions": actions,
+        "categorized": categorized,
+        "total": len(actions)
+    }
 
 def serialize_rule(rule: Rule) -> dict:
     """Convert Rule model to dict with proper JSON parsing"""
@@ -141,25 +169,68 @@ def extract_fields(condition_dsl: dict) -> set:
 @router.post("", response_model=RuleResponse)
 def create_rule(
     rule: RuleCreate,
+    skip_conflict_check: bool = Query(False, description="Skip conflict checking for faster creation"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Check for conflicts BEFORE creating
-    detector = ConflictDetector(db)
-    potential_conflicts = detector.check_new_rule_conflicts(rule)
+    # Check for conflicts BEFORE creating (unless skipped for bulk operations)
+    if not skip_conflict_check:
+        detector = ConflictDetector(db)
+        potential_conflicts = detector.check_new_rule_conflicts(rule)
+        
+        if potential_conflicts:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "Rule conflicts detected. Please resolve before creating.",
+                    "conflicts": potential_conflicts
+                }
+            )
     
-    if potential_conflicts:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "message": "Rule conflicts detected. Please resolve before creating.",
-                "conflicts": potential_conflicts
-            }
-        )
+    # Invalidate conflict cache after creating
+    invalidate_conflict_cache()
     
     service = RuleService(db)
     created_rule = service.create_rule(rule, current_user.id)
     return serialize_rule(created_rule)
+
+
+@router.post("/bulk", response_model=List[RuleResponse])
+def bulk_create_rules(
+    rules: List[RuleCreate],
+    validate_conflicts: bool = Query(True, description="Check all conflicts at the end"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create multiple rules in a single request.
+    Much faster than creating rules one by one.
+    """
+    service = RuleService(db)
+    created_rules = []
+    errors = []
+    
+    for i, rule in enumerate(rules):
+        try:
+            created_rule = service.create_rule(rule, current_user.id)
+            created_rules.append(serialize_rule(created_rule))
+        except Exception as e:
+            errors.append({"index": i, "rule_name": rule.name, "error": str(e)})
+    
+    # Invalidate cache after bulk operation
+    invalidate_conflict_cache()
+    
+    if errors:
+        raise HTTPException(
+            status_code=207,  # Multi-Status
+            detail={
+                "message": f"Created {len(created_rules)} rules, {len(errors)} failed",
+                "created": created_rules,
+                "errors": errors
+            }
+        )
+    
+    return created_rules
 
 @router.put("/{rule_id}", response_model=RuleResponse)
 def update_rule(
@@ -263,7 +334,40 @@ def reload_engine(
 ):
     engine = ReteEngine(db)
     engine.reload_rules()
-    return {"message": "Engine reloaded successfully"}
+    return {"message": "Engine reloaded successfully", "optimized": engine._optimized_engine is not None}
+
+@router.get("/engine/stats")
+def get_engine_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get engine performance statistics."""
+    engine = ReteEngine(db)
+    
+    stats = {
+        "engine_type": "optimized" if engine._optimized_engine else "simple",
+        "optimized_available": engine._optimized_engine is not None
+    }
+    
+    if engine._optimized_engine:
+        stats.update(engine._optimized_engine.get_stats())
+    
+    return stats
+
+@router.post("/engine/invalidate-cache")
+def invalidate_engine_cache(
+    group: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Invalidate rule cache (admin only)."""
+    engine = ReteEngine(db)
+    
+    if engine._optimized_engine:
+        engine._optimized_engine.invalidate_cache(group)
+        return {"message": f"Cache invalidated for group: {group or 'all'}", "success": True}
+    else:
+        return {"message": "Optimized engine not available, no cache to invalidate", "success": False}
 
 @router.get("/graph/dependencies", response_model=DependencyGraph)
 def get_dependency_graph(

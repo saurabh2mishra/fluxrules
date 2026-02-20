@@ -7,6 +7,12 @@ class DependencyGraphBuilder:
     def __init__(self, db: Session):
         self.db = db
     
+    def _parse_condition(self, condition_dsl) -> Dict[str, Any]:
+        """Parse condition_dsl whether it's a string or dict."""
+        if isinstance(condition_dsl, str):
+            return json.loads(condition_dsl)
+        return condition_dsl
+    
     def build_graph(self) -> Dict[str, Any]:
         rules = self.db.query(Rule).filter(Rule.enabled == True).all()
         
@@ -22,12 +28,10 @@ class DependencyGraphBuilder:
             })
         
         for i, rule1 in enumerate(rules):
-            # fields1 = self._extract_fields(json.loads(rule1.condition_dsl))
-            fields1 = self._extract_fields(rule1.condition_dsl)
+            fields1 = self._extract_fields(self._parse_condition(rule1.condition_dsl))
             
             for rule2 in rules[i+1:]:
-                # fields2 = self._extract_fields(json.loads(rule2.condition_dsl))
-                fields2 = self._extract_fields(rule2.condition_dsl)
+                fields2 = self._extract_fields(self._parse_condition(rule2.condition_dsl))
                 
                 shared_fields = fields1 & fields2
                 if shared_fields:
@@ -45,9 +49,13 @@ class DependencyGraphBuilder:
     def _extract_fields(self, condition: Dict[str, Any]) -> Set[str]:
         fields = set()
         
-        if condition["type"] == "condition":
-            fields.add(condition["field"])
-        elif condition["type"] == "group":
+        if not condition:
+            return fields
+        
+        if condition.get("type") == "condition":
+            if condition.get("field"):
+                fields.add(condition["field"])
+        elif condition.get("type") == "group":
             for child in condition.get("children", []):
                 fields.update(self._extract_fields(child))
         

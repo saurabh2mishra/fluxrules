@@ -8,8 +8,17 @@ function setToken(token) {
     localStorage.setItem('token', token);
 }
 
+function getUsername() {
+    return localStorage.getItem('username');
+}
+
+function setUsername(username) {
+    localStorage.setItem('username', username);
+}
+
 function removeToken() {
     localStorage.removeItem('token');
+    localStorage.removeItem('username');
 }
 
 function isAuthenticated() {
@@ -35,6 +44,7 @@ async function login(username, password) {
 
     const data = await response.json();
     setToken(data.access_token);
+    setUsername(username);  // Store username
     return data;
 }
 

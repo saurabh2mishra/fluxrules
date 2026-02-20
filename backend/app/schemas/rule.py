@@ -64,11 +64,19 @@ class SimulateRequest(BaseModel):
     event: Dict[str, Any]
     rule_ids: Optional[List[int]] = None
 
+class SimulateStats(BaseModel):
+    total_rules: Optional[int] = None
+    candidates_evaluated: Optional[int] = None
+    rules_matched: Optional[int] = None
+    evaluation_time_ms: Optional[float] = None
+    optimization: Optional[str] = None
+
 class SimulateResponse(BaseModel):
     matched_rules: List[Dict[str, Any]]
     execution_order: List[int]
     explanations: Dict[int, str]
     dry_run: bool = True
+    stats: Optional[SimulateStats] = None
 
 class DependencyGraph(BaseModel):
     nodes: List[Dict[str, Any]]

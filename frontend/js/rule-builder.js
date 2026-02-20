@@ -1,5 +1,9 @@
 let conditionTree = null;
 
+// Stepper Wizard Logic
+let currentStep = 0;
+const totalSteps = 4;
+
 function initRuleBuilder() {
     conditionTree = {
         type: 'group',
@@ -14,6 +18,11 @@ function initRuleBuilder() {
 
     document.getElementById('rule-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        await saveRule();
+    });
+
+    // Save Rule button click handler
+    document.getElementById('save-rule-btn')?.addEventListener('click', async () => {
         await saveRule();
     });
 
@@ -71,6 +80,103 @@ function initRuleBuilder() {
         document.getElementById(id)?.addEventListener('input', syncFullSchemaToTextarea);
     });
     document.getElementById('rule-enabled')?.addEventListener('change', syncFullSchemaToTextarea);
+    
+    // Load available actions
+    loadAvailableActions();
+    
+    // Action select change handler
+    document.getElementById('rule-action-select')?.addEventListener('change', (e) => {
+        const selected = e.target.value;
+        updateActionDescription(selected);
+        syncActionToHiddenField();
+        syncFullSchemaToTextarea();
+    });
+    
+    // Action params change handler
+    document.getElementById('rule-action-params')?.addEventListener('input', () => {
+        syncActionToHiddenField();
+        syncFullSchemaToTextarea();
+    });
+}
+
+// Store available actions
+let availableActions = [];
+
+// Load available actions from API
+async function loadAvailableActions() {
+    try {
+        const response = await fetchWithAuth(`${API_BASE}/rules/actions/available`);
+        if (response.ok) {
+            const data = await response.json();
+            availableActions = data.actions || [];
+            populateActionSelect(data.categorized || {});
+        }
+    } catch (error) {
+        console.error('Failed to load actions:', error);
+    }
+}
+
+// Populate the action dropdown
+function populateActionSelect(categorized) {
+    const select = document.getElementById('rule-action-select');
+    if (!select) return;
+    
+    // Clear existing options except the first
+    select.innerHTML = '<option value="">-- Select an action --</option>';
+    
+    // Add options grouped by category
+    for (const [category, actions] of Object.entries(categorized)) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = category.charAt(0).toUpperCase() + category.slice(1);
+        
+        actions.forEach(action => {
+            const option = document.createElement('option');
+            option.value = action.name;
+            option.textContent = action.name;
+            option.dataset.description = action.description;
+            optgroup.appendChild(option);
+        });
+        
+        select.appendChild(optgroup);
+    }
+}
+
+// Update action description when selection changes
+function updateActionDescription(actionName) {
+    const descEl = document.getElementById('action-description');
+    if (!descEl) return;
+    
+    const action = availableActions.find(a => a.name === actionName);
+    if (action) {
+        descEl.textContent = action.description;
+    } else {
+        descEl.textContent = '';
+    }
+}
+
+// Sync action select + params to hidden field
+function syncActionToHiddenField() {
+    const select = document.getElementById('rule-action-select');
+    const params = document.getElementById('rule-action-params');
+    const hidden = document.getElementById('rule-action');
+    
+    if (!select || !hidden) return;
+    
+    const actionName = select.value;
+    let actionValue = actionName;
+    
+    // If params provided, create a JSON string combining action and params
+    if (params && params.value.trim()) {
+        try {
+            const paramsObj = JSON.parse(params.value);
+            actionValue = JSON.stringify({ action: actionName, params: paramsObj });
+        } catch (e) {
+            // Invalid JSON, just use the action name
+            actionValue = actionName;
+        }
+    }
+    
+    hidden.value = actionValue;
 }
 
 // Build the full rule schema for JSON Editor
@@ -262,15 +368,35 @@ async function saveRule() {
     const group = document.getElementById('rule-group').value.trim();
     const priority = parseInt(document.getElementById('rule-priority').value) || 0;
     const enabled = document.getElementById('rule-enabled').checked;
-    const action = document.getElementById('rule-action').value.trim();
+    
+    // Get action from select or hidden field
+    const actionSelect = document.getElementById('rule-action-select');
+    const actionParams = document.getElementById('rule-action-params');
+    const actionHidden = document.getElementById('rule-action');
+    
+    let action = '';
+    if (actionSelect && actionSelect.value) {
+        action = actionSelect.value;
+        // Include params if provided
+        if (actionParams && actionParams.value.trim()) {
+            try {
+                const params = JSON.parse(actionParams.value);
+                action = JSON.stringify({ action: actionSelect.value, params: params });
+            } catch (e) {
+                // Keep just the action name if params are invalid JSON
+            }
+        }
+    } else if (actionHidden) {
+        action = actionHidden.value.trim();
+    }
     
     // Validation
     if (!name) {
-        alert('Please enter a rule name.');
+        showToast('Please enter a rule name.', 'error');
         return;
     }
     if (!action) {
-        alert('Please enter an action code.');
+        showToast('Please select an action.', 'error');
         return;
     }
     
@@ -299,7 +425,7 @@ async function saveRule() {
         console.log('Response status:', response.status);
 
         if (response.ok) {
-            alert('Rule created successfully!');
+            showToast('Rule created successfully!', 'success');
             showPage('rules');
             loadRules();
         } else {
@@ -325,11 +451,11 @@ async function saveRule() {
                 const text = await response.text().catch(() => '');
                 errorMsg = `Error (${response.status}): ${text || response.statusText}`;
             }
-            alert(errorMsg);
+            showToast(errorMsg, 'error');
         }
     } catch (error) {
         console.error('Save rule error:', error);
-        alert('Error: ' + error.message);
+        showToast('Error: ' + error.message, 'error');
     }
 }
 
@@ -487,8 +613,82 @@ function showTestResults(type, title, content) {
 // View an existing rule (for clicking on similar/conflicting rules)
 function viewRule(ruleId) {
     // This would navigate to the edit page for the rule
-    // For now, just alert
-    alert(`View rule ID: ${ruleId}\nNavigating to edit page...`);
+    showToast(`View rule ID: ${ruleId} (Navigating to edit page...)`, 'info');
     // TODO: Implement navigation to edit rule page
     // editRule(ruleId);
+}
+
+// Show/hide steps and update stepper UI
+function showStep(step) {
+    currentStep = step;
+    document.querySelectorAll('.form-step').forEach((el, idx) => {
+        el.style.display = idx === step ? 'block' : 'none';
+        el.classList.toggle('active', idx === step);
+    });
+    // Stepper UI
+    document.querySelectorAll('.stepper .step').forEach((el, idx) => {
+        el.classList.toggle('active', idx === step);
+        el.classList.toggle('completed', idx < step);
+    });
+    // Navigation buttons
+    document.getElementById('step-back').style.display = step > 0 ? '' : 'none';
+    document.getElementById('step-next').style.display = step < totalSteps - 1 ? '' : 'none';
+    document.getElementById('save-rule-btn').style.display = step === totalSteps - 1 ? '' : 'none';
+    document.getElementById('test-rule-btn').style.display = step === totalSteps - 1 ? '' : 'none';
+    // Review JSON
+    if (step === 3) {
+        const review = document.getElementById('rule-review-json');
+        if (review) review.textContent = JSON.stringify(getFullRuleSchema(), null, 2);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('create-page')) {
+        // Stepper navigation
+        document.getElementById('step-back').onclick = () => showStep(Math.max(0, currentStep - 1));
+        document.getElementById('step-next').onclick = () => {
+            if (validateStep(currentStep)) {
+                showStep(Math.min(totalSteps - 1, currentStep + 1));
+            }
+        };
+        // Show first step
+        showStep(0);
+    }
+});
+
+function validateStep(step) {
+    if (step === 0) {
+        // Basic Info validation
+        if (!document.getElementById('rule-name').value.trim()) {
+            showToast('Please enter a rule name.', 'error');
+            return false;
+        }
+        return true;
+    }
+    if (step === 2) {
+        // Action validation
+        if (!document.getElementById('rule-action-select').value) {
+            showToast('Please select an action.', 'error');
+            return false;
+        }
+    }
+    return true;
+}
+
+// Prism.js JSON syntax highlighting for JSON editor
+function updateJsonHighlight() {
+    const textarea = document.getElementById('condition-dsl');
+    const code = document.getElementById('json-highlight-code');
+    if (textarea && code) {
+        let val = textarea.value;
+        try {
+            val = JSON.stringify(JSON.parse(val), null, 2);
+        } catch {}
+        code.textContent = val;
+        if (window.Prism) Prism.highlightElement(code);
+    }
+}
+if (document.getElementById('condition-dsl')) {
+    document.getElementById('condition-dsl').addEventListener('input', updateJsonHighlight);
+    updateJsonHighlight();
 }

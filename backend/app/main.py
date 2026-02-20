@@ -40,9 +40,9 @@ app.include_router(metrics_router, prefix=settings.API_V1_STR)
 def startup_event():
     init_db()
 
-# Serve entire frontend (index.html, login.html, css, js, etc.)
-app.mount("/", StaticFiles(directory=BASE_DIR / "frontend", html=True), name="frontend")
-
 @app.get("/health", tags=["API"])
 def health():
     return {"status": "healthy"}
+
+# Serve entire frontend (index.html, login.html, css, js, etc.)
+app.mount("/", StaticFiles(directory=BASE_DIR / "frontend", html=True), name="frontend")

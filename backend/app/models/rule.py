@@ -1,5 +1,5 @@
 # backend/app/models/rule.py
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, JSON, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -7,12 +7,18 @@ from app.database import Base
 class Rule(Base):
     __tablename__ = "rules"
     
+    # Add composite index for fast conflict detection
+    __table_args__ = (
+        Index('ix_rules_group_priority', 'group', 'priority'),
+        Index('ix_rules_enabled_group', 'enabled', 'group'),
+    )
+    
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
     description = Column(Text)
     group = Column(String, index=True)
-    priority = Column(Integer, default=0)
-    enabled = Column(Boolean, default=True)
+    priority = Column(Integer, default=0, index=True)
+    enabled = Column(Boolean, default=True, index=True)
     condition_dsl = Column(JSON, nullable=False)
     action = Column(Text, nullable=False)
     rule_metadata = Column(JSON)  # Changed from 'metadata' to 'rule_metadata'

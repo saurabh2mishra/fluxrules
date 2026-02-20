@@ -14,7 +14,8 @@ class AuditService:
         entity_id: Optional[int],
         user_id: Optional[int],
         details: str,
-        execution_time: Optional[float] = None
+        execution_time: Optional[float] = None,
+        auto_commit: bool = True
     ):
         log = AuditLog(
             action_type=action_type,
@@ -25,4 +26,5 @@ class AuditService:
             execution_time=execution_time
         )
         self.db.add(log)
-        self.db.commit()
+        if auto_commit:
+            self.db.commit()

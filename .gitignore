@@ -98,4 +98,5 @@ node_modules/
 
 # UV
 .uv/
+uv.lock
 ```
