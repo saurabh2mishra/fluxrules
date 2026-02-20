@@ -21,13 +21,6 @@ dependencies = [
     "email-validator>=2.1.0",
 ]
 
-[tool.uv]
-native-tls = true
-
-[[tool.uv.index]]
-name = "nexus-python"
-url = "https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/simple/"
-
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",
