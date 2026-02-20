@@ -1,4 +1,3 @@
-// frontend/js/version-diff.js
 async function loadVersions(ruleId) {
     try {
         const response = await fetchWithAuth(`${API_BASE}/rules/${ruleId}/versions`);

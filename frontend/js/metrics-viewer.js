@@ -1,5 +1,3 @@
-// frontend/js/metrics-viewer.js
-
 async function loadMetrics() {
     const container = document.getElementById('metrics-container');
     if (!container) return;

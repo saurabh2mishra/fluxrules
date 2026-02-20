@@ -1,6 +1,6 @@
 # FluxRules
 
-A high-performance rule management and execution platform using the RETE algorithm. Built with FastAPI and have a modern but userfriendly UI.
+A high-performance rule management and execution platform using the RETE algorithm. Built with FastAPI and have a modern and user-friendly UI.
 
 ## Features
 

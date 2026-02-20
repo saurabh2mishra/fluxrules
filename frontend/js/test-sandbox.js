@@ -1,5 +1,3 @@
-// frontend/js/test-sandbox.js
-
 // Initialize test sandbox when navigating to the page
 function initTestSandbox() {
     console.log('🧪 Initializing Test Sandbox');

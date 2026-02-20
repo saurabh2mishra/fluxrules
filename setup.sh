@@ -1,5 +1,4 @@
 #!/bin/bash
-# setup.sh
 
 set -e
 

@@ -1,7 +1,7 @@
 [project]
-name = "GRE"
+name = "FluxRules"
 version = "0.1.0"
-description = "General Rules Engine"
+description = "FluxRules - Rule Engine"
 readme = "README.md"
 requires-python = ">=3.11"
 

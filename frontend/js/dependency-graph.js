@@ -1,4 +1,3 @@
-// frontend/js/dependency-graph.js
 async function loadDependencyGraph() {
     const container = document.getElementById('dependency-graph');
     if (!container) return;

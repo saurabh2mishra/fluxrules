@@ -1,4 +1,3 @@
-```gitignore
 # Python
 __pycache__/
 *.py[cod]
@@ -35,6 +34,8 @@ backend/venv/
 *.sqlite
 *.sqlite3
 rule_engine.db
+rule_engine.db-wal
+rule_engine.db-shm
 
 # IDE
 .vscode/
@@ -99,4 +100,3 @@ node_modules/
 # UV
 .uv/
 uv.lock
-```

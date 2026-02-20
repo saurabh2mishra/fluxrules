@@ -1,4 +1,3 @@
-// Toast notification utility
 window.showToast = function(message, type = "info", duration = 3500) {
     // Remove any existing toast
     document.querySelectorAll('.toast').forEach(t => t.remove());
