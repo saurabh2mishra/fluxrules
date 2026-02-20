@@ -117,7 +117,7 @@ function initTypingAnimation() {
     const typedElement = document.querySelector('.typed-text');
     if (!typedElement) return;
 
-    const phrases = ['Simple, but Fast!', 'Powered by RETE.', 'Built for Speed.', 'Easy to Use.'];
+    const phrases = ['Simple, but Fast!', 'Built for Speed.', 'Easy to Use.'];
     let phraseIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
