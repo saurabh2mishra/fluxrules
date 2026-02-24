@@ -1600,3 +1600,21 @@ body.dark-mode #condition-dsl {
     color: #f1f5f9 !important;
     border-color: #334155 !important;
 }
+
+#login-error, #login-error.error-message {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+#login-error.show, #login-error.error-message.show {
+  color: var(--danger) !important;
+}
+
+#register-error, #register-error.error-message {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+#register-error.show, #register-error.error-message.show {
+  color: var(--danger) !important;
+}

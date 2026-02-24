@@ -126,6 +126,7 @@ if (window.location.pathname.endsWith('login.html')) {
         } catch (error) {
             console.error('Login error:', error);
             errorEl.textContent = error.message;
+            errorEl.classList.add('show');
         }
     });
 
