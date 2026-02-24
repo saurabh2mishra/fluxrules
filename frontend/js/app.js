@@ -62,7 +62,7 @@ function showPage(pageName) {
 
     // Load data when switching to specific pages
     if (pageName === 'rules') {
-        loadRules();
+        loadRules(true);
     } else if (pageName === 'graph') {
         loadDependencyGraph();
     } else if (pageName === 'metrics') {
@@ -71,6 +71,8 @@ function showPage(pageName) {
         initRuleBuilder();
     } else if (pageName === 'test') {
         initTestSandbox();
+    } else if (pageName === 'conflicts') {
+        loadParkedConflicts();
     }
 }
 

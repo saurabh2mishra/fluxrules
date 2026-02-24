@@ -609,10 +609,73 @@ class ReteEngine:
         
         explanation = f"Rule '{terminal.rule_name}' matched: "
         explanation += self._explain_condition(condition_dsl, event)
+        
+        matching_conditions = self._get_matching_conditions(condition_dsl, event)
+        if matching_conditions:
+            explanation += f" | Matching conditions: {', '.join(matching_conditions)}"
+        
         return explanation
     
+    def _get_matching_conditions(self, condition: Dict[str, Any], event: Dict[str, Any]) -> List[str]:
+        """Get list of conditions that evaluated to True."""
+        matching = []
+        
+        if not condition:
+            return matching
+        
+        condition_type = condition.get("type")
+        
+        if condition_type == "condition":
+            field = condition.get("field", "?")
+            op = condition.get("op", "?")
+            value = condition.get("value", "?")
+            event_value = event.get(field)
+            
+            # Check if this condition would match
+            if event_value is not None:
+                result = self._evaluate_single_condition(op, event_value, value)
+                if result:
+                    matching.append(f"{field}={event_value} {op} {value}")
+        
+        elif condition_type == "group":
+            children = condition.get("children", [])
+            for child in children:
+                matching.extend(self._get_matching_conditions(child, event))
+        
+        return matching
+    
+    def _evaluate_single_condition(self, op: str, event_value: Any, value: Any) -> bool:
+        """Helper to evaluate a single condition."""
+        try:
+            if op == "==":
+                return event_value == value
+            elif op == "!=":
+                return event_value != value
+            elif op == ">":
+                return event_value > value
+            elif op == ">=":
+                return event_value >= value
+            elif op == "<":
+                return event_value < value
+            elif op == "<=":
+                return event_value <= value
+            elif op == "in":
+                return event_value in value
+            elif op == "not_in":
+                return event_value not in value
+            elif op == "contains":
+                return value in event_value
+            elif op == "starts_with":
+                return str(event_value).startswith(str(value))
+            elif op == "ends_with":
+                return str(event_value).endswith(str(value))
+            else:
+                return False
+        except:
+            return False
+
     def _explain_condition(self, condition: Dict[str, Any], event: Dict[str, Any]) -> str:
-        """Recursively explain condition evaluation."""
+        """Recursively explain condition evaluation with pass/fail indicators."""
         if not condition:
             return "no conditions"
         
@@ -622,8 +685,18 @@ class ReteEngine:
             field = condition.get("field", "?")
             op = condition.get("op", "?")
             value = condition.get("value", "?")
-            event_value = event.get(field, "undefined")
-            return f"{field}={event_value} {op} {value}"
+            event_value = event.get(field)
+            
+            # Determine if condition passed
+            if event_value is None:
+                # Field not present in event - condition fails
+                return f"[✗ {field}=MISSING {op} {value}]"
+            else:
+                result = self._evaluate_single_condition(op, event_value, value)
+                if result:
+                    return f"[✓ {field}={event_value} {op} {value}]"
+                else:
+                    return f"[✗ {field}={event_value} {op} {value}]"
         
         elif condition_type == "group":
             op = condition.get("op", "AND")

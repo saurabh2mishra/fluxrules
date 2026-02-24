@@ -8,6 +8,7 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.rules import router as rules_router
 from app.api.routes.events import router as events_router
 from app.api.routes.metrics import router as metrics_router
+from app.api.routes.dependency_graph import router as dependency_graph_router
 from app.database import init_db
 
 
@@ -35,6 +36,7 @@ app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(rules_router, prefix=settings.API_V1_STR)
 app.include_router(events_router, prefix=settings.API_V1_STR)
 app.include_router(metrics_router, prefix=settings.API_V1_STR)
+app.include_router(dependency_graph_router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
 def startup_event():

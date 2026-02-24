@@ -22,6 +22,9 @@ except ImportError:
         pass
 from app.engine.actions import get_available_actions, execute_action
 
+from app.models.conflicted_rule import ConflictedRule
+from fastapi.responses import JSONResponse
+
 router = APIRouter(prefix="/rules", tags=["rules"])
 
 @router.get("/actions/available")
@@ -179,11 +182,33 @@ def create_rule(
         potential_conflicts = detector.check_new_rule_conflicts(rule)
         
         if potential_conflicts:
+            # Park the rejected rule for business review
+            for conflict in potential_conflicts:
+                parked = ConflictedRule(
+                    name=rule.name,
+                    description=rule.description,
+                    group=rule.group,
+                    priority=rule.priority,
+                    enabled=rule.enabled,
+                    condition_dsl=json.dumps(rule.condition_dsl) if not isinstance(rule.condition_dsl, str) else rule.condition_dsl,
+                    action=rule.action,
+                    rule_metadata=json.dumps(rule.rule_metadata) if rule.rule_metadata else None,
+                    conflict_type=conflict.get("type", "unknown"),
+                    conflict_description=conflict.get("description", ""),
+                    conflicting_rule_id=conflict.get("existing_rule_id"),
+                    conflicting_rule_name=conflict.get("existing_rule_name"),
+                    submitted_by=current_user.id,
+                    status="pending"
+                )
+                db.add(parked)
+            db.commit()
+            
             raise HTTPException(
                 status_code=400,
                 detail={
-                    "message": "Rule conflicts detected. Please resolve before creating.",
-                    "conflicts": potential_conflicts
+                    "message": "Rule conflicts detected. The rule has been parked for business review.",
+                    "conflicts": potential_conflicts,
+                    "parked": True
                 }
             )
     
@@ -384,3 +409,194 @@ def detect_conflicts(
 ):
     detector = ConflictDetector(db)
     return detector.detect_all_conflicts()
+
+
+# ── Parked Conflict Rules ──────────────────────────────────────────
+
+@router.get("/conflicts/parked")
+def list_parked_conflicts(
+    status: Optional[str] = Query(None, description="Filter by status: pending, approved, dismissed"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List all rules that were rejected due to conflicts and parked for review."""
+    query = db.query(ConflictedRule)
+    if status:
+        query = query.filter(ConflictedRule.status == status)
+    parked = query.order_by(ConflictedRule.submitted_at.desc()).all()
+    results = []
+    for p in parked:
+        results.append({
+            "id": p.id,
+            "name": p.name,
+            "description": p.description,
+            "group": p.group,
+            "priority": p.priority,
+            "enabled": p.enabled,
+            "condition_dsl": json.loads(p.condition_dsl) if p.condition_dsl else None,
+            "action": p.action,
+            "conflict_type": p.conflict_type,
+            "conflict_description": p.conflict_description,
+            "conflicting_rule_id": p.conflicting_rule_id,
+            "conflicting_rule_name": p.conflicting_rule_name,
+            "submitted_by": p.submitted_by,
+            "submitted_at": p.submitted_at.isoformat() if p.submitted_at else None,
+            "status": p.status,
+            "reviewed_by": p.reviewed_by,
+            "reviewed_at": p.reviewed_at.isoformat() if p.reviewed_at else None,
+            "review_notes": p.review_notes,
+        })
+    return results
+
+
+@router.put("/conflicts/parked/{parked_id}")
+def review_parked_conflict(
+    parked_id: int,
+    action: str = Query(..., description="Action: 'dismiss' or 'resolve_create'"),
+    notes: Optional[str] = Query(None, description="Review notes"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Review a parked conflict rule.
+    - 'dismiss': Mark as dismissed (business user decided not to create it).
+    - 'resolve_create': Only allowed via POST with a modified rule body (see resolve endpoint below).
+    """
+    from datetime import datetime
+
+    parked = db.query(ConflictedRule).filter(ConflictedRule.id == parked_id).first()
+    if not parked:
+        raise HTTPException(status_code=404, detail="Parked conflict rule not found")
+
+    if action == "dismiss":
+        parked.status = "dismissed"
+        parked.reviewed_by = current_user.id
+        parked.reviewed_at = datetime.utcnow()
+        parked.review_notes = notes
+        db.commit()
+        return {"message": f"Parked rule '{parked.name}' dismissed.", "status": "dismissed"}
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'dismiss'. To create, use the resolve endpoint with modifications.")
+
+
+@router.post("/conflicts/parked/{parked_id}/resolve")
+def resolve_parked_conflict(
+    parked_id: int,
+    modified_rule: RuleCreate,
+    notes: Optional[str] = Query(None, description="Review notes"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Resolve a parked conflict by submitting a modified version of the rule.
+    The rule must be changed from the original parked version — unchanged rules are rejected.
+    The modified rule goes through normal conflict checking.
+    """
+    from datetime import datetime
+    import hashlib
+
+    parked = db.query(ConflictedRule).filter(ConflictedRule.id == parked_id).first()
+    if not parked:
+        raise HTTPException(status_code=404, detail="Parked conflict rule not found")
+
+    if parked.status != "pending":
+        raise HTTPException(status_code=400, detail=f"This parked rule is already '{parked.status}'. Only 'pending' rules can be resolved.")
+
+    # Check if the user actually modified the rule
+    original_condition = json.loads(parked.condition_dsl) if isinstance(parked.condition_dsl, str) else parked.condition_dsl
+    modified_condition = modified_rule.condition_dsl if isinstance(modified_rule.condition_dsl, dict) else json.loads(modified_rule.condition_dsl)
+
+    original_hash = hashlib.md5(json.dumps({
+        "name": parked.name,
+        "group": parked.group,
+        "priority": parked.priority,
+        "condition_dsl": json.dumps(original_condition, sort_keys=True),
+        "action": parked.action,
+    }, sort_keys=True).encode()).hexdigest()
+
+    modified_hash = hashlib.md5(json.dumps({
+        "name": modified_rule.name,
+        "group": modified_rule.group,
+        "priority": modified_rule.priority,
+        "condition_dsl": json.dumps(modified_condition, sort_keys=True),
+        "action": modified_rule.action,
+    }, sort_keys=True).encode()).hexdigest()
+
+    if original_hash == modified_hash:
+        raise HTTPException(
+            status_code=400,
+            detail="The rule has not been modified. Please change the priority, condition, group, or action to resolve the conflict before creating."
+        )
+
+    # Try to create the modified rule with normal conflict checking
+    detector = ConflictDetector(db)
+    new_conflicts = detector.check_new_rule_conflicts(modified_rule)
+
+    if new_conflicts:
+        # Still conflicts — update parked entry with the new version and new conflict info
+        parked.name = modified_rule.name
+        parked.description = modified_rule.description
+        parked.group = modified_rule.group
+        parked.priority = modified_rule.priority
+        parked.enabled = modified_rule.enabled
+        parked.condition_dsl = json.dumps(modified_condition)
+        parked.action = modified_rule.action
+        parked.rule_metadata = json.dumps(modified_rule.rule_metadata) if modified_rule.rule_metadata else None
+        parked.conflict_type = new_conflicts[0].get("type", "unknown")
+        parked.conflict_description = new_conflicts[0].get("description", "")
+        parked.conflicting_rule_id = new_conflicts[0].get("existing_rule_id")
+        parked.conflicting_rule_name = new_conflicts[0].get("existing_rule_name")
+        db.commit()
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "The modified rule still has conflicts. Please make further changes.",
+                "conflicts": new_conflicts
+            }
+        )
+
+    # No conflicts — create the rule
+    service = RuleService(db)
+    created_rule = service.create_rule(modified_rule, current_user.id)
+    invalidate_conflict_cache()
+
+    # Mark parked rule as approved
+    parked.status = "approved"
+    parked.reviewed_by = current_user.id
+    parked.reviewed_at = datetime.utcnow()
+    parked.review_notes = notes or "Resolved with modifications"
+    db.commit()
+
+    return {
+        "message": f"Rule '{modified_rule.name}' created successfully after resolving conflicts.",
+        "status": "approved",
+        "created_rule": serialize_rule(created_rule)
+    }
+
+
+
+@router.delete("/conflicts/parked/{parked_id}")
+def delete_parked_conflict(
+    parked_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Permanently delete a parked conflict rule."""
+    parked = db.query(ConflictedRule).filter(ConflictedRule.id == parked_id).first()
+    if not parked:
+        raise HTTPException(status_code=404, detail="Parked conflict rule not found")
+    name = parked.name
+    db.delete(parked)
+    db.commit()
+    return {"message": f"Parked rule '{name}' deleted.", "id": parked_id}
+
+@router.get("/groups")
+def get_rule_groups(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all unique rule groups for dropdown"""
+    groups = db.query(Rule.group).distinct().all()
+    # Flatten and filter out None/empty
+    return {"groups": [g[0] for g in groups if g[0]]}

@@ -176,7 +176,7 @@ class ReteEngine:
     
     def _generate_explanation(self, rule: Rule, event: Dict[str, Any]) -> str:
         condition_dsl = json.loads(rule.condition_dsl)
-        explanation = f"Rule '{rule.name}' matched because: "
+        explanation = f"Rule '{rule.name}' matched: "
         explanation += self._explain_condition(condition_dsl, event)
         return explanation
     
@@ -186,7 +186,16 @@ class ReteEngine:
             op = condition["op"]
             value = condition["value"]
             event_value = event.get(field)
-            return f"{field} ({event_value}) {op} {value}"
+            
+            # Determine if condition passed
+            if event_value is None:
+                return f"[✗ {field}=MISSING {op} {value}]"
+            else:
+                result = self._evaluate_single_condition(op, event_value, value)
+                if result:
+                    return f"[✓ {field}={event_value} {op} {value}]"
+                else:
+                    return f"[✗ {field}={event_value} {op} {value}]"
         
         elif condition["type"] == "group":
             op = condition["op"]
@@ -195,3 +204,27 @@ class ReteEngine:
             return f"({f' {op} '.join(explanations)})"
         
         return ""
+    
+    def _evaluate_single_condition(self, op: str, event_value, value) -> bool:
+        """Helper to evaluate a single condition for explanation purposes."""
+        try:
+            if op == ">":
+                return event_value > value
+            elif op == ">=":
+                return event_value >= value
+            elif op == "<":
+                return event_value < value
+            elif op == "<=":
+                return event_value <= value
+            elif op == "==":
+                return event_value == value
+            elif op == "!=":
+                return event_value != value
+            elif op == "in":
+                return event_value in value
+            elif op == "contains":
+                return value in event_value
+            else:
+                return False
+        except:
+            return False

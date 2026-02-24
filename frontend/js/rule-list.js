@@ -9,10 +9,19 @@ function escapeHtml(str) {
 }
 
 let allRules = []; // Store all rules for filtering
+let loadedRules = [];
+let skip = 0;
+const limit = 50;
+let allLoaded = false;
 
-async function loadRules() {
+async function loadRules(initial = false) {
+    if (initial) {
+        skip = 0;
+        loadedRules = [];
+        allLoaded = false;
+    }
     try {
-        const response = await fetchWithAuth(`${API_BASE}/rules`);
+        const response = await fetchWithAuth(`${API_BASE}/rules?skip=${skip}&limit=${limit}`);
         
         if (!response.ok) {
             console.error('Failed to load rules:', response.status);
@@ -24,17 +33,19 @@ async function loadRules() {
         }
         
         const rules = await response.json();
-        console.log('Loaded rules:', rules);
-        allRules = rules || [];
+        if (rules.length < limit) allLoaded = true;
+        loadedRules = loadedRules.concat(rules);
+        allRules = loadedRules;
 
-        // Populate group filter dropdown
-        populateGroupFilter(allRules);
+        // Populate group filter dropdown from API
+        await populateGroupFilterFromAPI();
 
         // Setup filter event listeners (only once)
         setupFilterListeners();
 
         // Render rules
         renderFilteredRules();
+        renderLoadMoreButton();
     } catch (error) {
         console.error('Error loading rules:', error);
         const container = document.getElementById('rules-list');
@@ -44,12 +55,19 @@ async function loadRules() {
     }
 }
 
-function populateGroupFilter(rules) {
+async function populateGroupFilterFromAPI() {
     const groupSelect = document.getElementById('filter-group');
     if (!groupSelect) return;
-    const groups = [...new Set(rules.map(r => r.group).filter(Boolean))];
-    groupSelect.innerHTML = '<option value="">All Groups</option>' +
-        groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+    try {
+        const response = await fetchWithAuth(`${API_BASE}/rules/groups`);
+        if (!response.ok) throw new Error('Failed to fetch groups');
+        const data = await response.json();
+        const groups = data.groups || [];
+        groupSelect.innerHTML = '<option value="">All Groups</option>' +
+            groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+    } catch (e) {
+        groupSelect.innerHTML = '<option value="">All Groups</option>';
+    }
 }
 
 let filtersInitialized = false;
@@ -69,6 +87,28 @@ function setupFilterListeners() {
     }
     if (statusSelect) {
         statusSelect.addEventListener('change', renderFilteredRules);
+    }
+}
+
+function renderLoadMoreButton() {
+    const container = document.getElementById('rules-list');
+    let btn = document.getElementById('load-more-rules-btn');
+    if (!container) return;
+    if (!allLoaded) {
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'load-more-rules-btn';
+            btn.className = 'btn btn-secondary';
+            btn.textContent = 'Load More Rules';
+            btn.onclick = () => {
+                skip += limit;
+                loadRules();
+            };
+            container.parentNode.appendChild(btn);
+        }
+        btn.style.display = 'block';
+    } else if (btn) {
+        btn.style.display = 'none';
     }
 }
 
@@ -118,6 +158,9 @@ function renderFilteredRules() {
         const card = createRuleCard(rule);
         container.appendChild(card);
     });
+
+    // After rendering cards, call renderLoadMoreButton()
+    renderLoadMoreButton();
 }
 
 function createRuleCard(rule) {
@@ -172,6 +215,20 @@ function createRuleCard(rule) {
     actions.appendChild(editBtn);
     actions.appendChild(deleteBtn);
     actions.appendChild(expandBtn);
+
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn btn-sm btn-secondary';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', () => {
+        const jsonString = JSON.stringify(rule, null, 2);
+        navigator.clipboard.writeText(jsonString).then(() => {
+            showToast('Rule copied to clipboard!', 'success');
+        }, () => {
+            showToast('Failed to copy rule.', 'error');
+        });
+    });
+    actions.appendChild(copyBtn);
 
     header.appendChild(titleSection);
     header.appendChild(actions);
@@ -239,15 +296,13 @@ async function deleteRule(ruleId) {
         const response = await fetchWithAuth(`${API_BASE}/rules/${ruleId}`, {
             method: 'DELETE'
         });
-
         if (response.ok) {
-            showToast('Rule deleted successfully!', 'success');
-            loadRules();
+            showToast('Rule deleted successfully.', 'success');
+            await loadRules(true);
         } else {
-            const error = await response.json();
-            showToast('Error deleting rule: ' + (error.detail || 'Unknown error'), 'error');
+            showToast('Failed to delete rule.', 'error');
         }
     } catch (error) {
-        showToast(`Error: ${error.message}`, 'error');
+        showToast('Error deleting rule: ' + error.message, 'error');
     }
 }

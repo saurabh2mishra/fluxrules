@@ -43,7 +43,7 @@ def get_db():
         db.close()
 
 def init_db():
-    from app.models import rule, user, audit
+    from app.models import rule, user, audit, conflicted_rule
     Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()

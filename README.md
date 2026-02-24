@@ -1,6 +1,6 @@
 # FluxRules
 
-A high-performance rule management and execution platform using the RETE algorithm. Built with FastAPI and have a modern and user-friendly UI.
+A high-performance rule management and execution platform. Built with FastAPI and has a modern and user-friendly UI.
 
 ## Features
 
@@ -67,51 +67,8 @@ docker-compose up --build
 
 ### Access
 - **Frontend:** http://localhost:8080
-- **API Docs:** http://localhost:8000/docs
+- **Full API Docs Reference:** http://localhost:8000/docs
 - **Login:** `admin` / `admin123`
-
-## API Reference
-
-### Authentication
-```
-POST /api/v1/auth/token        # Login (form data)
-POST /api/v1/auth/register     # Register user
-```
-
-### Rules
-```
-GET    /api/v1/rules                    # List all rules
-POST   /api/v1/rules                    # Create rule
-POST   /api/v1/rules?skip_conflict_check=true  # Fast create (no validation)
-POST   /api/v1/rules/bulk               # Bulk create
-GET    /api/v1/rules/{id}               # Get rule
-PUT    /api/v1/rules/{id}               # Update rule
-DELETE /api/v1/rules/{id}               # Delete rule
-POST   /api/v1/rules/validate           # Validate before save
-POST   /api/v1/rules/simulate           # Test rule against event
-```
-
-### Versioning
-```
-GET /api/v1/rules/{id}/versions              # List versions
-GET /api/v1/rules/{id}/versions/{version}    # Get specific version
-GET /api/v1/rules/{id}/diff/{v1}/{v2}        # Compare versions
-```
-
-### Engine
-```
-POST /api/v1/rules/reload              # Hot reload rules
-GET  /api/v1/rules/engine/stats        # Engine statistics
-POST /api/v1/rules/engine/invalidate-cache  # Clear cache
-GET  /api/v1/rules/graph/dependencies  # Dependency graph
-GET  /api/v1/rules/conflicts/detect    # Find all conflicts
-GET  /api/v1/rules/actions/available   # List action functions
-```
-
-### Events
-```
-POST /api/v1/events    # Submit event for processing (requires Redis)
-```
 
 ## Rule Structure
 

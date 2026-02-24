@@ -36,6 +36,25 @@ function clearTest() {
     document.getElementById('sandbox-results').innerHTML = '';
 }
 
+function insertExampleEvent() {
+    const exampleEvent = {
+        "amount": 15000,
+        "type": "transfer",
+        "country": "US",
+        "user_id": "user_12345",
+        "account_age": 30
+    };
+    document.getElementById('test-event').value = JSON.stringify(exampleEvent, null, 2);
+    // Clear the results area so user knows to click Run Test
+    document.getElementById('sandbox-results').innerHTML = `
+        <div class="empty-state">
+            <div style="font-size:2.5rem;">✅</div>
+            <h3>Example Event Inserted</h3>
+            <p>Click <strong>Run Test</strong> to evaluate this event against your rules.</p>
+        </div>
+    `;
+}
+
 async function runTest() {
     console.log('📝 runTest() called');
     const eventText = document.getElementById('test-event').value.trim();
@@ -50,7 +69,7 @@ async function runTest() {
                 <div style="font-size:2.5rem;">🧪</div>
                 <h3>No Event Entered</h3>
                 <p>Please enter a JSON event to test your rules.</p>
-                <button class="btn btn-primary" onclick="document.getElementById('test-event').value = '{\n  \"amount\": 15000, \"type\": \"transfer\", \"country\": \"US\"\n}';">Insert Example Event</button>
+                <button class="btn btn-primary" onclick="insertExampleEvent()">Insert Example Event</button>
             </div>
         `;
         return;
@@ -125,6 +144,10 @@ function displayTestResults(result) {
     `;
 
     result.matched_rules.forEach((rule, idx) => {
+        const explanation = result.explanations && result.explanations[rule.id] 
+            ? formatExplanation(result.explanations[rule.id]) 
+            : '';
+        
         html += `
             <div class="matched-rule-card">
                 <div class="rule-header">
@@ -134,12 +157,41 @@ function displayTestResults(result) {
                 </div>
                 <div class="rule-details">
                     <p><strong>Action:</strong> <code>${rule.action}</code></p>
-                    ${result.explanations && result.explanations[rule.id] ? 
-                        `<p><strong>Explanation:</strong> ${result.explanations[rule.id]}</p>` : ''}
+                    ${explanation}
                 </div>
             </div>
         `;
     });
 
     container.innerHTML = html;
+}
+
+/**
+ * Format the explanation with styled pass/fail indicators
+ */
+function formatExplanation(explanation) {
+    if (!explanation) return '';
+    
+    // Split by the pipe separator to get main explanation and matching conditions
+    const parts = explanation.split(' | ');
+    const mainExplanation = parts[0];
+    const matchingConditions = parts[1] || '';
+    
+    // Format the main explanation with colored indicators
+    let formatted = mainExplanation
+        // Style passing conditions [✓ ...]
+        .replace(/\[✓([^\]]+)\]/g, '<span class="condition-pass">[✓$1]</span>')
+        // Style failing conditions with missing fields [✗ ...=MISSING ...]
+        .replace(/\[✗([^=]+)=MISSING([^\]]+)\]/g, '<span class="condition-missing">[✗$1=MISSING$2]</span>')
+        // Style other failing conditions [✗ ...]
+        .replace(/\[✗([^\]]+)\]/g, '<span class="condition-fail">[✗$1]</span>');
+    
+    let html = `<div class="rule-explanation">${formatted}</div>`;
+    
+    // Add matching conditions summary if present
+    if (matchingConditions) {
+        html += `<div class="matching-conditions"><strong>✓ Why it matched:</strong> ${matchingConditions.replace('Matching conditions: ', '')}</div>`;
+    }
+    
+    return html;
 }

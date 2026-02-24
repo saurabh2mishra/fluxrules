@@ -34,6 +34,9 @@
                 <a href="#" class="nav-link" data-page="metrics">
                     <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--primary)" stroke-width="2"/><path d="M7 17v-4m5 4V7m5 10v-2" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Metrics</span></span>
                 </a>
+                <a href="#" class="nav-link" data-page="conflicts">
+                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z" stroke="var(--warning, #f59e0b)" stroke-width="2" fill="none"/><path d="M12 10v4M12 18h.01" stroke="var(--warning, #f59e0b)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Conflicts</span></span>
+                </a>
             </nav>
             <!-- User Info & Logout at bottom -->
             <div style="padding: 1rem; border-top: 1px solid var(--border);">
@@ -254,6 +257,23 @@
                 <h1>Metrics</h1>
                 <div id="metrics-container"></div>
             </div>
+
+            <!-- CONFLICTS PAGE -->
+            <div id="conflicts-page" class="page" style="display:none;">
+                <div class="page-header">
+                    <h1>⚠️ Parked Conflict Rules</h1>
+                    <div class="filters" style="margin-top: 0.75rem;">
+                        <select id="conflict-status-filter">
+                            <option value="">All</option>
+                            <option value="pending" selected>Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="dismissed">Dismissed</option>
+                        </select>
+                        <button class="btn btn-sm" onclick="loadParkedConflicts()">Refresh</button>
+                    </div>
+                </div>
+                <div id="conflicts-list"></div>
+            </div>
         </main>
     </div>
     <!-- JS -->
@@ -268,6 +288,7 @@
     <script src="/js/test-sandbox.js"></script>
     <script src="/js/dependency-graph.js"></script>
     <script src="/js/metrics-viewer.js"></script>
+    <script src="/js/conflicts.js"></script>
     <script src="/js/version-diff.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>

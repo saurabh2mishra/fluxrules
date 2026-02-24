@@ -33,12 +33,12 @@ backend/venv/
 *.db
 *.sqlite
 *.sqlite3
-backend/test.db
-backend/test.db-wal
-backend/test.db-shm 
-backend/rule_engine.db
-backend/rule_engine.db-wal
-backend/rule_engine.db-shm
+*backend/test.db
+*backend/test.db-wal
+*backend/test.db-shm 
+*backend/rule_engine.db
+*backend/rule_engine.db-wal
+*backend/rule_engine.db-shm
 
 # IDE
 .vscode/
