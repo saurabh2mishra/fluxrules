@@ -165,6 +165,14 @@ function createConflictCard(conflict) {
         actionsDiv.appendChild(deleteBtn);
     }
 
+    if (conflict.conflicting_rule_id) {
+        const compareBtn = document.createElement('button');
+        compareBtn.className = 'btn btn-sm btn-info';
+        compareBtn.textContent = '🔍 Compare';
+        compareBtn.onclick = () => showRuleComparison(conflict, conflict.conflicting_rule_id);
+        actionsDiv.appendChild(compareBtn);
+    }
+
     return card;
 }
 
@@ -334,4 +342,32 @@ async function deleteParkedConflict(id) {
     } catch (error) {
         showToast('Error: ' + error.message, 'error');
     }
+}
+
+// Side-by-side rule comparison with diff highlighting
+window.showRuleComparison = async function(ruleADataOrObj, ruleBId) {
+    let ruleA;
+    if (typeof ruleADataOrObj === 'object') {
+        ruleA = ruleADataOrObj;
+    } else {
+        ruleA = await fetchWithAuth(`${API_BASE}/rules/${ruleADataOrObj}`).then(r => r.json());
+    }
+    const ruleB = await fetchWithAuth(`${API_BASE}/rules/${ruleBId}`).then(r => r.json());
+    const modal = document.getElementById('rule-compare-modal');
+    const containerA = document.getElementById('ruleA-details');
+    const containerB = document.getElementById('ruleB-details');
+    // Prefer enhanced JSON diff if available
+    if (window.renderJsonDiff) {
+        renderJsonDiff(ruleA, ruleB, containerA, containerB);
+    } else if (window.renderFieldDiff) {
+        renderFieldDiff(ruleA, ruleB, containerA, containerB);
+    } else if (window.renderDiff) {
+        const aStr = JSON.stringify(ruleA, null, 2);
+        const bStr = JSON.stringify(ruleB, null, 2);
+        renderDiff(aStr, bStr, containerA, containerB);
+    } else {
+        containerA.textContent = JSON.stringify(ruleA, null, 2);
+        containerB.textContent = JSON.stringify(ruleB, null, 2);
+    }
+    modal.style.display = 'flex';
 }

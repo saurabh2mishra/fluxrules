@@ -89,7 +89,8 @@ class OptimizedConflictDetector:
             and_(
                 Rule.enabled == True,
                 Rule.group == new_group,
-                Rule.priority == new_rule.priority
+                Rule.priority == new_rule.priority,
+                Rule.id != getattr(new_rule, 'id', None)  # Exclude self if updating
             )
         ).first()
         

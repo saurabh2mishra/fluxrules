@@ -31,3 +31,5 @@ class ConflictedRule(Base):
     reviewed_by = Column(Integer)
     reviewed_at = Column(DateTime)
     review_notes = Column(Text)
+
+    new_rule_id = Column(Integer)  # ID of the new/parked rule (if applicable)

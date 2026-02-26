@@ -292,5 +292,22 @@
     <script src="/js/version-diff.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+    <script src="/js/diffutil.js"></script>
+    <script src="/js/fielddiff.js"></script>
+
+    <!-- Rule Compare Modal for Conflicts -->
+    <div id="rule-compare-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; overflow:auto;">
+      <div style="background:var(--card); color:var(--text); border-radius:8px; padding:2rem; display:flex; gap:2rem; min-width:60vw; max-width:90vw; max-height:90vh; overflow:auto; position:relative; align-items:flex-start;">
+        <div style="flex:1; min-width:0;">
+          <h3>Rule A</h3>
+          <pre id="ruleA-details" style="background:var(--bg); padding:1rem; border-radius:6px; overflow:auto; max-height:70vh;"></pre>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <h3>Rule B</h3>
+          <pre id="ruleB-details" style="background:var(--bg); padding:1rem; border-radius:6px; overflow:auto; max-height:70vh;"></pre>
+        </div>
+        <button onclick="document.getElementById('rule-compare-modal').style.display='none'" style="position:absolute; top:1rem; right:2rem; font-size:1.5rem;">&times;</button>
+      </div>
+    </div>
 </body>
 </html>

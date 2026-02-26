@@ -197,6 +197,7 @@ def create_rule(
                     conflict_description=conflict.get("description", ""),
                     conflicting_rule_id=conflict.get("existing_rule_id"),
                     conflicting_rule_name=conflict.get("existing_rule_name"),
+                    new_rule_id=getattr(rule, 'id', None),
                     submitted_by=current_user.id,
                     status="pending"
                 )
