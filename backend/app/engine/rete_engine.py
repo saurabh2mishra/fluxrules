@@ -14,7 +14,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Try to import optimized engine
 try:
     from app.engine.optimized_rete_engine import OptimizedReteEngine
     OPTIMIZED_ENGINE_AVAILABLE = True

@@ -165,7 +165,16 @@ function createConflictCard(conflict) {
         actionsDiv.appendChild(deleteBtn);
     }
 
-    if (conflict.conflicting_rule_id) {
+    // Check if the referenced rule is missing (e.g., deleted)
+    // If so, disable the Compare button and show a tooltip
+    if (conflict.conflicting_rule_id && !conflict.conflicting_rule_name) {
+        const compareBtn = document.createElement('button');
+        compareBtn.className = 'btn btn-sm btn-info';
+        compareBtn.textContent = '🔍 Compare';
+        compareBtn.disabled = true;
+        compareBtn.title = 'Referenced rule is missing or deleted';
+        actionsDiv.appendChild(compareBtn);
+    } else if (conflict.conflicting_rule_id) {
         const compareBtn = document.createElement('button');
         compareBtn.className = 'btn btn-sm btn-info';
         compareBtn.textContent = '🔍 Compare';
@@ -344,18 +353,44 @@ async function deleteParkedConflict(id) {
     }
 }
 
-// Side-by-side rule comparison with diff highlighting
 window.showRuleComparison = async function(ruleADataOrObj, ruleBId) {
-    let ruleA;
+    let ruleA, ruleB;
+    let ruleAError = null, ruleBError = null;
     if (typeof ruleADataOrObj === 'object') {
         ruleA = ruleADataOrObj;
     } else {
-        ruleA = await fetchWithAuth(`${API_BASE}/rules/${ruleADataOrObj}`).then(r => r.json());
+        try {
+            const respA = await fetchWithAuth(`${API_BASE}/rules/${ruleADataOrObj}`);
+            if (!respA.ok) {
+                ruleAError = `Rule A (ID: ${ruleADataOrObj}) not found.`;
+            } else {
+                ruleA = await respA.json();
+            }
+        } catch (e) {
+            ruleAError = `Error fetching Rule A: ${e.message}`;
+        }
     }
-    const ruleB = await fetchWithAuth(`${API_BASE}/rules/${ruleBId}`).then(r => r.json());
+    try {
+        const respB = await fetchWithAuth(`${API_BASE}/rules/${ruleBId}`);
+        if (!respB.ok) {
+            ruleBError = `Rule B (ID: ${ruleBId}) not found.`;
+        } else {
+            ruleB = await respB.json();
+        }
+    } catch (e) {
+        ruleBError = `Error fetching Rule B: ${e.message}`;
+    }
     const modal = document.getElementById('rule-compare-modal');
     const containerA = document.getElementById('ruleA-details');
     const containerB = document.getElementById('ruleB-details');
+    // Always open the modal and show errors if present
+    if (modal) modal.style.display = 'block';
+    if (ruleAError || ruleBError) {
+        containerA.textContent = ruleAError || JSON.stringify(ruleA, null, 2);
+        containerB.textContent = ruleBError || JSON.stringify(ruleB, null, 2);
+        showToast((ruleAError || '') + (ruleBError ? ' ' + ruleBError : ''), 'error');
+        return;
+    }
     // Prefer enhanced JSON diff if available
     if (window.renderJsonDiff) {
         renderJsonDiff(ruleA, ruleB, containerA, containerB);
@@ -369,5 +404,4 @@ window.showRuleComparison = async function(ruleADataOrObj, ruleBId) {
         containerA.textContent = JSON.stringify(ruleA, null, 2);
         containerB.textContent = JSON.stringify(ruleB, null, 2);
     }
-    modal.style.display = 'flex';
 }

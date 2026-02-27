@@ -1,4 +1,3 @@
-# backend/tests/test_rule_service.py
 import pytest
 from unittest.mock import MagicMock
 from app.services.rule_service import RuleService

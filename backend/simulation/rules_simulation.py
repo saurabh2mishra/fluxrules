@@ -1,14 +1,23 @@
 import asyncio
 import httpx
-import json
 import time
 import random
-from typing import List, Dict, Any
+from typing import List, Dict
 
 # Configuration
 BASE_URL = "http://localhost:8000/api/v1"
 USERNAME = "admin"
 PASSWORD = "admin123"
+
+# Rule generation configuration
+TOTAL_RULES = 50
+COMPLEX_PERCENT = 0.4
+SIMPLE_PERCENT = 0.4
+CONFLICT_PERCENT = 0.2
+
+COMPLEX_COUNT = int(TOTAL_RULES * COMPLEX_PERCENT)
+SIMPLE_COUNT = int(TOTAL_RULES * SIMPLE_PERCENT)
+CONFLICT_COUNT = TOTAL_RULES - COMPLEX_COUNT - SIMPLE_COUNT
 
 # Store auth token
 auth_token = None
@@ -262,7 +271,15 @@ async def bulk_create_rules(client: httpx.AsyncClient, rules: List[Dict]) -> Dic
         headers=get_headers(),
         timeout=120.0  # Longer timeout for bulk
     )
-    data = response.json()
+    try:
+        if response.headers.get("content-type", "").startswith("application/json"):
+            data = response.json()
+        else:
+            print(f"Bulk create failed: Non-JSON response: {response.text[:200]}")
+            return None
+    except Exception as e:
+        print(f"Bulk create failed: Could not parse JSON: {e}\nRaw response: {response.text[:200]}")
+        return None
     if response.status_code in [200, 201]:
         return data
     elif response.status_code == 207:
@@ -352,10 +369,25 @@ async def run_performance_test():
         await delete_all_rules(client)
         print("✓ Existing rules cleared")
         
-        # Generate and create simple rules in batches
-        print("\n[3] Generating 1000 simple rules...")
-        simple_rules = generate_simple_rules(1000)
-        print(f"✓ Generated {len(simple_rules)} simple rules")
+        # Generate and create rules based on config
+        print(f"\n[3] Generating {SIMPLE_COUNT} simple, {COMPLEX_COUNT} complex, {CONFLICT_COUNT} conflict rules...")
+        simple_rules = generate_simple_rules(SIMPLE_COUNT)
+        complex_rules = generate_complex_rules(COMPLEX_COUNT)
+        # For conflict rules, generate as many as needed (repeat pattern if needed)
+        base_conflicts = generate_conflicting_rules()
+        conflict_rules = []
+        while len(conflict_rules) < CONFLICT_COUNT:
+            for rule in base_conflicts:
+                if len(conflict_rules) < CONFLICT_COUNT:
+                    # Make names unique
+                    rule_copy = rule.copy()
+                    rule_copy["name"] = f"{rule['name']}_Auto_{len(conflict_rules)+1}"
+                    conflict_rules.append(rule_copy)
+                else:
+                    break
+        print(f"✓ Generated {len(simple_rules)} simple, {len(complex_rules)} complex, {len(conflict_rules)} conflict rules")
+
+        # Create simple rules (bulk, batches of 100)
         print("    Creating simple rules (bulk, batches of 100)...")
         batch_size = 100
         simple_created = 0
@@ -369,11 +401,8 @@ async def run_performance_test():
                     simple_created += len(result.get("created", []))
             print(f"    ... batch {batch_start // batch_size + 1}/{(len(simple_rules) + batch_size - 1) // batch_size} done ({simple_created} total)")
         print(f"✓ Simple rules created: {simple_created}")
-        
-        # Generate and create complex rules
-        print("\n[4] Generating 50 complex rules...")
-        complex_rules = generate_complex_rules(50)
-        print(f"✓ Generated {len(complex_rules)} complex rules")
+
+        # Create complex rules (bulk)
         print("    Creating complex rules (bulk)...")
         result = await bulk_create_rules(client, complex_rules)
         complex_created = 0
@@ -383,8 +412,17 @@ async def run_performance_test():
             else:
                 complex_created = len(result.get("created", []))
         print(f"✓ Complex rules created: {complex_created}")
-        
-        # Verify total after initial creation of 1000 simple + 50 complex
+
+        # Create conflict rules (individually, to ensure conflict detection)
+        print("    Creating conflict rules (individually)...")
+        conflict_created = 0
+        for rule in conflict_rules:
+            result = await create_rule(client, rule)
+            if result:
+                conflict_created += 1
+        print(f"✓ Conflict rules created: {conflict_created}")
+
+        # Verify total after initial creation
         response = await client.get(f"{BASE_URL}/rules?limit=2000", headers=get_headers())
         if response.status_code == 200:
             initial_total = len(response.json())
@@ -580,7 +618,10 @@ async def run_performance_test():
         print("\n" + "=" * 60)
         print("PERFORMANCE TEST SUMMARY")
         print("=" * 60)
-        print(f"Total Rules:           {total_rules} (target: ≥1050)")
+        print(f"Total Rules:           {total_rules} (target: ≥{TOTAL_RULES})")
+        print(f"Simple Rules:          {SIMPLE_COUNT}")
+        print(f"Complex Rules:         {COMPLEX_COUNT}")
+        print(f"Conflict Rules:        {CONFLICT_COUNT}")
         print("\nRule Creation Benchmarks:")
         print(f"  Fast Mode (20 rules):    {fast_creation_time:.2f}s ({fast_creation_time/max(fast_created_count,1)*1000:.2f}ms avg)")
         print(f"  Bulk Mode (20 rules):    {bulk_creation_time:.2f}s ({bulk_creation_time/max(bulk_count,1)*1000:.2f}ms avg)")
@@ -588,8 +629,7 @@ async def run_performance_test():
         print(f"\nConflict Check Time:   {conflict_check_time*1000:.2f}ms")
         if events_success > 0:
             print(f"Event Submission:      {avg_eval_time*1000:.2f}ms avg")
-            if bulk_time > 0:
-                print(f"Bulk Throughput:       {100/bulk_time:.1f} events/second")
+            print(f"Bulk Throughput:       {100/bulk_time:.1f} events/second")
         else:
             print(f"Event Submission:      N/A (Redis not available)")
         print("=" * 60)

@@ -431,6 +431,17 @@ class ReteNetwork:
         self._stats["beta_nodes"] = len(self._beta_nodes)
         self._stats["terminal_nodes"] = len(self._terminal_nodes)
     
+    def _make_hashable(self, obj):
+        """
+        Recursively convert dicts/lists to tuples so the object can be hashed.
+        """
+        if isinstance(obj, dict):
+            return tuple(sorted((k, self._make_hashable(v)) for k, v in obj.items()))
+        elif isinstance(obj, list):
+            return tuple(self._make_hashable(x) for x in obj)
+        else:
+            return obj
+
     def evaluate(self, event: Dict[str, Any]) -> List[TerminalNode]:
         """
         Evaluate an event against the compiled RETE network.
@@ -442,7 +453,7 @@ class ReteNetwork:
             self._reset_memories()
             
             # Generate event hash for caching
-            event_hash = hash(frozenset(event.items()))
+            event_hash = hash(self._make_hashable(event))
             
             # Phase 1: Alpha Network - evaluate all relevant alpha nodes
             alpha_results: Dict[int, bool] = {}

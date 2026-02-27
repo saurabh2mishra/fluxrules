@@ -13,13 +13,8 @@ from app.models.user import User
 from app.models.rule import Rule
 from app.engine.rete_engine import ReteEngine
 from app.engine.dependency_graph import DependencyGraphBuilder
-# Use optimized conflict detector for better performance
-try:
-    from app.services.optimized_conflict_detector import OptimizedConflictDetector as ConflictDetector, invalidate_conflict_cache
-except ImportError:
-    from app.services.conflict_detector import ConflictDetector
-    def invalidate_conflict_cache():
-        pass
+from app.services.conflict_detector import ConflictDetector
+
 from app.engine.actions import get_available_actions, execute_action
 
 from app.models.conflicted_rule import ConflictedRule
@@ -214,7 +209,7 @@ def create_rule(
             )
     
     # Invalidate conflict cache after creating
-    invalidate_conflict_cache()
+    invalidate_conflict_cache(db)
     
     service = RuleService(db)
     created_rule = service.create_rule(rule, current_user.id)
@@ -244,7 +239,7 @@ def bulk_create_rules(
             errors.append({"index": i, "rule_name": rule.name, "error": str(e)})
     
     # Invalidate cache after bulk operation
-    invalidate_conflict_cache()
+    invalidate_conflict_cache(db)
     
     if errors:
         raise HTTPException(
@@ -409,7 +404,54 @@ def detect_conflicts(
     current_user: User = Depends(get_current_user)
 ):
     detector = ConflictDetector(db)
-    return detector.detect_all_conflicts()
+    result = detector.detect_all_conflicts()
+    try:
+        # Clear previous detected conflicts (status='detected')
+        db.query(ConflictedRule).filter(ConflictedRule.status == 'detected').delete()
+        db.commit()
+        # Prepare ConflictedRule objects for bulk insert
+        to_insert = []
+        for conflict in result.get("conflicts", []):
+            if conflict["type"] == "duplicate_condition":
+                to_insert.append(ConflictedRule(
+                    name=conflict["rule2_name"],
+                    description=conflict["description"],
+                    group=None,
+                    priority=None,
+                    enabled=True,
+                    condition_dsl="{}",  # Not available here
+                    action="",
+                    rule_metadata=None,
+                    conflict_type=conflict["type"],
+                    conflict_description=conflict["description"],
+                    conflicting_rule_id=conflict["rule1_id"],
+                    conflicting_rule_name=conflict["rule1_name"],
+                    status="detected"
+                ))
+            elif conflict["type"] == "priority_collision":
+                for rule in conflict["rules"]:
+                    to_insert.append(ConflictedRule(
+                        name=rule["name"],
+                        description=conflict["description"],
+                        group=conflict["group"],
+                        priority=conflict["priority"],
+                        enabled=rule.get("enabled", True),
+                        condition_dsl=json.dumps(rule["condition_dsl"]),
+                        action=rule.get("action", ""),
+                        rule_metadata=None,
+                        conflict_type=conflict["type"],
+                        conflict_description=conflict["description"],
+                        conflicting_rule_id=None,
+                        conflicting_rule_name=None,
+                        status="detected"
+                    ))
+        if to_insert:
+            db.bulk_save_objects(to_insert)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(status_code=500, content={"detail": f"Failed to persist detected conflicts: {str(e)}"})
+    return result
 
 
 # ── Parked Conflict Rules ──────────────────────────────────────────
@@ -560,7 +602,7 @@ def resolve_parked_conflict(
     # No conflicts — create the rule
     service = RuleService(db)
     created_rule = service.create_rule(modified_rule, current_user.id)
-    invalidate_conflict_cache()
+    # invalidate_conflict_cache()
 
     # Mark parked rule as approved
     parked.status = "approved"
@@ -601,3 +643,10 @@ def get_rule_groups(
     groups = db.query(Rule.group).distinct().all()
     # Flatten and filter out None/empty
     return {"groups": [g[0] for g in groups if g[0]]}
+
+
+def invalidate_conflict_cache(db: Session):
+    engine = ReteEngine(db)
+    if engine._optimized_engine:
+        engine._optimized_engine.invalidate_cache()
+    engine.reload_rules()
