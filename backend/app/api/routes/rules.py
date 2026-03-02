@@ -74,6 +74,18 @@ def list_rules(
     rules = service.list_rules(skip=skip, limit=limit, group=group, enabled=enabled)
     return [serialize_rule(rule) for rule in rules]
 
+
+@router.get("/groups")
+def get_rule_groups(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all unique rule groups for dropdown"""
+    groups = db.query(Rule.group).distinct().all()
+    # Flatten and filter out None/empty
+    return {"groups": [g[0] for g in groups if g[0]]}
+
+
 @router.get("/{rule_id}", response_model=RuleResponse)
 def get_rule(
     rule_id: int,
@@ -633,16 +645,6 @@ def delete_parked_conflict(
     db.delete(parked)
     db.commit()
     return {"message": f"Parked rule '{name}' deleted.", "id": parked_id}
-
-@router.get("/groups")
-def get_rule_groups(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Get all unique rule groups for dropdown"""
-    groups = db.query(Rule.group).distinct().all()
-    # Flatten and filter out None/empty
-    return {"groups": [g[0] for g in groups if g[0]]}
 
 
 def invalidate_conflict_cache(db: Session):
