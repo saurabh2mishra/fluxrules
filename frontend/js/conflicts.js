@@ -141,17 +141,17 @@ function createConflictCard(conflict) {
     if (conflict.status === 'pending') {
         const resolveBtn = document.createElement('button');
         resolveBtn.className = 'btn btn-sm btn-primary';
-        resolveBtn.textContent = '✏️ Edit & Resolve';
+        resolveBtn.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;">edit</span> Edit & Resolve';
         resolveBtn.onclick = () => openResolveEditor(conflict, card);
 
         const dismissBtn = document.createElement('button');
         dismissBtn.className = 'btn btn-sm btn-secondary';
-        dismissBtn.textContent = '🚫 Dismiss';
+        dismissBtn.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;">block</span> Dismiss';
         dismissBtn.onclick = () => dismissParkedConflict(conflict.id);
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn btn-sm btn-danger';
-        deleteBtn.textContent = '🗑 Delete';
+        deleteBtn.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;">delete</span> Delete';
         deleteBtn.onclick = () => deleteParkedConflict(conflict.id);
 
         actionsDiv.appendChild(resolveBtn);
@@ -160,7 +160,7 @@ function createConflictCard(conflict) {
     } else {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn btn-sm btn-danger';
-        deleteBtn.textContent = '🗑 Delete';
+        deleteBtn.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;">delete</span> Delete';
         deleteBtn.onclick = () => deleteParkedConflict(conflict.id);
         actionsDiv.appendChild(deleteBtn);
     }
@@ -170,14 +170,14 @@ function createConflictCard(conflict) {
     if (conflict.conflicting_rule_id && !conflict.conflicting_rule_name) {
         const compareBtn = document.createElement('button');
         compareBtn.className = 'btn btn-sm btn-info';
-        compareBtn.textContent = '🔍 Compare';
+        compareBtn.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;">search</span> Compare';
         compareBtn.disabled = true;
         compareBtn.title = 'Referenced rule is missing or deleted';
         actionsDiv.appendChild(compareBtn);
     } else if (conflict.conflicting_rule_id) {
         const compareBtn = document.createElement('button');
         compareBtn.className = 'btn btn-sm btn-info';
-        compareBtn.textContent = '🔍 Compare';
+        compareBtn.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;">search</span> Compare';
         compareBtn.onclick = () => showRuleComparison(conflict, conflict.conflicting_rule_id);
         actionsDiv.appendChild(compareBtn);
     }
