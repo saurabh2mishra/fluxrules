@@ -56,18 +56,24 @@ class ConflictDetector:
 
     def check_update_rule_conflicts(self, rule_id: int, updated_rule: RuleUpdate) -> List[Dict[str, Any]]:
         conflicts = []
+        print(f"[DEBUG] check_update_rule_conflicts: rule_id={rule_id} (type={type(rule_id)})")
         current_rule = next((r for r in self.rules if r["id"] == rule_id), None)
         if not current_rule:
+            print(f"[DEBUG] No current_rule found for rule_id={rule_id}")
             return []
         new_condition_dsl = updated_rule.condition_dsl if updated_rule.condition_dsl else current_rule["condition_dsl"]
         new_priority = updated_rule.priority if updated_rule.priority is not None else current_rule["priority"]
         new_group = updated_rule.group if updated_rule.group is not None else current_rule["group"]
+        print(f"[DEBUG] new_group={new_group}, new_priority={new_priority}")
+        print(f"[DEBUG] group_priority_map keys: {list(self.group_priority_map.keys())}")
         event = new_condition_dsl
         result = self.engine.evaluate(event, use_rete=True)
         matched_rules = result.get("matched_rules", [])
         new_condition = json.dumps(event, sort_keys=True)
         for rule in matched_rules:
+            print(f"[DEBUG] matched_rule id={rule['id']} (type={type(rule['id'])})")
             if rule["id"] == rule_id:
+                print(f"[DEBUG] Skipping self in duplicate condition check: {rule['id']}")
                 continue
             existing_rule = next((r for r in self.rules if r["id"] == rule["id"]), None)
             if existing_rule:
@@ -80,7 +86,9 @@ class ConflictDetector:
                         "description": f"Identical condition exists in rule '{rule['name']}' (ID: {rule['id']})"
                     })
         for rule in self.group_priority_map.get((new_group, new_priority), []):
+            print(f"[DEBUG] priority check: rule.id={rule['id']} (type={type(rule['id'])}), rule_id={rule_id} (type={type(rule_id)})")
             if rule["id"] == rule_id:
+                print(f"[DEBUG] Skipping self in priority collision check: {rule['id']}")
                 continue
             conflicts.append({
                 "type": "priority_collision",

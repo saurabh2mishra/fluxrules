@@ -1,5 +1,3 @@
-# Script to clean up orphaned conflict records in conflicted_rules table
-
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from app.models.conflicted_rule import ConflictedRule

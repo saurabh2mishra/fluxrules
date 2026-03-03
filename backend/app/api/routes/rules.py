@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import json
@@ -100,27 +100,44 @@ def get_rule(
 
 @router.post("/validate", response_model=dict)
 def validate_rule(
-    rule: RuleCreate,
+    rule: RuleCreate = Body(...),
+    rule_id: Optional[int] = Query(None, description="ID of rule being edited (for edit validation)", alias="rule_id"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Validate a rule before saving - check for conflicts and similar rules"""
+    """Validate a rule before saving - check for conflicts, duplicates, and similar rules"""
     detector = ConflictDetector(db)
-    conflicts = detector.check_new_rule_conflicts(rule)
-    
+    if rule_id is not None:
+        # Use update conflict logic for edit
+        # Convert RuleCreate to RuleUpdate for update conflict check
+        update_data = {k: getattr(rule, k) for k in RuleUpdate.__fields__.keys() if hasattr(rule, k)}
+        rule_update = RuleUpdate(**update_data)
+        conflicts = detector.check_update_rule_conflicts(rule_id, rule_update)
+    else:
+        conflicts = detector.check_new_rule_conflicts(rule)
+
+    # Check for exact duplicate name, ignoring self if editing
+    duplicate = db.query(Rule).filter(Rule.name == rule.name).first()
+    duplicate_conflict = None
+    if duplicate and (rule_id is None or duplicate.id != rule_id):
+        duplicate_conflict = {
+            "type": "duplicate_name",
+            "description": f"A rule with the name '{rule.name}' already exists.",
+            "existing_rule_id": duplicate.id,
+            "existing_rule_name": duplicate.name
+        }
+        conflicts.append(duplicate_conflict)
+
     # Find similar rules (same group or similar conditions)
     similar_rules = []
     existing_rules = db.query(Rule).filter(Rule.enabled == True).all()
-    
     for existing in existing_rules:
         similarity_score = 0
         reasons = []
-        
         # Check if same group
         if (rule.group and existing.group and rule.group == existing.group):
             similarity_score += 30
             reasons.append(f"Same group: '{rule.group}'")
-        
         # Check if similar name
         if rule.name and existing.name:
             name_lower = rule.name.lower()
@@ -128,20 +145,17 @@ def validate_rule(
             if name_lower in existing_lower or existing_lower in name_lower:
                 similarity_score += 20
                 reasons.append(f"Similar name")
-        
         # Check for overlapping fields in conditions
         try:
             new_fields = extract_fields(rule.condition_dsl)
             existing_dsl = json.loads(existing.condition_dsl) if isinstance(existing.condition_dsl, str) else existing.condition_dsl
             existing_fields = extract_fields(existing_dsl)
-            
             common_fields = new_fields & existing_fields
             if common_fields:
                 similarity_score += len(common_fields) * 10
                 reasons.append(f"Common fields: {', '.join(common_fields)}")
         except Exception:
             pass
-        
         if similarity_score >= 30:
             similar_rules.append({
                 "rule_id": existing.id,
@@ -150,15 +164,13 @@ def validate_rule(
                 "similarity_score": similarity_score,
                 "reasons": reasons
             })
-    
     # Sort by similarity score
     similar_rules.sort(key=lambda x: x["similarity_score"], reverse=True)
-    
     return {
         "valid": len(conflicts) == 0,
         "conflicts": conflicts,
+        "duplicate_conflict": duplicate_conflict,
         "similar_rules": similar_rules[:5],  # Top 5 similar rules
-        "message": "No conflicts found. Rule is ready to save." if len(conflicts) == 0 else "Conflicts detected. Please review before saving."
     }
 
 def extract_fields(condition_dsl: dict) -> set:
@@ -177,12 +189,14 @@ def extract_fields(condition_dsl: dict) -> set:
     return fields
 
 @router.post("", response_model=RuleResponse)
+@router.post("/", response_model=RuleResponse)
 def create_rule(
     rule: RuleCreate,
     skip_conflict_check: bool = Query(False, description="Skip conflict checking for faster creation"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    print(f"[DEBUG] create_rule called. current_user: {getattr(current_user, 'username', None)} id: {getattr(current_user, 'id', None)}")
     # Check for conflicts BEFORE creating (unless skipped for bulk operations)
     if not skip_conflict_check:
         detector = ConflictDetector(db)

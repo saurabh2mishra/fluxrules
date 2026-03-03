@@ -138,39 +138,42 @@ class ReteEngine:
             field = condition["field"]
             op = condition["op"]
             value = condition["value"]
-            
+
             event_value = event.get(field)
             if event_value is None:
                 return False
-            
-            if op == ">":
-                return event_value > value
-            elif op == ">=":
-                return event_value >= value
-            elif op == "<":
-                return event_value < value
-            elif op == "<=":
-                return event_value <= value
-            elif op == "==":
-                return event_value == value
-            elif op == "!=":
-                return event_value != value
-            elif op == "in":
-                return event_value in value
-            elif op == "contains":
-                return value in event_value
-            else:
+
+            try:
+                if op == ">":
+                    return event_value > value
+                elif op == ">=":
+                    return event_value >= value
+                elif op == "<":
+                    return event_value < value
+                elif op == "<=":
+                    return event_value <= value
+                elif op == "==":
+                    return event_value == value
+                elif op == "!=":
+                    return event_value != value
+                elif op == "in":
+                    return event_value in value
+                elif op == "contains":
+                    return value in event_value
+                else:
+                    return False
+            except Exception:
                 return False
-        
+
         elif condition["type"] == "group":
             op = condition["op"]
             children = condition.get("children", [])
-            
+
             if op == "AND":
                 return all(self._evaluate_condition(child, event) for child in children)
             elif op == "OR":
                 return any(self._evaluate_condition(child, event) for child in children)
-        
+
         return False
     
     def _generate_explanation(self, rule: Rule, event: Dict[str, Any]) -> str:

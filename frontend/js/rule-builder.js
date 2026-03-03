@@ -200,12 +200,16 @@ function syncFullSchemaToTextarea() {
     }
 }
 
-// Render condition builder without syncing to textarea (to avoid loops)
 function renderConditionBuilderOnly(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
     container.appendChild(buildGroupNode(conditionTree, []));
+    // Update JSON textarea for Create Rule
+    const textarea = document.getElementById('condition-dsl');
+    if (textarea) {
+        textarea.value = JSON.stringify(conditionTree, null, 2);
+    }
 }
 
 function renderConditionBuilder(containerId) {
@@ -219,23 +223,23 @@ function renderConditionBuilder(containerId) {
 }
 
 function buildGroupNode(node, path) {
+    if (!node || typeof node !== 'object' || !node.op) {
+        node = { type: 'group', op: 'AND', children: [] };
+    }
     const div = document.createElement('div');
     div.className = 'condition-group';
     div.dataset.path = JSON.stringify(path);
-
     const header = document.createElement('div');
     header.style.marginBottom = '0.5rem';
     header.style.display = 'flex';
     header.style.gap = '0.5rem';
-
     const opSelect = document.createElement('select');
     opSelect.innerHTML = '<option value="AND">AND</option><option value="OR">OR</option>';
     opSelect.value = node.op || 'AND';
     opSelect.onchange = function() {
         node.op = this.value;
-        syncToTextarea(document.getElementById('condition-builder') ? 'condition-builder' : 'edit-condition-builder');
+        renderConditionBuilderOnly('condition-builder');
     };
-
     const addCondBtn = document.createElement('button');
     addCondBtn.textContent = '+ Condition';
     addCondBtn.className = 'btn btn-sm';
@@ -243,9 +247,8 @@ function buildGroupNode(node, path) {
     addCondBtn.onclick = function() {
         if (!node.children) node.children = [];
         node.children.push({type: 'condition', field: '', op: '==', value: ''});
-        renderConditionBuilder(document.getElementById('condition-builder') ? 'condition-builder' : 'edit-condition-builder');
+        renderConditionBuilderOnly('condition-builder');
     };
-
     const addGroupBtn = document.createElement('button');
     addGroupBtn.textContent = '+ Group';
     addGroupBtn.className = 'btn btn-sm';
@@ -253,14 +256,12 @@ function buildGroupNode(node, path) {
     addGroupBtn.onclick = function() {
         if (!node.children) node.children = [];
         node.children.push({type: 'group', op: 'AND', children: []});
-        renderConditionBuilder(document.getElementById('condition-builder') ? 'condition-builder' : 'edit-condition-builder');
+        renderConditionBuilderOnly('condition-builder');
     };
-
     header.appendChild(opSelect);
     header.appendChild(addCondBtn);
     header.appendChild(addGroupBtn);
     div.appendChild(header);
-
     const childrenDiv = document.createElement('div');
     if (node.children) {
         node.children.forEach((child, idx) => {
@@ -268,7 +269,6 @@ function buildGroupNode(node, path) {
             const childDiv = child.type === 'group' 
                 ? buildGroupNode(child, childPath)
                 : buildConditionNode(child, childPath);
-            
             const removeBtn = document.createElement('button');
             removeBtn.textContent = '×';
             removeBtn.className = 'btn btn-sm btn-danger';
@@ -276,15 +276,13 @@ function buildGroupNode(node, path) {
             removeBtn.style.marginLeft = 'auto';
             removeBtn.onclick = function() {
                 node.children.splice(idx, 1);
-                renderConditionBuilder(document.getElementById('condition-builder') ? 'condition-builder' : 'edit-condition-builder');
+                renderConditionBuilderOnly('condition-builder');
             };
-            
             childDiv.appendChild(removeBtn);
             childrenDiv.appendChild(childDiv);
         });
     }
     div.appendChild(childrenDiv);
-
     return div;
 }
 
@@ -397,6 +395,10 @@ async function saveRule() {
     }
     if (!action) {
         showToast('Please select an action.', 'error');
+        return;
+    }
+    if (duplicateNameConflict) {
+        showToast('Duplicate rule name detected. Please choose a unique name before saving.', 'error');
         return;
     }
     
@@ -546,19 +548,27 @@ async function testRule() {
         
         const result = await response.json();
         console.log('Validation result:', result);
-        
         let html = '';
-        
+        let hasDuplicateName = false;
         // Show conflicts
         if (result.conflicts && result.conflicts.length > 0) {
             html += '<div class="conflicts-section">';
             html += '<h4>⚠️ Conflicts Found:</h4>';
             result.conflicts.forEach(conflict => {
-                html += `<div class="conflict-item">
-                    <strong>${conflict.type === 'duplicate_condition' ? '🔄 Duplicate Condition' : '⚡ Priority Collision'}</strong>
-                    <p>${conflict.description}</p>
-                    <small>Existing Rule: <a href="#" onclick="viewRule(${conflict.existing_rule_id}); return false;">${conflict.existing_rule_name}</a> (ID: ${conflict.existing_rule_id})</small>
-                </div>`;
+                if (conflict.type === 'duplicate_name') {
+                    hasDuplicateName = true;
+                    html += `<div class="conflict-item" style="color: #b30000; font-weight: bold;">`;
+                    html += `<strong>🚫 Duplicate Name</strong>`;
+                    html += `<p>This rule name is already in use. Please choose a unique name.</p>`;
+                    html += `<small>Existing Rule: <a href="#" onclick="viewRule(${conflict.existing_rule_id}); return false;">${conflict.existing_rule_name}</a> (ID: ${conflict.existing_rule_id})</small>`;
+                    html += `</div>`;
+                } else {
+                    html += `<div class="conflict-item">`;
+                    html += `<strong>${conflict.type === 'duplicate_condition' ? '🔄 Duplicate Condition' : '⚡ Priority Collision'}</strong>`;
+                    html += `<p>${conflict.description}</p>`;
+                    html += `<small>Existing Rule: <a href="#" onclick="viewRule(${conflict.existing_rule_id}); return false;">${conflict.existing_rule_name}</a> (ID: ${conflict.existing_rule_id})</small>`;
+                    html += `</div>`;
+                }
             });
             html += '</div>';
         }
@@ -580,8 +590,14 @@ async function testRule() {
         
         // Determine overall status
         if (result.conflicts && result.conflicts.length > 0) {
-            html = `<p><strong>⚠️ ${result.conflicts.length} conflict(s) found.</strong> Please resolve before saving.</p>` + html;
-            showTestResults('warning', '⚠️ Conflicts Detected', html);
+            if (hasDuplicateName) {
+                duplicateNameConflict = true;
+                html = `<p style='color: #b30000; font-weight: bold;'><strong>🚫 Duplicate rule name detected. Please choose a unique name before saving.</strong></p>` + html;
+                showTestResults('error', '🚫 Duplicate Name', html);
+            } else {
+                html = `<p><strong>⚠️ ${result.conflicts.length} conflict(s) found.</strong> Please resolve before saving.</p>` + html;
+                showTestResults('warning', '⚠️ Conflicts Detected', html);
+            }
         } else if (result.similar_rules && result.similar_rules.length > 0) {
             html = `<p><strong>✅ No conflicts found.</strong> However, similar rules exist. Please review to avoid duplicates.</p>` + html;
             showTestResults('success', '✅ Rule Valid (With Suggestions)', html);
@@ -692,3 +708,12 @@ if (document.getElementById('condition-dsl')) {
     document.getElementById('condition-dsl').addEventListener('input', updateJsonHighlight);
     updateJsonHighlight();
 }
+
+// Track duplicate name validation
+let duplicateNameConflict = false;
+
+document.getElementById('rule-name')?.addEventListener('input', () => {
+    duplicateNameConflict = false;
+});
+
+// Existing code...
