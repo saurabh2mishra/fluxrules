@@ -53,3 +53,74 @@ def test_register_user():
         print("Register error:", response.status_code, response.json())
     assert response.status_code == 200
     assert response.json()["username"] == "testuser3"
+
+def test_rule_validate_supports_validation_mode_shadow():
+    seed_rule = {
+        "name": "age_gate_existing",
+        "description": "existing",
+        "group": "eligibility",
+        "priority": 10,
+        "enabled": True,
+        "condition_dsl": {
+            "type": "group",
+            "op": "AND",
+            "children": [{"type": "condition", "field": "age", "op": ">", "value": 60}],
+        },
+        "action": "approve"
+    }
+    create_resp = client.post("/api/v1/rules?skip_conflict_check=true", json=seed_rule)
+    assert create_resp.status_code == 200
+
+    candidate_rule = {
+        "name": "age_gate_candidate",
+        "description": "candidate",
+        "group": "eligibility",
+        "priority": 11,
+        "enabled": True,
+        "condition_dsl": {
+            "type": "group",
+            "op": "AND",
+            "children": [{"type": "condition", "field": "age", "op": ">", "value": 65}],
+        },
+        "action": "manual_review"
+    }
+
+    response = client.post(
+        "/api/v1/rules/validate?validation_mode=shadow",
+        json=candidate_rule,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["validation_engine"]["mode"] == "shadow"
+    assert payload["validation_engine"]["primary"] == "legacy"
+    assert "legacy" in payload["engines"]
+    assert "brms" in payload["engines"]
+
+
+def test_rule_validate_supports_validation_mode_brms():
+    candidate_rule = {
+        "name": "brms_contradiction",
+        "description": "candidate",
+        "group": "eligibility",
+        "priority": 5,
+        "enabled": True,
+        "condition_dsl": {
+            "type": "group",
+            "op": "AND",
+            "children": [
+                {"type": "condition", "field": "age", "op": ">", "value": 60},
+                {"type": "condition", "field": "age", "op": "<", "value": 50}
+            ],
+        },
+        "action": "manual_review"
+    }
+
+    response = client.post(
+        "/api/v1/rules/validate?validation_mode=brms",
+        json=candidate_rule,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["validation_engine"]["mode"] == "brms"
+    assert payload["validation_engine"]["primary"] == "brms"
+    assert any(c["type"] == "brms_dead_rule" for c in payload["conflicts"])

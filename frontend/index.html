@@ -139,6 +139,14 @@
                                 <div class="form-group">
                                     <label><input type="checkbox" id="rule-enabled" checked> Enabled</label>
                                 </div>
+                                <div class="form-group">
+                                    <label>Validation Engine</label>
+                                    <select id="rule-validation-mode">
+                                        <option value="legacy">Legacy engine only</option>
+                                        <option value="shadow" selected>A/B Shadow (legacy decision + BRMS comparison)</option>
+                                        <option value="brms">BRMS engine only</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -239,6 +247,15 @@
                         <label>DSL JSON</label>
                         <textarea id="edit-condition-dsl" rows="6"></textarea>
                         <div class="json-status" id="edit-json-status"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Validation Engine</label>
+                        <select id="edit-rule-validation-mode">
+                            <option value="legacy">Legacy engine only</option>
+                            <option value="shadow" selected>A/B Shadow (legacy decision + BRMS comparison)</option>
+                            <option value="brms">BRMS engine only</option>
+                        </select>
                     </div>
 
                     <div class="form-group">

@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     USE_OPTIMIZED_ENGINE: bool = True  # Set to False to use simple engine
     RULE_CACHE_TTL: int = 300  # Cache TTL in seconds (5 minutes)
     RULE_LOCAL_CACHE_TTL: int = 60  # Local cache TTL in seconds
+
+    # Validation rollout settings
+    RULE_VALIDATION_MODE: str = "legacy"  # legacy | brms | shadow
+
     
     class Config:
         case_sensitive = True
