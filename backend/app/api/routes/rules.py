@@ -14,6 +14,8 @@ from app.models.rule import Rule
 from app.engine.rete_engine import ReteEngine
 from app.engine.dependency_graph import DependencyGraphBuilder
 from app.services.conflict_detector import ConflictDetector
+from app.services.rule_validation_service import RuleValidationService
+from app.config import settings
 
 from app.engine.actions import get_available_actions, execute_action
 
@@ -21,6 +23,13 @@ from app.models.conflicted_rule import ConflictedRule
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/rules", tags=["rules"])
+
+
+def get_validation_mode(mode: Optional[str]) -> str:
+    selected = (mode or settings.RULE_VALIDATION_MODE or "legacy").lower()
+    if selected not in {"legacy", "brms", "shadow"}:
+        return "legacy"
+    return selected
 
 @router.get("/actions/available")
 def list_available_actions(
@@ -103,18 +112,14 @@ def validate_rule(
     rule: RuleCreate = Body(...),
     rule_id: Optional[int] = Query(None, description="ID of rule being edited (for edit validation)", alias="rule_id"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     """Validate a rule before saving - check for conflicts, duplicates, and similar rules"""
-    detector = ConflictDetector(db)
-    if rule_id is not None:
-        # Use update conflict logic for edit
-        # Convert RuleCreate to RuleUpdate for update conflict check
-        update_data = {k: getattr(rule, k) for k in RuleUpdate.__fields__.keys() if hasattr(rule, k)}
-        rule_update = RuleUpdate(**update_data)
-        conflicts = detector.check_update_rule_conflicts(rule_id, rule_update)
-    else:
-        conflicts = detector.check_new_rule_conflicts(rule)
+    mode = get_validation_mode(validation_mode)
+    validator = RuleValidationService(db)
+    validation_result = validator.validate(rule.model_dump(), mode=mode, rule_id=rule_id)
+    conflicts = list(validation_result.get("conflicts", []))
 
     # Check for exact duplicate name, ignoring self if editing
     duplicate = db.query(Rule).filter(Rule.name == rule.name).first()
@@ -166,12 +171,18 @@ def validate_rule(
             })
     # Sort by similarity score
     similar_rules.sort(key=lambda x: x["similarity_score"], reverse=True)
-    return {
+    response = {
         "valid": len(conflicts) == 0,
         "conflicts": conflicts,
         "duplicate_conflict": duplicate_conflict,
         "similar_rules": similar_rules[:5],  # Top 5 similar rules
     }
+    response.update({
+        "validation_engine": validation_result.get("validation_engine"),
+        "engines": validation_result.get("engines"),
+        "brms_report": validation_result.get("brms_report"),
+    })
+    return response
 
 def extract_fields(condition_dsl: dict) -> set:
     """Extract all field names from a condition DSL"""
@@ -194,14 +205,16 @@ def create_rule(
     rule: RuleCreate,
     skip_conflict_check: bool = Query(False, description="Skip conflict checking for faster creation"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     print(f"[DEBUG] create_rule called. current_user: {getattr(current_user, 'username', None)} id: {getattr(current_user, 'id', None)}")
     # Check for conflicts BEFORE creating (unless skipped for bulk operations)
     if not skip_conflict_check:
-        detector = ConflictDetector(db)
-        potential_conflicts = detector.check_new_rule_conflicts(rule)
-        
+        mode = get_validation_mode(validation_mode)
+        validation_result = RuleValidationService(db).validate(rule.model_dump(), mode=mode)
+        potential_conflicts = validation_result.get("conflicts", [])
+
         if potential_conflicts:
             # Park the rejected rule for business review
             for conflict in potential_conflicts:
@@ -284,12 +297,14 @@ def update_rule(
     rule_id: int,
     rule_update: RuleUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     # Check for conflicts BEFORE updating
-    detector = ConflictDetector(db)
-    potential_conflicts = detector.check_update_rule_conflicts(rule_id, rule_update)
-    
+    mode = get_validation_mode(validation_mode)
+    validation_result = RuleValidationService(db).validate(rule_update.model_dump(exclude_none=True), mode=mode, rule_id=rule_id)
+    potential_conflicts = validation_result.get("conflicts", [])
+
     if potential_conflicts:
         raise HTTPException(
             status_code=400,

@@ -366,6 +366,7 @@ async function saveRule() {
     const group = document.getElementById('rule-group').value.trim();
     const priority = parseInt(document.getElementById('rule-priority').value) || 0;
     const enabled = document.getElementById('rule-enabled').checked;
+    const validationMode = document.getElementById('rule-validation-mode')?.value || 'legacy';
     
     // Get action from select or hidden field
     const actionSelect = document.getElementById('rule-action-select');
@@ -419,7 +420,7 @@ async function saveRule() {
     console.log('Sending rule data:', JSON.stringify(ruleData, null, 2));
 
     try {
-        const response = await fetchWithAuth(`${API_BASE}/rules`, {
+        const response = await fetchWithAuth(`${API_BASE}/rules?validation_mode=${encodeURIComponent(validationMode)}`, {
             method: 'POST',
             body: JSON.stringify(ruleData)
         });
@@ -502,6 +503,7 @@ async function testRule() {
     const group = document.getElementById('rule-group').value.trim();
     const priority = parseInt(document.getElementById('rule-priority').value) || 0;
     const enabled = document.getElementById('rule-enabled').checked;
+    const validationMode = document.getElementById('rule-validation-mode')?.value || 'legacy';
     const action = document.getElementById('rule-action').value.trim();
     
     const resultsSection = document.getElementById('test-results-section');
@@ -535,7 +537,7 @@ async function testRule() {
     showTestResults('warning', '🔄 Testing...', '<p>Validating rule and checking for conflicts...</p>');
     
     try {
-        const response = await fetchWithAuth(`${API_BASE}/rules/validate`, {
+        const response = await fetchWithAuth(`${API_BASE}/rules/validate?validation_mode=${encodeURIComponent(validationMode)}`, {
             method: 'POST',
             body: JSON.stringify(ruleData)
         });
@@ -549,6 +551,9 @@ async function testRule() {
         const result = await response.json();
         console.log('Validation result:', result);
         let html = '';
+        if (result.validation_engine) {
+            html += `<p><strong>Validation mode:</strong> ${result.validation_engine.mode} | <strong>Primary:</strong> ${result.validation_engine.primary}</p>`;
+        }
         let hasDuplicateName = false;
         // Show conflicts
         if (result.conflicts && result.conflicts.length > 0) {
