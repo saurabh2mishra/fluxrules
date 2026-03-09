@@ -147,7 +147,7 @@ function renderFilteredRules() {
         container.innerHTML = `
             <div class="empty-state">
                 <div style="font-size:2.5rem;">🔍</div>
-                <h3>No Matching Rules</h3>
+                <h3>No Rules Found</h3>
                 <p>No rules match your search or filter criteria.</p>
             </div>
         `;

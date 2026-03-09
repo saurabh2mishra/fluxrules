@@ -11,10 +11,52 @@ function initRuleBuilder() {
         children: []
     };
 
+    // Reset all form fields to default values
+    const ruleForm = document.getElementById('rule-form');
+    if (ruleForm) ruleForm.reset();
+
+    // Explicitly clear fields that .reset() may not fully handle
+    const nameEl = document.getElementById('rule-name');
+    if (nameEl) nameEl.value = '';
+    const descEl = document.getElementById('rule-description');
+    if (descEl) descEl.value = '';
+    const groupEl = document.getElementById('rule-group');
+    if (groupEl) groupEl.value = '';
+    const priorityEl = document.getElementById('rule-priority');
+    if (priorityEl) priorityEl.value = '0';
+    const enabledEl = document.getElementById('rule-enabled');
+    if (enabledEl) enabledEl.checked = true;
+    const actionEl = document.getElementById('rule-action');
+    if (actionEl) actionEl.value = '';
+    const actionSelectEl = document.getElementById('rule-action-select');
+    if (actionSelectEl) actionSelectEl.value = '';
+    const actionParamsEl = document.getElementById('rule-action-params');
+    if (actionParamsEl) actionParamsEl.value = '';
+    const actionDescEl = document.getElementById('action-description');
+    if (actionDescEl) actionDescEl.textContent = '';
+    const validationModeEl = document.getElementById('rule-validation-mode');
+    if (validationModeEl) validationModeEl.value = 'shadow';
+
+    // Reset test results
+    const testResultsSection = document.getElementById('test-results-section');
+    if (testResultsSection) testResultsSection.style.display = 'none';
+    const testResultsDiv = document.getElementById('test-results');
+    if (testResultsDiv) testResultsDiv.innerHTML = '';
+
+    // Reset duplicate name conflict flag
+    duplicateNameConflict = false;
+
+    // Reset stepper to first step
+    currentStep = 0;
+    showStep(0);
+
     renderConditionBuilder('condition-builder');
 
     // Tab switching for Visual Builder / JSON Editor
     setupTabSwitching();
+
+    // Reset tab to visual builder
+    switchTab('visual');
 
     document.getElementById('rule-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();

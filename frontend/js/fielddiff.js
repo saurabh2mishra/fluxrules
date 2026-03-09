@@ -17,17 +17,19 @@ function renderFieldDiff(ruleA, ruleB, containerA, containerB) {
     diffs.forEach(({ field, valueA, valueB, changed }) => {
         const rowA = document.createElement('div');
         const rowB = document.createElement('div');
-        rowA.style.padding = rowB.style.padding = '2px 0';
-        rowA.style.fontWeight = rowB.style.fontWeight = '400';
+        rowA.className = rowB.className = 'diff-row';
         if (changed) {
-            rowA.style.background = '#fee2e2'; // red-100
-            rowB.style.background = '#dbeafe'; // blue-100
+            rowA.classList.add('diff-changed-old');
+            rowB.classList.add('diff-changed-new');
             rowA.style.fontWeight = rowB.style.fontWeight = '600';
         }
-        rowA.innerHTML = `<span style='color:#888;'>${field}:</span> ` +
-            (typeof valueA === 'object' ? `<pre style='display:inline;'>${JSON.stringify(valueA, null, 2)}</pre>` : String(valueA));
-        rowB.innerHTML = `<span style='color:#888;'>${field}:</span> ` +
-            (typeof valueB === 'object' ? `<pre style='display:inline;'>${JSON.stringify(valueB, null, 2)}</pre>` : String(valueB));
+        const fmtVal = (v) => {
+            if (v === undefined || v === null) return '<span class="diff-null">' + String(v) + '</span>';
+            if (typeof v === 'object') return '<span class="diff-obj">' + escapeHtmlInDiff(JSON.stringify(v, null, 2)) + '</span>';
+            return escapeHtmlInDiff(String(v));
+        };
+        rowA.innerHTML = `<span class="diff-key">${escapeHtmlInDiff(field)}:</span> ${fmtVal(valueA)}`;
+        rowB.innerHTML = `<span class="diff-key">${escapeHtmlInDiff(field)}:</span> ${fmtVal(valueB)}`;
         containerA.appendChild(rowA);
         containerB.appendChild(rowB);
     });
@@ -72,8 +74,10 @@ function renderJsonDiff(a, b, containerA, containerB) {
         const detailsA = document.createElement('details');
         const detailsB = document.createElement('details');
         detailsA.open = detailsB.open = true;
+        detailsA.className = detailsB.className = 'diff-details';
         const summaryA = document.createElement('summary');
         const summaryB = document.createElement('summary');
+        summaryA.className = summaryB.className = 'diff-summary';
         summaryA.textContent = top;
         summaryB.textContent = top;
         detailsA.appendChild(summaryA);
@@ -82,21 +86,25 @@ function renderJsonDiff(a, b, containerA, containerB) {
             const key = path.slice(1).join('.') || top;
             const rowA = document.createElement('div');
             const rowB = document.createElement('div');
-            rowA.style.padding = rowB.style.padding = '2px 0 2px 1em';
+            rowA.className = rowB.className = 'diff-row';
             if (type === 'changed') {
-                rowA.style.background = '#fee2e2';
-                rowB.style.background = '#dbeafe';
+                rowA.classList.add('diff-changed-old');
+                rowB.classList.add('diff-changed-new');
             } else if (type === 'added') {
-                rowA.style.background = '#f1f5f9';
-                rowB.style.background = '#bbf7d0';
+                rowA.classList.add('diff-absent');
+                rowB.classList.add('diff-added');
             } else if (type === 'removed') {
-                rowA.style.background = '#fca5a5';
-                rowB.style.background = '#f1f5f9';
+                rowA.classList.add('diff-removed');
+                rowB.classList.add('diff-absent');
             }
-            rowA.innerHTML = `<span style='color:#888;'>${key}:</span> ` +
-                (typeof valueA === 'object' && valueA !== null ? `<pre style='display:inline;'>${JSON.stringify(valueA, null, 2)}</pre>` : String(valueA));
-            rowB.innerHTML = `<span style='color:#888;'>${key}:</span> ` +
-                (typeof valueB === 'object' && valueB !== null ? `<pre style='display:inline;'>${JSON.stringify(valueB, null, 2)}</pre>` : String(valueB));
+            const formatVal = (v) => {
+                if (v === undefined) return '<span class="diff-null">undefined</span>';
+                if (v === null) return '<span class="diff-null">null</span>';
+                if (typeof v === 'object') return '<span class="diff-obj">' + escapeHtmlInDiff(JSON.stringify(v, null, 2)) + '</span>';
+                return escapeHtmlInDiff(String(v));
+            };
+            rowA.innerHTML = `<span class="diff-key">${escapeHtmlInDiff(key)}:</span> ${formatVal(valueA)}`;
+            rowB.innerHTML = `<span class="diff-key">${escapeHtmlInDiff(key)}:</span> ${formatVal(valueB)}`;
             detailsA.appendChild(rowA);
             detailsB.appendChild(rowB);
         });
@@ -107,3 +115,13 @@ function renderJsonDiff(a, b, containerA, containerB) {
 
 // Export for global use in compare modal
 window.renderJsonDiff = renderJsonDiff;
+
+// HTML escape for safe innerHTML rendering
+function escapeHtmlInDiff(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}

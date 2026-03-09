@@ -75,6 +75,58 @@ class RuleValidationService:
         report = self._brms.validate(dataset)
         conflicts: List[Dict[str, Any]] = []
 
+        # Duplicate condition detection (same condition AND same action)
+        candidate_condition = json.dumps(candidate["condition_dsl"], sort_keys=True)
+        candidate_action = (candidate.get("action") or "").strip()
+        for rule in existing_rules:
+            # For edit, skip the rule being edited
+            if rule_id is not None and rule.id == rule_id:
+                continue
+            existing_condition = json.loads(rule.condition_dsl) if isinstance(rule.condition_dsl, str) else rule.condition_dsl
+            existing_action = (rule.action or "").strip()
+            if (json.dumps(existing_condition, sort_keys=True) == candidate_condition
+                    and existing_action == candidate_action):
+                conflicts.append(
+                    {
+                        "type": "duplicate_condition",
+                        "existing_rule_id": rule.id,
+                        "existing_rule_name": rule.name,
+                        "description": (
+                            f"Duplicate rule detected: rule '{rule.name}' (ID: {rule.id}) "
+                            f"has identical condition and action."
+                        ),
+                    }
+                )
+
+        # Also flag duplicates found by the BRMS DuplicateDetector (only if action also matches)
+        for dup in report.get("duplicates", []):
+            dup_rule1 = str(dup.get("rule1_id", "")) if isinstance(dup, dict) else str(getattr(dup, "rule1_id", ""))
+            dup_rule2 = str(dup.get("rule2_id", "")) if isinstance(dup, dict) else str(getattr(dup, "rule2_id", ""))
+            # Only surface duplicates involving the candidate
+            if self.CANDIDATE_RULE_ID not in (dup_rule1, dup_rule2):
+                continue
+            existing_id = dup_rule2 if dup_rule1 == self.CANDIDATE_RULE_ID else dup_rule1
+            if existing_id == self.CANDIDATE_RULE_ID:
+                continue
+            # Verify the existing rule also has the same action (condition-only duplicates are not blocking)
+            matching_rule = next((r for r in existing_rules if str(r.id) == str(existing_id)), None)
+            if matching_rule and (matching_rule.action or "").strip() != candidate_action:
+                continue
+            # Avoid adding if we already found this duplicate above
+            already_found = any(
+                c.get("type") == "duplicate_condition" and str(c.get("existing_rule_id")) == str(existing_id)
+                for c in conflicts
+            )
+            if not already_found:
+                conflicts.append(
+                    {
+                        "type": "duplicate_condition",
+                        "existing_rule_id": int(existing_id) if str(existing_id).isdigit() else existing_id,
+                        "existing_rule_name": self._name_for_rule_id(existing_rules, str(existing_id)),
+                        "description": f"Duplicate condition detected with rule '{self._name_for_rule_id(existing_rules, str(existing_id))}' (ID: {existing_id}).",
+                    }
+                )
+
         # Priority collision detection
         candidate_priority = candidate["priority"]
         candidate_group = candidate["group"]

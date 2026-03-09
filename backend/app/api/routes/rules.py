@@ -309,10 +309,12 @@ def create_rule(
         validation_result = RuleValidationService(db).validate(rule.model_dump(), mode=mode)
         potential_conflicts = validation_result.get("conflicts", [])
 
-        # Only block creation if there is a priority collision with an existing rule
+        # Block creation for any meaningful conflict (duplicate condition, priority collision, dead rule)
+        # brms_overlap is informational (fields overlap) — not blocking
+        BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule"}
         blocking_conflicts = [
             c for c in potential_conflicts
-            if c.get("type") == "priority_collision" and c.get("existing_rule_id") is not None
+            if c.get("type") in BLOCKING_CONFLICT_TYPES and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
         ]
 
         if blocking_conflicts:
