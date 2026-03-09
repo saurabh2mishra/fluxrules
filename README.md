@@ -8,7 +8,7 @@ A business rule engine powered by the RETE algorithm, with built-in conflict det
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Frontend                             │              │
+│                        Frontend                             │  
 │   (Rule Builder, Dependency Graph, Metrics, Test Sandbox)   │
 └──────────────────────────┬──────────────────────────────────┘
                            │ REST
