@@ -14,10 +14,12 @@ class CompiledConstraint:
 @dataclass
 class CompiledRule:
     id: str
+    name: str = ""
     constraints: List[CompiledConstraint] = field(default_factory=list)
     actions: List[str] = field(default_factory=list)
     priority: int = 0
     source_condition: Dict[str, Any] = field(default_factory=dict)
+    group: str = "default"  # Add group attribute
 
 
 class RuleCompiler:
@@ -31,13 +33,16 @@ class RuleCompiler:
         condition = rule_payload.get("condition_dsl") or {}
         constraints = self._extract_constraints(condition)
         actions = self._normalize_actions(rule_payload.get("action"))
-
+        group = rule_payload.get("group") or "default"
+        name = rule_payload.get("name") or str(rule_payload.get("id") or "unknown")
         return CompiledRule(
             id=str(rule_payload.get("id") or rule_payload.get("name") or "unknown"),
+            name=name,
             constraints=constraints,
             actions=actions,
             priority=int(rule_payload.get("priority") or 0),
             source_condition=condition,
+            group=group,
         )
 
     def compile_rules(self, rules: Sequence[Dict[str, Any]]) -> List[CompiledRule]:

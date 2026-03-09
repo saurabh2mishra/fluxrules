@@ -1,9 +1,18 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Dict, Any
+from dataclasses import dataclass, field
 
 from app.execution.agenda import Agenda
-from app.rete.rete_nodes import Activation
+
+
+@dataclass
+class Activation:
+    rule_id: str
+    priority: int
+    matched_facts: List[Dict[str, Any]] = field(default_factory=list)
+    specificity: int = 0
+    recency: int = 0
 
 
 class RuleScheduler:

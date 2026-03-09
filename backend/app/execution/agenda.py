@@ -2,8 +2,16 @@ from __future__ import annotations
 
 import heapq
 from typing import List, Tuple
+from dataclasses import dataclass, field
 
-from app.rete.rete_nodes import Activation
+
+@dataclass
+class Activation:
+    rule_id: str
+    priority: int
+    matched_facts: List[dict] = field(default_factory=list)
+    specificity: int = 0
+    recency: int = 0
 
 
 class Agenda:

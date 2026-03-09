@@ -1,1 +1,1 @@
-from .conflict_detector import ConflictDetector
+# Removed legacy conflict detector import

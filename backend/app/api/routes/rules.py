@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Dict, List, Optional
 import json
 from app.database import get_db
 from app.schemas.rule import (
@@ -12,8 +12,8 @@ from app.api.deps import get_current_user, get_current_admin
 from app.models.user import User
 from app.models.rule import Rule
 from app.engine.rete_engine import ReteEngine
+from app.engine.optimized_rete_engine import OptimizedReteEngine, RuleCache
 from app.engine.dependency_graph import DependencyGraphBuilder
-from app.services.conflict_detector import ConflictDetector
 from app.services.rule_validation_service import RuleValidationService
 from app.config import settings
 
@@ -23,6 +23,101 @@ from app.models.conflicted_rule import ConflictedRule
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/rules", tags=["rules"])
+
+
+# ---------------------------------------------------------------------------
+# Inline conflict detection helpers (replaces removed services.conflict_detector)
+# Uses the optimized RETE engine for rule caching and evaluation.
+# ---------------------------------------------------------------------------
+
+def _detect_all_conflicts(db: Session) -> Dict:
+    """Detect duplicate conditions and priority collisions across all rules."""
+    from typing import Dict as _Dict, Any as _Any
+    cache = RuleCache()
+    rules = cache.get_rules(db)
+
+    conflicts = []
+    # Duplicate conditions
+    condition_map: dict = {}
+    for rule in rules:
+        condition_str = json.dumps(rule["condition_dsl"], sort_keys=True)
+        if condition_str in condition_map:
+            prev = condition_map[condition_str]
+            conflicts.append({
+                "type": "duplicate_condition",
+                "rule1_id": prev["id"],
+                "rule1_name": prev["name"],
+                "rule2_id": rule["id"],
+                "rule2_name": rule["name"],
+                "description": (
+                    f"Rules '{prev['name']}' (ID: {prev['id']}) and "
+                    f"'{rule['name']}' (ID: {rule['id']}) have identical conditions"
+                ),
+            })
+        else:
+            condition_map[condition_str] = rule
+
+    # Priority collisions
+    priority_map: dict = {}
+    for rule in rules:
+        key = (rule["group"] or "default", rule["priority"])
+        priority_map.setdefault(key, []).append(rule)
+
+    for (group, priority), rule_list in priority_map.items():
+        if len(rule_list) > 1:
+            rule_names = ", ".join(f"'{r['name']}' (ID: {r['id']})" for r in rule_list)
+            conflicts.append({
+                "type": "priority_collision",
+                "group": group,
+                "priority": priority,
+                "rules": rule_list,
+                "description": f"Multiple rules in group '{group}' have priority {priority}: {rule_names}",
+            })
+
+    return {"conflicts": conflicts}
+
+
+def _check_new_rule_conflicts(db: Session, new_rule) -> list:
+    """Check conflicts for a new rule (used in parked-rule resolution)."""
+    engine = OptimizedReteEngine(db)
+    rules = engine.cache.get_rules(db)
+
+    conflicts: list = []
+    event = new_rule.condition_dsl if isinstance(new_rule.condition_dsl, dict) else json.loads(new_rule.condition_dsl)
+    result = engine.evaluate(event, use_rete=True)
+    matched_rules = result.get("matched_rules", [])
+    new_condition = json.dumps(event, sort_keys=True)
+
+    for rule in matched_rules:
+        existing = next((r for r in rules if r["id"] == rule["id"]), None)
+        if existing:
+            if json.dumps(existing["condition_dsl"], sort_keys=True) == new_condition:
+                conflicts.append({
+                    "type": "duplicate_condition",
+                    "existing_rule_id": rule["id"],
+                    "existing_rule_name": rule["name"],
+                    "description": f"Identical condition exists in rule '{rule['name']}' (ID: {rule['id']})",
+                })
+
+    # Priority collision
+    new_group = new_rule.group or "default"
+    new_priority = new_rule.priority
+    priority_map: dict = {}
+    for rule in rules:
+        key = (rule["group"] or "default", rule["priority"])
+        priority_map.setdefault(key, []).append(rule)
+
+    for rule in priority_map.get((new_group, new_priority), []):
+        conflicts.append({
+            "type": "priority_collision",
+            "existing_rule_id": rule["id"],
+            "existing_rule_name": rule["name"],
+            "group": new_group,
+            "priority": new_priority,
+            "description": f"Rule '{rule['name']}' (ID: {rule['id']}) has same priority {new_priority} in group '{new_group}'",
+        })
+
+    return conflicts
 
 
 def get_validation_mode(mode: Optional[str]) -> str:
@@ -208,16 +303,21 @@ def create_rule(
     current_user: User = Depends(get_current_user),
     validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
-    print(f"[DEBUG] create_rule called. current_user: {getattr(current_user, 'username', None)} id: {getattr(current_user, 'id', None)}")
     # Check for conflicts BEFORE creating (unless skipped for bulk operations)
     if not skip_conflict_check:
         mode = get_validation_mode(validation_mode)
         validation_result = RuleValidationService(db).validate(rule.model_dump(), mode=mode)
         potential_conflicts = validation_result.get("conflicts", [])
 
-        if potential_conflicts:
+        # Only block creation if there is a priority collision with an existing rule
+        blocking_conflicts = [
+            c for c in potential_conflicts
+            if c.get("type") == "priority_collision" and c.get("existing_rule_id") is not None
+        ]
+
+        if blocking_conflicts:
             # Park the rejected rule for business review
-            for conflict in potential_conflicts:
+            for conflict in blocking_conflicts:
                 parked = ConflictedRule(
                     name=rule.name,
                     description=rule.description,
@@ -237,12 +337,11 @@ def create_rule(
                 )
                 db.add(parked)
             db.commit()
-            
             raise HTTPException(
                 status_code=400,
                 detail={
                     "message": "Rule conflicts detected. The rule has been parked for business review.",
-                    "conflicts": potential_conflicts,
+                    "conflicts": blocking_conflicts,
                     "parked": True
                 }
             )
@@ -444,8 +543,7 @@ def detect_conflicts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    detector = ConflictDetector(db)
-    result = detector.detect_all_conflicts()
+    result = _detect_all_conflicts(db)
     try:
         # Clear previous detected conflicts (status='detected')
         db.query(ConflictedRule).filter(ConflictedRule.status == 'detected').delete()
@@ -613,8 +711,7 @@ def resolve_parked_conflict(
         )
 
     # Try to create the modified rule with normal conflict checking
-    detector = ConflictDetector(db)
-    new_conflicts = detector.check_new_rule_conflicts(modified_rule)
+    new_conflicts = _check_new_rule_conflicts(db, modified_rule)
 
     if new_conflicts:
         # Still conflicts — update parked entry with the new version and new conflict info
