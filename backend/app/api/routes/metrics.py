@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Response, Depends
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from sqlalchemy.orm import Session
-from app.utils.metrics import get_metrics_registry, get_dashboard_metrics
+from app.utils.metrics import get_metrics_registry
+from app.services.analytics_service import get_analytics_service
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.rule import Rule
@@ -29,8 +30,14 @@ def dashboard_metrics(
     groups = db.query(Rule.group).distinct().all()
     group_count = len([g for g in groups if g[0]])
     
-    # Get processing metrics
-    processing_metrics = get_dashboard_metrics()
+    # Get processing metrics from unified analytics service
+    summary = get_analytics_service().get_runtime_summary(db)
+    processing_metrics = {
+        "events_processed": summary.events_processed,
+        "rules_fired": summary.rules_fired,
+        "avg_processing_time_ms": summary.avg_processing_time_ms,
+        "total_evaluations": summary.events_processed,
+    }
     
     return {
         "rules": {
