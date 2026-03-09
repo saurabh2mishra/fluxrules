@@ -532,11 +532,12 @@ def invalidate_engine_cache(
     else:
         return {"message": "Optimized engine not available, no cache to invalidate", "success": False}
 
-@router.get("/graph/dependencies", response_model=DependencyGraph)
-def get_dependency_graph(
+@router.get("/graph/dependencies/legacy", response_model=DependencyGraph)
+def get_dependency_graph_legacy(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Legacy full-graph endpoint retained for backward compatibility and debugging."""
     builder = DependencyGraphBuilder(db)
     return builder.build_graph()
 
