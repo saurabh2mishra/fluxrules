@@ -7,14 +7,15 @@ from app.database import Base
 class Rule(Base):
     __tablename__ = "rules"
     
-    # Add composite index for fast conflict detection
+    # Add composite index for fast conflict detection and composite uniqueness
     __table_args__ = (
         Index('ix_rules_group_priority', 'group', 'priority'),
         Index('ix_rules_enabled_group', 'enabled', 'group'),
+        Index('uq_rules_group_id_name', 'group', 'id', 'name', unique=True),
     )
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, index=True, nullable=False)  # removed unique=True
     description = Column(Text)
     group = Column(String, index=True)
     priority = Column(Integer, default=0, index=True)

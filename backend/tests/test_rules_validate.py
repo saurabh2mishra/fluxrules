@@ -1,6 +1,36 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from app.main import app
+from app.database import Base, get_db
+
+# ---------------------------------------------------------------------------
+# Use an isolated test database so other test modules don't pollute state
+# ---------------------------------------------------------------------------
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test_rules_validate.db"
+_test_engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+_TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_test_engine)
+
+
+def _override_get_db():
+    db = _TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@pytest.fixture(scope="module", autouse=True)
+def clean_db():
+    """Create fresh tables for this module and tear down afterwards."""
+    app.dependency_overrides[get_db] = _override_get_db
+    Base.metadata.drop_all(bind=_test_engine)
+    Base.metadata.create_all(bind=_test_engine)
+    yield
+    Base.metadata.drop_all(bind=_test_engine)
+    app.dependency_overrides.pop(get_db, None)
+
 
 @pytest.fixture(scope="module")
 def auth_token():
