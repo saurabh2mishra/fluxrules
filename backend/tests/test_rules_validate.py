@@ -5,9 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.database import Base, get_db
 
-# ---------------------------------------------------------------------------
-# Use an isolated test database so other test modules don't pollute state
-# ---------------------------------------------------------------------------
+
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_rules_validate.db"
 _test_engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 _TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_test_engine)
