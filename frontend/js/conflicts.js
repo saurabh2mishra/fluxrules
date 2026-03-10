@@ -1,5 +1,54 @@
 // Parked Conflict Rules Management
 
+// Friendly labels and styling for conflict types
+const CONFLICT_TYPE_CONFIG = {
+    brms_overlap: {
+        label: '🔀 Condition Overlap',
+        color: '#e67e22',
+        bgColor: 'rgba(230, 126, 34, 0.08)',
+        borderColor: '#e67e22',
+        description: 'These rules have overlapping conditions and may fire on the same input.',
+    },
+    duplicate_condition: {
+        label: '📋 Duplicate Condition',
+        color: '#e74c3c',
+        bgColor: 'rgba(231, 76, 60, 0.08)',
+        borderColor: '#e74c3c',
+        description: 'This rule has the same condition and action as an existing rule.',
+    },
+    priority_collision: {
+        label: '⚡ Priority Collision',
+        color: '#f59e0b',
+        bgColor: 'rgba(245, 158, 11, 0.08)',
+        borderColor: '#f59e0b',
+        description: 'Multiple rules share the same priority in the same group.',
+    },
+    brms_dead_rule: {
+        label: '💀 Dead Rule',
+        color: '#6b7280',
+        bgColor: 'rgba(107, 114, 128, 0.08)',
+        borderColor: '#6b7280',
+        description: 'This rule has contradictory conditions and can never fire.',
+    },
+    duplicate_name: {
+        label: '🏷️ Duplicate Name',
+        color: '#8b5cf6',
+        bgColor: 'rgba(139, 92, 246, 0.08)',
+        borderColor: '#8b5cf6',
+        description: 'A rule with this name already exists.',
+    },
+};
+
+function getConflictTypeConfig(type) {
+    return CONFLICT_TYPE_CONFIG[type] || {
+        label: `⚠️ ${type || 'Unknown'}`,
+        color: '#6b7280',
+        bgColor: 'rgba(107, 114, 128, 0.08)',
+        borderColor: '#6b7280',
+        description: '',
+    };
+}
+
 async function loadParkedConflicts() {
     const container = document.getElementById('conflicts-list');
     if (!container) return;
@@ -45,6 +94,26 @@ function renderParkedConflicts(conflicts, container) {
     const approved = conflicts.filter(c => c.status === 'approved').length;
     const dismissed = conflicts.filter(c => c.status === 'dismissed').length;
 
+    // Count by conflict type (pending only)
+    const pendingConflicts = conflicts.filter(c => c.status === 'pending');
+    const typeCounts = {};
+    pendingConflicts.forEach(c => {
+        const t = c.conflict_type || 'unknown';
+        typeCounts[t] = (typeCounts[t] || 0) + 1;
+    });
+
+    let typeBreakdownHTML = '';
+    if (Object.keys(typeCounts).length > 0) {
+        const typeTags = Object.entries(typeCounts).map(([type, count]) => {
+            const cfg = getConflictTypeConfig(type);
+            return `<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.6rem;background:${cfg.borderColor}15;color:${cfg.color};border:1px solid ${cfg.borderColor}44;border-radius:999px;font-size:0.75rem;font-weight:600;">${cfg.label} <strong>${count}</strong></span>`;
+        }).join(' ');
+        typeBreakdownHTML = `<div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+            <span style="font-size:0.8rem;color:var(--text-light);font-weight:500;">Pending by type:</span>
+            ${typeTags}
+        </div>`;
+    }
+
     const summary = document.createElement('div');
     summary.className = 'conflict-summary';
     summary.innerHTML = `
@@ -62,6 +131,7 @@ function renderParkedConflicts(conflicts, container) {
                 <span class="stat-label">Dismissed</span>
             </div>
         </div>
+        ${typeBreakdownHTML}
     `;
     container.appendChild(summary);
 
@@ -74,11 +144,16 @@ function renderParkedConflicts(conflicts, container) {
 function createConflictCard(conflict) {
     const card = document.createElement('div');
     card.className = 'card conflict-card';
-    card.style.borderLeft = conflict.status === 'pending'
-        ? '4px solid #f59e0b'
+
+    const typeConfig = getConflictTypeConfig(conflict.conflict_type);
+
+    // Border color: use conflict type color for pending, status color for reviewed
+    const borderColor = conflict.status === 'pending'
+        ? typeConfig.borderColor
         : conflict.status === 'approved'
-            ? '4px solid #22c55e'
-            : '4px solid #6b7280';
+            ? '#22c55e'
+            : '#6b7280';
+    card.style.borderLeft = `4px solid ${borderColor}`;
 
     const statusColors = {
         pending: '#f59e0b',
@@ -109,14 +184,19 @@ function createConflictCard(conflict) {
                 <p style="color: var(--text-light); margin: 0.5rem 0 0;">${escapeHtml(conflict.description || '')}</p>
             </div>
         </div>
-        <div class="conflict-detail-section" style="margin: 0.75rem 0; padding: 0.75rem; background: var(--bg); border-radius: 0.375rem; border: 1px solid var(--border);">
-            <div style="margin-bottom: 0.5rem;">
-                <strong style="color: var(--danger);">⚠️ Conflict:</strong>
+        <div class="conflict-detail-section" style="margin: 0.75rem 0; padding: 0.75rem; background: ${typeConfig.bgColor}; border-radius: 0.375rem; border: 1px solid ${typeConfig.borderColor}33;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <span style="display: inline-block; padding: 0.15rem 0.6rem; background: ${typeConfig.borderColor}18; color: ${typeConfig.color}; border: 1px solid ${typeConfig.borderColor}55; border-radius: 999px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em;">
+                    ${typeConfig.label}
+                </span>
+            </div>
+            <div style="margin-bottom: 0.35rem;">
+                <strong style="color: ${typeConfig.color};">⚠️ Conflict:</strong>
                 <span style="color: var(--text);">${escapeHtml(conflict.conflict_description)}</span>
             </div>
+            ${typeConfig.description ? `<div style="font-size: 0.8rem; color: var(--text-light); font-style: italic; margin-bottom: 0.35rem;">${typeConfig.description}</div>` : ''}
             <div style="font-size: 0.85rem; color: var(--text-light);">
-                <span>Type: <strong>${escapeHtml(conflict.conflict_type)}</strong></span>
-                ${conflict.conflicting_rule_name ? ` · Conflicts with: <strong>${escapeHtml(conflict.conflicting_rule_name)}</strong> (ID: ${conflict.conflicting_rule_id})` : ''}
+                ${conflict.conflicting_rule_name ? `Conflicts with: <strong>${escapeHtml(conflict.conflicting_rule_name)}</strong> (ID: ${conflict.conflicting_rule_id})` : ''}
             </div>
         </div>
         <details style="margin-bottom: 0.75rem;">

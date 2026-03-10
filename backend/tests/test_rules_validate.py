@@ -240,3 +240,185 @@ def test_bulk_conflicting_rule_is_parked_not_listed(auth_token):
     parked = client.get("/api/v1/rules/conflicts/parked?status=pending", headers=headers)
     assert parked.status_code == 200
     assert any(item["name"] == "BulkConflictRule" for item in parked.json())
+
+
+def test_brms_overlap_blocks_second_rule(auth_token):
+    """Two rules whose conditions overlap (brms_overlap) should NOT both be active.
+    The second rule must be blocked/parked."""
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+
+    # Create the first rule — should succeed
+    rule1 = {
+        "name": "OverlapBlockTest1",
+        "description": "First overlapping rule",
+        "group": "overlap_group",
+        "priority": 50,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "age", "op": ">=", "value": 18},
+        "action": "segment=adult",
+    }
+    resp1 = client.post("/api/v1/rules", json=rule1, headers=headers)
+    assert resp1.status_code == 200, f"First rule creation failed: {resp1.text}"
+
+    # Create a second rule with overlapping condition — should be blocked
+    rule2 = {
+        "name": "OverlapBlockTest2",
+        "description": "Second overlapping rule (different action, overlapping condition)",
+        "group": "overlap_group",
+        "priority": 51,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "age", "op": ">=", "value": 25},
+        "action": "segment=young_adult",
+    }
+    resp2 = client.post("/api/v1/rules", json=rule2, headers=headers)
+    assert resp2.status_code == 400, f"Overlapping rule was not blocked: {resp2.text}"
+    data = resp2.json()
+    assert "conflicts" in data["detail"]
+    assert any(c["type"] == "brms_overlap" for c in data["detail"]["conflicts"])
+    assert data["detail"].get("parked") is True
+
+
+def test_update_with_brms_overlap_is_blocked(auth_token):
+    """Editing a rule to create an overlap with an existing rule should be blocked."""
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+
+    # Create two non-conflicting rules
+    rule_a = {
+        "name": "UpdateOverlapA",
+        "description": "Rule A",
+        "group": "update_overlap_grp",
+        "priority": 60,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "score", "op": ">", "value": 100},
+        "action": "flag_high",
+    }
+    rule_b = {
+        "name": "UpdateOverlapB",
+        "description": "Rule B",
+        "group": "update_overlap_grp",
+        "priority": 61,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "score", "op": "<", "value": 10},
+        "action": "flag_low",
+    }
+    resp_a = client.post("/api/v1/rules", json=rule_a, headers=headers)
+    assert resp_a.status_code == 200
+    resp_b = client.post("/api/v1/rules", json=rule_b, headers=headers)
+    assert resp_b.status_code == 200
+    rule_b_id = resp_b.json()["id"]
+
+    # Update rule B so its condition overlaps with rule A
+    update_payload = {
+        "name": "UpdateOverlapB",
+        "description": "Rule B — now overlapping",
+        "group": "update_overlap_grp",
+        "priority": 61,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "score", "op": ">", "value": 50},
+        "action": "flag_low",
+    }
+    resp_update = client.put(f"/api/v1/rules/{rule_b_id}", json=update_payload, headers=headers)
+    assert resp_update.status_code == 400, f"Update with overlap was not blocked: {resp_update.text}"
+    data = resp_update.json()
+    assert "conflicts" in data["detail"]
+    assert any(c["type"] == "brms_overlap" for c in data["detail"]["conflicts"])
+
+
+def test_update_and_create_use_same_blocking_types(auth_token):
+    """Create and update endpoints should block on the same conflict types."""
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+
+    # Validate endpoint should report brms_overlap as a conflict
+    rule = {
+        "name": "ConsistencyCheckRule",
+        "description": "Check consistency",
+        "group": "overlap_group",  # reuse group with existing overlapping rule
+        "priority": 99,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "age", "op": ">=", "value": 30},
+        "action": "notify_admin",
+    }
+    resp = client.post("/api/v1/rules/validate", json=rule, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    # The validate endpoint surfaces brms_overlap as a conflict
+    has_overlap = any(c["type"] == "brms_overlap" for c in data.get("conflicts", []))
+    # If there is overlap, creating the rule should also block it
+    if has_overlap:
+        resp_create = client.post("/api/v1/rules", json=rule, headers=headers)
+        assert resp_create.status_code == 400, \
+            "brms_overlap detected in validate but rule was not blocked on create"
+
+
+def test_resolve_parked_still_checks_brms_overlap(auth_token):
+    """Resolving a parked conflict rule must re-validate via full BRMS.
+    If the modified rule still overlaps, it must stay parked — not sneak through."""
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+
+    # Create a base rule (unique field/values to avoid collisions with earlier tests)
+    base_rule = {
+        "name": "ResolveBase",
+        "description": "base",
+        "group": "resolve_grp",
+        "priority": 70,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "resolve_metric", "op": ">=", "value": 500},
+        "action": "resolve_action_a",
+    }
+    resp = client.post("/api/v1/rules", json=base_rule, headers=headers)
+    assert resp.status_code == 200, f"Base rule creation failed: {resp.text}"
+
+    # Create an overlapping rule — should be blocked & parked
+    overlap_rule = {
+        "name": "ResolveOverlap",
+        "description": "overlapping",
+        "group": "resolve_grp",
+        "priority": 71,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "resolve_metric", "op": ">=", "value": 600},
+        "action": "resolve_action_b",
+    }
+    resp2 = client.post("/api/v1/rules", json=overlap_rule, headers=headers)
+    assert resp2.status_code == 400
+
+    # Find the parked rule
+    parked_resp = client.get("/api/v1/rules/conflicts/parked?status=pending", headers=headers)
+    assert parked_resp.status_code == 200
+    parked_list = parked_resp.json()
+    parked = next((p for p in parked_list if p["name"] == "ResolveOverlap"), None)
+    assert parked is not None, f"Parked rule not found. Parked list: {parked_list}"
+    parked_id = parked["id"]
+
+    # Try to resolve with a STILL-overlapping rule (only change name/priority)
+    still_bad = {
+        "name": "ResolveOverlapRenamed",
+        "description": "still overlapping",
+        "group": "resolve_grp",
+        "priority": 72,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "resolve_metric", "op": ">=", "value": 600},
+        "action": "resolve_action_b",
+    }
+    resp3 = client.post(f"/api/v1/rules/conflicts/parked/{parked_id}/resolve", json=still_bad, headers=headers)
+    assert resp3.status_code == 400, f"Resolve should have failed: {resp3.text}"
+    detail = resp3.json().get("detail", {})
+    assert any(c.get("type") == "brms_overlap" for c in detail.get("conflicts", [])), \
+        f"Expected brms_overlap in resolve conflicts: {detail}"
+
+    # Now resolve with a truly different rule (different field, no overlap)
+    fixed = {
+        "name": "ResolveFixed",
+        "description": "no overlap",
+        "group": "resolve_grp",
+        "priority": 72,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "resolve_country", "op": "==", "value": "US"},
+        "action": "resolve_country_check",
+    }
+    resp4 = client.post(f"/api/v1/rules/conflicts/parked/{parked_id}/resolve", json=fixed, headers=headers)
+    assert resp4.status_code == 200, f"Resolve should have succeeded: {resp4.text}"
+    assert resp4.json().get("status") == "approved"

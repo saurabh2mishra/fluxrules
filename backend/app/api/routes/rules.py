@@ -224,6 +224,9 @@ def validate_rule(
     similar_rules = []
     existing_rules = db.query(Rule).filter(Rule.enabled == True).all()
     for existing in existing_rules:
+        # Skip the rule being edited — it should never appear as "similar to itself"
+        if rule_id is not None and existing.id == rule_id:
+            continue
         similarity_score = 0
         reasons = []
         # Check if same group
@@ -258,6 +261,18 @@ def validate_rule(
             })
     # Sort by similarity score
     similar_rules.sort(key=lambda x: x["similarity_score"], reverse=True)
+
+    # Safety net: strip any self-referencing conflicts/similar rules
+    if rule_id is not None:
+        conflicts = [
+            c for c in conflicts
+            if str(c.get("existing_rule_id")) != str(rule_id)
+        ]
+        similar_rules = [
+            s for s in similar_rules
+            if str(s.get("rule_id")) != str(rule_id)
+        ]
+
     response = {
         "valid": len(conflicts) == 0,
         "conflicts": conflicts,
@@ -295,9 +310,11 @@ def create_rule(
         validation_result = RuleValidationService(db).validate(rule.model_dump())
         potential_conflicts = validation_result.get("conflicts", [])
 
-        # Block creation for any meaningful conflict (duplicate condition, priority collision, dead rule)
-        # brms_overlap is informational (fields overlap) — not blocking
-        BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule"}
+        # Block creation for any meaningful conflict (duplicate condition,
+        # priority collision, dead rule, or BRMS overlap).
+        # brms_overlap means two rules fire on overlapping inputs — only one
+        # should be active at a time; the newcomer is parked for review.
+        BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap"}
         blocking_conflicts = [
             c for c in potential_conflicts
             if c.get("type") in BLOCKING_CONFLICT_TYPES and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
@@ -362,7 +379,7 @@ def bulk_create_rules(
             if validate_conflicts:
                 validation_result = RuleValidationService(db).validate(rule.model_dump())
                 potential_conflicts = validation_result.get("conflicts", [])
-                blocking_types = {"priority_collision", "duplicate_condition", "brms_dead_rule"}
+                blocking_types = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap"}
                 blocking_conflicts = [
                     c for c in potential_conflicts
                     if c.get("type") in blocking_types and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
@@ -425,16 +442,23 @@ def update_rule(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Check for conflicts BEFORE updating
+    # Check for conflicts BEFORE updating — use the same blocking types as create
     validation_result = RuleValidationService(db).validate(rule_update.model_dump(exclude_none=True), rule_id=rule_id)
     potential_conflicts = validation_result.get("conflicts", [])
 
-    if potential_conflicts:
+    BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap"}
+    blocking_conflicts = [
+        c for c in potential_conflicts
+        if c.get("type") in BLOCKING_CONFLICT_TYPES
+        and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
+    ]
+
+    if blocking_conflicts:
         raise HTTPException(
             status_code=400,
             detail={
                 "message": "Rule conflicts detected. Please resolve before updating.",
-                "conflicts": potential_conflicts
+                "conflicts": blocking_conflicts
             }
         )
     
@@ -736,10 +760,19 @@ def resolve_parked_conflict(
             detail="The rule has not been modified. Please change the priority, condition, group, or action to resolve the conflict before creating."
         )
 
-    # Try to create the modified rule with normal conflict checking
-    new_conflicts = _check_new_rule_conflicts(db, modified_rule)
+    # Try to create the modified rule — use the FULL BRMS validation
+    # (same as create/update) so that brms_overlap is properly caught.
+    validation_result = RuleValidationService(db).validate(modified_rule.model_dump())
+    potential_conflicts = validation_result.get("conflicts", [])
 
-    if new_conflicts:
+    BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap"}
+    blocking_conflicts = [
+        c for c in potential_conflicts
+        if c.get("type") in BLOCKING_CONFLICT_TYPES
+        and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
+    ]
+
+    if blocking_conflicts:
         # Still conflicts — update parked entry with the new version and new conflict info
         parked.name = modified_rule.name
         parked.description = modified_rule.description
@@ -749,17 +782,17 @@ def resolve_parked_conflict(
         parked.condition_dsl = json.dumps(modified_condition)
         parked.action = modified_rule.action
         parked.rule_metadata = json.dumps(modified_rule.rule_metadata) if modified_rule.rule_metadata else None
-        parked.conflict_type = new_conflicts[0].get("type", "unknown")
-        parked.conflict_description = new_conflicts[0].get("description", "")
-        parked.conflicting_rule_id = new_conflicts[0].get("existing_rule_id")
-        parked.conflicting_rule_name = new_conflicts[0].get("existing_rule_name")
+        parked.conflict_type = blocking_conflicts[0].get("type", "unknown")
+        parked.conflict_description = blocking_conflicts[0].get("description", "")
+        parked.conflicting_rule_id = blocking_conflicts[0].get("existing_rule_id")
+        parked.conflicting_rule_name = blocking_conflicts[0].get("existing_rule_name")
         db.commit()
 
         raise HTTPException(
             status_code=400,
             detail={
                 "message": "The modified rule still has conflicts. Please make further changes.",
-                "conflicts": new_conflicts
+                "conflicts": blocking_conflicts
             }
         )
 

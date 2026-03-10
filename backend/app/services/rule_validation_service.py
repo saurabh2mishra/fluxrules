@@ -49,18 +49,21 @@ class RuleValidationService:
         candidate_group = rule_payload.get("group") or "default"
 
         # ── Load only same-group rules (group-scoped) ──
-        query = self.db.query(Rule).filter(Rule.enabled.is_(True))
+        base_query = self.db.query(Rule).filter(Rule.enabled.is_(True))
+
+        # Exclude the rule being edited from all queries up-front
+        if rule_id is not None:
+            base_query = base_query.filter(Rule.id != rule_id)
+
         # For duplicate-condition check we also need cross-group rules with
         # the same condition+action.  We load same-group for conflict detection,
         # and separately check duplicates cross-group below.
-        same_group_rules = query.filter(Rule.group == candidate_group).all()
+        same_group_rules = base_query.filter(Rule.group == candidate_group).all()
         # Also grab all rules for duplicate checking (lightweight — only condition/action)
-        all_enabled_rules = query.all()
+        all_enabled_rules = base_query.all()
 
         dataset: List[Dict[str, Any]] = []
         for rule in same_group_rules:
-            if rule_id is not None and rule.id == rule_id:
-                continue
             dataset.append(self._rule_to_payload(rule))
 
         candidate = {
@@ -86,8 +89,6 @@ class RuleValidationService:
         candidate_condition = json.dumps(candidate["condition_dsl"], sort_keys=True)
         candidate_action = (candidate.get("action") or "").strip()
         for rule in all_enabled_rules:
-            if rule_id is not None and rule.id == rule_id:
-                continue
             existing_condition = (
                 json.loads(rule.condition_dsl)
                 if isinstance(rule.condition_dsl, str)
@@ -150,8 +151,6 @@ class RuleValidationService:
         # ── Priority collision detection (same group only) ──
         candidate_priority = candidate["priority"]
         for rule in same_group_rules:
-            if rule_id is not None and rule.id == rule_id:
-                continue
             if rule.priority == candidate_priority and rule.group == candidate_group:
                 conflicts.append(
                     {
@@ -227,6 +226,14 @@ class RuleValidationService:
                     "reason": reason,
                 }
             )
+
+        # ── Safety net: never report self-conflicts ──
+        if rule_id is not None:
+            conflicts = [
+                c for c in conflicts
+                if str(c.get("existing_rule_id")) != str(rule_id)
+            ]
+
         return conflicts, report
 
     # ------------------------------------------------------------------
