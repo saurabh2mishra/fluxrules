@@ -17,10 +17,6 @@ async function fetchDependencySummary(filters) {
     return fetchDependencyJson(`${API_BASE}/rules/graph/summary${toQuery(filters)}`);
 }
 
-async function fetchDependencyGraph(filters) {
-    return fetchDependencyJson(`${API_BASE}/rules/graph/dependencies${toQuery(filters)}`);
-}
-
 async function fetchDependencyJson(url) {
     try {
         const response = await fetchWithAuth(url);
@@ -37,7 +33,6 @@ function toQuery(filters) {
     if (filters.group) params.set('group', filters.group);
     if (filters.field) params.set('field', filters.field);
     if (filters.rule_name) params.set('rule_name', filters.rule_name);
-    if (filters.max_nodes) params.set('max_nodes', String(filters.max_nodes));
     const q = params.toString();
     return q ? `?${q}` : '';
 }
@@ -51,22 +46,16 @@ function renderDependencyDiagnostics(summary) {
     container.innerHTML = `
         <div class="metrics-dashboard">
             <div class="metrics-section">
-                <h3>🧭 Dependency Diagnostics (Insight-first)</h3>
-                <p class="page-description" style="margin-top:0.25rem;">Graph rendering is optional and limited for large datasets. Use filters to inspect meaningful subsets.</p>
-                <div class="filters" style="margin-top:0.5rem; gap:0.5rem; flex-wrap:wrap;">
+                <h3>🧭 Dependency Diagnostics</h3>
+                <p class="page-description dep-description">Use filters to inspect connected and isolated rule relationships.</p>
+                <div class="filters dep-filters">
                     <select id="dep-filter-group">
                         <option value="">All Groups</option>
                         ${groups.map((g) => `<option value="${g}">${g}</option>`).join('')}
                     </select>
                     <input id="dep-filter-field" type="text" placeholder="Field (e.g. amount)">
                     <input id="dep-filter-rule" type="text" placeholder="Rule name contains...">
-                    <select id="dep-max-nodes">
-                        <option value="100">Max nodes: 100</option>
-                        <option value="150" selected>Max nodes: 150</option>
-                        <option value="200">Max nodes: 200</option>
-                    </select>
                     <button class="btn btn-sm" id="dep-apply-filters">Apply Filters</button>
-                    <button class="btn btn-sm" id="dep-render-graph">Render Graph Subset</button>
                 </div>
             </div>
 
@@ -108,11 +97,6 @@ function renderDependencyDiagnostics(summary) {
                     ['field_count', 'Field Count'],
                 ])}
             </div>
-
-            <div class="metrics-section">
-                <h3>🕸️ Filtered Graph (Optional)</h3>
-                <div id="dependency-graph-canvas" class="graph-canvas" style="min-height:500px;"></div>
-            </div>
         </div>
     `;
 
@@ -143,7 +127,6 @@ function readDependencyFilters() {
         group: document.getElementById('dep-filter-group')?.value || '',
         field: document.getElementById('dep-filter-field')?.value.trim() || '',
         rule_name: document.getElementById('dep-filter-rule')?.value.trim() || '',
-        max_nodes: document.getElementById('dep-max-nodes')?.value || '150',
     };
 }
 
@@ -152,87 +135,5 @@ function attachDependencyHandlers() {
         const summary = await fetchDependencySummary(readDependencyFilters());
         if (summary.__error) return;
         renderDependencyDiagnostics(summary);
-    });
-
-    document.getElementById('dep-render-graph')?.addEventListener('click', async () => {
-        const graph = await fetchDependencyGraph(readDependencyFilters());
-        renderFilteredGraph(graph);
-    });
-}
-
-function renderFilteredGraph(graph) {
-    const holder = document.getElementById('dependency-graph-canvas');
-    if (!holder) return;
-    holder.innerHTML = '';
-
-    if (!graph || graph.__error) {
-        holder.innerHTML = '<div class="error-message">Unable to render graph for selected filters.</div>';
-        return;
-    }
-
-    if (graph.summary_only) {
-        holder.innerHTML = `<div class="empty-state"><h3>Summary Mode Only</h3><p>${graph.message || 'Graph disabled for large datasets. Apply filters.'}</p></div>`;
-        return;
-    }
-
-    if (!graph.nodes?.length) {
-        holder.innerHTML = '<div class="empty-state"><p>No graph nodes for selected filters.</p></div>';
-        return;
-    }
-
-    const width = Math.max(holder.clientWidth || 800, 800);
-    const height = 520;
-
-    const svg = d3.select(holder).append('svg').attr('width', width).attr('height', height);
-
-    const simulation = d3.forceSimulation(graph.nodes)
-        .force('link', d3.forceLink(graph.edges).id(d => d.id).distance(70).strength(0.4))
-        .force('charge', d3.forceManyBody().strength(-140))
-        .force('center', d3.forceCenter(width / 2, height / 2));
-
-    const link = svg.append('g')
-        .selectAll('line')
-        .data(graph.edges)
-        .enter()
-        .append('line')
-        .attr('stroke', '#94a3b8')
-        .attr('stroke-width', d => Math.min(1 + (d.weight || 1), 4));
-
-    const node = svg.append('g')
-        .selectAll('circle')
-        .data(graph.nodes)
-        .enter()
-        .append('circle')
-        .attr('r', 7)
-        .attr('fill', '#3b82f6')
-        .call(d3.drag()
-            .on('start', (event, d) => {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-            })
-            .on('drag', (event, d) => {
-                d.fx = event.x;
-                d.fy = event.y;
-            })
-            .on('end', (event, d) => {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
-            })
-        );
-
-    node.append('title').text(d => `${d.name}\nFields: ${(d.fields || []).join(', ')}`);
-
-    simulation.on('tick', () => {
-        link
-            .attr('x1', d => d.source.x)
-            .attr('y1', d => d.source.y)
-            .attr('x2', d => d.target.x)
-            .attr('y2', d => d.target.y);
-
-        node
-            .attr('cx', d => d.x)
-            .attr('cy', d => d.y);
     });
 }

@@ -21,7 +21,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -802,8 +802,11 @@ pre {
 
 /* Test Sandbox Page */
 .page-description {
-    color: #666;
-    margin-bottom: 1.5rem;
+    color: var(--text-light);
+    margin-bottom: 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    font-weight: 500;
 }
 
 .test-results-container {
@@ -997,189 +1000,6 @@ pre {
     overflow: hidden;
 }
 
-/* Graph Layout - Side by side */
-.graph-layout {
-    display: flex;
-    height: 100%;
-    min-height: 500px;
-}
-
-.graph-main {
-    flex: 1;
-    position: relative;
-    min-width: 0;
-}
-
-.graph-canvas {
-    width: 100%;
-    height: 480px;
-    background: var(--bg);
-    border-radius: 0.5rem;
-    border: 1px solid var(--border);
-    overflow: hidden;
-}
-
-.graph-tooltip {
-    position: absolute;
-    pointer-events: none;
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    font-size: 0.85rem;
-    padding: 0.5rem 0.75rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    z-index: 10;
-    display: none;
-    min-width: 120px;
-}
-
-.graph-minimap {
-    position: absolute;
-    right: 12px;
-    bottom: 12px;
-    width: 180px;
-    height: 120px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    z-index: 5;
-    opacity: 0.92;
-}
-
-.graph-sidebar {
-    width: 260px;
-    min-width: 220px;
-    background: var(--card);
-    border-radius: 0.5rem;
-    border: 1px solid var(--border);
-    padding: 1rem 0.75rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.sidebar-section {
-    margin-bottom: 1rem;
-}
-
-.cluster-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.cluster-toggle {
-    background: none;
-    border: none;
-    color: var(--primary);
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.375rem;
-    transition: background 0.2s;
-}
-
-.cluster-toggle:hover {
-    background: var(--bg);
-}
-
-.legend-compact {
-    font-size: 0.85rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-}
-
-.legend-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.legend-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 0.2rem;
-}
-
-.connected-rules-list {
-    font-size: 0.92rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.connection-badge {
-    background: var(--bg);
-    color: var(--primary);
-    font-size: 0.8rem;
-    border-radius: 0.375rem;
-    padding: 0.1rem 0.4rem;
-    margin-left: 0.4rem;
-}
-
-.rule-name {
-    font-weight: 500;
-    color: var(--text);
-}
-
-.shared-fields-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-}
-
-.field-tag {
-    background: var(--bg);
-    color: var(--accent);
-    font-size: 0.8rem;
-    border-radius: 0.375rem;
-    padding: 0.1rem 0.4rem;
-}
-
-/* --- Compact node/edge/label styles --- */
-.graph-canvas svg circle {
-    stroke: var(--card);
-    stroke-width: 1px;
-}
-.graph-canvas svg text {
-    font-size: 7px !important;
-    font-weight: 400;
-    fill: var(--text);
-    pointer-events: none;
-}
-.graph-canvas svg line {
-    stroke-width: 0.7px !important;
-    stroke-opacity: 0.25;
-}
-
-/* --- Cluster highlight --- */
-.graph-canvas .cluster-highlight {
-    fill: var(--accent);
-    opacity: 0.12;
-}
-
-/* --- Responsive --- */
-@media (max-width: 900px) {
-    .graph-layout {
-        flex-direction: column;
-    }
-    .graph-sidebar {
-        width: 100%;
-        min-width: 0;
-        margin-top: 1rem;
-    }
-    .graph-main {
-        min-width: 0;
-    }
-}
-
 /* Metrics Dashboard */
 .metrics-dashboard {
     display: flex;
@@ -1278,6 +1098,84 @@ pre {
     font-size: 0.875rem;
 }
 
+
+/* Data table polish (Diagnostics + Metrics) */
+.table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: var(--card);
+}
+
+.rules-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.93rem;
+}
+
+.rules-table thead th {
+    text-align: left;
+    padding: 0.8rem 0.95rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--text-light);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.rules-table tbody td {
+    padding: 0.8rem 0.95rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.rules-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.rules-table tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--bg) 56%, transparent);
+}
+
+.rules-table tbody tr:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.rule-drilldown-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.rule-drilldown-row td:first-child {
+    font-weight: 600;
+}
+
+.rule-drilldown-row td:nth-child(2) {
+    font-variant-numeric: tabular-nums;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.rule-drilldown-row td:nth-child(3),
+.rule-drilldown-row td:nth-child(4) {
+    color: var(--text-light);
+    font-size: 0.88rem;
+}
+
+.metrics-section h3 {
+    margin-bottom: 0.85rem;
+    color: var(--text);
+    font-size: 1.12rem;
+    letter-spacing: -0.01em;
+}
+
 /* Accent and status colors */
 
 /* For code blocks and JSON - adapt to light/dark mode */
@@ -1292,57 +1190,195 @@ pre, code, textarea, .test-results, .test-input, .test-output {
     background: rgba(15,23,42,0.85);
 }
 
-/* Dark mode toggle button (to be implemented in HTML/JS) */
-.dark-toggle {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    margin: 0;
-    background: none;
+/* App shell + sidebar refresh */
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.nav-brand {
+    padding: 1.25rem 1rem 1rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     color: var(--primary);
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    cursor: pointer;
-    font-size: 1.5rem;
-    box-shadow: none;
+    text-decoration: none;
+}
+
+.nav-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0 0.4rem;
+}
+
+.nav-section-label {
+    padding: 0.75rem 0.8rem 0.25rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 0.62rem 0.8rem;
+    border-radius: 0.65rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.nav-link .nav-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    vertical-align: middle;
-}
-.dark-toggle:focus {
-    outline: none;
+    color: var(--text-light);
 }
 
-/* Sidebar dark mode toggle button fix */
-.sidebar {
+.nav-link:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    color: var(--text);
+}
+
+.nav-link:hover .nav-icon {
+    color: var(--primary);
+}
+
+.nav-link.active {
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.nav-link.active::before {
+    content: "";
+    position: absolute;
+    left: -0.45rem;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--primary);
+}
+
+.nav-link.active .nav-icon {
+    color: var(--primary);
+}
+
+.nav-link-warning {
+    color: color-mix(in srgb, var(--warning) 78%, var(--text));
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 0.9rem;
+    padding: 0.85rem 0.7rem 0.35rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.88rem;
+    margin-bottom: 0.65rem;
+}
+
+.sidebar-utilities {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.nav-link-logout {
+    color: var(--danger);
+    margin-left: auto;
+}
+
+.main-content {
+    flex: 1;
     position: relative;
 }
+
 .dark-toggle {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    margin: 0;
-    background: none;
-    color: var(--primary);
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    cursor: pointer;
-    font-size: 1.5rem;
-    box-shadow: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-.dark-toggle:focus {
-    outline: none;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 0.55rem;
+    color: var(--text-light);
+    cursor: pointer;
 }
 
-/* Ensure sidebar content doesn't overlap with filters */
-.sidebar .nav-menu {
-    margin-bottom: 2.5rem;
+.dark-toggle:hover {
+    background: var(--bg);
+    color: var(--primary);
+}
+
+.dark-toggle:focus-visible,
+.nav-link:focus-visible,
+.nav-brand:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+#dark-toggle-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 82px;
+        min-width: 82px;
+        padding: 0.5rem;
+    }
+
+    .nav-brand {
+        font-size: 1rem;
+        padding: 1rem 0.2rem;
+        text-align: center;
+    }
+
+    .nav-text,
+    .nav-section-label,
+    #username-display {
+        display: none;
+    }
+
+    .nav-link {
+        justify-content: center;
+    }
+
+    .nav-link.active::before {
+        left: 0;
+    }
+
+    .sidebar-utilities {
+        justify-content: center;
+    }
 }
 
 /* Toast notifications (to be implemented in JS) */

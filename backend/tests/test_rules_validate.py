@@ -188,3 +188,57 @@ def test_same_condition_different_action_not_blocked(auth_token):
     }
     resp = client.post("/api/v1/rules", json=rule, headers=headers)
     assert resp.status_code == 200, f"Rule with different action was incorrectly blocked: {resp.text}"
+
+
+def test_bulk_conflicting_rule_is_parked_not_listed(auth_token):
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+
+    seed_rule = {
+        "name": "BulkSeedRule",
+        "description": "seed",
+        "group": "bulk_conflict",
+        "priority": 42,
+        "enabled": True,
+        "condition_dsl": {"type": "condition", "field": "amount", "op": ">", "value": 999},
+        "action": "send_alert"
+    }
+    seed_resp = client.post("/api/v1/rules", json=seed_rule, headers=headers)
+    assert seed_resp.status_code == 200
+
+    bulk_rules = [
+        {
+            "name": "BulkValidRule",
+            "description": "valid",
+            "group": "bulk_conflict",
+            "priority": 100,
+            "enabled": True,
+            "condition_dsl": {"type": "condition", "field": "score", "op": ">", "value": 5},
+            "action": "manual_review"
+        },
+        {
+            "name": "BulkConflictRule",
+            "description": "duplicate condition+action should be parked",
+            "group": "bulk_other",
+            "priority": 101,
+            "enabled": True,
+            "condition_dsl": {"type": "condition", "field": "amount", "op": ">", "value": 999},
+            "action": "send_alert"
+        }
+    ]
+
+    resp = client.post("/api/v1/rules/bulk", json=bulk_rules, headers=headers)
+    assert resp.status_code == 207, resp.text
+    detail = resp.json()["detail"]
+    assert len(detail["created"]) == 1
+    assert any(e.get("rule_name") == "BulkConflictRule" and e.get("parked") for e in detail["errors"])
+
+    listed = client.get("/api/v1/rules", headers=headers)
+    assert listed.status_code == 200
+    names = [r["name"] for r in listed.json()]
+    assert "BulkValidRule" in names
+    assert "BulkConflictRule" not in names
+
+    parked = client.get("/api/v1/rules/conflicts/parked?status=pending", headers=headers)
+    assert parked.status_code == 200
+    assert any(item["name"] == "BulkConflictRule" for item in parked.json())

@@ -57,7 +57,7 @@ def test_submit_event_sync_fallback_without_redis(monkeypatch):
 
     client = TestClient(app)
     response = client.post(
-        "/api/v1/events",
+        "/api/v1/event",
         json={"event_type": "payment", "data": {"amount": 100}, "metadata": {}},
     )
 
