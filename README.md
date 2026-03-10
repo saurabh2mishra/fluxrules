@@ -11,19 +11,19 @@ A business rule engine powered by the RETE algorithm, with built-in conflict det
 │ External Application(s)  │        │ FluxRules Frontend (UI)  │
 │ - backend services       │        │ - Rule builder           │
 │ - workflows / cron jobs  │        │ - Conflict viewer        │
-│ - partner systems        │        │ - Metrics dashboard      │
+│                          │        │ - Metrics dashboard      │
 └──────────────┬───────────┘        └──────────────┬───────────┘
-               │ REST + JWT                         │ REST + JWT
-               └────────────────────┬───────────────┘
+               │ REST + JWT                        │ REST + JWT
+               └────────────────────┬──────────────┘
                                     ▼
                      ┌──────────────────────────────────────┐
                      │        FastAPI Backend (/api/v1)     │
                      │                                      │
                      │  Integration endpoints:              │
-                     │  - POST /auth/token                 │
-                     │  - POST /event                      │
-                     │  - CRUD /rules (+ /validate)        │
-                     │  - /analytics, /metrics, /graph     │
+                     │  - POST /auth/token                  │
+                     │  - POST /event                       │
+                     │  - CRUD /rules (+ /validate)         │
+                     │  - /analytics, /metrics, /graph      │
                      └───────────────┬──────────────────────┘
                                      │
         ┌────────────────────────────┼────────────────────────────┐
