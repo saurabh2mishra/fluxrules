@@ -152,7 +152,7 @@ def get_rule_dependency_graph(
     if len(filtered) > max_nodes and not has_filters:
         return {
             "summary_only": True,
-            "message": f"Graph disabled by default for {len(filtered)} rules. Apply filters to render subset graph.",
+            "message": f"Graph details are disabled by default for {len(filtered)} rules. Apply filters to inspect relationships.",
             "nodes": [],
             "edges": [],
             "filtered_rules": len(filtered),

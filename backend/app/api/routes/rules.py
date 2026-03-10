@@ -21,6 +21,7 @@ from app.engine.actions import get_available_actions, execute_action
 
 from app.models.conflicted_rule import ConflictedRule
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter(prefix="/rules", tags=["rules"])
 
@@ -359,28 +360,70 @@ def create_rule(
 @router.post("/bulk", response_model=List[RuleResponse])
 def bulk_create_rules(
     rules: List[RuleCreate],
-    validate_conflicts: bool = Query(True, description="Check all conflicts at the end"),
+    validate_conflicts: bool = Query(True, description="Run conflict checks and park conflicting rules"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     """
     Create multiple rules in a single request.
-    Much faster than creating rules one by one.
+    Conflicting rules are parked (same behavior as single create).
     """
     service = RuleService(db)
     created_rules = []
     errors = []
-    
+
+    mode = get_validation_mode(validation_mode)
+
     for i, rule in enumerate(rules):
         try:
+            if validate_conflicts:
+                validation_result = RuleValidationService(db).validate(rule.model_dump(), mode=mode)
+                potential_conflicts = validation_result.get("conflicts", [])
+                blocking_types = {"priority_collision", "duplicate_condition", "brms_dead_rule"}
+                blocking_conflicts = [
+                    c for c in potential_conflicts
+                    if c.get("type") in blocking_types and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
+                ]
+
+                if blocking_conflicts:
+                    for conflict in blocking_conflicts:
+                        parked = ConflictedRule(
+                            name=rule.name,
+                            description=rule.description,
+                            group=rule.group,
+                            priority=rule.priority,
+                            enabled=rule.enabled,
+                            condition_dsl=json.dumps(rule.condition_dsl) if not isinstance(rule.condition_dsl, str) else rule.condition_dsl,
+                            action=rule.action,
+                            rule_metadata=json.dumps(rule.rule_metadata) if rule.rule_metadata else None,
+                            conflict_type=conflict.get("type", "unknown"),
+                            conflict_description=conflict.get("description", ""),
+                            conflicting_rule_id=conflict.get("existing_rule_id"),
+                            conflicting_rule_name=conflict.get("existing_rule_name"),
+                            new_rule_id=getattr(rule, 'id', None),
+                            submitted_by=current_user.id,
+                            status="pending"
+                        )
+                        db.add(parked)
+                    db.commit()
+                    errors.append({
+                        "index": i,
+                        "rule_name": rule.name,
+                        "error": "Rule conflicts detected. Rule parked for review.",
+                        "parked": True,
+                        "conflicts": blocking_conflicts,
+                    })
+                    continue
+
             created_rule = service.create_rule(rule, current_user.id)
-            created_rules.append(serialize_rule(created_rule))
+            created_rules.append(jsonable_encoder(serialize_rule(created_rule)))
         except Exception as e:
             errors.append({"index": i, "rule_name": rule.name, "error": str(e)})
-    
+
     # Invalidate cache after bulk operation
     invalidate_conflict_cache(db)
-    
+
     if errors:
         raise HTTPException(
             status_code=207,  # Multi-Status
@@ -390,7 +433,7 @@ def bulk_create_rules(
                 "errors": errors
             }
         )
-    
+
     return created_rules
 
 @router.put("/{rule_id}", response_model=RuleResponse)
