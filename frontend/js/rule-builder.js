@@ -34,8 +34,6 @@ function initRuleBuilder() {
     if (actionParamsEl) actionParamsEl.value = '';
     const actionDescEl = document.getElementById('action-description');
     if (actionDescEl) actionDescEl.textContent = '';
-    const validationModeEl = document.getElementById('rule-validation-mode');
-    if (validationModeEl) validationModeEl.value = 'shadow';
 
     // Reset test results
     const testResultsSection = document.getElementById('test-results-section');
@@ -408,7 +406,6 @@ async function saveRule() {
     const group = document.getElementById('rule-group').value.trim();
     const priority = parseInt(document.getElementById('rule-priority').value) || 0;
     const enabled = document.getElementById('rule-enabled').checked;
-    const validationMode = document.getElementById('rule-validation-mode')?.value || 'legacy';
     
     // Get action from select or hidden field
     const actionSelect = document.getElementById('rule-action-select');
@@ -462,7 +459,7 @@ async function saveRule() {
     console.log('Sending rule data:', JSON.stringify(ruleData, null, 2));
 
     try {
-        const response = await fetchWithAuth(`${API_BASE}/rules?validation_mode=${encodeURIComponent(validationMode)}`, {
+        const response = await fetchWithAuth(`${API_BASE}/rules`, {
             method: 'POST',
             body: JSON.stringify(ruleData)
         });
@@ -545,7 +542,6 @@ async function testRule() {
     const group = document.getElementById('rule-group').value.trim();
     const priority = parseInt(document.getElementById('rule-priority').value) || 0;
     const enabled = document.getElementById('rule-enabled').checked;
-    const validationMode = document.getElementById('rule-validation-mode')?.value || 'legacy';
     const action = document.getElementById('rule-action').value.trim();
     
     const resultsSection = document.getElementById('test-results-section');
@@ -579,7 +575,7 @@ async function testRule() {
     showTestResults('warning', '🔄 Testing...', '<p>Validating rule and checking for conflicts...</p>');
     
     try {
-        const response = await fetchWithAuth(`${API_BASE}/rules/validate?validation_mode=${encodeURIComponent(validationMode)}`, {
+        const response = await fetchWithAuth(`${API_BASE}/rules/validate`, {
             method: 'POST',
             body: JSON.stringify(ruleData)
         });
@@ -593,9 +589,6 @@ async function testRule() {
         const result = await response.json();
         console.log('Validation result:', result);
         let html = '';
-        if (result.validation_engine) {
-            html += `<p><strong>Validation mode:</strong> ${result.validation_engine.mode} | <strong>Primary:</strong> ${result.validation_engine.primary}</p>`;
-        }
         let hasDuplicateName = false;
         // Show conflicts
         if (result.conflicts && result.conflicts.length > 0) {
@@ -611,7 +604,12 @@ async function testRule() {
                     html += `</div>`;
                 } else {
                     html += `<div class="conflict-item">`;
-                    html += `<strong>${conflict.type === 'duplicate_condition' ? '🔄 Duplicate Condition' : '⚡ Priority Collision'}</strong>`;
+                    const typeLabel = conflict.type === 'duplicate_condition' ? '🔄 Duplicate Condition'
+                        : conflict.type === 'priority_collision' ? '⚡ Priority Collision'
+                        : conflict.type === 'brms_overlap' ? '🔀 Condition Overlap'
+                        : conflict.type === 'brms_dead_rule' ? '💀 Dead Rule'
+                        : '⚠️ Conflict';
+                    html += `<strong>${typeLabel}</strong>`;
                     html += `<p>${conflict.description}</p>`;
                     html += `<small>Existing Rule: <a href="#" onclick="viewRule(${conflict.existing_rule_id}); return false;">${conflict.existing_rule_name}</a> (ID: ${conflict.existing_rule_id})</small>`;
                     html += `</div>`;

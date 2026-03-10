@@ -17,12 +17,23 @@ except ImportError:
     _rule_cache = None
     CACHE_AVAILABLE = False
 
+# Compiled-rule + index cache invalidation
+try:
+    from app.validation._compiled_cache import invalidate as _invalidate_compiled_cache
+    COMPILED_CACHE_AVAILABLE = True
+except ImportError:
+    _invalidate_compiled_cache = None  # type: ignore
+    COMPILED_CACHE_AVAILABLE = False
+
 
 def invalidate_rule_cache(group: Optional[str] = None):
     """Invalidate rule cache when rules change."""
     if CACHE_AVAILABLE and _rule_cache:
         _rule_cache.invalidate(group)
         logger.debug(f"Rule cache invalidated for group: {group or 'all'}")
+    if COMPILED_CACHE_AVAILABLE and _invalidate_compiled_cache:
+        _invalidate_compiled_cache(group)
+        logger.debug(f"Compiled cache invalidated for group: {group or 'all'}")
 
 
 class RuleService:

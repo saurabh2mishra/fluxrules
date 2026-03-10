@@ -15,7 +15,6 @@ from app.engine.rete_engine import ReteEngine
 from app.engine.optimized_rete_engine import OptimizedReteEngine, RuleCache
 from app.engine.dependency_graph import DependencyGraphBuilder
 from app.services.rule_validation_service import RuleValidationService
-from app.config import settings
 
 from app.engine.actions import get_available_actions, execute_action
 
@@ -121,12 +120,6 @@ def _check_new_rule_conflicts(db: Session, new_rule) -> list:
     return conflicts
 
 
-def get_validation_mode(mode: Optional[str]) -> str:
-    selected = (mode or settings.RULE_VALIDATION_MODE or "legacy").lower()
-    if selected not in {"legacy", "brms", "shadow"}:
-        return "legacy"
-    return selected
-
 @router.get("/actions/available")
 def list_available_actions(
     current_user: User = Depends(get_current_user)
@@ -209,12 +202,10 @@ def validate_rule(
     rule_id: Optional[int] = Query(None, description="ID of rule being edited (for edit validation)", alias="rule_id"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     """Validate a rule before saving - check for conflicts, duplicates, and similar rules"""
-    mode = get_validation_mode(validation_mode)
     validator = RuleValidationService(db)
-    validation_result = validator.validate(rule.model_dump(), mode=mode, rule_id=rule_id)
+    validation_result = validator.validate(rule.model_dump(), rule_id=rule_id)
     conflicts = list(validation_result.get("conflicts", []))
 
     # Check for exact duplicate name, ignoring self if editing
@@ -272,12 +263,8 @@ def validate_rule(
         "conflicts": conflicts,
         "duplicate_conflict": duplicate_conflict,
         "similar_rules": similar_rules[:5],  # Top 5 similar rules
-    }
-    response.update({
-        "validation_engine": validation_result.get("validation_engine"),
-        "engines": validation_result.get("engines"),
         "brms_report": validation_result.get("brms_report"),
-    })
+    }
     return response
 
 def extract_fields(condition_dsl: dict) -> set:
@@ -302,12 +289,10 @@ def create_rule(
     skip_conflict_check: bool = Query(False, description="Skip conflict checking for faster creation"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     # Check for conflicts BEFORE creating (unless skipped for bulk operations)
     if not skip_conflict_check:
-        mode = get_validation_mode(validation_mode)
-        validation_result = RuleValidationService(db).validate(rule.model_dump(), mode=mode)
+        validation_result = RuleValidationService(db).validate(rule.model_dump())
         potential_conflicts = validation_result.get("conflicts", [])
 
         # Block creation for any meaningful conflict (duplicate condition, priority collision, dead rule)
@@ -363,7 +348,6 @@ def bulk_create_rules(
     validate_conflicts: bool = Query(True, description="Run conflict checks and park conflicting rules"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     """
     Create multiple rules in a single request.
@@ -373,12 +357,10 @@ def bulk_create_rules(
     created_rules = []
     errors = []
 
-    mode = get_validation_mode(validation_mode)
-
     for i, rule in enumerate(rules):
         try:
             if validate_conflicts:
-                validation_result = RuleValidationService(db).validate(rule.model_dump(), mode=mode)
+                validation_result = RuleValidationService(db).validate(rule.model_dump())
                 potential_conflicts = validation_result.get("conflicts", [])
                 blocking_types = {"priority_collision", "duplicate_condition", "brms_dead_rule"}
                 blocking_conflicts = [
@@ -442,11 +424,9 @@ def update_rule(
     rule_update: RuleUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    validation_mode: Optional[str] = Query(None, description="legacy|brms|shadow", alias="validation_mode")
 ):
     # Check for conflicts BEFORE updating
-    mode = get_validation_mode(validation_mode)
-    validation_result = RuleValidationService(db).validate(rule_update.model_dump(exclude_none=True), mode=mode, rule_id=rule_id)
+    validation_result = RuleValidationService(db).validate(rule_update.model_dump(exclude_none=True), rule_id=rule_id)
     potential_conflicts = validation_result.get("conflicts", [])
 
     if potential_conflicts:
@@ -819,8 +799,57 @@ def delete_parked_conflict(
     return {"message": f"Parked rule '{name}' deleted.", "id": parked_id}
 
 
+@router.post("/bulk/async")
+def async_bulk_create_rules(
+    rules: List[RuleCreate],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Submit a bulk rule creation job that runs validation asynchronously.
+
+    Returns a job_id immediately.  Poll ``/rules/bulk/async/{job_id}`` for status.
+    """
+    from app.workers.validation_worker import submit_bulk_validation
+    from app.config import settings
+
+    payloads = [r.model_dump() for r in rules]
+    db_url = str(settings.DATABASE_URL)
+    job_id = submit_bulk_validation(payloads, current_user.id, db_url)
+    return {"job_id": job_id, "total_rules": len(rules), "status": "submitted"}
+
+
+@router.get("/bulk/async/{job_id}")
+def get_async_bulk_status(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Get the status of an async bulk creation job."""
+    from app.workers.validation_worker import get_job_status
+
+    status = get_job_status(job_id)
+    if status is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return status
+
+
+@router.get("/bulk/async")
+def list_async_bulk_jobs(
+    current_user: User = Depends(get_current_user),
+):
+    """List recent async bulk validation jobs."""
+    from app.workers.validation_worker import list_jobs
+    return list_jobs()
+
+
 def invalidate_conflict_cache(db: Session):
     engine = ReteEngine(db)
     if engine._optimized_engine:
         engine._optimized_engine.invalidate_cache()
     engine.reload_rules()
+    # Also invalidate compiled rule + index cache
+    try:
+        from app.validation._compiled_cache import invalidate as invalidate_compiled_cache
+        invalidate_compiled_cache()
+    except ImportError:
+        pass

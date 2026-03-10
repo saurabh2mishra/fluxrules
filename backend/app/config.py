@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     RULE_CACHE_TTL: int = 300  # Cache TTL in seconds (5 minutes)
     RULE_LOCAL_CACHE_TTL: int = 60  # Local cache TTL in seconds
 
-    # Validation rollout settings
-    RULE_VALIDATION_MODE: str = "legacy"  # legacy | brms | shadow
+    # Validation engine (BRMS is the only supported engine)
+    RULE_VALIDATION_MODE: str = "brms"
 
     
     class Config:

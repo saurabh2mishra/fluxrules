@@ -54,7 +54,7 @@ def test_register_user():
     assert response.status_code == 200
     assert response.json()["username"] == "testuser3"
 
-def test_rule_validate_supports_validation_mode_shadow():
+def test_rule_validate_brms():
     seed_rule = {
         "name": "age_gate_existing",
         "description": "existing",
@@ -86,18 +86,17 @@ def test_rule_validate_supports_validation_mode_shadow():
     }
 
     response = client.post(
-        "/api/v1/rules/validate?validation_mode=shadow",
+        "/api/v1/rules/validate",
         json=candidate_rule,
     )
     assert response.status_code == 200
     payload = response.json()
-    assert payload["validation_engine"]["mode"] == "shadow"
-    assert payload["validation_engine"]["primary"] == "legacy"
-    assert "legacy" in payload["engines"]
-    assert "brms" in payload["engines"]
+    assert "valid" in payload
+    assert "conflicts" in payload
+    assert "brms_report" in payload
 
 
-def test_rule_validate_supports_validation_mode_brms():
+def test_rule_validate_detects_dead_rule():
     candidate_rule = {
         "name": "brms_contradiction",
         "description": "candidate",
@@ -116,11 +115,9 @@ def test_rule_validate_supports_validation_mode_brms():
     }
 
     response = client.post(
-        "/api/v1/rules/validate?validation_mode=brms",
+        "/api/v1/rules/validate",
         json=candidate_rule,
     )
     assert response.status_code == 200
     payload = response.json()
-    assert payload["validation_engine"]["mode"] == "brms"
-    assert payload["validation_engine"]["primary"] == "brms"
     assert any(c["type"] == "brms_dead_rule" for c in payload["conflicts"])

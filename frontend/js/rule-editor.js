@@ -188,7 +188,6 @@ window.handleEditSubmit = async function(e) {
     const priority = parseInt(document.getElementById('edit-rule-priority').value);
     const enabled = document.getElementById('edit-rule-enabled').checked;
     const action = document.getElementById('edit-rule-action').value;
-    const validationMode = document.getElementById('edit-rule-validation-mode')?.value || 'legacy';
 
     let dslObj;
 
@@ -227,7 +226,7 @@ window.handleEditSubmit = async function(e) {
     };
 
     try {
-        const response = await fetchWithAuth(`${API_BASE}/rules/${ruleId}?validation_mode=${encodeURIComponent(validationMode)}`, {
+        const response = await fetchWithAuth(`${API_BASE}/rules/${ruleId}`, {
             method: 'PUT',
             body: JSON.stringify(ruleUpdateData)
         });
@@ -270,7 +269,6 @@ window.testEditRule = async function() {
     const priority = parseInt(document.getElementById('edit-rule-priority').value) || 0;
     const enabled = document.getElementById('edit-rule-enabled').checked;
     const action = document.getElementById('edit-rule-action').value.trim();
-    const validationMode = document.getElementById('edit-rule-validation-mode')?.value || 'legacy';
     
     // Use editConditionTree for condition_dsl
     const conditionDsl = window.editConditionTree || { type: 'group', op: 'AND', children: [] };
@@ -290,7 +288,7 @@ window.testEditRule = async function() {
     showEditTestResults('warning', '🔄 Testing...', '<p>Validating rule and checking for conflicts...</p>');
     editDuplicateNameConflict = false;
     try {
-        const response = await fetchWithAuth(`${API_BASE}/rules/validate?rule_id=${encodeURIComponent(ruleId)}&validation_mode=${encodeURIComponent(validationMode)}`, {
+        const response = await fetchWithAuth(`${API_BASE}/rules/validate?rule_id=${encodeURIComponent(ruleId)}`, {
             method: 'POST',
             body: JSON.stringify(ruleData)
         });
@@ -302,9 +300,6 @@ window.testEditRule = async function() {
         const result = await response.json();
         console.log('Validation API response:', result);
         let html = '';
-        if (result.validation_engine) {
-            html += `<p><strong>Validation mode:</strong> ${result.validation_engine.mode} | <strong>Primary:</strong> ${result.validation_engine.primary}</p>`;
-        }
         let hasDuplicateName = false;
         // Show conflicts
         if (result.conflicts && result.conflicts.length > 0) {
@@ -320,7 +315,12 @@ window.testEditRule = async function() {
                     html += `</div>`;
                 } else {
                     html += `<div class="conflict-item">`;
-                    html += `<strong>${conflict.type === 'duplicate_condition' ? '🔄 Duplicate Condition' : '⚡ Priority Collision'}</strong>`;
+                    const typeLabel = conflict.type === 'duplicate_condition' ? '🔄 Duplicate Condition'
+                        : conflict.type === 'priority_collision' ? '⚡ Priority Collision'
+                        : conflict.type === 'brms_overlap' ? '🔀 Condition Overlap'
+                        : conflict.type === 'brms_dead_rule' ? '💀 Dead Rule'
+                        : '⚠️ Conflict';
+                    html += `<strong>${typeLabel}</strong>`;
                     html += `<p>${conflict.description}</p>`;
                     html += `<small>Existing Rule: <a href='#' onclick='viewRule(${conflict.existing_rule_id}); return false;'>${conflict.existing_rule_name}</a> (ID: ${conflict.existing_rule_id})</small>`;
                     html += `</div>`;
