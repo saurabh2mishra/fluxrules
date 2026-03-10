@@ -7,39 +7,47 @@ A business rule engine powered by the RETE algorithm, with built-in conflict det
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Frontend                             │  
-│   (Rule Builder, Dependency Diagnostics, Metrics, Test Sandbox)   │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ REST
-┌──────────────────────────▼──────────────────────────────────┐
-│                     FastAPI Backend                         │
-│                                                             │
-│  API Routes          Services            Engine             │
-│  ┌──────────┐   ┌────────────────┐   ┌────────────────┐     │
-│  │ /rules   │──▶│ Rule Service   │──▶│ RETE Network   │     │
-│  │ /events  │   │ Auth Service   │   │ Alpha / Beta   │     │
-│  │ /metrics │   │ Audit Service  │   │ DSL Parser     │     │
-│  │ /auth    │   │ BRMS Service   │   │ Action Registry│     │
-│  │ /graph   │   └────────────────┘   └────────────────┘     │
-│  └──────────┘                                               │  
-│                                                             │
-│  Validation Layer         Execution          Analytics      │
-│  ┌──────────────────┐   ┌──────────────┐  ┌────────────┐    │
-│  │ Conflict Detect.  │   │ Scheduler    │  │ Coverage   │   │
-│  │ Dead Rule Detect. │   │ Agenda       │  │ Metrics    │   │
-│  │ SAT Validation    │   │ Working Mem. │  │ Explanations│  │
-│  │ Gap / Redundancy  │   └──────────────┘  └────────────┘   │
-│  │ Duplicate / Prio. │                                      │
-│  └──────────────────┘                                       │
-│                                                             │
-│  Workers                 Storage                            │
-│  ┌──────────────┐   ┌──────────────────────────┐            │
-│  │ Event Worker  │   │ SQLite (dev) / Postgres  │           │
-│  └──────────────┘   │ Redis (cache, optional)   │           │
-│                      └──────────────────────────┘           │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────┐        ┌──────────────────────────┐
+│ External Application(s)  │        │ FluxRules Frontend (UI)  │
+│ - backend services       │        │ - Rule builder           │
+│ - workflows / cron jobs  │        │ - Conflict viewer        │
+│ - partner systems        │        │ - Metrics dashboard      │
+└──────────────┬───────────┘        └──────────────┬───────────┘
+               │ REST + JWT                         │ REST + JWT
+               └────────────────────┬───────────────┘
+                                    ▼
+                     ┌──────────────────────────────────────┐
+                     │        FastAPI Backend (/api/v1)     │
+                     │                                      │
+                     │  Integration endpoints:              │
+                     │  - POST /auth/token                 │
+                     │  - POST /event                      │
+                     │  - CRUD /rules (+ /validate)        │
+                     │  - /analytics, /metrics, /graph     │
+                     └───────────────┬──────────────────────┘
+                                     │
+        ┌────────────────────────────┼────────────────────────────┐
+        ▼                            ▼                            ▼
+┌───────────────┐           ┌──────────────────┐          ┌───────────────┐
+│ BRMS Validate │           │ RETE Execution   │          │ Analytics     │
+│ conflict/dead │           │ agenda/scheduler │          │ coverage/expl │
+│ sat/gap/dup   │           │ working memory   │          │ runtime stats │
+└──────┬────────┘           └────────┬─────────┘          └──────┬────────┘
+       └───────────────────────┬─────┴───────────────────────────┘
+                               ▼
+                     ┌───────────────────────────┐
+                     │ Storage & Infra           │
+                     │ SQLite/Postgres + Redis   │
+                     │ (worker optional)         │
+                     └───────────────────────────┘
 ```
+
+### Integration flow (for external applications)
+
+1. Authenticate via `POST /api/v1/auth/token` and store bearer token.
+2. Manage rules via `/api/v1/rules` (optionally pre-check with `/api/v1/rules/validate`).
+3. Send facts/events to `POST /api/v1/event` for runtime evaluation.
+4. Read outcomes and observability from `/api/v1/analytics/*` and `/api/v1/metrics`.
 
 **Key components:**
 
@@ -48,7 +56,7 @@ A business rule engine powered by the RETE algorithm, with built-in conflict det
 | **RETE Network** | Alpha nodes test individual conditions; beta nodes join across rules — gives O(1) incremental matching |
 | **DSL Parser** | Translates JSON condition trees (AND/OR, 14 operators) into RETE nodes |
 | **BRMS Validation** | SAT-solver-backed conflict, dead-rule, gap, redundancy, and duplicate detection |
-| **Execution** | Priority-ordered agenda, working memory, and a scheduler for async event processing |
+| **Execution** | Priority-ordered agenda, working memory, and a scheduler for async event processing (`POST /api/v1/event`) |
 | **Versioning** | Every rule edit creates an immutable version with full diff support |
 
 ---
@@ -118,6 +126,22 @@ python -m app.workers.event_worker
 ```
 
 Open [http://localhost:8000](http://localhost:8000) — the frontend is served by FastAPI directly.
+
+
+### Sample integration app (event execution)
+
+A ready-to-run sample client is available at `backend/simulation/sample_event_app.py`. It demonstrates:
+
+- registering/logging in,
+- creating a sample rule,
+- validating match behavior with `/api/v1/rules/simulate`,
+- executing the event via `POST /api/v1/event`,
+- and reading runtime analytics.
+
+```bash
+cd backend
+python simulation/sample_event_app.py --base-url http://localhost:8000/api/v1
+```
 
 ### Run tests
 
