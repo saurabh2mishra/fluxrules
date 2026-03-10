@@ -21,7 +21,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -1292,57 +1292,195 @@ pre, code, textarea, .test-results, .test-input, .test-output {
     background: rgba(15,23,42,0.85);
 }
 
-/* Dark mode toggle button (to be implemented in HTML/JS) */
-.dark-toggle {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    margin: 0;
-    background: none;
+/* App shell + sidebar refresh */
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.nav-brand {
+    padding: 1.25rem 1rem 1rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     color: var(--primary);
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    cursor: pointer;
-    font-size: 1.5rem;
-    box-shadow: none;
+    text-decoration: none;
+}
+
+.nav-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0 0.4rem;
+}
+
+.nav-section-label {
+    padding: 0.75rem 0.8rem 0.25rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 0.62rem 0.8rem;
+    border-radius: 0.65rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.nav-link .nav-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    vertical-align: middle;
-}
-.dark-toggle:focus {
-    outline: none;
+    color: var(--text-light);
 }
 
-/* Sidebar dark mode toggle button fix */
-.sidebar {
+.nav-link:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    color: var(--text);
+}
+
+.nav-link:hover .nav-icon {
+    color: var(--primary);
+}
+
+.nav-link.active {
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.nav-link.active::before {
+    content: "";
+    position: absolute;
+    left: -0.45rem;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--primary);
+}
+
+.nav-link.active .nav-icon {
+    color: var(--primary);
+}
+
+.nav-link-warning {
+    color: color-mix(in srgb, var(--warning) 78%, var(--text));
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 0.9rem;
+    padding: 0.85rem 0.7rem 0.35rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.88rem;
+    margin-bottom: 0.65rem;
+}
+
+.sidebar-utilities {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.nav-link-logout {
+    color: var(--danger);
+    margin-left: auto;
+}
+
+.main-content {
+    flex: 1;
     position: relative;
 }
+
 .dark-toggle {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    margin: 0;
-    background: none;
-    color: var(--primary);
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    cursor: pointer;
-    font-size: 1.5rem;
-    box-shadow: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-.dark-toggle:focus {
-    outline: none;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 0.55rem;
+    color: var(--text-light);
+    cursor: pointer;
 }
 
-/* Ensure sidebar content doesn't overlap with filters */
-.sidebar .nav-menu {
-    margin-bottom: 2.5rem;
+.dark-toggle:hover {
+    background: var(--bg);
+    color: var(--primary);
+}
+
+.dark-toggle:focus-visible,
+.nav-link:focus-visible,
+.nav-brand:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+#dark-toggle-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 82px;
+        min-width: 82px;
+        padding: 0.5rem;
+    }
+
+    .nav-brand {
+        font-size: 1rem;
+        padding: 1rem 0.2rem;
+        text-align: center;
+    }
+
+    .nav-text,
+    .nav-section-label,
+    #username-display {
+        display: none;
+    }
+
+    .nav-link {
+        justify-content: center;
+    }
+
+    .nav-link.active::before {
+        left: 0;
+    }
+
+    .sidebar-utilities {
+        justify-content: center;
+    }
 }
 
 /* Toast notifications (to be implemented in JS) */

@@ -7,6 +7,9 @@
     <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
@@ -181,52 +184,64 @@
     </style>
 </head>
 <body>
-    <div id="app" style="display: flex; min-height: 100vh;">
+    <div id="app" class="app-shell">
         <!-- Sidebar Navigation -->
-        <aside class="sidebar" style="width: 240px; min-width: 200px; display: flex; flex-direction: column; align-items: stretch;">
-            <a href="#" class="nav-brand" data-page="home" style="padding: 2rem 1rem 1rem 1.5rem; font-size: 1.3rem; font-weight: bold; color: var(--primary); text-decoration: none; cursor: pointer;">
+        <aside class="sidebar">
+            <a href="#" class="nav-brand" data-page="home">
                 FluxRules
             </a>
-            <nav class="nav-menu" style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem; padding: 0 1rem; margin-bottom: 0;">
+
+            <nav class="nav-menu" aria-label="Primary">
+                <div class="nav-section-label">Main</div>
                 <a href="#" class="nav-link" data-page="home">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Home</span></span>
+                    <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10" stroke="currentColor" stroke-width="2"/></svg></span>
+                    <span class="nav-text">Home</span>
                 </a>
                 <a href="#" class="nav-link" data-page="rules">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" stroke="var(--primary)" stroke-width="2"/><path d="M3 9h18" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Rules</span></span>
+                    <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18" stroke="currentColor" stroke-width="2"/></svg></span>
+                    <span class="nav-text">Rules</span>
                 </a>
                 <a href="#" class="nav-link" data-page="create">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Create Rule</span></span>
+                    <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2"/></svg></span>
+                    <span class="nav-text">Create Rule</span>
                 </a>
                 <a href="#" class="nav-link" data-page="test">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--primary)" stroke-width="2"/><path d="M9 9h6v6H9z" fill="var(--primary)" opacity="0.2"/></svg> <span style="margin-left: 0.75rem;">Test Sandbox</span></span>
+                    <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M9 9h6v6H9z" fill="currentColor" opacity="0.2"/></svg></span>
+                    <span class="nav-text">Test Sandbox</span>
                 </a>
-                <div style="padding: 0.4rem 1rem; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;">Advanced</div>
+
+                <div class="nav-section-label">Advanced</div>
                 <a href="#" class="nav-link" data-page="graph">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="2"/><path d="M12 6v6l4 2" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Diagnostics</span></span>
+                    <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/></svg></span>
+                    <span class="nav-text">Diagnostics</span>
                 </a>
                 <a href="#" class="nav-link" data-page="metrics">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--primary)" stroke-width="2"/><path d="M7 17v-4m5 4V7m5 10v-2" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Metrics</span></span>
+                    <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 17v-4m5 4V7m5 10v-2" stroke="currentColor" stroke-width="2"/></svg></span>
+                    <span class="nav-text">Metrics</span>
                 </a>
-                <a href="#" class="nav-link" data-page="conflicts">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z" stroke="var(--warning, #f59e0b)" stroke-width="2" fill="none"/><path d="M12 10v4M12 18h.01" stroke="var(--warning, #f59e0b)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem;">Conflicts</span></span>
+                <a href="#" class="nav-link nav-link-warning" data-page="conflicts">
+                    <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 10v4M12 18h.01" stroke="currentColor" stroke-width="2"/></svg></span>
+                    <span class="nav-text">Conflicts</span>
                 </a>
             </nav>
-            <!-- User Info & Logout at bottom -->
-            <div style="padding: 1rem; border-top: 1px solid var(--border);">
-                <div id="user-info" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="var(--primary)" stroke-width="2"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="var(--primary)" stroke-width="2"/></svg>
+
+            <div class="sidebar-footer">
+                <div id="user-info" class="user-info">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="2"/></svg>
                     <span id="username-display">User</span>
                 </div>
-                <a href="#" class="nav-link" id="logout-btn" style="margin: 0;">
-                    <span style="display: inline-flex; align-items: center;"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M16 17l5-5-5-5M21 12H9" stroke="var(--danger)" stroke-width="2"/><rect x="3" y="3" width="12" height="18" rx="2" stroke="var(--primary)" stroke-width="2"/></svg> <span style="margin-left: 0.75rem; color: var(--danger);">Logout</span></span>
-                </a>
+                <div class="sidebar-utilities">
+                    <button class="dark-toggle" id="dark-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+                        <span id="dark-toggle-icon">🌙</span>
+                    </button>
+                    <a href="#" class="nav-link nav-link-logout" id="logout-btn">
+                        <span class="nav-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2"/><rect x="3" y="3" width="12" height="18" rx="2" stroke="currentColor" stroke-width="2"/></svg></span>
+                        <span class="nav-text">Logout</span>
+                    </a>
+                </div>
             </div>
         </aside>
-        <main class="main-content container" style="flex: 1; position: relative;">
-            <!-- Dark Mode Toggle - Top Right -->
-            <button class="dark-toggle" id="dark-toggle" title="Toggle dark mode" style="position: fixed; top: 0.25rem; right: 0.25rem; background: none; border: none; cursor: pointer; padding: 0.4rem; z-index: 1000;">
-                <span id="dark-toggle-icon" style="font-size: 1.3rem;">🌙</span>
-            </button>
+        <main class="main-content container">
             <!-- HOME/LANDING PAGE -->
             <div id="home-page" class="page" style="display: block;">
                 <div class="landing-hero" style="text-align: center; padding: 3rem 2rem;">

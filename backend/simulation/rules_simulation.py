@@ -334,7 +334,7 @@ async def evaluate_event(client: httpx.AsyncClient, event: Dict) -> Dict:
     }
     try:
         response = await client.post(
-            f"{BASE_URL}/events",
+            f"{BASE_URL}/event",
             json=event_payload,
             headers=get_headers(),
             timeout=10.0

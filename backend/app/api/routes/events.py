@@ -15,11 +15,11 @@ from app.services.audit_service import AuditService
 from app.utils.redis_client import get_redis_client
 from app.utils.metrics import increment_events_processed, increment_rules_fired, observe_processing_time
 
-router = APIRouter(prefix="/events", tags=["events"])
+router = APIRouter(prefix="/event", tags=["events"])
 
 
 @router.post("", response_model=EventResponse)
-def submit_event(
+def process_event(
     event: Event,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
