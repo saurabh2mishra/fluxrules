@@ -1,0 +1,243 @@
+# Static Analysis Report
+
+Automated AST-based scan of the Python backend for dependency and usage signals. Results are conservative and label uncertain cases as **potentially unused**.
+
+## Repository Summary
+- Python modules scanned: **89**
+- Top-level classes discovered: **96**
+- Top-level functions discovered: **216**
+
+## Dependency Graph Summary
+- Edges are derived from `import`/`from ... import ...` statements only.
+- `backend.app.analytics.coverage_report` -> __future__, app.analytics.metrics, typing
+- `backend.app.analytics.explanation_engine` -> __future__, app.compiler.rule_compiler, typing
+- `backend.app.analytics.metrics` -> __future__, dataclasses, typing
+- `backend.app.analytics.store` -> __future__, abc, json, threading, typing
+- `backend.app.api.deps` -> app.config, app.database, app.models.user, fastapi, fastapi.security, jose, ...
+- `backend.app.api.routes.analytics` -> app.api.deps, app.models.user, app.services.analytics_service, fastapi, sqlalchemy.orm
+- `backend.app.api.routes.auth` -> app.config, app.database, app.models.user, app.schemas.user, app.services.auth_service, datetime, ...
+- `backend.app.api.routes.dependency_graph` -> collections, deps, fastapi, itertools, models.rule, models.user, ...
+- `backend.app.api.routes.events` -> app.api.deps, app.database, app.engine.rete_engine, app.models.user, app.schemas.event, app.services.analytics_service, ...
+- `backend.app.api.routes.metrics` -> app.api.deps, app.models.rule, app.models.user, app.services.analytics_service, app.utils.metrics, fastapi, ...
+- `backend.app.api.routes.rules` -> app.api.deps, app.config, app.database, app.engine.actions, app.engine.dependency_graph, app.engine.optimized_rete_engine, ...
+- `backend.app.compiler.rule_compiler` -> __future__, dataclasses, typing
+- `backend.app.config` -> pydantic_settings
+- `backend.app.database` -> app.config, app.models.user, app.services.auth_service, sqlalchemy, sqlalchemy.ext.declarative, sqlalchemy.orm
+- `backend.app.engine.actions` -> functools, logging, typing
+- `backend.app.engine.dependency_graph` -> app.models.rule, json, sqlalchemy.orm, typing
+- `backend.app.engine.dsl_parser` -> typing
+- `backend.app.engine.optimized_rete_engine` -> app.engine.rete_network, app.models.rule, app.utils.metrics, app.utils.redis_client, json, logging, ...
+- `backend.app.engine.profiler` -> time, typing
+- `backend.app.engine.rete_engine` -> app.config, app.engine.dsl_parser, app.engine.optimized_rete_engine, app.engine.profiler, app.models.rule, app.utils.metrics, ...
+- `backend.app.engine.rete_network` -> collections, dataclasses, enum, hashlib, json, logging, ...
+- `backend.app.execution.agenda` -> __future__, dataclasses, heapq, typing
+- `backend.app.execution.scheduler` -> __future__, app.execution.agenda, dataclasses, typing
+- `backend.app.execution.working_memory` -> __future__, dataclasses, typing
+- `backend.app.main` -> app.api.routes.analytics, app.api.routes.auth, app.api.routes.dependency_graph, app.api.routes.events, app.api.routes.metrics, app.api.routes.rules, ...
+- `backend.app.models.__init__` -> app.models.audit, app.models.conflicted_rule, app.models.rule, app.models.user
+- `backend.app.models.audit` -> app.database, datetime, sqlalchemy
+- `backend.app.models.conflicted_rule` -> app.database, datetime, sqlalchemy
+- `backend.app.models.rule` -> app.database, datetime, sqlalchemy, sqlalchemy.orm
+- `backend.app.models.user` -> app.database, datetime, sqlalchemy, sqlalchemy.orm
+- `backend.app.schemas.analytics` -> __future__, datetime, pydantic, typing
+- `backend.app.schemas.event` -> pydantic, typing
+- `backend.app.schemas.rule` -> datetime, pydantic, typing
+- `backend.app.schemas.user` -> datetime, pydantic, typing
+- `backend.app.services.analytics_service` -> __future__, app.analytics.coverage_report, app.analytics.metrics, app.analytics.store, app.models.rule, app.schemas.analytics, ...
+- `backend.app.services.audit_service` -> app.models.audit, sqlalchemy.orm, typing
+- `backend.app.services.auth_service` -> app.config, app.models.user, bcrypt, datetime, jose, sqlalchemy.orm, ...
+- `backend.app.services.brms_service` -> __future__, app.analytics.coverage_report, app.analytics.explanation_engine, app.analytics.metrics, app.compiler.rule_compiler, app.execution.scheduler, ...
+- `backend.app.services.rule_service` -> app.engine.optimized_rete_engine, app.models.rule, app.schemas.rule, app.services.audit_service, app.validation._compiled_cache, json, ...
+- `backend.app.services.rule_validation_service` -> __future__, app.models.rule, app.services.brms_service, json, logging, sqlalchemy.orm, ...
+
+## Potentially Unused Modules
+- `backend.app.analytics.coverage_report` (backend/app/analytics/coverage_report.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.analytics.explanation_engine` (backend/app/analytics/explanation_engine.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.analytics.metrics` (backend/app/analytics/metrics.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.analytics.store` (backend/app/analytics/store.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.api.deps` (backend/app/api/deps.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.api.routes.analytics` (backend/app/api/routes/analytics.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.api.routes.auth` (backend/app/api/routes/auth.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.api.routes.dependency_graph` (backend/app/api/routes/dependency_graph.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.api.routes.events` (backend/app/api/routes/events.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.api.routes.metrics` (backend/app/api/routes/metrics.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.api.routes.rules` (backend/app/api/routes/rules.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.compiler.rule_compiler` (backend/app/compiler/rule_compiler.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.engine.actions` (backend/app/engine/actions.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.engine.dependency_graph` (backend/app/engine/dependency_graph.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.engine.dsl_parser` (backend/app/engine/dsl_parser.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.engine.optimized_rete_engine` (backend/app/engine/optimized_rete_engine.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.engine.profiler` (backend/app/engine/profiler.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.engine.rete_engine` (backend/app/engine/rete_engine.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.engine.rete_network` (backend/app/engine/rete_network.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.execution.agenda` (backend/app/execution/agenda.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.execution.scheduler` (backend/app/execution/scheduler.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.execution.working_memory` (backend/app/execution/working_memory.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.models.audit` (backend/app/models/audit.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.models.conflicted_rule` (backend/app/models/conflicted_rule.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.schemas.analytics` (backend/app/schemas/analytics.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.schemas.event` (backend/app/schemas/event.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.schemas.rule` (backend/app/schemas/rule.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.schemas.user` (backend/app/schemas/user.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.services.analytics_service` (backend/app/services/analytics_service.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.services.audit_service` (backend/app/services/audit_service.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.services.auth_service` (backend/app/services/auth_service.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.services.brms_service` (backend/app/services/brms_service.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.services.rule_service` (backend/app/services/rule_service.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.services.rule_validation_service` (backend/app/services/rule_validation_service.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.utils.metrics` (backend/app/utils/metrics.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.utils.redis_client` (backend/app/utils/redis_client.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation._compiled_cache` (backend/app/validation/_compiled_cache.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation._interval_index` (backend/app/validation/_interval_index.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation._normalization` (backend/app/validation/_normalization.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.conflict_detection` (backend/app/validation/conflict_detection.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.constraint_graph` (backend/app/validation/constraint_graph.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.coverage_analysis` (backend/app/validation/coverage_analysis.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.dead_rule_detection` (backend/app/validation/dead_rule_detection.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.duplicate_detection` (backend/app/validation/duplicate_detection.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.gap_detection` (backend/app/validation/gap_detection.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.priority_collision_detection` (backend/app/validation/priority_collision_detection.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.redundancy_detection` (backend/app/validation/redundancy_detection.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.validation.sat_validation` (backend/app/validation/sat_validation.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.workers.event_worker` (backend/app/workers/event_worker.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.app.workers.validation_worker` (backend/app/workers/validation_worker.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.simulation.cleanup_orphaned_conflicts` (backend/simulation/cleanup_orphaned_conflicts.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.simulation.rules_simulation` (backend/simulation/rules_simulation.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.simulation.sample_event_app` (backend/simulation/sample_event_app.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.simulation.verify_conflicts` (backend/simulation/verify_conflicts.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.conftest` (backend/tests/conftest.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_analytics` (backend/tests/test_analytics.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_api` (backend/tests/test_api.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_brms_validation` (backend/tests/test_brms_validation.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_brms_validation_edge_cases` (backend/tests/test_brms_validation_edge_cases.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_conflict_detection` (backend/tests/test_conflict_detection.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_dependency_fallbacks` (backend/tests/test_dependency_fallbacks.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_dependency_graph` (backend/tests/test_dependency_graph.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_dependency_graph_api` (backend/tests/test_dependency_graph_api.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_dsl_parser` (backend/tests/test_dsl_parser.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_performance` (backend/tests/test_performance.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_rete_engine` (backend/tests/test_rete_engine.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_rete_network` (backend/tests/test_rete_network.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_rule_service` (backend/tests/test_rule_service.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_rules_validate` (backend/tests/test_rules_validate.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+- `backend.tests.test_validation_performance` (backend/tests/test_validation_performance.py): No intra-repo import detected; may be test/discovery/runtime-loaded module.
+
+## Potentially Unused Classes
+- `backend.app.engine.optimized_rete_engine.ConditionIndex` (backend/app/engine/optimized_rete_engine.py:159): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.app.execution.working_memory.WorkingMemory` (backend/app/execution/working_memory.py:14): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.app.schemas.rule.ConditionNode` (backend/app/schemas/rule.py:5): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.app.schemas.user.TokenData` (backend/app/schemas/user.py:30): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.app.schemas.user.UserUpdate` (backend/app/schemas/user.py:13): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.app.validation.constraint_graph.ConstraintGraphBuilder` (backend/app/validation/constraint_graph.py:16): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.tests.test_rete_network.TestAlphaCondition` (backend/tests/test_rete_network.py:11): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.tests.test_rete_network.TestPerformance` (backend/tests/test_rete_network.py:326): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.tests.test_rete_network.TestReteEngine` (backend/tests/test_rete_network.py:255): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+- `backend.tests.test_rete_network.TestReteNetwork` (backend/tests/test_rete_network.py:58): No direct class symbol reference detected; may be pydantic/schema/export-only usage.
+
+## Potentially Unused Functions
+- `backend.app.api.routes.analytics.rule_metrics` (backend/app/api/routes/analytics.py:29): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.analytics.runtime_analytics` (backend/app/api/routes/analytics.py:12): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.analytics.top_rules` (backend/app/api/routes/analytics.py:20): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.auth.register` (backend/app/api/routes/auth.py:32): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.dependency_graph.get_dependency_summary` (backend/app/api/routes/dependency_graph.py:81): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.dependency_graph.get_rule_dependency_graph` (backend/app/api/routes/dependency_graph.py:140): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.events.process_event` (backend/app/api/routes/events.py:22): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.metrics.dashboard_metrics` (backend/app/api/routes/metrics.py:19): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.async_bulk_create_rules` (backend/app/api/routes/rules.py:835): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.delete_parked_conflict` (backend/app/api/routes/rules.py:819): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.detect_conflicts` (backend/app/api/routes/rules.py:591): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.get_async_bulk_status` (backend/app/api/routes/rules.py:855): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.get_dependency_graph_legacy` (backend/app/api/routes/rules.py:582): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.get_engine_stats` (backend/app/api/routes/rules.py:549): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.get_rule_groups` (backend/app/api/routes/rules.py:176): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.invalidate_engine_cache` (backend/app/api/routes/rules.py:567): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.list_async_bulk_jobs` (backend/app/api/routes/rules.py:869): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.list_available_actions` (backend/app/api/routes/rules.py:123): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.list_parked_conflicts` (backend/app/api/routes/rules.py:648): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.list_rule_versions` (backend/app/api/routes/rules.py:482): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.reload_engine` (backend/app/api/routes/rules.py:540): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.resolve_parked_conflict` (backend/app/api/routes/rules.py:714): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.review_parked_conflict` (backend/app/api/routes/rules.py:684): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.simulate_event` (backend/app/api/routes/rules.py:530): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.api.routes.rules.validate_rule` (backend/app/api/routes/rules.py:199): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.approve_transaction` (backend/app/engine/actions.py:193): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.audit_log` (backend/app/engine/actions.py:234): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.block_transaction` (backend/app/engine/actions.py:153): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.call_webhook` (backend/app/engine/actions.py:302): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.enrich_data` (backend/app/engine/actions.py:278): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.execute_action` (backend/app/engine/actions.py:54): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.flag_for_review` (backend/app/engine/actions.py:173): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.log_event` (backend/app/engine/actions.py:214): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.no_action` (backend/app/engine/actions.py:346): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.print_debug` (backend/app/engine/actions.py:356): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.send_alert` (backend/app/engine/actions.py:88): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.send_email` (backend/app/engine/actions.py:108): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.send_slack` (backend/app/engine/actions.py:129): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.trigger_workflow` (backend/app/engine/actions.py:322): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.engine.actions.update_field` (backend/app/engine/actions.py:257): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.main.health` (backend/app/main.py:48): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.main.startup_event` (backend/app/main.py:44): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.utils.metrics.get_dashboard_metrics` (backend/app/utils/metrics.py:61): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.app.utils.redis_client.is_redis_available` (backend/app/utils/redis_client.py:36): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.conftest.override_auth_dependency` (backend/tests/conftest.py:14): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_analytics.setup_function` (backend/tests/test_analytics.py:33): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_analytics.test_analytics_api_runtime_and_coverage` (backend/tests/test_analytics.py:92): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_analytics.test_analytics_summary_and_top_rules` (backend/tests/test_analytics.py:73): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_api.clean_db` (backend/tests/test_api.py:9): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_api.test_health` (backend/tests/test_api.py:37): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_api.test_register_user` (backend/tests/test_api.py:42): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_api.test_root` (backend/tests/test_api.py:31): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_api.test_rule_validate_brms` (backend/tests/test_api.py:57): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_api.test_rule_validate_detects_dead_rule` (backend/tests/test_api.py:99): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation.test_conflict_detection_finds_overlap` (backend/tests/test_brms_validation.py:49): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation.test_coverage_analysis_reports_global_gap` (backend/tests/test_brms_validation.py:42): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation.test_dead_rule_detection_detects_contradiction` (backend/tests/test_brms_validation.py:61): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation.test_redundancy_detection_finds_subsumed_rule` (backend/tests/test_brms_validation.py:55): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation.test_sat_validation_handles_or_groups` (backend/tests/test_brms_validation.py:75): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation.test_sat_validation_works_with_fallback_or_pysat` (backend/tests/test_brms_validation.py:67): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation_edge_cases.test_brms_service_validate_large_ruleset_returns_complete_report` (backend/tests/test_brms_validation_edge_cases.py:161): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation_edge_cases.test_conflict_detector_respects_exclusive_inclusive_boundaries` (backend/tests/test_brms_validation_edge_cases.py:20): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation_edge_cases.test_dead_rule_detector_flags_equality_violating_exclusive_bound` (backend/tests/test_brms_validation_edge_cases.py:40): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation_edge_cases.test_duplicate_detector_reports_identical_conditions` (backend/tests/test_brms_validation_edge_cases.py:110): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation_edge_cases.test_gap_detector_has_no_finite_internal_gap_for_complete_split_ranges` (backend/tests/test_brms_validation_edge_cases.py:89): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation_edge_cases.test_redundancy_detector_does_not_subsume_when_parent_missing_child_field` (backend/tests/test_brms_validation_edge_cases.py:134): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_brms_validation_edge_cases.test_sat_validator_fallback_excludes_or_rules_from_unsat_claim` (backend/tests/test_brms_validation_edge_cases.py:64): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_conflict_detection.test_conflict_detector_overlap` (backend/tests/test_conflict_detection.py:50): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dependency_fallbacks.setup_function` (backend/tests/test_dependency_fallbacks.py:30): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dependency_fallbacks.test_submit_event_sync_fallback_without_redis` (backend/tests/test_dependency_fallbacks.py:35): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dependency_graph.test_build_graph_with_shared_fields` (backend/tests/test_dependency_graph.py:25): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dependency_graph.test_extract_fields` (backend/tests/test_dependency_graph.py:8): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dependency_graph_api.setup_function` (backend/tests/test_dependency_graph_api.py:22): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dependency_graph_api.test_dependency_summary_and_filtered_graph` (backend/tests/test_dependency_graph_api.py:38): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dsl_parser.test_parse_and_group` (backend/tests/test_dsl_parser.py:17): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dsl_parser.test_parse_nested_groups` (backend/tests/test_dsl_parser.py:31): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_dsl_parser.test_parse_simple_condition` (backend/tests/test_dsl_parser.py:5): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_deeply_nested_groups` (backend/tests/test_rete_engine.py:136): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_empty_group` (backend/tests/test_rete_engine.py:111): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_evaluate_all_operators` (backend/tests/test_rete_engine.py:84): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_evaluate_and_group` (backend/tests/test_rete_engine.py:23): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_evaluate_nested_groups` (backend/tests/test_rete_engine.py:61): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_evaluate_or_group` (backend/tests/test_rete_engine.py:42): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_evaluate_simple_condition` (backend/tests/test_rete_engine.py:6): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_group_with_single_child` (backend/tests/test_rete_engine.py:127): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_missing_field_returns_false` (backend/tests/test_rete_engine.py:104): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_negative_case` (backend/tests/test_rete_engine.py:149): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rete_engine.test_type_mismatch` (backend/tests/test_rete_engine.py:120): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rule_service.test_create_rule` (backend/tests/test_rule_service.py:6): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rule_service.test_list_rules` (backend/tests/test_rule_service.py:25): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.clean_db` (backend/tests/test_rules_validate.py:23): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_brms_overlap_blocks_second_rule` (backend/tests/test_rules_validate.py:245): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_bulk_conflicting_rule_is_parked_not_listed` (backend/tests/test_rules_validate.py:191): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_duplicate_condition_and_action_blocked` (backend/tests/test_rules_validate.py:132): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_resolve_parked_still_checks_brms_overlap` (backend/tests/test_rules_validate.py:356): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_same_condition_different_action_not_blocked` (backend/tests/test_rules_validate.py:172): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_update_and_create_use_same_blocking_types` (backend/tests/test_rules_validate.py:329): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_update_with_brms_overlap_is_blocked` (backend/tests/test_rules_validate.py:282): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_validate_rule_duplicate_name` (backend/tests/test_rules_validate.py:61): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_validate_rule_edit_self_no_conflict` (backend/tests/test_rules_validate.py:109): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_rules_validate.test_validate_rule_priority_collision` (backend/tests/test_rules_validate.py:83): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+- `backend.tests.test_validation_performance.test_validation_performance_stress` (backend/tests/test_validation_performance.py:33): No direct symbol reference detected; may be framework entrypoint, CLI hook, or externally imported.
+
+## Notes
+- FastAPI routes, SQLAlchemy model imports, and pytest-discovered tests can look unused to static AST analysis.
+- No potentially unused element was removed automatically to preserve backwards compatibility.

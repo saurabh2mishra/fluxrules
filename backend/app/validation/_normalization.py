@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional
 
 from app.compiler.rule_compiler import CompiledConstraint, CompiledRule
 

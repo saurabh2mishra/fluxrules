@@ -16,7 +16,7 @@ from app.engine.optimized_rete_engine import OptimizedReteEngine, RuleCache
 from app.engine.dependency_graph import DependencyGraphBuilder
 from app.services.rule_validation_service import RuleValidationService
 
-from app.engine.actions import get_available_actions, execute_action
+from app.engine.actions import get_available_actions
 
 from app.models.conflicted_rule import ConflictedRule
 from fastapi.responses import JSONResponse
@@ -32,7 +32,6 @@ router = APIRouter(prefix="/rules", tags=["rules"])
 
 def _detect_all_conflicts(db: Session) -> Dict:
     """Detect duplicate conditions and priority collisions across all rules."""
-    from typing import Dict as _Dict, Any as _Any
     cache = RuleCache()
     rules = cache.get_rules(db)
 
@@ -239,7 +238,7 @@ def validate_rule(
             existing_lower = existing.name.lower()
             if name_lower in existing_lower or existing_lower in name_lower:
                 similarity_score += 20
-                reasons.append(f"Similar name")
+                reasons.append("Similar name")
         # Check for overlapping fields in conditions
         try:
             new_fields = extract_fields(rule.condition_dsl)

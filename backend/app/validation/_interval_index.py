@@ -14,7 +14,7 @@ The index supports:
 from __future__ import annotations
 
 import bisect
-from dataclasses import dataclass, field as dc_field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
 from app.validation._normalization import Interval

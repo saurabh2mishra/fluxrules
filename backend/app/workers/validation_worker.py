@@ -18,7 +18,7 @@ import logging
 import threading
 import time
 import uuid
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -139,7 +139,6 @@ def _run_bulk_validation(
     try:
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
-        from app.database import Base
 
         engine = create_engine(db_url, connect_args={"check_same_thread": False})
         SessionLocal = sessionmaker(bind=engine)

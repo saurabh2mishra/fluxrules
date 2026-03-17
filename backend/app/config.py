@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "FluxRules"
@@ -26,7 +25,9 @@ class Settings(BaseSettings):
     # Validation engine (BRMS is the only supported engine)
     RULE_VALIDATION_MODE: str = "brms"
 
-    
+    # Frontend serving is optional to keep server loosely coupled from UI assets
+    SERVE_FRONTEND: bool = True
+
     class Config:
         case_sensitive = True
         env_file = ".env"

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.rule import Rule
-from typing import Dict, Any, List, Set
+from typing import Dict, Any, Set
 import json
 
 class DependencyGraphBuilder:

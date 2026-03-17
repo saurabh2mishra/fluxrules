@@ -19,7 +19,6 @@ from app.validation.priority_collision_detection import PriorityCollisionDetecto
 from app.validation._compiled_cache import (
     get_compiled_rules,
     get_compiled_rules_with_index,
-    invalidate as invalidate_compiled_cache,
 )
 
 logger = logging.getLogger(__name__)

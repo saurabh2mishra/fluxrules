@@ -17,22 +17,19 @@ Usage:
 from sqlalchemy.orm import Session
 from app.models.rule import Rule
 from app.utils.redis_client import get_redis_client
-from app.config import settings
 from app.utils.metrics import (
     increment_events_processed,
     increment_rules_fired,
     observe_processing_time
 )
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, List, Optional
 import json
 import logging
-import hashlib
 import time
 import threading
-from functools import lru_cache
 
 # Import our true RETE network implementation
-from app.engine.rete_network import ReteNetwork, ReteEngine as ReteNetworkEngine
+from app.engine.rete_network import ReteEngine as ReteNetworkEngine
 
 logger = logging.getLogger(__name__)
 

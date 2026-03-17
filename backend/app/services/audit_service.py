@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.audit import AuditLog
 from typing import Optional
-from datetime import datetime
 
 class AuditService:
     def __init__(self, db: Session):

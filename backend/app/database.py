@@ -1,12 +1,26 @@
+"""Database engine/session initialization utilities."""
+
+from collections.abc import Generator
+from typing import Any
+
 from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
 
 
-def _build_engine(database_url: str):
-    connect_args = {}
+def _build_engine(database_url: str) -> Engine:
+    """Create a SQLAlchemy engine configured for PostgreSQL or SQLite.
+
+    Args:
+        database_url: SQLAlchemy-compatible connection URL.
+
+    Returns:
+        Configured SQLAlchemy engine.
+    """
+    connect_args: dict[str, Any] = {}
     if "sqlite" in database_url:
         connect_args["check_same_thread"] = False
 
@@ -17,8 +31,12 @@ def _build_engine(database_url: str):
     )
 
     if "sqlite" in database_url:
+
+        # Potentially unused by static analyzers: invoked by SQLAlchemy event dispatcher.
         @event.listens_for(db_engine, "connect")
-        def set_sqlite_pragma(dbapi_connection, connection_record):
+        def set_sqlite_pragma(dbapi_connection: Any, connection_record: Any) -> None:
+            """Apply SQLite pragmas to improve durability/performance tradeoffs."""
+            del connection_record
             cursor = dbapi_connection.cursor()
             cursor.execute("PRAGMA journal_mode=WAL")
             cursor.execute("PRAGMA synchronous=NORMAL")
@@ -30,7 +48,8 @@ def _build_engine(database_url: str):
     return db_engine
 
 
-def _create_engine_with_fallback():
+def _create_engine_with_fallback() -> Engine:
+    """Build the configured engine and fallback to local SQLite when unavailable."""
     preferred_url = settings.DATABASE_URL
     fallback_url = "sqlite:///./rule_engine.db"
 
@@ -54,7 +73,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
+    """Yield an active database session for request-scoped dependency injection."""
     db = SessionLocal()
     try:
         yield db
@@ -62,9 +82,8 @@ def get_db():
         db.close()
 
 
-def init_db():
-    from app.models import rule, user, audit, conflicted_rule
-
+def init_db() -> None:
+    """Create database tables and seed default admin credentials if missing."""
     Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
