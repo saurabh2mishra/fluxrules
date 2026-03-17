@@ -101,6 +101,14 @@ Operational notes:
 
 ## Quick Start
 
+### Install as a package
+
+```bash
+pip install fluxrules
+# or
+uv add fluxrules
+```
+
 ### With Docker (recommended)
 
 ```bash

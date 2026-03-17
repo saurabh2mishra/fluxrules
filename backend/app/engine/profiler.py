@@ -1,5 +1,5 @@
 import time
-from typing import Dict, Any
+from typing import Dict
 
 class RuleProfiler:
     def __init__(self):

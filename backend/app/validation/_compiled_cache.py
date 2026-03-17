@@ -19,7 +19,6 @@ from typing import Any, Dict, List, Optional
 
 from app.compiler.rule_compiler import CompiledRule, RuleCompiler
 from app.validation._interval_index import IntervalIndex
-from app.validation._normalization import Interval
 
 logger = logging.getLogger(__name__)
 

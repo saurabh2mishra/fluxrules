@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import JWTError, jwt
+from jose import jwt
 import bcrypt
 from sqlalchemy.orm import Session
 from app.models.user import User

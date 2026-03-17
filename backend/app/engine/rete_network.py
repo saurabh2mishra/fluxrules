@@ -15,7 +15,7 @@ Reference: "Rete: A Fast Algorithm for the Many Pattern/Many Object Pattern Matc
            by Charles L. Forgy, 1982
 """
 
-from typing import Dict, Any, List, Optional, Set, Callable, Tuple
+from typing import Dict, Any, List, Optional, Set
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
