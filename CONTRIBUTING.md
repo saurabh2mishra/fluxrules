@@ -100,7 +100,7 @@ fluxrules/
 │   ├── migrations/           # Alembic database migrations
 │   ├── tests/                # Pytest test suite
 │   └── simulation/           # Sample integration scripts
-├── frontend/                 # Static HTML/CSS/JS frontend
+├── frontend/                 # React + TypeScript frontend
 ├── docker-compose.yml
 └── mkdocs.yml
 ```
@@ -165,11 +165,14 @@ pytest -k "conflict"
 - **Docstrings:** Google-style docstrings for public functions and classes.
 - **Imports:** Group as standard library → third-party → local, separated by blank lines.
 
-### JavaScript (Frontend)
+### TypeScript (Frontend)
 
-- Vanilla JS (no build step required).
-- Use the existing `showToast()` utility for user-facing messages instead of `alert()`.
-- Keep code in focused modules under `frontend/js/`.
+- **Framework:** React with TypeScript.
+- **Formatter / Linter:** ESLint and Prettier (configured in `eslint.config.js` and `postcss.config.js`).
+- **Styling:** Tailwind CSS for utility-first styling.
+- **Build tool:** Vite for fast development and optimized production builds.
+- Use the existing toast utilities for user-facing messages instead of `alert()`.
+- Keep components well-organized under `frontend/src/components/`.
 
 ### Commits
 
