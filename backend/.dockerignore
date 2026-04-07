@@ -1,0 +1,111 @@
+# ══════════════════════════════════════════════════════════════════════════
+# Backend .dockerignore — Prevents bloat when building Docker images
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── SECRETS ───────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+secrets/
+
+# ── PYTHON ────────────────────────────────────────────────────────────────
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+.eggs/
+
+# Distribution / packaging
+build/
+dist/
+sdist/
+
+# Virtual environments (never baked into images)
+.venv/
+venv/
+env/
+ENV/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# Type checking & linting
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pylint.rc
+
+# ── DATABASE ──────────────────────────────────────────────────────────────
+# Never bake development databases into production images
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+rule_engine.db
+
+# ── IDE & EDITOR ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.vscode-test/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-workspace
+
+# ── GIT ───────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+
+# ── OS & SYSTEM ───────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.lock
+
+# ── DOCUMENTATION & ASSETS ───────────────────────────────────────────────
+docs/
+README.md
+CONTRIBUTING.md
+LICENSE
+*.md
+
+# ── DEV & TEST ARTIFACTS ─────────────────────────────────────────────────
+# Simulation & seed scripts
+simulation/
+migrations/versions/
+demo_audit_reports.sh
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+npm-debug.log*
+
+# ── MISC ──────────────────────────────────────────────────────────────────
+*.tmp
+*.temp
+*.bak
+*.backup
+pytest.ini  # Use pyproject.toml instead
+setup.py    # Use pyproject.toml instead

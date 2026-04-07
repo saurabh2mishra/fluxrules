@@ -1,0 +1,67 @@
+# ══════════════════════════════════════════════════════════════════════════
+# Root .dockerignore — Prevents bloat when building all images via docker-compose
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── SECRETS & ENVIRONMENT ───────────────────────────────────────────────────
+.env
+.env.*
+.env.local
+*.pem
+*.key
+secrets/
+
+# ── VERSION CONTROL ──────────────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# ── DOCUMENTATION & ASSETS ───────────────────────────────────────────────────
+README.md
+CONTRIBUTING.md
+LICENSE
+TODO.md
+mkdocs.yml
+docs/
+
+# ── PYTHON CACHE & BUILD ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.coverage
+*.db
+*.db-shm
+*.db-wal
+
+# ── NODE CACHE & BUILD ──────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── CI/CD & DEVELOPMENT ──────────────────────────────────────────────────────
+.devcontainer/
+.github/workflows/
+.gitlab-ci.yml
+.travis.yml
+setup.sh
+run.sh
+
+# ── LOG FILES ────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── TEMP & OS ────────────────────────────────────────────────────────────────
+*.tmp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,20 @@
+site_name: FluxRules
+site_description: FluxRules SDK and Server documentation
+repo_name: fluxrules
+
+docs_dir: backend/docs
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [backend]
+
+nav:
+  - Home: index.md
+  - SDK Migration & Operations: sdk_migration_and_operations.md
+  - Audit Policy & Reporting: audit_policy_migration.md

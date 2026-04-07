@@ -1,0 +1,243 @@
+# ==============================================================================
+# FluxRules — Comprehensive .gitignore
+# Prevents secrets, cache, build artifacts, and environment leaks to Git
+# ==============================================================================
+
+# ── SECRETS & ENVIRONMENT ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+.pass
+secrets/
+
+# ── PYTHON ───────────────────────────────────────────────────────────────────
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.c
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+/htmlcov
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ruff cache
+.ruff_cache/
+
+# pyright
+pyrightconfig.json
+
+# ── FRONTEND (Node/npm) ──────────────────────────────────────────────────────
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Dist / build
+dist/
+dist-ssr/
+*.local
+frontend/dist/
+
+# pnpm
+pnpm-lock.yaml
+
+# Vite
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vitest
+.vitest/
+
+# IDE & Editor
+.vscode/
+.vscode-test/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-workspace
+
+# ESLint
+.eslintcache
+
+# Next.js
+.next/
+out/
+
+# Tailwind
+.tailwind-cache
+
+# Storybook
+storybook-static/
+
+# ── DATABASE ──────────────────────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+rule_engine.db
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ── MISC ───────────────────────────────────────────────────────────────────────
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+.#*
+
+# OS locks
+.lock
+
+# IDE metadata
+.editorconfig.bak
+.git-credentials
+
+# Local testing
+/test-results/
+/test-data/
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+npm-debug.log*
