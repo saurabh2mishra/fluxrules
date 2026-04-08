@@ -10,7 +10,10 @@ _dashboard_stats = {
     "events_processed": 0,
     "rules_fired": 0,
     "total_processing_time_ms": 0,
-    "evaluation_count": 0
+    "evaluation_count": 0,
+    "comparison_type_mismatch": 0,
+    "string_bool_coercions": 0,
+    "strict_null_evaluations": 0,
 }
 
 def get_metrics_registry():
@@ -58,6 +61,13 @@ def observe_processing_time(duration_seconds: float):
     _dashboard_stats["total_processing_time_ms"] += duration_seconds * 1000
     _dashboard_stats["evaluation_count"] += 1
 
+
+def increment_comparison_metric(metric_name: str, count: int = 1):
+    """Increment strict-comparison telemetry counters used for hardening rollout."""
+    global _dashboard_stats
+    if metric_name in _dashboard_stats:
+        _dashboard_stats[metric_name] += count
+
 def get_dashboard_metrics() -> dict:
     """Get human-friendly metrics for dashboard."""
     avg_time = 0
@@ -68,5 +78,10 @@ def get_dashboard_metrics() -> dict:
         "events_processed": _dashboard_stats["events_processed"],
         "rules_fired": _dashboard_stats["rules_fired"],
         "avg_processing_time_ms": round(avg_time, 2),
-        "total_evaluations": _dashboard_stats["evaluation_count"]
+        "total_evaluations": _dashboard_stats["evaluation_count"],
+        "strict_comparison": {
+            "type_mismatch": _dashboard_stats["comparison_type_mismatch"],
+            "string_bool_coercions": _dashboard_stats["string_bool_coercions"],
+            "null_evaluations": _dashboard_stats["strict_null_evaluations"],
+        },
     }

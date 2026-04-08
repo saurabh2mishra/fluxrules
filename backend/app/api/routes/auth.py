@@ -54,11 +54,13 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed_password = get_password_hash(user.password)
+    # Public registration always creates least-privileged business users.
+    # Role elevation must happen through protected admin-only workflows.
     db_user = User(
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
-        role=user.role
+        role="business",
     )
     db.add(db_user)
     db.commit()
