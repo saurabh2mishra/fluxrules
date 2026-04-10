@@ -20,6 +20,30 @@
 
 ![BRE High-Level Design](docs/images/fluxrules.png)
 
+### Alternate Architecture View (as requested)
+
+```mermaid
+flowchart LR
+    UI[User Interface]
+    API[FastAPI backend]
+    RE[Rule Engine (RETE)]
+    DB[(Storage: SQLite/Postgres)]
+    REDIS[(Redis worker optional)]
+    EXT[External Apps]
+
+    UI <--> API
+    API <--> RE
+    API <--> DB
+    API <--> REDIS
+    API <--> EXT
+```
+
+### Runtime Path Clarification
+
+- **`backend/tests/test_rete_behavior_scenario.py`** uses `app.engine.rete_network.ReteEngine` directly (unit-level RETE test path).
+- **Test Sandbox (`Run Test`)** calls `rulesApi.simulate(...)` from the frontend, which hits backend rule-simulate API and then `app.engine.rete_engine.ReteEngine` (wrapper path that may delegate to optimized RETE engine). 
+- **`POST /api/v1/event`** follows the events route path and also evaluates rules through `app.engine.rete_engine.ReteEngine` (same core evaluation stack as API runtime, not the direct low-level unit harness).
+
 ### Component Breakdown
 
 | Layer | What it does |
