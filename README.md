@@ -129,7 +129,7 @@ fluxrules/
 │   │   └── workers/            # Background event & validation workers
 │   ├── migrations/             # Alembic database migrations
 │   ├── simulation/             # Sample integration scripts
-│   ├── tests/                  # Pytest test suite (226+ tests)
+│   ├── tests/                  # Pytest test suite 
 │   └── docs/                   # MkDocs documentation source
 ├── frontend/                   # React 18 + TypeScript SPA (Vite)
 │   ├── src/
