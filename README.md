@@ -14,24 +14,6 @@
 
 ---
 
-## Features
-
-| Category | Highlights |
-|---|---|
-| **RETE Engine** | Alpha/beta node network for O(1) incremental pattern matching with local caching and built-in profiler |
-| **DSL Parser** | JSON condition trees with AND/OR nesting and 14 operators (`eq`, `neq`, `gt`, `lt`, `gte`, `lte`, `in`, `not_in`, `contains`, `not_contains`, `starts_with`, `ends_with`, `between`, `regex`) |
-| **BRMS Validation** | SAT-solver-backed conflict, dead-rule, gap, redundancy, duplicate, and priority-collision detection |
-| **Rule Versioning** | Every edit creates an immutable snapshot; full diff support with field-level change tracking |
-| **Analytics** | Runtime metrics, hot/cold rule detection, coverage reports, and per-rule explanation feeds |
-| **Dependency Graph** | Visual field-based dependency analysis with summary diagnostics |
-| **Audit System** | HMAC-SHA256 tamper-proof audit trail, configurable retention, and cron-based scheduled audit policies |
-| **Admin Panel** | Schema version tracking, DB health, engine stats, cache management, bulk import (CSV/XLSX/JSON) |
-| **Authentication** | JWT-based auth with OWASP-aligned password policy and admin seed control |
-| **Graceful Degradation** | Redis optional (falls back to in-memory); Postgres optional (falls back to SQLite) |
-| **React UI** | Vite + React 18 + TypeScript · Tailwind CSS · shadcn/ui · TanStack Query · Dark mode |
-
----
-
 ## Architecture
 
 ### System Overview
@@ -49,6 +31,24 @@
 | **Versioning** | Every rule edit creates an immutable version with full diff support |
 | **Audit** | HMAC-integrity audit trail with configurable retention and cron-based policy scheduling |
 | **Frontend** | Vite + React 18 + TypeScript SPA served via Nginx in production |
+
+---
+
+## Features
+
+| Category | Highlights |
+|---|---|
+| **RETE Engine** | Alpha/beta node network for O(1) incremental pattern matching with local caching and built-in profiler |
+| **DSL Parser** | JSON condition trees with AND/OR nesting and operators like `==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `contains`, `starts_with`, `ends_with`, `regex` |
+| **BRMS Validation** | Conflict, dead-rule, gap, redundancy, duplicate, and priority-collision detection |
+| **Rule Versioning** | Immutable snapshots with field-level diffs |
+| **Analytics** | Runtime metrics, hot/cold rule detection, and explanation feeds |
+| **Dependency Graph** | Visual field-based dependency analysis |
+| **Audit System** | HMAC-SHA256 tamper-proof audit trail with retention and scheduling |
+| **Admin Panel** | Schema/version health, engine stats, cache tools, and bulk import |
+| **Authentication** | JWT-based auth with OWASP-aligned password policy |
+| **Resilience** | Redis and database fallback support for local/degraded environments |
+| **React UI** | Vite + React 18 + TypeScript + Tailwind + shadcn/ui |
 
 ---
 
@@ -106,6 +106,17 @@ docker-compose up --build
 | **Docker** | Swagger UI | http://localhost:8000/docs |
 
 > ⚠️ **Production:** Generate a strong `SECRET_KEY` (≥ 32 chars) and set `FLUXRULES_ENV=production` in `backend/.env`. See [`.env.example`](.env.example).
+
+### Optional strict evaluation hardening (defaults OFF)
+
+FluxRules now includes compatibility-safe hardening flags. They are **off by default** so existing behavior does not change unless you opt in:
+
+- `STRICT_TYPE_COMPARISON`
+- `BOOLEAN_STRING_COERCION`
+- `STRICT_NULL_HANDLING`
+- `VALIDATION_STRICT_BOOL_NUMERIC`
+
+When strict flags are used, dashboard telemetry tracks strict-comparison events (type mismatches, string→bool coercions, null evaluations) to support safe rollout.
 
 ---
 

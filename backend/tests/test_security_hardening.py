@@ -197,6 +197,21 @@ class TestAuthE2E:
         resp, uname = self._register()
         assert resp.status_code == 200
         assert resp.json()["username"] == uname
+        assert resp.json()["role"] == "business"
+
+    def test_public_register_cannot_self_assign_admin_role(self):
+        username = _unique("user")
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={
+                "username": username,
+                "email": f"{username}@test.com",
+                "password": "SecureP@ss1",
+                "role": "admin",  # should be ignored for public registration
+            },
+        )
+        assert resp.status_code == 200
+        assert resp.json()["role"] == "business"
 
     def test_register_with_weak_password_rejected(self):
         resp, _ = self._register(password="weak")

@@ -5,7 +5,6 @@ from datetime import datetime
 class UserBase(BaseModel):
     username: str
     email: EmailStr
-    role: str = "business"
 
 class UserCreate(UserBase):
     password: str
@@ -19,6 +18,7 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    role: str = "business"
     is_active: bool
     created_at: datetime
 

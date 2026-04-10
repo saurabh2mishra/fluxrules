@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
+from app.config import settings
 from app.compiler.rule_compiler import CompiledRule
 
 
@@ -29,6 +30,8 @@ class DeadRuleDetector:
             field = c.field
             if c.operator == "==":
                 equals.setdefault(field, set()).add(c.value)
+                continue
+            if settings.VALIDATION_STRICT_BOOL_NUMERIC and isinstance(c.value, bool):
                 continue
             if not isinstance(c.value, (int, float)):
                 continue
