@@ -9,8 +9,8 @@ import { Upload, FileJson, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface BulkImportResult {
     imported: number;
-    errors?: Array<{ index: number; error: string }>;
-    conflicts?: number;
+    conflicts: number;
+    errors?: Array<{ index: number; error: string; parked?: boolean }>;
 }
 
 export function BulkImportTab() {
@@ -20,6 +20,28 @@ export function BulkImportTab() {
     const [result, setResult] = useState<BulkImportResult | null>(null);
     const queryClient = useQueryClient();
 
+    const notifyImportResult = (data: BulkImportResult) => {
+        const importedCount = data.imported ?? 0;
+        const conflictCount = data.conflicts ?? 0;
+        const hasErrors = (data.errors?.length ?? 0) > 0;
+
+        console.log('[BulkImport] Result:', { importedCount, conflictCount, hasErrors, data });
+
+        // Show conflict/error warning if any issues detected
+        if (conflictCount > 0 || hasErrors) {
+            const message = conflictCount > 0
+                ? `Rule(s) conflicts and parked. Check Conflicts section.`
+                : `Import completed with errors. Check Conflicts section.`;
+            toast.warning(message);
+            return;
+        }
+
+        // Show success if no conflicts or errors
+        if (importedCount > 0) {
+            toast.success(`Rule(s) imported successfully`);
+        }
+    };
+
     const jsonMutation = useMutation({
         mutationFn: (rulesOverride: unknown[] | undefined) => {
             const rules = rulesOverride ?? JSON.parse(jsonText);
@@ -27,28 +49,52 @@ export function BulkImportTab() {
             return rulesApi.bulkImport(rules, validateConflicts).then((r) => r.data);
         },
         onSuccess: (data) => {
-            setResult(data);
-            toast.success(`Imported ${data.imported ?? 0} rule(s)`);
+            // Parse backend response: could be direct result or nested in detail
+            const backendData = (data as any).detail || data;
+            const created = backendData.created || [];
+            const errors = backendData.errors || [];
+            const parkedCount = errors.filter((e: any) => e.parked).length;
+
+            const result: BulkImportResult = {
+                imported: created.length,
+                conflicts: parkedCount,
+                errors: errors
+            };
+
+            setResult(result);
+            notifyImportResult(result);
             queryClient.invalidateQueries({ queryKey: ['rules'] });
         },
         onError: (err: unknown) => {
-            const msg = (err as { response?: { data?: { detail?: string } }; message?: string })
+            const msg = (err as { response?: { data?: { detail?: string | object } }; message?: string })
                 ?.response?.data?.detail ?? (err as Error).message ?? 'Import failed';
-            toast.error(msg);
+            toast.error(typeof msg === 'string' ? msg : 'Import failed');
         },
     });
 
     const fileMutation = useMutation({
         mutationFn: (file: File) => rulesApi.bulkUpload(file, validateConflicts).then((r) => r.data),
         onSuccess: (data) => {
-            setResult(data);
-            toast.success(`Imported ${data.imported ?? 0} rule(s)`);
+            // Parse backend response: could be direct result or nested in detail
+            const backendData = (data as any).detail || data;
+            const created = backendData.created || [];
+            const errors = backendData.errors || [];
+            const parkedCount = errors.filter((e: any) => e.parked).length;
+
+            const result: BulkImportResult = {
+                imported: created.length,
+                conflicts: parkedCount,
+                errors: errors
+            };
+
+            setResult(result);
+            notifyImportResult(result);
             queryClient.invalidateQueries({ queryKey: ['rules'] });
         },
         onError: (err: unknown) => {
-            const msg = (err as { response?: { data?: { detail?: string } } })
+            const msg = (err as { response?: { data?: { detail?: string | object } } })
                 ?.response?.data?.detail ?? 'Upload failed';
-            toast.error(msg);
+            toast.error(typeof msg === 'string' ? msg : 'Upload failed');
         },
     });
 
@@ -170,25 +216,41 @@ export function BulkImportTab() {
             {/* Results — UI-only: refined result panel */}
             {result && (
                 <div className="mt-6 border border-border/50 rounded-xl p-5 space-y-3 bg-card/50 animate-fade-in">
-                    <div className="flex items-center gap-2">
-                        <CheckCircle size={18} className="text-emerald-500" />
-                        <span className="font-semibold text-sm text-foreground">
-                            Import Complete — {result.imported} rule(s) imported
-                        </span>
-                    </div>
+                    {(result.conflicts ?? 0) > 0 ? (
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle size={18} className="text-amber-500" />
+                            <span className="font-semibold text-sm text-foreground">
+                                Conflicts Detected — {result.conflicts} rule(s) parked
+                            </span>
+                        </div>
+                    ) : (result.imported ?? 0) > 0 ? (
+                        <div className="flex items-center gap-2">
+                            <CheckCircle size={18} className="text-emerald-500" />
+                            <span className="font-semibold text-sm text-foreground">
+                                Import Complete — {result.imported} rule(s) imported
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle size={18} className="text-muted-foreground" />
+                            <span className="font-semibold text-sm text-foreground">
+                                No rules imported
+                            </span>
+                        </div>
+                    )}
                     {(result.conflicts ?? 0) > 0 && (
                         <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-sm">
                             <AlertTriangle size={14} />
-                            {result.conflicts} conflict(s) detected — check the Conflicts page.
+                            Check the Conflicts page to resolve.
                         </div>
                     )}
                     {result.errors && result.errors.length > 0 && (
                         <div>
                             <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-1.5">
-                                {result.errors.length} error(s):
+                                {result.errors.filter(e => !e.parked).length} error(s):
                             </p>
                             <div className="max-h-40 overflow-auto text-xs font-mono bg-muted/40 rounded-lg p-3">
-                                {result.errors.map((err, i) => (
+                                {result.errors.filter(e => !e.parked).map((err, i) => (
                                     <div key={i}>Row {err.index}: {err.error}</div>
                                 ))}
                             </div>

@@ -96,7 +96,9 @@ export function RuleCard({ rule, onDeleted }: RuleCardProps) {
                         <span className="text-muted-foreground/60">v{rule.current_version}</span>
                     </div>
                     {rule.description && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rule.description}</p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                            <span className="text-foreground/70">Description:</span> {rule.description}
+                        </p>
                     )}
                 </div>
 
@@ -107,10 +109,11 @@ export function RuleCard({ rule, onDeleted }: RuleCardProps) {
                         variant="outline"
                         className="gap-1.5"
                         onClick={() => navigate(`/rules/${rule.id}/edit`)}
+                        title="Edit rule"
                     >
-                        <Edit size={13} /> Edit
+                        <Edit size={13} />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setShowDetails(true)} title="Show full details">
+                    <Button size="sm" variant="ghost" onClick={() => setShowDetails(true)} title="Show Details">
                         <Eye size={13} />
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setShowVersions(true)} title="Version history">
@@ -139,13 +142,10 @@ export function RuleCard({ rule, onDeleted }: RuleCardProps) {
                 </div>
             </div>
 
-            {/* Condition preview (always visible) */}
-            <div className="px-5 pb-3">
+            {/* Condition and Action preview */}
+            <div className="px-5 pb-5">
                 <div className="space-y-1 text-xs text-muted-foreground">
-                    <div>Group: {rule.group || '—'}</div>
-                    <div>Priority: {rule.priority}</div>
-                    {rule.description && <div>Description: {rule.description}</div>}
-                    <div>Condition: {formatCondition(rule.condition_dsl)}</div>
+                    <div>Conditions: {formatCondition(rule.condition_dsl)}</div>
                     <div>Action: {rule.action}</div>
                 </div>
             </div>
