@@ -3,6 +3,7 @@ from app.models.rule import Rule
 from app.engine.dsl_parser import DSLParser
 from app.engine.profiler import RuleProfiler
 from app.config import settings
+from app.engine.comparison import evaluate_operator
 from app.utils.metrics import (
     increment_events_processed,
     increment_rules_fired,
@@ -139,31 +140,15 @@ class ReteEngine:
             op = condition["op"]
             value = condition["value"]
 
-            event_value = event.get(field)
-            if event_value is None:
-                return False
-
-            try:
-                if op == ">":
-                    return event_value > value
-                elif op == ">=":
-                    return event_value >= value
-                elif op == "<":
-                    return event_value < value
-                elif op == "<=":
-                    return event_value <= value
-                elif op == "==":
-                    return event_value == value
-                elif op == "!=":
-                    return event_value != value
-                elif op == "in":
-                    return event_value in value
-                elif op == "contains":
-                    return value in event_value
-                else:
-                    return False
-            except Exception:
-                return False
+            return evaluate_operator(
+                op,
+                event.get(field),
+                value,
+                field_present=field in event,
+                strict_null_handling=settings.STRICT_NULL_HANDLING,
+                strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+                boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+            )
 
         elif condition["type"] == "group":
             op = condition["op"]
@@ -212,24 +197,12 @@ class ReteEngine:
     
     def _evaluate_single_condition(self, op: str, event_value, value) -> bool:
         """Helper to evaluate a single condition for explanation purposes."""
-        try:
-            if op == ">":
-                return event_value > value
-            elif op == ">=":
-                return event_value >= value
-            elif op == "<":
-                return event_value < value
-            elif op == "<=":
-                return event_value <= value
-            elif op == "==":
-                return event_value == value
-            elif op == "!=":
-                return event_value != value
-            elif op == "in":
-                return event_value in value
-            elif op == "contains":
-                return value in event_value
-            else:
-                return False
-        except Exception:
-            return False
+        return evaluate_operator(
+            op,
+            event_value,
+            value,
+            field_present=True,
+            strict_null_handling=settings.STRICT_NULL_HANDLING,
+            strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+            boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+        )

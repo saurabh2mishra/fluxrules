@@ -17,6 +17,8 @@ Usage:
 from sqlalchemy.orm import Session
 from app.models.rule import Rule
 from app.utils.redis_client import get_redis_client
+from app.config import settings
+from app.engine.comparison import evaluate_operator
 from app.utils.metrics import (
     increment_events_processed,
     increment_rules_fired,
@@ -389,43 +391,16 @@ class OptimizedReteEngine:
         field = condition.get("field")
         op = condition.get("op")
         value = condition.get("value")
-        
-        event_value = event.get(field)
-        if event_value is None:
-            return False
-        
-        try:
-            if op == ">":
-                return event_value > value
-            elif op == ">=":
-                return event_value >= value
-            elif op == "<":
-                return event_value < value
-            elif op == "<=":
-                return event_value <= value
-            elif op == "==":
-                return event_value == value
-            elif op == "!=":
-                return event_value != value
-            elif op == "in":
-                return event_value in value
-            elif op == "not_in":
-                return event_value not in value
-            elif op == "contains":
-                return value in event_value
-            elif op == "starts_with":
-                return str(event_value).startswith(str(value))
-            elif op == "ends_with":
-                return str(event_value).endswith(str(value))
-            elif op == "regex":
-                import re
-                return bool(re.match(value, str(event_value)))
-            else:
-                logger.warning(f"Unknown operator: {op}")
-                return False
-        except Exception as e:
-            logger.debug(f"Condition evaluation error: {e}")
-            return False
+
+        return evaluate_operator(
+            str(op),
+            event.get(field),
+            value,
+            field_present=field in event,
+            strict_null_handling=settings.STRICT_NULL_HANDLING,
+            strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+            boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+        )
     
     def _evaluate_group_condition(self, condition: Dict[str, Any], event: Dict[str, Any]) -> bool:
         """Evaluate a group condition (AND/OR)."""

@@ -54,3 +54,11 @@ Keep candidate checks synchronous; run full checks on schedule and expose report
 
 Release/quality gates (P1)
 CI: lint/type/tests/build/docs strict + signed artifacts + staged deployments.
+
+## Next-level features (concise)
+
+- Rule authoring copilot (NL → DSL draft + test event suggestions).
+- Explainability upgrade (business-readable reason + missing-field hints).
+- Strict-mode rollout dashboard (mismatch/coercion/null telemetry trends).
+- Rule lifecycle assistant (cold rules, overlap hotspots, safe-refactor suggestions).
+- Compliance export pack (decision trace + audit proof bundle per event).

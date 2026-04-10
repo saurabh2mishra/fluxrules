@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     # Validation engine (BRMS is the only supported engine)
     RULE_VALIDATION_MODE: str = "brms"
 
+    # --- Evaluation hardening flags (all default OFF for compatibility) -----
+    STRICT_TYPE_COMPARISON: bool = False
+    BOOLEAN_STRING_COERCION: bool = False
+    STRICT_NULL_HANDLING: bool = False
+    VALIDATION_STRICT_BOOL_NUMERIC: bool = False
+
     # --- Frontend serving (optional) ------------------------------------------
     SERVE_FRONTEND: bool = True
 

@@ -133,31 +133,41 @@ function LeafNode({ node, onChange }: { node: ConditionLeaf; onChange: (n: Condi
         }
     };
 
+    const booleanLikeString = typeof node.value === 'string'
+        && /^(true|false)$/i.test(node.value.trim());
+
     return (
-        <div className="condition-item">
-            <input
-                type="text"
-                placeholder="field_name"
-                value={node.field}
-                onChange={(e) => onChange({ ...node, field: e.target.value })}
-                className="w-32 font-medium"
-                aria-label="Field name"
-            />
-            <select
-                value={node.op}
-                onChange={(e) => onChange({ ...node, op: e.target.value })}
-                aria-label="Operator"
-            >
-                {OPS.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-            <input
-                type="text"
-                placeholder="value"
-                value={typeof node.value === 'string' ? node.value : JSON.stringify(node.value)}
-                onChange={(e) => handleValue(e.target.value)}
-                className="w-32"
-                aria-label="Value"
-            />
+        <div>
+            <div className="condition-item">
+                <input
+                    type="text"
+                    placeholder="field_name"
+                    value={node.field}
+                    onChange={(e) => onChange({ ...node, field: e.target.value })}
+                    className="w-32 font-medium"
+                    aria-label="Field name"
+                />
+                <select
+                    value={node.op}
+                    onChange={(e) => onChange({ ...node, op: e.target.value })}
+                    aria-label="Operator"
+                >
+                    {OPS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+                <input
+                    type="text"
+                    placeholder="value"
+                    value={typeof node.value === 'string' ? node.value : JSON.stringify(node.value)}
+                    onChange={(e) => handleValue(e.target.value)}
+                    className="w-32"
+                    aria-label="Value"
+                />
+            </div>
+            {booleanLikeString && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                    Boolean-like string detected. Use unquoted <code>true</code>/<code>false</code> for boolean values.
+                </p>
+            )}
         </div>
     );
 }

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List, Optional
 
+from app.config import settings
 from app.compiler.rule_compiler import CompiledConstraint, CompiledRule
 
 
@@ -49,6 +50,8 @@ class Interval:
 
 def constraint_to_interval(constraint: CompiledConstraint) -> Optional[Interval]:
     v = constraint.value
+    if settings.VALIDATION_STRICT_BOOL_NUMERIC and isinstance(v, bool):
+        return None
     if not isinstance(v, (int, float)):
         return None
 

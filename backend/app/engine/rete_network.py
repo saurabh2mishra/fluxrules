@@ -21,8 +21,10 @@ from enum import Enum
 from collections import defaultdict
 import logging
 import hashlib
-import re
 import threading
+
+from app.config import settings
+from app.engine.comparison import evaluate_operator
 
 logger = logging.getLogger(__name__)
 
@@ -75,40 +77,15 @@ class AlphaCondition:
         if self.operator == Operator.NOT_EXISTS:
             return self.field not in event
         
-        # For other operators, field must exist
-        if event_value is None:
-            return False
-        
-        try:
-            if self.operator == Operator.EQ:
-                return event_value == self.value
-            elif self.operator == Operator.NE:
-                return event_value != self.value
-            elif self.operator == Operator.GT:
-                return event_value > self.value
-            elif self.operator == Operator.GE:
-                return event_value >= self.value
-            elif self.operator == Operator.LT:
-                return event_value < self.value
-            elif self.operator == Operator.LE:
-                return event_value <= self.value
-            elif self.operator == Operator.IN:
-                return event_value in self.value
-            elif self.operator == Operator.NOT_IN:
-                return event_value not in self.value
-            elif self.operator == Operator.CONTAINS:
-                return self.value in event_value
-            elif self.operator == Operator.STARTS_WITH:
-                return str(event_value).startswith(str(self.value))
-            elif self.operator == Operator.ENDS_WITH:
-                return str(event_value).endswith(str(self.value))
-            elif self.operator == Operator.REGEX:
-                return bool(re.match(self.value, str(event_value)))
-            else:
-                return False
-        except Exception as e:
-            logger.debug(f"Condition evaluation error: {e}")
-            return False
+        return evaluate_operator(
+            self.operator.value,
+            event_value,
+            self.value,
+            field_present=self.field in event,
+            strict_null_handling=settings.STRICT_NULL_HANDLING,
+            strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+            boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+        )
     
     def __repr__(self):
         return f"AlphaCondition({self.field} {self.operator.value} {self.value})"
