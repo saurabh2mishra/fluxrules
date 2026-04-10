@@ -618,9 +618,9 @@ class ReteEngine:
             op = condition.get("op", "?")
             value = condition.get("value", "?")
             event_value = event.get(field)
+            field_present = field in event
             
-            # Check if this condition would match
-            if event_value is not None:
+            if field_present:
                 result = self._evaluate_single_condition(op, event_value, value)
                 if result:
                     matching.append(f"{field}={event_value} {op} {value}")
@@ -633,34 +633,17 @@ class ReteEngine:
         return matching
     
     def _evaluate_single_condition(self, op: str, event_value: Any, value: Any) -> bool:
-        """Helper to evaluate a single condition."""
-        try:
-            if op == "==":
-                return event_value == value
-            elif op == "!=":
-                return event_value != value
-            elif op == ">":
-                return event_value > value
-            elif op == ">=":
-                return event_value >= value
-            elif op == "<":
-                return event_value < value
-            elif op == "<=":
-                return event_value <= value
-            elif op == "in":
-                return event_value in value
-            elif op == "not_in":
-                return event_value not in value
-            elif op == "contains":
-                return value in event_value
-            elif op == "starts_with":
-                return str(event_value).startswith(str(value))
-            elif op == "ends_with":
-                return str(event_value).endswith(str(value))
-            else:
-                return False
-        except:
-            return False
+        """Helper to evaluate a single condition using strict comparison semantics."""
+        return evaluate_operator(
+            op,
+            event_value,
+            value,
+            field_present=True,
+            strict_null_handling=settings.STRICT_NULL_HANDLING,
+            strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+            boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+            emit_metrics=False,
+        )
 
     def _explain_condition(self, condition: Dict[str, Any], event: Dict[str, Any]) -> str:
         """Recursively explain condition evaluation with pass/fail indicators."""

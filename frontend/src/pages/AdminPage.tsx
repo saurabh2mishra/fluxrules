@@ -501,13 +501,62 @@ function AuditReportsTab() {
                             )}
                             {selectedReport.details_json && (
                                 <div>
-                                    <div className="text-muted-foreground text-xs mb-1">Details (JSON)</div>
-                                    <pre className="json-pre text-xs">
-                                        {(() => {
-                                            try { return JSON.stringify(JSON.parse(selectedReport.details_json!), null, 2); }
-                                            catch { return selectedReport.details_json; }
-                                        })()}
-                                    </pre>
+                                    <div className="text-muted-foreground text-xs mb-1">Details</div>
+                                    {(() => {
+                                        try {
+                                            const details = JSON.parse(selectedReport.details_json!);
+                                            if (Array.isArray(details) && details.length > 0) {
+                                                // Assume it's an array of audit results with rule information
+                                                return (
+                                                    <div className="overflow-x-auto rounded-xl border border-border/50">
+                                                        <table className="w-full text-xs">
+                                                            <thead className="bg-muted/20">
+                                                                <tr>
+                                                                    {['Rule ID', 'Rule Name', 'Status', 'Violations', 'Details'].map((h) => (
+                                                                        <th key={h} className="text-left py-2 px-3 text-[0.6875rem] font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
+                                                                    ))}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {details.map((item: any, index: number) => (
+                                                                    <tr key={index} className="border-t border-border/30">
+                                                                        <td className="py-2 px-3 font-mono">{item.rule_id ?? item.id ?? '—'}</td>
+                                                                        <td className="py-2 px-3">{item.rule_name ?? item.name ?? '—'}</td>
+                                                                        <td className="py-2 px-3">
+                                                                            <Badge variant={item.status === 'passed' ? 'success' : item.status === 'failed' ? 'destructive' : 'warning'} className="text-xs">
+                                                                                {item.status ?? '—'}
+                                                                            </Badge>
+                                                                        </td>
+                                                                        <td className="py-2 px-3">
+                                                                            <span className={item.violations > 0 ? 'text-red-500 font-semibold' : ''}>
+                                                                                {item.violations ?? 0}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-2 px-3 text-muted-foreground">
+                                                                            {item.details ?? item.message ?? '—'}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                );
+                                            } else {
+                                                // Fallback to JSON display
+                                                return (
+                                                    <pre className="json-pre text-xs">
+                                                        {JSON.stringify(details, null, 2)}
+                                                    </pre>
+                                                );
+                                            }
+                                        } catch {
+                                            return (
+                                                <pre className="json-pre text-xs">
+                                                    {selectedReport.details_json}
+                                                </pre>
+                                            );
+                                        }
+                                    })()}
                                 </div>
                             )}
                         </div>

@@ -20,29 +20,6 @@
 
 ![BRE High-Level Design](docs/images/fluxrules.png)
 
-### Alternate Architecture View (as requested)
-
-```mermaid
-flowchart LR
-    UI[User Interface]
-    API[FastAPI backend]
-    RE[Rule Engine (RETE)]
-    DB[(Storage: SQLite/Postgres)]
-    REDIS[(Redis worker optional)]
-    EXT[External Apps]
-
-    UI <--> API
-    API <--> RE
-    API <--> DB
-    API <--> REDIS
-    API <--> EXT
-```
-
-### Runtime Path Clarification
-
-- **`backend/tests/test_rete_behavior_scenario.py`** uses `app.engine.rete_network.ReteEngine` directly (unit-level RETE test path).
-- **Test Sandbox (`Run Test`)** calls `rulesApi.simulate(...)` from the frontend, which hits backend rule-simulate API and then `app.engine.rete_engine.ReteEngine` (wrapper path that may delegate to optimized RETE engine). 
-- **`POST /api/v1/event`** follows the events route path and also evaluates rules through `app.engine.rete_engine.ReteEngine` (same core evaluation stack as API runtime, not the direct low-level unit harness).
 
 ### Component Breakdown
 
@@ -53,8 +30,8 @@ flowchart LR
 | **BRMS Validation** | SAT-solver-backed conflict, dead-rule, gap, redundancy, and duplicate detection |
 | **Execution** | Priority-ordered agenda, working memory, and async event processing via `POST /api/v1/event` |
 | **Versioning** | Every rule edit creates an immutable version with full diff support |
-| **Audit** | HMAC-integrity audit trail with configurable retention and cron-based policy scheduling |
-| **Frontend** | Vite + React 18 + TypeScript SPA served via Nginx in production |
+| **Audit** | HMAC-integrity (hash based msg authentication code) audit trail with configurable retention and cron-based policy scheduling |
+| **Frontend** | A nice user interface to operate and manage the rules
 
 ---
 
@@ -117,17 +94,6 @@ docker-compose up --build
 ```bash
 ./run.sh docker          # shortcut for the above
 ```
-
-### Service URLs
-
-| Mode | Service | URL |
-|---|---|---|
-| **Dev** | Frontend (Vite HMR) | http://localhost:5173 |
-| **Dev** | API | http://localhost:8000 |
-| **Dev** | Swagger UI | http://localhost:8000/docs |
-| **Docker** | Frontend (Nginx) | http://localhost:8080 |
-| **Docker** | API | http://localhost:8000 |
-| **Docker** | Swagger UI | http://localhost:8000/docs |
 
 > ⚠️ **Production:** Generate a strong `SECRET_KEY` (≥ 32 chars) and set `FLUXRULES_ENV=production` in `backend/.env`. See [`.env.example`](.env.example).
 

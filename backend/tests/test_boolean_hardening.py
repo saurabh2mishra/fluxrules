@@ -1,5 +1,6 @@
 from app.config import settings
 from app.engine.comparison import evaluate_operator
+from app.engine.rete_network import ReteEngine
 from app.compiler.rule_compiler import CompiledConstraint
 from app.validation._normalization import constraint_to_interval
 from app.utils.metrics import get_dashboard_metrics
@@ -116,3 +117,29 @@ def test_strict_comparison_telemetry_counters_increment():
     assert after["type_mismatch"] >= before["type_mismatch"] + 1
     assert after["string_bool_coercions"] >= before["string_bool_coercions"] + 1
     assert after["null_evaluations"] >= before["null_evaluations"] + 1
+
+
+def test_explanation_pass_does_not_increment_strict_comparison_metrics(monkeypatch):
+    monkeypatch.setattr(settings, "BOOLEAN_STRING_COERCION", True)
+    before = get_dashboard_metrics()["strict_comparison"].copy()
+
+    engine = ReteEngine()
+    rules = [{
+        "id": 1,
+        "name": "Boolean Coercion Rule",
+        "priority": 1,
+        "action": "alert",
+        "condition_dsl": {
+            "type": "condition",
+            "field": "status",
+            "op": "==",
+            "value": True,
+        },
+    }]
+    engine.load_rules(rules)
+
+    result = engine.evaluate({"status": "TRUE"})
+    assert len(result["matched_rules"]) == 1
+
+    after = get_dashboard_metrics()["strict_comparison"]
+    assert after["string_bool_coercions"] == before["string_bool_coercions"] + 1

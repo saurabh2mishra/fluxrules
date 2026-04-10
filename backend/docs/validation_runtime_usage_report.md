@@ -144,7 +144,7 @@ Rule write operations
 
 ---
 
-## 6) Recommendations for cleanup (safe, non-destructive)
+## 6) Cleanup (safe, non-destructive)
 
 1. **Manual review of `constraint_graph.py`**
    - Confirm whether it is roadmap code. If not needed, deprecate first, then remove in a dedicated change.

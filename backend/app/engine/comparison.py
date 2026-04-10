@@ -55,6 +55,7 @@ def evaluate_operator(
     strict_null_handling: bool,
     strict_type_comparison: bool,
     boolean_string_coercion: bool,
+    emit_metrics: bool = True,
 ) -> bool:
     """Evaluate a single operator with optional strict hardening."""
     if not field_present:
@@ -62,7 +63,8 @@ def evaluate_operator(
 
     if event_value is None:
         if strict_null_handling:
-            increment_comparison_metric("strict_null_evaluations")
+            if emit_metrics:
+                increment_comparison_metric("strict_null_evaluations")
             if op == "==":
                 return rule_value is None
             if op == "!=":
@@ -74,10 +76,12 @@ def evaluate_operator(
     left_changed = (left != event_value) or (type(left) is not type(event_value))
     right_changed = (right != rule_value) or (type(right) is not type(rule_value))
     if boolean_string_coercion and (left_changed or right_changed):
-        increment_comparison_metric("string_bool_coercions")
+        if emit_metrics:
+            increment_comparison_metric("string_bool_coercions")
 
     if strict_type_comparison and not _strict_type_compatible(op, left, right):
-        increment_comparison_metric("comparison_type_mismatch")
+        if emit_metrics:
+            increment_comparison_metric("comparison_type_mismatch")
         logger.debug(
             "Strict type mismatch blocked comparison: op=%s left=%r (%s) right=%r (%s)",
             op,

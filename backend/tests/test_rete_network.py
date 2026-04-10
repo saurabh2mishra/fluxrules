@@ -3,6 +3,7 @@ Tests for the true RETE network implementation.
 """
 
 import pytest
+from app.config import settings
 from app.engine.rete_network import (
     ReteNetwork, ReteEngine, AlphaCondition, Operator
 )
@@ -300,7 +301,16 @@ class TestReteEngine:
         explanation = result["explanations"][1]
         assert "amount" in explanation
         assert "5000" in explanation
-    
+
+    def test_strict_type_comparison_updates_explanation_consistently(self, monkeypatch):
+        monkeypatch.setattr(settings, "STRICT_TYPE_COMPARISON", True)
+        engine = ReteEngine()
+        condition = {"type": "condition", "field": "flag", "op": "==", "value": 1}
+
+        matching = engine._get_matching_conditions(condition, {"flag": True})
+
+        assert matching == []
+
     def test_engine_stats(self):
         engine = ReteEngine()
         rules = [{

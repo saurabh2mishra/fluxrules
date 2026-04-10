@@ -178,7 +178,7 @@ class ReteEngine:
             event_value = event.get(field)
             
             # Determine if condition passed
-            if event_value is None:
+            if field not in event:
                 return f"[✗ {field}=MISSING {op} {value}]"
             else:
                 result = self._evaluate_single_condition(op, event_value, value)
@@ -205,4 +205,5 @@ class ReteEngine:
             strict_null_handling=settings.STRICT_NULL_HANDLING,
             strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
             boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+            emit_metrics=False,
         )

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, ChevronDown, ChevronUp, Copy, Clock } from 'lucide-react';
+import { Edit, Trash2, Copy, Clock, Eye } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { VersionHistoryModal } from './VersionHistoryModal';
 import { rulesApi } from '../../api/rules';
 import type { Rule } from '../../types/rule';
 import { toast } from 'sonner';
+import { formatDate } from '../../lib/utils';
 import {
     AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
     AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
@@ -19,10 +21,27 @@ interface RuleCardProps {
     onDeleted: () => void;
 }
 
+/* Helper: format condition DSL to readable string */
+function formatCondition(dsl: any): string {
+    if (!dsl) return 'No conditions';
+
+    if (dsl.type === 'condition') {
+        const value = typeof dsl.value === 'string' ? `"${dsl.value}"` : dsl.value;
+        return `${dsl.field} ${dsl.op} ${value}`;
+    }
+
+    if (dsl.type === 'group') {
+        const children = dsl.children?.map(formatCondition).join(` ${dsl.op} `) || '';
+        return children ? children : 'Empty group';
+    }
+
+    return 'Unknown condition';
+}
+
 /* UI-only: modernized RuleCard — cleaner layout, softer borders, improved spacing */
 export function RuleCard({ rule, onDeleted }: RuleCardProps) {
-    const [expanded, setExpanded] = useState(false);
     const [showVersions, setShowVersions] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
@@ -50,11 +69,6 @@ export function RuleCard({ rule, onDeleted }: RuleCardProps) {
             .then(() => toast.success('Copied to clipboard'))
             .catch(() => toast.error('Copy failed'));
     };
-
-    const conditionPreview =
-        typeof rule.condition_dsl === 'string'
-            ? rule.condition_dsl
-            : JSON.stringify(rule.condition_dsl, null, 2);
 
     return (
         <div className="group border border-border/50 rounded-xl bg-card shadow-card hover:shadow-card-hover transition-all duration-200">
@@ -96,6 +110,9 @@ export function RuleCard({ rule, onDeleted }: RuleCardProps) {
                     >
                         <Edit size={13} /> Edit
                     </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setShowDetails(true)} title="Show full details">
+                        <Eye size={13} />
+                    </Button>
                     <Button size="sm" variant="ghost" onClick={() => setShowVersions(true)} title="Version history">
                         <Clock size={13} />
                     </Button>
@@ -124,34 +141,57 @@ export function RuleCard({ rule, onDeleted }: RuleCardProps) {
 
             {/* Condition preview (always visible) */}
             <div className="px-5 pb-3">
-                <pre className="json-pre max-h-28 text-xs">{conditionPreview}</pre>
-            </div>
-
-            {/* Expand/collapse */}
-            <div className="px-5 pb-4">
-                <button
-                    onClick={() => setExpanded((e) => !e)}
-                    aria-expanded={expanded}
-                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                    {expanded ? 'Hide details' : 'Show details'}
-                </button>
-            </div>
-
-            {/* Expandable details */}
-            {expanded && (
-                <div className="px-5 pb-5 border-t border-border/40 pt-4 space-y-3 animate-fade-in">
-                    <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Action</p>
-                        <pre className="json-pre text-xs">{rule.action}</pre>
-                    </div>
-                    <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Full JSON</p>
-                        <pre className="json-pre text-xs">{JSON.stringify(rule, null, 2)}</pre>
-                    </div>
+                <div className="space-y-1 text-xs text-muted-foreground">
+                    <div>Group: {rule.group || '—'}</div>
+                    <div>Priority: {rule.priority}</div>
+                    {rule.description && <div>Description: {rule.description}</div>}
+                    <div>Condition: {formatCondition(rule.condition_dsl)}</div>
+                    <div>Action: {rule.action}</div>
                 </div>
-            )}
+            </div>
+
+            {/* Rule Details Dialog */}
+            <Dialog open={showDetails} onOpenChange={(o) => !o && setShowDetails(false)}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Eye size={16} />
+                            Rule: {rule.name}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-2">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div><span className="text-muted-foreground text-xs">ID:</span> {rule.id}</div>
+                            <div><span className="text-muted-foreground text-xs">Version:</span> v{rule.current_version}</div>
+                            <div><span className="text-muted-foreground text-xs">Group:</span> {rule.group || '—'}</div>
+                            <div><span className="text-muted-foreground text-xs">Priority:</span> {rule.priority}</div>
+                            <div><span className="text-muted-foreground text-xs">Enabled:</span> <Badge variant={rule.enabled ? 'success' : 'secondary'}>{rule.enabled ? 'Yes' : 'No'}</Badge></div>
+                            <div><span className="text-muted-foreground text-xs">Action:</span> {rule.action}</div>
+                            <div><span className="text-muted-foreground text-xs">Created:</span> {formatDate(rule.created_at)}</div>
+                            {rule.updated_at !== rule.created_at && (
+                                <div><span className="text-muted-foreground text-xs">Updated:</span> {formatDate(rule.updated_at)}</div>
+                            )}
+                        </div>
+
+                        {rule.description && (
+                            <div>
+                                <div className="text-muted-foreground text-xs mb-1">Description</div>
+                                <p className="text-sm">{rule.description}</p>
+                            </div>
+                        )}
+
+                        <div>
+                            <div className="text-muted-foreground text-xs mb-1">Condition DSL</div>
+                            <pre className="json-pre text-xs">
+                                {JSON.stringify(rule.condition_dsl, null, 2)}
+                            </pre>
+                        </div>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <Button variant="ghost" onClick={() => setShowDetails(false)}>Close</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <VersionHistoryModal
                 ruleId={rule.id}
