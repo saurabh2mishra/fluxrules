@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 
@@ -9,6 +10,7 @@ class FactRecord:
     fact_id: str
     payload: Dict[str, Any]
     revision: int = 0
+    inserted_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class WorkingMemory:
