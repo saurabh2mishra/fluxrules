@@ -155,6 +155,7 @@ def serialize_rule(rule: Rule) -> dict:
         "condition_dsl": json.loads(rule.condition_dsl) if isinstance(rule.condition_dsl, str) else rule.condition_dsl,
         "action": rule.action,
         "rule_metadata": json.loads(rule.rule_metadata) if rule.rule_metadata and isinstance(rule.rule_metadata, str) else rule.rule_metadata,
+        "evaluation_mode": rule.evaluation_mode,
         "current_version": rule.current_version,
         "created_at": rule.created_at,
         "updated_at": rule.updated_at,
@@ -278,6 +279,7 @@ def validate_rule(
     response = {
         "valid": len(conflicts) == 0,
         "conflicts": conflicts,
+        "warnings": validation_result.get("warnings", []),
         "duplicate_conflict": duplicate_conflict,
         "similar_rules": similar_rules[:5],  # Top 5 similar rules
         "brms_report": validation_result.get("brms_report"),
@@ -316,10 +318,14 @@ def create_rule(
         # priority collision, dead rule, or BRMS overlap).
         # brms_overlap means two rules fire on overlapping inputs — only one
         # should be active at a time; the newcomer is parked for review.
-        BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap"}
+        BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap", "dsl_validation_error"}
         blocking_conflicts = [
             c for c in potential_conflicts
-            if c.get("type") in BLOCKING_CONFLICT_TYPES and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
+            if c.get("type") in BLOCKING_CONFLICT_TYPES
+            and (
+                c.get("existing_rule_id") is not None
+                or c.get("type") in {"brms_dead_rule", "dsl_validation_error"}
+            )
         ]
 
         if blocking_conflicts:
@@ -382,10 +388,14 @@ def bulk_create_rules(
             if validate_conflicts:
                 validation_result = RuleValidationService(db).validate(rule.model_dump())
                 potential_conflicts = validation_result.get("conflicts", [])
-                blocking_types = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap"}
+                blocking_types = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap", "dsl_validation_error"}
                 blocking_conflicts = [
                     c for c in potential_conflicts
-                    if c.get("type") in blocking_types and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
+                    if c.get("type") in blocking_types
+                    and (
+                        c.get("existing_rule_id") is not None
+                        or c.get("type") in {"brms_dead_rule", "dsl_validation_error"}
+                    )
                 ]
 
                 if blocking_conflicts:
@@ -449,11 +459,14 @@ def update_rule(
     validation_result = RuleValidationService(db).validate(rule_update.model_dump(exclude_none=True), rule_id=rule_id)
     potential_conflicts = validation_result.get("conflicts", [])
 
-    BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap"}
+    BLOCKING_CONFLICT_TYPES = {"priority_collision", "duplicate_condition", "brms_dead_rule", "brms_overlap", "dsl_validation_error"}
     blocking_conflicts = [
         c for c in potential_conflicts
         if c.get("type") in BLOCKING_CONFLICT_TYPES
-        and (c.get("existing_rule_id") is not None or c.get("type") == "brms_dead_rule")
+        and (
+            c.get("existing_rule_id") is not None
+            or c.get("type") in {"brms_dead_rule", "dsl_validation_error"}
+        )
     ]
 
     if blocking_conflicts:

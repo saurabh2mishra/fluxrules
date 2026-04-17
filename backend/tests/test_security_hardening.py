@@ -489,3 +489,19 @@ class TestConfigSecurity:
         assert hasattr(settings, "SEED_ADMIN_USER")
         assert hasattr(settings, "ADMIN_DEFAULT_PASSWORD")
         assert hasattr(settings, "ADMIN_FORCE_PASSWORD_CHANGE")
+
+    def test_session_storage_backend_auto_resolves_for_development(self):
+        from app.config import _resolve_session_storage_backend
+
+        assert _resolve_session_storage_backend("auto", "development") == "memory"
+
+    def test_session_storage_backend_auto_resolves_for_production(self):
+        from app.config import _resolve_session_storage_backend
+
+        assert _resolve_session_storage_backend("auto", "production") == "redis"
+
+    def test_session_storage_backend_explicit_overrides(self):
+        from app.config import _resolve_session_storage_backend
+
+        assert _resolve_session_storage_backend("memory", "production") == "memory"
+        assert _resolve_session_storage_backend("redis", "development") == "redis"

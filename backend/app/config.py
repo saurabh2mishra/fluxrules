@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
+    # Session storage backend. Use "auto" to resolve by environment:
+    # development -> memory, production -> redis.
+    SESSION_STORAGE_BACKEND: str = "auto"
+
+    SESSION_STORAGE_BACKEND: str = "memory"
+    SESSION_STORAGE_PREFIX: str = "session_ctx"
 
     # --- JWT / Auth -----------------------------------------------------------
     # The raw value from the environment.  Validated & resolved at module level
@@ -32,6 +38,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     WORKER_CONCURRENCY: int = 4
+    SESSION_MAX_FACTS: int = 1000
+    SESSION_TTL_SECONDS: int = 3600
+    SESSION_MAX_MEMORY_MB: int = 256
+    SESSION_MAX_CONCURRENT: int = 100
 
     # --- Engine settings ------------------------------------------------------
     USE_OPTIMIZED_ENGINE: bool = True  # Set to False to use simple engine
@@ -85,7 +95,7 @@ class Settings(BaseSettings):
     # Monotonically increasing integer that tracks the expected schema layout.
     # Bump this when models change.  The application checks the Alembic
     # ``alembic_version`` table at startup and refuses to start on mismatch.
-    SCHEMA_VERSION: str = "002"
+    SCHEMA_VERSION: str = "003"
 
     # --- Audit / retention -----------------------------------------------------
     # Number of days to retain audit-log entries.  0 = keep forever.
@@ -108,6 +118,30 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def _resolve_session_storage_backend(configured_backend: str, env: str) -> str:
+    """Resolve session storage backend from explicit or automatic config.
+
+    Supported values:
+    * "auto": resolves to "memory" for development and "redis" for production.
+    * "memory": explicit in-process backend.
+    * "redis": explicit shared backend.
+    """
+    backend = configured_backend.strip().lower()
+    if backend in {"memory", "redis"}:
+        return backend
+    if backend == "auto":
+        return "redis" if env.strip().lower() == "production" else "memory"
+    raise ValueError(
+        "SESSION_STORAGE_BACKEND must be one of: auto, memory, redis"
+    )
+
+
+settings.SESSION_STORAGE_BACKEND = _resolve_session_storage_backend(
+    settings.SESSION_STORAGE_BACKEND,
+    settings.FLUXRULES_ENV,
+)
 
 # ---------------------------------------------------------------------------
 # Resolve and validate the JWT secret key at import time.

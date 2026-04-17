@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from sqlalchemy.orm import Session
 
@@ -29,11 +29,14 @@ class RuleValidationService:
         self._brms = BRMSService()
 
     def validate(self, rule_payload: Dict[str, Any], rule_id: Optional[int] = None) -> Dict[str, Any]:
+        dsl_errors, dsl_warnings = self._validate_stateful_dsl(rule_payload.get("condition_dsl") or {})
         brms_conflicts, brms_report = self._brms_conflicts(rule_payload, rule_id)
+        conflicts = [*dsl_errors, *brms_conflicts]
 
         return {
-            "valid": len(brms_conflicts) == 0,
-            "conflicts": brms_conflicts,
+            "valid": len(conflicts) == 0,
+            "conflicts": conflicts,
+            "warnings": dsl_warnings,
             "brms_report": brms_report,
         }
 
@@ -261,3 +264,138 @@ class RuleValidationService:
                 return rule.name
         return str(rule_id)
 
+    # ------------------------------------------------------------------
+    # Stateful DSL validation
+    # ------------------------------------------------------------------
+
+    def _validate_stateful_dsl(
+        self, condition_dsl: Dict[str, Any]
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        errors: List[Dict[str, Any]] = []
+        warnings: List[Dict[str, Any]] = []
+
+        if not isinstance(condition_dsl, dict) or not condition_dsl:
+            return errors, warnings
+
+        self._validate_top_level_stateful_exclusivity(condition_dsl, errors)
+        self._walk_stateful_nodes(condition_dsl, errors, warnings, path="$")
+        return errors, warnings
+
+    @staticmethod
+    def _push_dsl_error(errors: List[Dict[str, Any]], message: str, path: str) -> None:
+        errors.append(
+            {
+                "type": "dsl_validation_error",
+                "description": message,
+                "path": path,
+            }
+        )
+
+    @staticmethod
+    def _push_dsl_warning(warnings: List[Dict[str, Any]], message: str, path: str) -> None:
+        warnings.append(
+            {
+                "type": "dsl_validation_warning",
+                "description": message,
+                "path": path,
+            }
+        )
+
+    def _validate_top_level_stateful_exclusivity(
+        self, condition_dsl: Dict[str, Any], errors: List[Dict[str, Any]]
+    ) -> None:
+        stateful_families = {"sequence", "cross_fact_join", "count_threshold"}
+        top_level_families: Set[str] = set()
+
+        root_type = condition_dsl.get("type")
+        if root_type == "group":
+            for child in condition_dsl.get("children", []) or []:
+                if isinstance(child, dict) and child.get("type") in stateful_families:
+                    top_level_families.add(child["type"])
+        elif root_type in stateful_families:
+            top_level_families.add(root_type)
+
+        if len(top_level_families) > 1:
+            families = ", ".join(sorted(top_level_families))
+            self._push_dsl_error(
+                errors,
+                (
+                    "Top-level stateful node families are mutually exclusive; "
+                    f"found: {families}."
+                ),
+                "$",
+            )
+
+    def _walk_stateful_nodes(
+        self,
+        node: Any,
+        errors: List[Dict[str, Any]],
+        warnings: List[Dict[str, Any]],
+        path: str,
+    ) -> None:
+        if isinstance(node, list):
+            for idx, child in enumerate(node):
+                self._walk_stateful_nodes(child, errors, warnings, f"{path}[{idx}]")
+            return
+        if not isinstance(node, dict):
+            return
+
+        node_type = node.get("type")
+
+        if node_type == "sequence":
+            steps = node.get("steps")
+            if steps is None:
+                self._push_dsl_error(
+                    errors,
+                    "required fields per node type: sequence requires 'steps'.",
+                    f"{path}.steps",
+                )
+            elif not isinstance(steps, list):
+                self._push_dsl_error(
+                    errors,
+                    "required fields per node type: sequence.steps must be an array.",
+                    f"{path}.steps",
+                )
+            else:
+                if len(steps) < 2:
+                    self._push_dsl_error(
+                        errors,
+                        "minimum lengths: sequence.steps >= 2.",
+                        f"{path}.steps",
+                    )
+                normalized_steps = [json.dumps(step, sort_keys=True) for step in steps if isinstance(step, dict)]
+                if len(normalized_steps) >= 2 and len(set(normalized_steps)) == 1:
+                    self._push_dsl_warning(
+                        warnings,
+                        (
+                            "sequence pattern is equivalent to count-threshold intent; "
+                            "consider using count_threshold."
+                        ),
+                        path,
+                    )
+
+        if node_type == "cross_fact_join":
+            facts = node.get("facts")
+            if facts is None:
+                self._push_dsl_error(
+                    errors,
+                    "required fields per node type: cross_fact_join requires 'facts'.",
+                    f"{path}.facts",
+                )
+            elif not isinstance(facts, list):
+                self._push_dsl_error(
+                    errors,
+                    "required fields per node type: cross_fact_join.facts must be an array.",
+                    f"{path}.facts",
+                )
+            elif len(facts) < 2:
+                self._push_dsl_error(
+                    errors,
+                    "minimum lengths: cross_fact_join.facts >= 2.",
+                    f"{path}.facts",
+                )
+
+        for key, value in node.items():
+            if isinstance(value, (dict, list)):
+                child_path = f"{path}.{key}" if path != "$" else f"$.{key}"
+                self._walk_stateful_nodes(value, errors, warnings, child_path)

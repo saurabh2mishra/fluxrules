@@ -68,6 +68,7 @@ class RuleService:
             condition_dsl=json.dumps(rule_data.condition_dsl),
             action=rule_data.action,
             rule_metadata=json.dumps(rule_data.rule_metadata) if rule_data.rule_metadata else None,
+            evaluation_mode=rule_data.evaluation_mode,
             created_by=user_id,
             current_version=1
         )
