@@ -34,3 +34,12 @@ class RuleScheduler:
 
     def next_activation(self) -> Activation | None:
         return self._agenda.pop()
+
+    def add_candidate(self, candidate: Dict[str, Any]) -> None:
+        """Accept activation-candidate dictionaries from evaluator layers."""
+        self.add_activation(
+            rule_id=str(candidate["rule_id"]),
+            priority=int(candidate.get("priority", 0)),
+            specificity=int(candidate.get("specificity", 0)),
+            matched_facts=candidate.get("matched_facts", []),
+        )
