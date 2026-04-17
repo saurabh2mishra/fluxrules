@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
+    # Session storage backend. Use "auto" to resolve by environment:
+    # development -> memory, production -> redis.
+    SESSION_STORAGE_BACKEND: str = "auto"
 
     # --- JWT / Auth -----------------------------------------------------------
     # The raw value from the environment.  Validated & resolved at module level
@@ -112,6 +115,30 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def _resolve_session_storage_backend(configured_backend: str, env: str) -> str:
+    """Resolve session storage backend from explicit or automatic config.
+
+    Supported values:
+    * "auto": resolves to "memory" for development and "redis" for production.
+    * "memory": explicit in-process backend.
+    * "redis": explicit shared backend.
+    """
+    backend = configured_backend.strip().lower()
+    if backend in {"memory", "redis"}:
+        return backend
+    if backend == "auto":
+        return "redis" if env.strip().lower() == "production" else "memory"
+    raise ValueError(
+        "SESSION_STORAGE_BACKEND must be one of: auto, memory, redis"
+    )
+
+
+settings.SESSION_STORAGE_BACKEND = _resolve_session_storage_backend(
+    settings.SESSION_STORAGE_BACKEND,
+    settings.FLUXRULES_ENV,
+)
 
 # ---------------------------------------------------------------------------
 # Resolve and validate the JWT secret key at import time.
