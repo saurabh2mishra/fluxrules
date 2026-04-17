@@ -15,7 +15,7 @@ Reference: "Rete: A Fast Algorithm for the Many Pattern/Many Object Pattern Matc
            by Charles L. Forgy, 1982
 """
 
-from typing import Dict, Any, List, Optional, Set
+from typing import Dict, Any, List, Optional, Set, FrozenSet
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
@@ -135,9 +135,11 @@ class BetaNode:
     children: List['BetaNode'] = field(default_factory=list)
     terminal: Optional['TerminalNode'] = None
     is_negated: bool = False  # For NOT conditions
+    stateful: bool = False
     
     # Beta memory: stores joined results
     beta_memory: bool = False
+    tuple_memory: Dict[str, Set[FrozenSet[str]]] = field(default_factory=dict)
     
     def evaluate(self, event: Dict[str, Any], event_hash: int, alpha_results: Dict[int, bool]) -> bool:
         """
@@ -174,7 +176,55 @@ class BetaNode:
     
     def clear_memory(self):
         """Clear beta memory."""
-        self.beta_memory = False
+        if not self.stateful:
+            self.beta_memory = False
+            return
+
+        self.tuple_memory.clear()
+
+    def add_tuple(self, correlation_key: str, fact_ids: FrozenSet[str]) -> bool:
+        """Add a tuple to stateful memory.
+
+        Returns True if tuple is newly inserted.
+        """
+        if not self.stateful:
+            return False
+
+        memory = self.tuple_memory.setdefault(correlation_key, set())
+        original_size = len(memory)
+        memory.add(fact_ids)
+        return len(memory) > original_size
+
+    def remove_tuples_containing(self, fact_id: str) -> int:
+        """Remove tuples containing a fact id across all correlation keys.
+
+        Returns the number of removed tuples.
+        """
+        if not self.stateful:
+            return 0
+
+        removed = 0
+        empty_keys: List[str] = []
+
+        for correlation_key, tuples_for_key in self.tuple_memory.items():
+            to_remove = {fact_ids for fact_ids in tuples_for_key if fact_id in fact_ids}
+            if to_remove:
+                tuples_for_key.difference_update(to_remove)
+                removed += len(to_remove)
+            if not tuples_for_key:
+                empty_keys.append(correlation_key)
+
+        for correlation_key in empty_keys:
+            del self.tuple_memory[correlation_key]
+
+        return removed
+
+    def tuple_count(self) -> int:
+        """Get total tuple count across all correlation keys."""
+        if not self.stateful:
+            return 0
+
+        return sum(len(tuples_for_key) for tuples_for_key in self.tuple_memory.values())
 
 
 @dataclass
