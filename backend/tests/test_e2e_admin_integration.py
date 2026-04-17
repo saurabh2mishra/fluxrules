@@ -19,6 +19,7 @@ frontend admin.js can render them correctly. This covers:
 """
 
 import pytest
+import json
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -26,6 +27,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.database import Base, get_db
+from app.models.rule import Rule
 
 # ── Test DB setup (isolated from production) ─────────────────
 SQLALCHEMY_DATABASE_URL = "sqlite://"
@@ -324,6 +326,48 @@ class TestExistingFeaturesRegression:
         assert resp.status_code == 200
         data = resp.json()
         assert "matched_rules" in data or "results" in data or isinstance(data, dict)
+
+    def test_simulate_event_excludes_stateful_rules(self, client):
+        """POST /rules/simulate excludes stateful rules from stateless path."""
+        db = TestingSessionLocal()
+        try:
+            condition = {
+                "type": "group",
+                "op": "AND",
+                "children": [{"type": "condition", "field": "amount", "op": ">=", "value": 100}],
+            }
+            db.add(
+                Rule(
+                    name="stateless_match",
+                    group="regression",
+                    priority=10,
+                    enabled=True,
+                    condition_dsl=json.dumps(condition),
+                    action="log",
+                    evaluation_mode="stateless",
+                )
+            )
+            db.add(
+                Rule(
+                    name="stateful_match",
+                    group="regression",
+                    priority=9,
+                    enabled=True,
+                    condition_dsl=json.dumps(condition),
+                    action="log",
+                    evaluation_mode="stateful",
+                )
+            )
+            db.commit()
+        finally:
+            db.close()
+
+        resp = client.post("/api/v1/rules/simulate", json={"event": {"amount": 500}, "rule_ids": None})
+        assert resp.status_code == 200
+        data = resp.json()
+        matched_names = [r["name"] for r in data["matched_rules"]]
+        assert "stateless_match" in matched_names
+        assert "stateful_match" not in matched_names
 
     def test_analytics_runtime(self, client):
         """GET /analytics/runtime — returns analytics data."""

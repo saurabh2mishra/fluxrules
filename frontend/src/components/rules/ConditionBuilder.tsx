@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ConditionDSL, ConditionGroup, ConditionLeaf } from '../../types/rule';
+import type { ConditionGroup, ConditionLeaf } from '../../types/rule';
 import { Button } from '../ui/button';
 import { Plus, PlusCircle, Trash2, GitBranch } from 'lucide-react';
 
@@ -86,7 +86,7 @@ function GroupNode({
     const removeChild = (idx: number) =>
         onChange({ ...node, children: node.children.filter((_, i) => i !== idx) });
 
-    const updateChild = (idx: number, child: ConditionDSL) => {
+    const updateChild = (idx: number, child: ConditionGroup | ConditionLeaf) => {
         const children = [...node.children];
         children[idx] = child;
         onChange({ ...node, children });

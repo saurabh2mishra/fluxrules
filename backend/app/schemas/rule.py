@@ -18,6 +18,7 @@ class RuleBase(BaseModel):
     condition_dsl: Dict[str, Any]
     action: str
     rule_metadata: Optional[Dict[str, Any]] = None
+    evaluation_mode: Optional[str] = "stateless"
 
 class RuleCreate(RuleBase):
     pass
@@ -31,6 +32,7 @@ class RuleUpdate(BaseModel):
     condition_dsl: Optional[Dict[str, Any]] = None
     action: Optional[str] = None
     rule_metadata: Optional[Dict[str, Any]] = None
+    evaluation_mode: Optional[str] = "stateless"
 
 class RuleResponse(RuleBase):
     model_config = ConfigDict(from_attributes=True)
