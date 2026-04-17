@@ -284,6 +284,130 @@ def test_brms_overlap_blocks_second_rule(auth_token):
     assert data["detail"].get("parked") is True
 
 
+def test_validate_rejects_sequence_with_too_few_steps(auth_token):
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+    rule = {
+        "name": "SequenceMinLengthReject",
+        "description": "sequence must have at least two steps",
+        "group": "dsl_stateful_validations",
+        "priority": 801,
+        "enabled": True,
+        "condition_dsl": {
+            "type": "sequence",
+            "steps": [
+                {"type": "condition", "field": "amount", "op": ">", "value": 100}
+            ],
+        },
+        "action": "raise_alert",
+    }
+
+    resp = client.post("/api/v1/rules/validate", json=rule, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["valid"] is False
+    assert any(
+        c["type"] == "dsl_validation_error"
+        and "sequence.steps >= 2" in c["description"]
+        for c in data["conflicts"]
+    )
+
+    create_resp = client.post("/api/v1/rules", json=rule, headers=headers)
+    assert create_resp.status_code == 400
+    assert any(
+        c["type"] == "dsl_validation_error"
+        for c in create_resp.json()["detail"]["conflicts"]
+    )
+
+
+def test_validate_rejects_cross_fact_join_with_too_few_facts(auth_token):
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+    rule = {
+        "name": "CrossFactJoinMinLengthReject",
+        "description": "cross_fact_join must have at least two facts",
+        "group": "dsl_stateful_validations",
+        "priority": 802,
+        "enabled": True,
+        "condition_dsl": {
+            "type": "cross_fact_join",
+            "facts": [
+                {"source": "transactions", "alias": "t1"},
+            ],
+        },
+        "action": "raise_alert",
+    }
+
+    resp = client.post("/api/v1/rules/validate", json=rule, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["valid"] is False
+    assert any(
+        c["type"] == "dsl_validation_error"
+        and "cross_fact_join.facts >= 2" in c["description"]
+        for c in data["conflicts"]
+    )
+
+
+def test_validate_rejects_top_level_stateful_family_mixing(auth_token):
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+    rule = {
+        "name": "StatefulTopLevelMutualExclusivityReject",
+        "description": "top-level stateful families cannot mix",
+        "group": "dsl_stateful_validations",
+        "priority": 803,
+        "enabled": True,
+        "condition_dsl": {
+            "type": "group",
+            "op": "AND",
+            "children": [
+                {"type": "sequence", "steps": [{"type": "condition", "field": "amount", "op": ">", "value": 100}, {"type": "condition", "field": "amount", "op": ">", "value": 100}]},
+                {"type": "cross_fact_join", "facts": [{"source": "transactions"}, {"source": "accounts"}]},
+            ],
+        },
+        "action": "raise_alert",
+    }
+
+    resp = client.post("/api/v1/rules/validate", json=rule, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["valid"] is False
+    assert any(
+        c["type"] == "dsl_validation_error"
+        and "mutually exclusive" in c["description"]
+        for c in data["conflicts"]
+    )
+
+
+def test_validate_warns_for_sequence_equivalent_to_count_threshold(auth_token):
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+    repeated_step = {"type": "condition", "field": "failed_login_count", "op": ">", "value": 0}
+    rule = {
+        "name": "SequenceCountThresholdWarning",
+        "description": "sequence warns when it mirrors count-threshold intent",
+        "group": "dsl_stateful_validations",
+        "priority": 804,
+        "enabled": True,
+        "condition_dsl": {
+            "type": "sequence",
+            "steps": [repeated_step, repeated_step],
+        },
+        "action": "raise_alert",
+    }
+
+    resp = client.post("/api/v1/rules/validate", json=rule, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["valid"] is True
+    assert any(
+        w["type"] == "dsl_validation_warning"
+        and "count-threshold intent" in w["description"]
+        for w in data["warnings"]
+    )
+
+
 def test_update_with_brms_overlap_is_blocked(auth_token):
     """Editing a rule to create an overlap with an existing rule should be blocked."""
     client = TestClient(app)

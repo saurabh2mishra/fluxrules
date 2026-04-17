@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.models.rule import Rule
 from app.engine.dsl_parser import DSLParser
@@ -53,7 +54,10 @@ class ReteEngine:
         self._load_rules()
     
     def _load_rules(self):
-        rules = self.db.query(Rule).filter(Rule.enabled == True).order_by(Rule.priority.desc()).all()
+        rules = self.db.query(Rule).filter(
+            Rule.enabled == True,
+            or_(Rule.evaluation_mode.is_(None), Rule.evaluation_mode != "stateful"),
+        ).order_by(Rule.priority.desc()).all()
         
         for rule in rules:
             self._register_rule(rule)
@@ -87,7 +91,10 @@ class ReteEngine:
         import time
         start_time = time.time()
         
-        rules = self.db.query(Rule).filter(Rule.enabled == True)
+        rules = self.db.query(Rule).filter(
+            Rule.enabled == True,
+            or_(Rule.evaluation_mode.is_(None), Rule.evaluation_mode != "stateful"),
+        )
         if rule_ids:
             rules = rules.filter(Rule.id.in_(rule_ids))
         rules = rules.order_by(Rule.priority.desc()).all()

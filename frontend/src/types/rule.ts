@@ -11,7 +11,56 @@ export interface ConditionGroup {
     children: Array<ConditionGroup | ConditionLeaf>;
 }
 
-export type ConditionDSL = ConditionGroup | ConditionLeaf;
+export type PrimitiveValue = string | number | boolean | null;
+
+export interface IntentPredicate {
+    field: string;
+    op: string;
+    value: PrimitiveValue;
+}
+
+export interface IntentPattern {
+    intent: string;
+    where: IntentPredicate[];
+}
+
+export type TimeWindowUnit = 'minutes' | 'hours' | 'days';
+
+export interface TimeWindow {
+    value: number;
+    unit: TimeWindowUnit;
+}
+
+export interface AccumulateDSL {
+    type: 'accumulate';
+    source_event: string;
+    metric_field: string;
+    metric_op: '>' | '>=' | '<' | '<=' | '==' | '!=';
+    threshold: number;
+    window: TimeWindow;
+    group_by: string[];
+}
+
+export interface SequenceDSL {
+    type: 'sequence';
+    steps: [IntentPattern, IntentPattern];
+    within: TimeWindow;
+}
+
+export interface CrossFactJoinDSL {
+    type: 'cross_fact_join';
+    left: IntentPattern;
+    right: IntentPattern;
+    join_on: Array<{
+        left_field: string;
+        right_field: string;
+    }>;
+    match: 'all' | 'any';
+}
+
+export type AdvancedConditionDSL = AccumulateDSL | SequenceDSL | CrossFactJoinDSL;
+
+export type ConditionDSL = ConditionGroup | ConditionLeaf | AdvancedConditionDSL;
 
 export interface Rule {
     id: number;
@@ -35,6 +84,8 @@ export interface RuleCreate {
     enabled?: boolean;
     condition_dsl: ConditionDSL;
     action: string;
+    evaluation_mode?: 'stateless' | 'stateful';
+    rule_metadata?: Record<string, unknown>;
 }
 
 export type RuleUpdate = Partial<RuleCreate>;

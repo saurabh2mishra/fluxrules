@@ -29,5 +29,19 @@ class Agenda:
             return None
         return heapq.heappop(self._heap)[-1]
 
+    def retract_fact_activations(self, fact_id: str) -> int:
+        """Remove queued activations that depend on a retracted fact."""
+        before = len(self._heap)
+        self._heap = [
+            item
+            for item in self._heap
+            if not any(fact.get("fact_id") == fact_id for fact in item[-1].matched_facts)
+        ]
+        heapq.heapify(self._heap)
+        return before - len(self._heap)
+
+    def clear(self) -> None:
+        self._heap.clear()
+
     def __len__(self) -> int:
         return len(self._heap)
