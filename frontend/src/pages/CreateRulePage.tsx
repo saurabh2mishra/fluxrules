@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { rulesApi } from '../api/rules';
-import { ConditionBuilder } from '../components/rules/ConditionBuilder';
+import { ConditionBuilder, type ConditionBuilderMode } from '../components/rules/ConditionBuilder';
+import { IntentPatternPicker } from '../components/rules/IntentPatternPicker';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -30,6 +31,8 @@ export default function CreateRulePage() {
     const [actionName, setActionName] = useState('');
     const [actionParams, setActionParams] = useState('');
     const [testResult, setTestResult] = useState<string | null>(null);
+    const [builderMode, setBuilderMode] = useState<ConditionBuilderMode>('legacy');
+    const [intentPattern, setIntentPattern] = useState('');
 
     const { data: actionsData } = useQuery({
         queryKey: ['available-actions'],
@@ -67,6 +70,10 @@ export default function CreateRulePage() {
             priority,
             enabled,
             condition_dsl: conditionTree,
+            evaluation_mode: builderMode === 'stateful' ? 'stateful' : 'stateless',
+            rule_metadata: builderMode === 'stateful'
+                ? { intent_pattern: intentPattern.trim() || null, canonical_mapping: 'auto' }
+                : undefined,
             action,
         };
     };
@@ -184,7 +191,22 @@ export default function CreateRulePage() {
                         </TabsList>
                         <TabsContent value="visual" className="mt-4">
                             <p className="text-xs text-muted-foreground mb-3">Build your conditions visually. Changes sync to JSON automatically.</p>
-                            <ConditionBuilder value={conditionTree} onChange={setConditionTree} />
+                            <ConditionBuilder
+                                value={conditionTree}
+                                onChange={setConditionTree}
+                                mode={builderMode}
+                                onModeChange={setBuilderMode}
+                                statefulContent={(
+                                    <div className="space-y-3">
+                                        <div className="rounded-lg border border-blue-200/70 bg-blue-50/70 dark:border-blue-900/50 dark:bg-blue-950/20 p-3">
+                                            <p className="text-xs text-blue-800 dark:text-blue-200">
+                                                Stateful pattern mode generates canonical condition mapping automatically. The JSON editor remains available for inspection and advanced overrides.
+                                            </p>
+                                        </div>
+                                        <IntentPatternPicker value={intentPattern} onChange={setIntentPattern} />
+                                    </div>
+                                )}
+                            />
                         </TabsContent>
                         <TabsContent value="json" className="mt-4">
                             <p className="text-xs text-muted-foreground mb-3">Edit as JSON. Changes sync to the visual builder.</p>
