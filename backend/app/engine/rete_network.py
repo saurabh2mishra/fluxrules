@@ -15,7 +15,7 @@ Reference: "Rete: A Fast Algorithm for the Many Pattern/Many Object Pattern Matc
            by Charles L. Forgy, 1982
 """
 
-from typing import Dict, Any, List, Optional, Set, Callable
+from typing import Dict, Any, List, Optional, Set, FrozenSet
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
@@ -135,25 +135,13 @@ class BetaNode:
     children: List['BetaNode'] = field(default_factory=list)
     terminal: Optional['TerminalNode'] = None
     is_negated: bool = False  # For NOT conditions
-
-    # Extended beta behavior
-    node_type: str = "standard"
-    evaluator: Optional[Callable[[Dict[str, Any], int, Dict[int, bool], 'BetaNode'], bool]] = None
     stateful: bool = False
-    correlate_field: Optional[str] = None
-
+    
     # Beta memory: stores joined results
     beta_memory: bool = False
-    tuple_memory: Dict[Any, Set[Any]] = field(default_factory=lambda: defaultdict(set))
-
-    def evaluate(
-        self,
-        event: Dict[str, Any],
-        event_hash: int,
-        alpha_results: Dict[int, bool],
-        *,
-        stateless_mode: bool = False,
-    ) -> bool:
+    tuple_memory: Dict[str, Set[FrozenSet[str]]] = field(default_factory=dict)
+    
+    def evaluate(self, event: Dict[str, Any], event_hash: int, alpha_results: Dict[int, bool]) -> bool:
         """
         Evaluate this beta node based on parent results or a custom evaluator.
         """
@@ -195,7 +183,55 @@ class BetaNode:
 
     def clear_memory(self):
         """Clear beta memory."""
-        self.beta_memory = False
+        if not self.stateful:
+            self.beta_memory = False
+            return
+
+        self.tuple_memory.clear()
+
+    def add_tuple(self, correlation_key: str, fact_ids: FrozenSet[str]) -> bool:
+        """Add a tuple to stateful memory.
+
+        Returns True if tuple is newly inserted.
+        """
+        if not self.stateful:
+            return False
+
+        memory = self.tuple_memory.setdefault(correlation_key, set())
+        original_size = len(memory)
+        memory.add(fact_ids)
+        return len(memory) > original_size
+
+    def remove_tuples_containing(self, fact_id: str) -> int:
+        """Remove tuples containing a fact id across all correlation keys.
+
+        Returns the number of removed tuples.
+        """
+        if not self.stateful:
+            return 0
+
+        removed = 0
+        empty_keys: List[str] = []
+
+        for correlation_key, tuples_for_key in self.tuple_memory.items():
+            to_remove = {fact_ids for fact_ids in tuples_for_key if fact_id in fact_ids}
+            if to_remove:
+                tuples_for_key.difference_update(to_remove)
+                removed += len(to_remove)
+            if not tuples_for_key:
+                empty_keys.append(correlation_key)
+
+        for correlation_key in empty_keys:
+            del self.tuple_memory[correlation_key]
+
+        return removed
+
+    def tuple_count(self) -> int:
+        """Get total tuple count across all correlation keys."""
+        if not self.stateful:
+            return 0
+
+        return sum(len(tuples_for_key) for tuples_for_key in self.tuple_memory.values())
 
 
 @dataclass
@@ -258,6 +294,10 @@ class ReteNetwork:
         
         # Compilation hash
         self._rules_hash: str = ""
+        
+        # Stateful fact and activation tracking for assert/retract flows
+        self._fact_id_to_hash: Dict[str, int] = {}
+        self._terminal_activations: Dict[int, Set[Tuple[int]]] = defaultdict(set)
     
     def compile(self, rules: List[Dict[str, Any]]) -> bool:
         """
@@ -308,6 +348,8 @@ class ReteNetwork:
         self._field_to_alphas.clear()
         self._root = None
         self._rules_hash = ""
+        self._fact_id_to_hash.clear()
+        self._terminal_activations.clear()
     
     def _add_rule(self, rule: Dict[str, Any]):
         """Add a single rule to the network."""
@@ -654,6 +696,115 @@ class ReteNetwork:
             beta_node.clear_memory()
         for terminal in self._terminal_nodes.values():
             terminal.deactivate()
+        self._terminal_activations.clear()
+
+    def _run_alpha_phase(self, event: Dict[str, Any], event_hash: int) -> Dict[int, bool]:
+        """Run alpha matching and return alpha node results."""
+        alpha_results: Dict[int, bool] = {}
+        event_fields = set(event.keys())
+        
+        for field in event_fields:
+            if field in self._field_to_alphas:
+                for alpha_node in self._field_to_alphas[field]:
+                    result = alpha_node.activate(event, event_hash)
+                    alpha_results[id(alpha_node)] = result
+        
+        # Also evaluate alpha nodes for EXISTS/NOT_EXISTS that might not be in event
+        for alpha_node in self._alpha_nodes.values():
+            alpha_id = id(alpha_node)
+            if alpha_id not in alpha_results:
+                result = alpha_node.activate(event, event_hash)
+                alpha_results[alpha_id] = result
+        
+        return alpha_results
+
+    def _run_beta_phase(
+        self,
+        event: Dict[str, Any],
+        event_hash: int,
+        alpha_results: Dict[int, bool]
+    ) -> None:
+        """Propagate results through beta nodes."""
+        evaluated_betas: Set[int] = set()
+        
+        def evaluate_beta(beta: BetaNode) -> bool:
+            beta_id = id(beta)
+            if beta_id in evaluated_betas:
+                return beta.beta_memory
+            
+            for parent_beta in beta.parent_betas:
+                evaluate_beta(parent_beta)
+            
+            result = beta.evaluate(event, event_hash, alpha_results)
+            if result:
+                beta.add_tuple(event_hash)
+            evaluated_betas.add(beta_id)
+            return result
+        
+        for beta in self._beta_nodes:
+            evaluate_beta(beta)
+
+    def _collect_activated_terminals(self, event_hash: int) -> List[TerminalNode]:
+        """Collect and track activated terminal nodes."""
+        matched_terminals: List[TerminalNode] = []
+        
+        for beta in self._beta_nodes:
+            if beta.terminal and beta.beta_memory:
+                beta.terminal.activate()
+                self._terminal_activations[beta.terminal.rule_id].add((event_hash,))
+                matched_terminals.append(beta.terminal)
+        
+        matched_terminals.sort(key=lambda t: t.rule_priority, reverse=True)
+        return matched_terminals
+
+    def assert_fact(self, fact_id: str, event: Dict[str, Any]) -> List[TerminalNode]:
+        """
+        Assert a fact into the network without resetting memories.
+        
+        Returns list of terminal nodes activated by this asserted fact.
+        """
+        with self._lock:
+            event_hash = hash(self._make_hashable(event))
+            self._fact_id_to_hash[fact_id] = event_hash
+            
+            alpha_results = self._run_alpha_phase(event, event_hash)
+            self._run_beta_phase(event, event_hash, alpha_results)
+            return self._collect_activated_terminals(event_hash)
+
+    def retract_fact(self, fact_id: str, event: Dict[str, Any]) -> List[TerminalNode]:
+        """
+        Retract a fact from stateful memories.
+        
+        Returns terminal activations cancelled by this retraction.
+        """
+        with self._lock:
+            fact_hash = self._fact_id_to_hash.pop(fact_id, hash(self._make_hashable(event)))
+            
+            # Remove fact hash from alpha memories
+            for alpha_node in self._alpha_nodes.values():
+                alpha_node.alpha_memory.discard(fact_hash)
+            
+            # Remove tuples from stateful betas
+            removed_tuples: Set[Tuple[int]] = set()
+            for beta in self._beta_nodes:
+                removed_tuples.update(beta.remove_tuples_containing(fact_hash))
+                if not beta.tuple_memory:
+                    beta.beta_memory = False
+            
+            # Cancel terminal activations tied to removed tuples
+            cancelled_map: Dict[int, TerminalNode] = {}
+            for terminal in self._terminal_nodes.values():
+                active_tuples = self._terminal_activations.get(terminal.rule_id, set())
+                to_cancel = active_tuples.intersection(removed_tuples)
+                if not to_cancel:
+                    continue
+                
+                active_tuples.difference_update(to_cancel)
+                cancelled_map[terminal.rule_id] = terminal
+                if not active_tuples:
+                    terminal.deactivate()
+            
+            return list(cancelled_map.values())
     
     def get_stats(self) -> Dict[str, Any]:
         """Get network statistics."""
