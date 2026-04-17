@@ -155,6 +155,7 @@ def serialize_rule(rule: Rule) -> dict:
         "condition_dsl": json.loads(rule.condition_dsl) if isinstance(rule.condition_dsl, str) else rule.condition_dsl,
         "action": rule.action,
         "rule_metadata": json.loads(rule.rule_metadata) if rule.rule_metadata and isinstance(rule.rule_metadata, str) else rule.rule_metadata,
+        "evaluation_mode": rule.evaluation_mode,
         "current_version": rule.current_version,
         "created_at": rule.created_at,
         "updated_at": rule.updated_at,

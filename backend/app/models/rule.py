@@ -23,6 +23,7 @@ class Rule(Base):
     condition_dsl = Column(JSON, nullable=False)
     action = Column(Text, nullable=False)
     rule_metadata = Column(JSON)  # Changed from 'metadata' to 'rule_metadata'
+    evaluation_mode = Column(String, nullable=True, default="stateless")
     current_version = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

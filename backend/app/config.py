@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     WORKER_CONCURRENCY: int = 4
+    SESSION_MAX_FACTS: int = 1000
+    SESSION_TTL_SECONDS: int = 3600
+    SESSION_MAX_MEMORY_MB: int = 256
+    SESSION_MAX_CONCURRENT: int = 100
 
     # --- Engine settings ------------------------------------------------------
     USE_OPTIMIZED_ENGINE: bool = True  # Set to False to use simple engine
@@ -85,7 +89,7 @@ class Settings(BaseSettings):
     # Monotonically increasing integer that tracks the expected schema layout.
     # Bump this when models change.  The application checks the Alembic
     # ``alembic_version`` table at startup and refuses to start on mismatch.
-    SCHEMA_VERSION: str = "002"
+    SCHEMA_VERSION: str = "003"
 
     # --- Audit / retention -----------------------------------------------------
     # Number of days to retain audit-log entries.  0 = keep forever.

@@ -15,6 +15,7 @@ Usage:
 """
 
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.models.rule import Rule
 from app.utils.redis_client import get_redis_client
 from app.config import settings
@@ -118,7 +119,10 @@ class RuleCache:
                 logger.warning(f"Failed to update Redis cache: {e}")
     
     def _load_rules_from_db(self, db: Session, group: Optional[str] = None) -> List[Dict[str, Any]]:
-        query = db.query(Rule).filter(Rule.enabled == True)
+        query = db.query(Rule).filter(
+            Rule.enabled == True,
+            or_(Rule.evaluation_mode.is_(None), Rule.evaluation_mode != "stateful"),
+        )
         if group:
             query = query.filter(Rule.group == group)
         query = query.order_by(Rule.priority.desc())
@@ -134,6 +138,7 @@ class RuleCache:
                 "name": rule.name,
                 "group": rule.group,
                 "priority": rule.priority,
+                "evaluation_mode": rule.evaluation_mode,
                 "condition_dsl": condition_dsl,
                 "action": rule.action
             })
