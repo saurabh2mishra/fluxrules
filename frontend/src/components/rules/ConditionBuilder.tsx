@@ -13,13 +13,57 @@ const DEPTH_ACCENTS = [
     { border: 'border-l-amber-500/30', bg: 'bg-amber-500/[0.03]', pill: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
 ];
 
+export type ConditionBuilderMode = 'legacy' | 'stateful';
+
 interface ConditionBuilderProps {
     value: ConditionGroup;
     onChange: (tree: ConditionGroup) => void;
+    mode?: ConditionBuilderMode;
+    onModeChange?: (mode: ConditionBuilderMode) => void;
+    statefulContent?: React.ReactNode;
 }
 
-export function ConditionBuilder({ value, onChange }: ConditionBuilderProps) {
-    return <GroupNode node={value} onChange={onChange} depth={0} />;
+export function ConditionBuilder({
+    value,
+    onChange,
+    mode = 'legacy',
+    onModeChange,
+    statefulContent,
+}: ConditionBuilderProps) {
+    return (
+        <div className="space-y-3">
+            {onModeChange && (
+                <div className="inline-flex items-center rounded-lg border border-border/70 p-1 bg-muted/30">
+                    <button
+                        type="button"
+                        onClick={() => onModeChange('legacy')}
+                        className={`px-3 py-1.5 text-xs rounded-md transition-colors ${mode === 'legacy' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                        Legacy visual tree
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onModeChange('stateful')}
+                        className={`px-3 py-1.5 text-xs rounded-md transition-colors ${mode === 'stateful' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                        Stateful pattern mode
+                    </button>
+                </div>
+            )}
+
+            {mode === 'legacy' ? (
+                <GroupNode node={value} onChange={onChange} depth={0} />
+            ) : (
+                <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    {statefulContent ?? (
+                        <p className="text-xs text-muted-foreground">
+                            Stateful mode is enabled. Configure your intent pattern to generate canonical conditions.
+                        </p>
+                    )}
+                </div>
+            )}
+        </div>
+    );
 }
 
 function GroupNode({

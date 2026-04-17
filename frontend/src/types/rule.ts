@@ -84,6 +84,8 @@ export interface RuleCreate {
     enabled?: boolean;
     condition_dsl: ConditionDSL;
     action: string;
+    evaluation_mode?: 'stateless' | 'stateful';
+    rule_metadata?: Record<string, unknown>;
 }
 
 export type RuleUpdate = Partial<RuleCreate>;
