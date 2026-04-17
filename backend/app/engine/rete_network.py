@@ -121,13 +121,13 @@ class AlphaNode:
         self.alpha_memory.clear()
 
 
-@dataclass  
+@dataclass
 class BetaNode:
     """
     Beta node in the RETE network.
-    
+
     Joins results from multiple alpha nodes (for AND conditions)
-    or represents OR logic.
+    or represents custom evaluator-backed behavior.
     """
     join_type: str = "AND"  # "AND" or "OR"
     parent_alphas: List[AlphaNode] = field(default_factory=list)
@@ -143,37 +143,44 @@ class BetaNode:
     
     def evaluate(self, event: Dict[str, Any], event_hash: int, alpha_results: Dict[int, bool]) -> bool:
         """
-        Evaluate this beta node based on parent results.
+        Evaluate this beta node based on parent results or a custom evaluator.
         """
-        results = []
-        
-        # Get results from parent alpha nodes
-        for alpha in self.parent_alphas:
-            alpha_id = id(alpha)
-            if alpha_id in alpha_results:
-                results.append(alpha_results[alpha_id])
-            else:
-                results.append(False)
-        
-        # Get results from parent beta nodes
-        for beta in self.parent_betas:
-            results.append(beta.beta_memory)
-        
-        if not results:
-            result = True  # Empty condition = always true
-        elif self.join_type == "AND":
-            result = all(results)
-        elif self.join_type == "OR":
-            result = any(results)
+        if stateless_mode and self.stateful:
+            self.beta_memory = False
+            return False
+
+        if self.evaluator is not None:
+            result = bool(self.evaluator(event, event_hash, alpha_results, self))
         else:
-            result = False
-        
+            results = []
+
+            # Get results from parent alpha nodes
+            for alpha in self.parent_alphas:
+                alpha_id = id(alpha)
+                if alpha_id in alpha_results:
+                    results.append(alpha_results[alpha_id])
+                else:
+                    results.append(False)
+
+            # Get results from parent beta nodes
+            for beta in self.parent_betas:
+                results.append(beta.beta_memory)
+
+            if not results:
+                result = True  # Empty condition = always true
+            elif self.join_type == "AND":
+                result = all(results)
+            elif self.join_type == "OR":
+                result = any(results)
+            else:
+                result = False
+
         if self.is_negated:
             result = not result
-        
+
         self.beta_memory = result
         return result
-    
+
     def clear_memory(self):
         """Clear beta memory."""
         if not self.stateful:
@@ -375,11 +382,17 @@ class ReteNetwork:
         
         if condition_type == "condition":
             return self._build_alpha_condition(condition)
-        elif condition_type == "group":
+        if condition_type == "group":
             return self._build_group_condition(condition)
-        else:
-            logger.warning(f"Unknown condition type: {condition_type}")
-            return None
+        if condition_type == "accumulate":
+            return self._build_accumulate_condition(condition)
+        if condition_type == "sequence":
+            return self._build_sequence_condition(condition)
+        if condition_type == "cross_fact_join":
+            return self._build_cross_fact_join_condition(condition)
+
+        logger.warning(f"Unknown condition type: {condition_type}")
+        return None
     
     def _build_alpha_condition(self, condition: Dict[str, Any]) -> Optional[BetaNode]:
         """Build network for a simple field condition."""
@@ -458,6 +471,142 @@ class ReteNetwork:
         
         return beta_node
     
+    def _evaluate_simple_condition(self, condition: Dict[str, Any], payload: Dict[str, Any]) -> bool:
+        """Evaluate a lightweight condition/group definition against a payload."""
+        condition_type = condition.get("type", "condition")
+
+        if condition_type == "group":
+            op = condition.get("op", "AND").upper()
+            children = condition.get("children", [])
+            if not children:
+                return True
+            child_results = [self._evaluate_simple_condition(child, payload) for child in children]
+            if op == "AND":
+                return all(child_results)
+            if op == "OR":
+                return any(child_results)
+            if op == "NOT":
+                return not child_results[0]
+            return False
+
+        field = condition.get("field")
+        op = condition.get("op")
+        if not field or not op:
+            return False
+
+        return evaluate_operator(
+            op,
+            payload.get(field),
+            condition.get("value"),
+            field_present=field in payload,
+            strict_null_handling=settings.STRICT_NULL_HANDLING,
+            strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+            boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+        )
+
+    def _build_accumulate_condition(self, condition: Dict[str, Any]) -> BetaNode:
+        """Build evaluator-backed beta node for accumulate conditions."""
+        source = condition.get("source")
+        field = condition.get("field")
+        aggregate = str(condition.get("aggregate", "count")).lower()
+        op = condition.get("op", "==")
+        threshold = condition.get("value")
+        where = condition.get("where")
+
+        def _accumulate_evaluator(event: Dict[str, Any], *_args) -> bool:
+            facts = event.get(source, []) if source else []
+            if not isinstance(facts, list):
+                return False
+
+            filtered = facts
+            if where:
+                filtered = [fact for fact in facts if isinstance(fact, dict) and self._evaluate_simple_condition(where, fact)]
+
+            if aggregate == "count":
+                aggregate_value = len(filtered)
+            else:
+                numeric_values: List[float] = []
+                for fact in filtered:
+                    if not isinstance(fact, dict):
+                        continue
+                    value = fact.get(field)
+                    if isinstance(value, (int, float)):
+                        numeric_values.append(float(value))
+                if aggregate == "sum":
+                    aggregate_value = sum(numeric_values)
+                elif aggregate == "min":
+                    aggregate_value = min(numeric_values) if numeric_values else 0
+                elif aggregate == "max":
+                    aggregate_value = max(numeric_values) if numeric_values else 0
+                elif aggregate == "avg":
+                    aggregate_value = (sum(numeric_values) / len(numeric_values)) if numeric_values else 0
+                else:
+                    return False
+
+            return evaluate_operator(
+                op,
+                aggregate_value,
+                threshold,
+                field_present=True,
+                strict_null_handling=settings.STRICT_NULL_HANDLING,
+                strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+                boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+            )
+
+        beta_node = BetaNode(join_type="AND", evaluator=_accumulate_evaluator, node_type="accumulate")
+        self._beta_nodes.append(beta_node)
+        return beta_node
+
+    def _build_sequence_condition(self, condition: Dict[str, Any]) -> BetaNode:
+        """Build evaluator-backed beta node for sequence conditions."""
+        source = condition.get("source")
+        steps = condition.get("steps", [])
+
+        def _sequence_evaluator(event: Dict[str, Any], *_args) -> bool:
+            if not isinstance(steps, list) or not steps:
+                return False
+
+            facts = event.get(source, []) if source else []
+            if not isinstance(facts, list):
+                return False
+
+            step_index = 0
+            for fact in facts:
+                if step_index >= len(steps):
+                    break
+                if not isinstance(fact, dict):
+                    continue
+                if self._evaluate_simple_condition(steps[step_index], fact):
+                    step_index += 1
+            return step_index == len(steps)
+
+        beta_node = BetaNode(join_type="AND", evaluator=_sequence_evaluator, node_type="sequence")
+        self._beta_nodes.append(beta_node)
+        return beta_node
+
+    def _build_cross_fact_join_condition(self, condition: Dict[str, Any]) -> BetaNode:
+        """Build stateful tuple-tracking beta node keyed by correlate field."""
+        correlate_field = condition.get("correlate_field")
+
+        def _cross_fact_evaluator(event: Dict[str, Any], event_hash: int, _alpha_results: Dict[int, bool], beta: BetaNode) -> bool:
+            key = event.get(correlate_field) if correlate_field else None
+            if key is None:
+                return False
+
+            tracked_tuple = (event_hash, self._make_hashable(event))
+            beta.tuple_memory[key].add(tracked_tuple)
+            return len(beta.tuple_memory[key]) > 1
+
+        beta_node = BetaNode(
+            join_type="AND",
+            evaluator=_cross_fact_evaluator,
+            node_type="cross_fact_join",
+            stateful=True,
+            correlate_field=correlate_field,
+        )
+        self._beta_nodes.append(beta_node)
+        return beta_node
+
     def _update_stats(self):
         """Update network statistics."""
         self._stats["alpha_nodes"] = len(self._alpha_nodes)
@@ -518,7 +667,7 @@ class ReteNetwork:
                 for parent_beta in beta.parent_betas:
                     evaluate_beta(parent_beta)
                 
-                result = beta.evaluate(event, event_hash, alpha_results)
+                result = beta.evaluate(event, event_hash, alpha_results, stateless_mode=True)
                 evaluated_betas.add(beta_id)
                 return result
             
