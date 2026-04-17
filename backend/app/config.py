@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # development -> memory, production -> redis.
     SESSION_STORAGE_BACKEND: str = "auto"
 
+    SESSION_STORAGE_BACKEND: str = "memory"
+    SESSION_STORAGE_PREFIX: str = "session_ctx"
+
     # --- JWT / Auth -----------------------------------------------------------
     # The raw value from the environment.  Validated & resolved at module level
     # below; see ``_resolved_secret_key``.
