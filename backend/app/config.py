@@ -26,8 +26,6 @@ class Settings(BaseSettings):
     # Session storage backend. Use "auto" to resolve by environment:
     # development -> memory, production -> redis.
     SESSION_STORAGE_BACKEND: str = "auto"
-
-    SESSION_STORAGE_BACKEND: str = "memory"
     SESSION_STORAGE_PREFIX: str = "session_ctx"
 
     # --- JWT / Auth -----------------------------------------------------------

@@ -59,7 +59,10 @@ class SessionContext:
         if self.created_at.tzinfo is None:
             self.created_at = self.created_at.replace(tzinfo=timezone.utc)
         self._destroyed = False
-        self._fact_sizes: dict[str, int] = {}
+        self._fact_sizes: dict[str, int] = {
+            fact_id: self._estimate_fact_size(record.payload)
+            for fact_id, record in self.working_memory.facts().items()
+        }
 
     def assert_fact(self, fact_id: str, event: dict[str, Any]) -> AssertResult:
         self._assert_active()
@@ -69,6 +72,20 @@ class SessionContext:
         memory_budget = int(self.config.get("memory_budget_bytes", 5_000_000))
 
         was_update = fact_id in self.working_memory.facts()
+
+        if max_facts <= 0:
+            if was_update:
+                self.retract_fact(fact_id)
+                evicted_fact_ids.append(fact_id)
+            return AssertResult(
+                fact_id=fact_id,
+                asserted=False,
+                was_update=was_update,
+                evicted_fact_ids=evicted_fact_ids,
+                facts_count=len(self.working_memory.facts()),
+                memory_bytes=self._current_memory_bytes(),
+                message="Session max_facts is 0; fact retention is disabled",
+            )
 
         if not was_update:
             while len(self.working_memory.facts()) >= max_facts:
@@ -104,13 +121,15 @@ class SessionContext:
     def retract_fact(self, fact_id: str) -> RetractResult:
         self._assert_active()
 
+        existing_record = self.working_memory.facts().get(fact_id)
+        existing_payload = dict(existing_record.payload) if existing_record is not None else {}
         retracted = self.working_memory.retract_fact(fact_id)
         self._fact_sizes.pop(fact_id, None)
 
         if hasattr(self.agenda, "retract_fact_activations"):
             self.agenda.retract_fact_activations(fact_id)
 
-        self._notify_rete_retract(fact_id)
+        self._notify_rete_retract(fact_id, existing_payload)
 
         return RetractResult(
             fact_id=fact_id,
@@ -162,14 +181,17 @@ class SessionContext:
         self.retract_fact(oldest.fact_id)
         return oldest.fact_id
 
-    def _notify_rete_retract(self, fact_id: str) -> None:
+    def _notify_rete_retract(self, fact_id: str, payload: dict[str, Any]) -> None:
         if self.rete_network is None:
             return
 
         for method_name in ("retract_fact", "remove_fact", "remove_event"):
             method = getattr(self.rete_network, method_name, None)
             if callable(method):
-                method(fact_id)
+                try:
+                    method(fact_id, payload)
+                except TypeError:
+                    method(fact_id)
                 return
 
     def _notify_rete_destroy(self) -> None:

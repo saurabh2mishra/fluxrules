@@ -15,7 +15,7 @@ Reference: "Rete: A Fast Algorithm for the Many Pattern/Many Object Pattern Matc
            by Charles L. Forgy, 1982
 """
 
-from typing import Dict, Any, List, Optional, Set, FrozenSet
+from typing import Dict, Any, List, Optional, Set, FrozenSet, Callable, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
@@ -136,12 +136,21 @@ class BetaNode:
     terminal: Optional['TerminalNode'] = None
     is_negated: bool = False  # For NOT conditions
     stateful: bool = False
+    evaluator: Optional[Callable[[Dict[str, Any], int, Dict[int, bool], 'BetaNode'], bool]] = None
+    node_type: str = "standard"
+    correlate_field: Optional[str] = None
     
     # Beta memory: stores joined results
     beta_memory: bool = False
-    tuple_memory: Dict[str, Set[FrozenSet[str]]] = field(default_factory=dict)
+    tuple_memory: Dict[str, Set[Any]] = field(default_factory=dict)
     
-    def evaluate(self, event: Dict[str, Any], event_hash: int, alpha_results: Dict[int, bool]) -> bool:
+    def evaluate(
+        self,
+        event: Dict[str, Any],
+        event_hash: int,
+        alpha_results: Dict[int, bool],
+        stateless_mode: bool = False,
+    ) -> bool:
         """
         Evaluate this beta node based on parent results or a custom evaluator.
         """
@@ -185,11 +194,13 @@ class BetaNode:
         """Clear beta memory."""
         if not self.stateful:
             self.beta_memory = False
+            self.tuple_memory.clear()
             return
 
         self.tuple_memory.clear()
+        self.beta_memory = False
 
-    def add_tuple(self, correlation_key: str, fact_ids: FrozenSet[str]) -> bool:
+    def add_tuple(self, correlation_key: str, fact_ids: Any) -> bool:
         """Add a tuple to stateful memory.
 
         Returns True if tuple is newly inserted.
@@ -200,21 +211,28 @@ class BetaNode:
         memory = self.tuple_memory.setdefault(correlation_key, set())
         original_size = len(memory)
         memory.add(fact_ids)
-        return len(memory) > original_size
+        inserted = len(memory) > original_size
+        if inserted:
+            self.beta_memory = True
+        return inserted
 
     def remove_tuples_containing(self, fact_id: str) -> int:
         """Remove tuples containing a fact id across all correlation keys.
 
         Returns the number of removed tuples.
         """
-        if not self.stateful:
-            return 0
-
         removed = 0
         empty_keys: List[str] = []
 
         for correlation_key, tuples_for_key in self.tuple_memory.items():
-            to_remove = {fact_ids for fact_ids in tuples_for_key if fact_id in fact_ids}
+            to_remove = set()
+            for fact_ids in tuples_for_key:
+                if isinstance(fact_ids, (set, frozenset, tuple, list)):
+                    contains = fact_id in fact_ids
+                else:
+                    contains = fact_id == fact_ids
+                if contains:
+                    to_remove.add(fact_ids)
             if to_remove:
                 tuples_for_key.difference_update(to_remove)
                 removed += len(to_remove)
@@ -224,13 +242,12 @@ class BetaNode:
         for correlation_key in empty_keys:
             del self.tuple_memory[correlation_key]
 
+        if self.stateful and removed and self.tuple_count() == 0:
+            self.beta_memory = False
         return removed
 
     def tuple_count(self) -> int:
         """Get total tuple count across all correlation keys."""
-        if not self.stateful:
-            return 0
-
         return sum(len(tuples_for_key) for tuples_for_key in self.tuple_memory.values())
 
 
@@ -297,7 +314,8 @@ class ReteNetwork:
         
         # Stateful fact and activation tracking for assert/retract flows
         self._fact_id_to_hash: Dict[str, int] = {}
-        self._terminal_activations: Dict[int, Set[Tuple[int]]] = defaultdict(set)
+        self._fact_id_to_token: Dict[str, str] = {}
+        self._terminal_activations: Dict[int, Set[Tuple[str]]] = defaultdict(set)
     
     def compile(self, rules: List[Dict[str, Any]]) -> bool:
         """
@@ -349,6 +367,7 @@ class ReteNetwork:
         self._root = None
         self._rules_hash = ""
         self._fact_id_to_hash.clear()
+        self._fact_id_to_token.clear()
         self._terminal_activations.clear()
     
     def _add_rule(self, rule: Dict[str, Any]):
@@ -593,9 +612,10 @@ class ReteNetwork:
             if key is None:
                 return False
 
-            tracked_tuple = (event_hash, self._make_hashable(event))
-            beta.tuple_memory[key].add(tracked_tuple)
-            return len(beta.tuple_memory[key]) > 1
+            fact_token = str(event.get("__fact_token", str(event_hash)))
+            tracked_tuple = (fact_token, self._make_hashable(event))
+            beta.tuple_memory.setdefault(str(key), set()).add(tracked_tuple)
+            return len(beta.tuple_memory[str(key)]) > 1
 
         beta_node = BetaNode(
             join_type="AND",
@@ -722,7 +742,8 @@ class ReteNetwork:
         self,
         event: Dict[str, Any],
         event_hash: int,
-        alpha_results: Dict[int, bool]
+        alpha_results: Dict[int, bool],
+        fact_token: str,
     ) -> None:
         """Propagate results through beta nodes."""
         evaluated_betas: Set[int] = set()
@@ -736,23 +757,26 @@ class ReteNetwork:
                 evaluate_beta(parent_beta)
             
             result = beta.evaluate(event, event_hash, alpha_results)
-            if result:
-                beta.add_tuple(event_hash)
+            if result and beta.node_type != "cross_fact_join":
+                if beta.stateful:
+                    beta.add_tuple("__global__", (fact_token,))
+                else:
+                    beta.tuple_memory.setdefault("__global__", set()).add((fact_token,))
             evaluated_betas.add(beta_id)
             return result
         
         for beta in self._beta_nodes:
             evaluate_beta(beta)
 
-    def _collect_activated_terminals(self, event_hash: int) -> List[TerminalNode]:
+    def _collect_activated_terminals(self, fact_token: str) -> List[TerminalNode]:
         """Collect and track activated terminal nodes."""
         matched_terminals: List[TerminalNode] = []
         
         for beta in self._beta_nodes:
-            if beta.terminal and beta.beta_memory:
-                beta.terminal.activate()
-                self._terminal_activations[beta.terminal.rule_id].add((event_hash,))
-                matched_terminals.append(beta.terminal)
+                if beta.terminal and beta.beta_memory:
+                    beta.terminal.activate()
+                    self._terminal_activations[beta.terminal.rule_id].add((fact_token,))
+                    matched_terminals.append(beta.terminal)
         
         matched_terminals.sort(key=lambda t: t.rule_priority, reverse=True)
         return matched_terminals
@@ -765,37 +789,43 @@ class ReteNetwork:
         """
         with self._lock:
             event_hash = hash(self._make_hashable(event))
+            fact_token = f"{event_hash}:{fact_id}"
+            event_with_meta = dict(event)
+            event_with_meta["__fact_token"] = fact_token
             self._fact_id_to_hash[fact_id] = event_hash
+            self._fact_id_to_token[fact_id] = fact_token
             
-            alpha_results = self._run_alpha_phase(event, event_hash)
-            self._run_beta_phase(event, event_hash, alpha_results)
-            return self._collect_activated_terminals(event_hash)
+            alpha_results = self._run_alpha_phase(event_with_meta, event_hash)
+            self._run_beta_phase(event_with_meta, event_hash, alpha_results, fact_token)
+            return self._collect_activated_terminals(fact_token)
 
-    def retract_fact(self, fact_id: str, event: Dict[str, Any]) -> List[TerminalNode]:
+    def retract_fact(self, fact_id: str, event: Optional[Dict[str, Any]] = None) -> List[TerminalNode]:
         """
         Retract a fact from stateful memories.
         
         Returns terminal activations cancelled by this retraction.
         """
         with self._lock:
-            fact_hash = self._fact_id_to_hash.pop(fact_id, hash(self._make_hashable(event)))
+            fact_hash = self._fact_id_to_hash.pop(fact_id, None)
+            fact_token = self._fact_id_to_token.pop(fact_id, None)
+            if fact_hash is None or fact_token is None:
+                return []
             
             # Remove fact hash from alpha memories
             for alpha_node in self._alpha_nodes.values():
                 alpha_node.alpha_memory.discard(fact_hash)
             
             # Remove tuples from stateful betas
-            removed_tuples: Set[Tuple[int]] = set()
             for beta in self._beta_nodes:
-                removed_tuples.update(beta.remove_tuples_containing(fact_hash))
+                beta.remove_tuples_containing(fact_token)
                 if not beta.tuple_memory:
                     beta.beta_memory = False
             
-            # Cancel terminal activations tied to removed tuples
+            # Cancel terminal activations tied to removed fact
             cancelled_map: Dict[int, TerminalNode] = {}
             for terminal in self._terminal_nodes.values():
                 active_tuples = self._terminal_activations.get(terminal.rule_id, set())
-                to_cancel = active_tuples.intersection(removed_tuples)
+                to_cancel = {tpl for tpl in active_tuples if fact_token in tpl}
                 if not to_cancel:
                     continue
                 
