@@ -9,7 +9,7 @@ from typing import Any, Dict
 from app.config import settings
 from app.execution.working_memory import FactRecord, WorkingMemory
 
-SESSION_MAX_CONCURRENT = 100
+SESSION_MAX_CONCURRENT = int(getattr(settings, "SESSION_MAX_CONCURRENT", 100))
 SESSION_CLEANUP_INTERVAL_SECONDS = 1.0
 
 
@@ -32,8 +32,7 @@ class SessionManager:
         self._manager_lock = threading.Lock()
         self._session_locks: Dict[str, threading.Lock] = {}
 
-        configured_limit = getattr(settings, "SESSION_MAX_CONCURRENT", SESSION_MAX_CONCURRENT)
-        self._max_concurrent = int(configured_limit)
+        self._max_concurrent = int(SESSION_MAX_CONCURRENT)
         self._cleanup_interval_seconds = cleanup_interval_seconds
         self._stop_cleanup = threading.Event()
         self._cleanup_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
@@ -63,22 +62,28 @@ class SessionManager:
             return session
 
     def assert_fact(self, session_id: str, fact_id: str, event: Any) -> FactRecord:
-        context = self.get_session(session_id)
-        if context is None:
-            raise KeyError(f"Session not found: {session_id}")
-
         event_data = getattr(event, "data", event)
         if not isinstance(event_data, dict):
             raise TypeError("event must expose a dict payload via .data or be a dict")
 
-        lock = self._session_locks.get(session_id)
-        if lock is None:
-            raise KeyError(f"Session not found: {session_id}")
+        lock: threading.Lock
+        with self._manager_lock:
+            context = self._sessions.get(session_id)
+            lock = self._session_locks.get(session_id)
+            if context is None or lock is None:
+                raise KeyError(f"Session not found: {session_id}")
+            if context.expires_at <= time.time():
+                self._destroy_session_locked(session_id)
+                raise KeyError(f"Session not found: {session_id}")
 
-        with lock:
+            lock.acquire()
+
+        try:
             record = context.working_memory.update_fact(fact_id, event_data)
             context.refresh_expiry()
             return record
+        finally:
+            lock.release()
 
     def destroy_session(self, session_id: str) -> bool:
         with self._manager_lock:
@@ -111,6 +116,11 @@ class SessionManager:
         return len(expired)
 
     def _destroy_session_locked(self, session_id: str) -> bool:
+        lock = self._session_locks.get(session_id)
+        if lock is not None:
+            lock.acquire()
         removed = self._sessions.pop(session_id, None)
         self._session_locks.pop(session_id, None)
+        if lock is not None:
+            lock.release()
         return removed is not None

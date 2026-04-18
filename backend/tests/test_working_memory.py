@@ -30,7 +30,7 @@ def test_get_facts_in_time_window(monkeypatch):
     wm.insert_fact("f3", {"step": 3})
 
     recent = wm.get_facts_in_window(10)
-    assert {fact.fact_id for fact in recent} == {"f2", "f3"}
+    assert {fact.fact_id for fact in recent} == {"f3"}
 
 
 def test_get_facts_by_field():

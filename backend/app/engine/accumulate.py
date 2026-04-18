@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
+from app.config import settings
 from app.engine.comparison import evaluate_operator
 from app.execution.working_memory import FactRecord, WorkingMemory
 
@@ -95,7 +96,11 @@ class AccumulateEvaluator:
     def _in_window(record: FactRecord, duration_seconds: int, *, now: datetime | None) -> bool:
         if duration_seconds < 0:
             return False
-        record_ts = record.inserted_at
+        record_ts_raw = record.inserted_at
+        if isinstance(record_ts_raw, datetime):
+            record_ts = record_ts_raw
+        else:
+            record_ts = datetime.fromtimestamp(float(record_ts_raw), tz=timezone.utc)
         if now is None:
             if record_ts.tzinfo is None:
                 now = datetime.now()
@@ -119,7 +124,15 @@ class AccumulateEvaluator:
             # condition-style: {"field": "amount", "op": ">", "value": 100}
             if {"field", "op", "value"}.issubset(over.keys()):
                 field = over["field"]
-                return evaluate_operator(over["op"], payload.get(field), over["value"], field_present=field in payload)
+                return evaluate_operator(
+                    over["op"],
+                    payload.get(field),
+                    over["value"],
+                    field_present=field in payload,
+                    strict_null_handling=settings.STRICT_NULL_HANDLING,
+                    strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+                    boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+                )
             # equality-map style: {"type": "Order", "status": "approved"}
             return all(payload.get(field) == expected for field, expected in over.items())
 
@@ -202,7 +215,15 @@ class AccumulateEvaluator:
         op = constraint["op"]
         value = constraint["value"]
         actual = self._resolve_context_field(context, field)
-        return evaluate_operator(op, actual, value, field_present=actual is not None)
+        return evaluate_operator(
+            op,
+            actual,
+            value,
+            field_present=actual is not None,
+            strict_null_handling=settings.STRICT_NULL_HANDLING,
+            strict_type_comparison=settings.STRICT_TYPE_COMPARISON,
+            boolean_string_coercion=settings.BOOLEAN_STRING_COERCION,
+        )
 
     @staticmethod
     def _resolve_context_field(context: Dict[str, Any], field: str) -> Any:
@@ -220,9 +241,10 @@ class AccumulateEvaluator:
 
     @staticmethod
     def _as_matched_fact(record: FactRecord) -> Dict[str, Any]:
+        inserted_at = record.inserted_at.isoformat() if isinstance(record.inserted_at, datetime) else datetime.fromtimestamp(float(record.inserted_at), tz=timezone.utc).isoformat()
         return {
             "fact_id": record.fact_id,
             "payload": dict(record.payload),
             "revision": record.revision,
-            "inserted_at": record.inserted_at.isoformat(),
+            "inserted_at": inserted_at,
         }

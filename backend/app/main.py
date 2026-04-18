@@ -17,7 +17,6 @@ from app.api.routes.events import router as events_router
 from app.api.routes.metrics import router as metrics_router
 from app.api.routes.sessions import router as sessions_router
 from app.api.routes.rules import router as rules_router
-from app.api.routes.sessions import router as sessions_router
 from app.config import settings
 from app.database import init_db
 from app.security import parse_cors_origins
@@ -81,7 +80,6 @@ app.include_router(dependency_graph_router, prefix=settings.API_V1_STR)
 app.include_router(analytics_router, prefix=settings.API_V1_STR)
 app.include_router(admin_router, prefix=settings.API_V1_STR)
 app.include_router(audit_policy_router, prefix=settings.API_V1_STR)
-app.include_router(sessions_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/health", tags=["API"])

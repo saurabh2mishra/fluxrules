@@ -9,7 +9,7 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { JsonEditor } from '../components/ui/json-editor';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
-import type { ConditionGroup, RuleCreate } from '../types/rule';
+import type { ConditionGroup, IntentPattern, RuleCreate } from '../types/rule';
 import { toast } from 'sonner';
 import { ChevronRight, ChevronLeft, Save, FlaskConical, PlusCircle, Check } from 'lucide-react';
 
@@ -32,7 +32,7 @@ export default function CreateRulePage() {
     const [actionParams, setActionParams] = useState('');
     const [testResult, setTestResult] = useState<string | null>(null);
     const [builderMode, setBuilderMode] = useState<ConditionBuilderMode>('legacy');
-    const [intentPattern, setIntentPattern] = useState('');
+    const [intentPattern, setIntentPattern] = useState<IntentPattern>({ intent: '', where: [] });
 
     const { data: actionsData } = useQuery({
         queryKey: ['available-actions'],
@@ -72,7 +72,7 @@ export default function CreateRulePage() {
             condition_dsl: conditionTree,
             evaluation_mode: builderMode === 'stateful' ? 'stateful' : 'stateless',
             rule_metadata: builderMode === 'stateful'
-                ? { intent_pattern: intentPattern.trim() || null, canonical_mapping: 'auto' }
+                ? { intent_pattern: intentPattern.intent.trim() || null, canonical_mapping: 'auto' }
                 : undefined,
             action,
         };
@@ -203,7 +203,7 @@ export default function CreateRulePage() {
                                                 Stateful pattern mode generates canonical condition mapping automatically. The JSON editor remains available for inspection and advanced overrides.
                                             </p>
                                         </div>
-                                        <IntentPatternPicker value={intentPattern} onChange={setIntentPattern} />
+                                        <IntentPatternPicker label="Intent Pattern" value={intentPattern} onChange={setIntentPattern} />
                                     </div>
                                 )}
                             />
