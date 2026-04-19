@@ -19,6 +19,15 @@ class SessionRecord:
     created_at: str
     updated_at: str
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "session_id": self.session_id,
+            "facts": dict(self.facts),
+            "metadata": dict(self.metadata),
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
 
 class SessionStorageBackend(ABC):
     @abstractmethod
