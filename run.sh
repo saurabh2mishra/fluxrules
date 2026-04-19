@@ -109,7 +109,7 @@ start_api() {
         uv sync --extra dev
     fi
     source .venv/bin/activate
-    uv run uvicorn app.main:app --reload --reload-dir app --host 0.0.0.0 --port 8000
+    python -m uvicorn app.main:app --reload --reload-dir app --host 0.0.0.0 --port 8000
 }
 
 # ── Frontend ──────────────────────────────────────────────────────────────────
