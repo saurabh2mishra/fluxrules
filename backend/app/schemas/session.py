@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class SessionCreate(BaseModel):
+    session_id: str | None = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -19,6 +20,8 @@ class SessionResponse(BaseModel):
 
 class AssertFactRequest(BaseModel):
     fact: Dict[str, Any] = Field(default_factory=dict)
+    fact_id: str | None = None
+    payload: Dict[str, Any] = Field(default_factory=dict)
 
 
 class AssertFactResponse(BaseModel):
