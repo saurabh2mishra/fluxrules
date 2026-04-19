@@ -36,10 +36,10 @@ info "Installing Python dependencies (uv sync)…"
 uv sync --extra dev
 
 info "Initialising database…"
-uv run python -c "from app.database import init_db; init_db()"
+./.venv/bin/python -c "from app.database import init_db; init_db()"
 
 info "Running backend test suite…"
-uv run pytest --tb=short -q
+./.venv/bin/pytest --tb=short -q
 
 success "Backend ready ✓"
 echo ""
