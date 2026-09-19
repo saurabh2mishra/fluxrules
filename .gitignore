@@ -1,0 +1,68 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Python bytecode and build artifacts
+__pycache__/
+*.py[cod]
+*.so
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+build/
+site/
+*.egg
+
+# Test, coverage, and tooling caches
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+# Local environment and secrets
+.env
+.env.*
+*.local
+*.pem
+credentials*.json
+
+# Editors and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Project-specific generated files
+logs/
+*.log
+
+# SQLite / database runtime artifacts
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+*_wal
+*_shm
+rune_engine.db
+fluxrules_dev.db
+rule_engine.db
+rule_engine.db-wal
+rule_engine.db-shm
+
+# Optional generated docs/assets
+mkdocs_material/
