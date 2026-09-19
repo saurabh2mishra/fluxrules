@@ -23,20 +23,28 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Add integrity_hash to audit_logs and create schema_meta table."""
     # 1. Add integrity_hash column for HMAC-SHA256 tamper detection
+    # Check if the column already exists to avoid duplicate column errors
     with op.batch_alter_table('audit_logs', schema=None) as batch_op:
-        batch_op.add_column(
-            sa.Column('integrity_hash', sa.String(length=64), nullable=True)
-        )
+        # Get the current columns
+        inspector = sa.inspect(op.get_bind())
+        columns = [col['name'] for col in inspector.get_columns('audit_logs')]
+        
+        if 'integrity_hash' not in columns:
+            batch_op.add_column(
+                sa.Column('integrity_hash', sa.String(length=64), nullable=True)
+            )
 
-    # 2. Create schema_meta table for migration version history
-    op.create_table(
-        'schema_meta',
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('version', sa.String(), nullable=False),
-        sa.Column('applied_at', sa.DateTime(), nullable=True),
-        sa.Column('description', sa.String(), server_default='', nullable=True),
-        sa.PrimaryKeyConstraint('id'),
-    )
+    # 2. Create schema_meta table for migration version history (only if it doesn't exist)
+    inspector = sa.inspect(op.get_bind())
+    if 'schema_meta' not in inspector.get_table_names():
+        op.create_table(
+            'schema_meta',
+            sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+            sa.Column('version', sa.String(), nullable=False),
+            sa.Column('applied_at', sa.DateTime(), nullable=True),
+            sa.Column('description', sa.String(), server_default='', nullable=True),
+            sa.PrimaryKeyConstraint('id'),
+        )
 
 
 def downgrade() -> None:

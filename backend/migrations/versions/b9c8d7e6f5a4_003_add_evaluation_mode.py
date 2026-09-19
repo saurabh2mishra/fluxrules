@@ -21,10 +21,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add evaluation_mode to rules."""
-    op.add_column(
-        "rules",
-        sa.Column("evaluation_mode", sa.String(), nullable=True, server_default="stateless"),
-    )
+    inspector = sa.inspect(op.get_bind())
+    columns = [col['name'] for col in inspector.get_columns('rules')]
+    
+    if 'evaluation_mode' not in columns:
+        op.add_column(
+            "rules",
+            sa.Column("evaluation_mode", sa.String(), nullable=True, server_default="stateless"),
+        )
 
 
 def downgrade() -> None:
