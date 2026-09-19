@@ -1,0 +1,71 @@
+- id: 1
+  name: high_value_order
+  priority: 20
+  action: requires_review
+  enabled: true
+  condition_dsl:
+    type: group
+    op: AND
+    children:
+      - type: condition
+        field: amount
+        op: ">"
+        value: 1000
+      - type: condition
+        field: age
+        op: ">"
+        value: 25
+
+- id: 2
+  name: suspicious_transaction
+  priority: 10
+  action: block_transaction
+  enabled: true
+  condition_dsl:
+    type: group
+    op: AND
+    children:
+      - type: condition
+        field: amount
+        op: ">"
+        value: 5000
+      - type: condition
+        field: country
+        op: "=="
+        value: "XX"
+
+- id: 3
+  name: vip_high_value
+  priority: 30
+  action: expedite_processing
+  enabled: true
+  condition_dsl:
+    type: group
+    op: AND
+    children:
+      - type: condition
+        field: customer_tier
+        op: "=="
+        value: "VIP"
+      - type: condition
+        field: amount
+        op: ">"
+        value: 1500
+
+- id: 4
+  name: young_high_value
+  priority: 40
+  action: require_verification
+  enabled: true
+  condition_dsl:
+    type: group
+    op: AND
+    children:
+      - type: condition
+        field: age
+        op: "<"
+        value: 25
+      - type: condition
+        field: amount
+        op: ">"
+        value: 500

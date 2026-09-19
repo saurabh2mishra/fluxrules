@@ -1,208 +1,100 @@
 # Contributing to FluxRules
 
-Thank you for considering contributing to FluxRules! This document provides guidelines and instructions for contributing.
+Thank you for contributing to FluxRules.
 
----
-
-## Table of Contents
-
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
-- [Making Changes](#making-changes)
-- [Testing](#testing)
-- [Pull Request Process](#pull-request-process)
-- [Coding Standards](#coding-standards)
-- [Reporting Bugs](#reporting-bugs)
-- [Requesting Features](#requesting-features)
-
----
-
-## Code of Conduct
-
-By participating in this project, you agree to maintain a respectful and inclusive environment. Be kind, constructive, and professional in all interactions.
-
----
-
-## Getting Started
-
-1. **Fork** the repository on GitHub.
-2. **Clone** your fork locally:
-   ```bash
-   git clone https://github.com/<your-username>/fluxrules.git
-   cd fluxrules
-   ```
-3. **Create a branch** for your work:
-   ```bash
-   git checkout -b feature/my-feature
-   ```
-
----
+This project is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By
+participating, you are expected to uphold it.
 
 ## Development Setup
 
 ### Prerequisites
 
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
-- Redis (optional — the app falls back gracefully without it)
-- Docker & Docker Compose (optional, for containerised development)
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/) **0.8.0 or newer**
 
-### Option A: Local Development
-
-```bash
-# 1. Copy the example env file and adjust as needed
-cp .env.example backend/.env
-
-# 2. Install dependencies
-cd backend
-uv sync          # or: pip install -e ".[dev]"
-
-# 3. Run the dev server
-uvicorn app.main:app --reload --port 8000
-
-# 4. (Optional) Start Redis
-redis-server
-
-# 5. (Optional) Start the event worker
-python -m app.workers.event_worker
-```
-
-### Option B: Docker
+FluxRules uses the revision-2 `uv.lock` format. Older uv versions fail before
+dependency installation begins. Check the version before running any project
+command:
 
 ```bash
-cp .env.example backend/.env
-docker-compose up --build
+python scripts/check_uv.py
 ```
 
-The API will be at `http://localhost:8000` and the frontend at `http://localhost:8080`.
+If uv is missing or older than 0.8.0, install or upgrade it through the
+project package index, then rerun the check:
 
----
-
-## Project Structure
-
-```
-fluxrules/
-├── backend/
-│   ├── app/
-│   │   ├── api/routes/       # FastAPI route handlers
-│   │   ├── analytics/        # Runtime analytics & explainability
-│   │   ├── compiler/         # Rule compilation
-│   │   ├── engine/           # RETE network, DSL parser, dependency graph
-│   │   ├── execution/        # Agenda, scheduler, working memory
-│   │   ├── models/           # SQLAlchemy ORM models
-│   │   ├── schemas/          # Pydantic request/response schemas
-│   │   ├── services/         # Business logic layer
-│   │   ├── utils/            # Shared utilities (Redis, metrics)
-│   │   ├── validation/       # BRMS validation (SAT, conflicts, gaps)
-│   │   └── workers/          # Background event workers
-│   ├── migrations/           # Alembic database migrations
-│   ├── tests/                # Pytest test suite
-│   └── simulation/           # Sample integration scripts
-├── frontend/                 # React + TypeScript frontend
-├── docker-compose.yml
-└── mkdocs.yml
+```bash
+python -m pip install \
+  --index-url https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/simple/ \
+  'uv>=0.8'
 ```
 
----
+The Nexus index is used only for installing uv. It is not configured in
+`pyproject.toml`, `uv.lock`, or the dependency-resolution settings.
 
-## Making Changes
+### Install
 
-1. **Keep changes focused.** One feature or fix per pull request.
-2. **Don't break existing architecture.** If you want to propose a structural change, open an issue first to discuss.
-3. **Update tests.** If you add or modify backend logic, include corresponding tests.
-4. **Update documentation.** If your change affects the API surface, update docstrings, the README, or MkDocs pages as appropriate.
+```bash
+git clone https://github.com/fluxrules/fluxrules.git
+cd fluxrules
+python scripts/check_uv.py
+uv sync --extra dev
+```
 
----
+## Common Commands
+
+```bash
+make lint
+make type-check
+make test
+make docs
+```
 
 ## Testing
 
-The test suite uses **pytest**. Run the full suite from the `backend/` directory:
+Run all tests:
 
 ```bash
-cd backend
-pytest
+uv run pytest tests/ -v
 ```
 
-### Test conventions
-
-- Test files live in `backend/tests/` and are named `test_*.py`.
-- Use the existing `conftest.py` fixtures for database sessions and test clients.
-- Aim for tests that are fast, isolated, and deterministic (no external service dependencies).
-
-### Running a single test file
+Run coverage:
 
 ```bash
-pytest tests/test_api.py
+uv run pytest tests/ --cov=src/fluxrules --cov-report=term-missing
 ```
 
-### Running tests matching a keyword
+## Pull Requests
 
-```bash
-pytest -k "conflict"
-```
+Please keep pull requests focused and include:
 
----
+- a clear problem statement
+- tests for behavior changes
+- docs updates for public API or workflow changes
 
-## Pull Request Process
+Before opening a PR, ensure linting, typing, tests, and docs build pass locally.
 
-1. **Ensure all tests pass** locally before pushing.
-2. **Write a clear PR description** explaining what changed and why.
-3. **Reference related issues** (e.g., `Closes #42`).
-4. **Keep the PR small.** Large PRs are harder to review.
-5. A maintainer will review your PR and may request changes.
-6. Once approved, your PR will be squash-merged into `main`.
+## Branch Protection
 
----
+`main` is protected. Merges require:
 
-## Coding Standards
+- A green CI run — all required checks (`lint`, `test` matrix, `type-check`,
+  `docs-execute`, `clean-install`, `build-smoke`, `examples`, `security`, and
+  `dependency-review` on PRs) must pass.
+- At least one approving review, including [Code Owner](.github/CODEOWNERS)
+  approval for the paths a PR touches.
+- An up-to-date branch (rebased on latest `main`).
 
-### Python (Backend)
+Direct pushes and force-pushes to `main` are disabled; changes land through pull
+requests. Releases are tagged `vX.Y.Z` (matching `__version__`) and published by
+the signed [release workflow](.github/workflows/release.yml).
 
-- **Formatter / Linter:** [Ruff](https://docs.astral.sh/ruff/) (`ruff check` and `ruff format`).
-- **Type hints:** Use type annotations for all function signatures.
-- **Docstrings:** Google-style docstrings for public functions and classes.
-- **Imports:** Group as standard library → third-party → local, separated by blank lines.
+## Reporting Issues
 
-### TypeScript (Frontend)
+Use GitHub issues for bugs and feature requests.
 
-- **Framework:** React with TypeScript.
-- **Formatter / Linter:** ESLint and Prettier (configured in `eslint.config.js` and `postcss.config.js`).
-- **Styling:** Tailwind CSS for utility-first styling.
-- **Build tool:** Vite for fast development and optimized production builds.
-- Use the existing toast utilities for user-facing messages instead of `alert()`.
-- Keep components well-organized under `frontend/src/components/`.
-
-### Commits
-
-- Use clear, concise commit messages.
-- Prefix with a category when helpful: `fix:`, `feat:`, `docs:`, `test:`, `chore:`.
-
----
-
-## Reporting Bugs
-
-Open a GitHub Issue with:
-
-1. **Summary** — A clear, one-line description.
-2. **Steps to reproduce** — Minimal steps to trigger the bug.
-3. **Expected behaviour** — What you expected to happen.
-4. **Actual behaviour** — What actually happened (include error messages / stack traces).
-5. **Environment** — Python version, OS, Docker or local, browser (if frontend).
-
----
-
-## Requesting Features
-
-Open a GitHub Issue labelled `enhancement` with:
-
-1. **Problem statement** — What are you trying to do?
-2. **Proposed solution** — How do you think it should work?
-3. **Alternatives considered** — Any other approaches you thought of.
-
----
+For security reports, see [SECURITY.md](SECURITY.md).
 
 ## License
 
-By contributing to FluxRules, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).

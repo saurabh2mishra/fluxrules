@@ -1,6 +1,19 @@
-from fluxrules.ports.execution_store import ExecutionStorePort
-from fluxrules.ports.observability import TracerPort
-from fluxrules.ports.plugin import PluginRegistryPort
-from fluxrules.ports.repository import RulesetRepositoryPort
+"""Port interfaces (abstract base contracts) for dependency injection."""
 
-__all__ = ["RulesetRepositoryPort", "ExecutionStorePort", "TracerPort", "PluginRegistryPort"]
+from fluxrules.ports.circuit_breaker import CircuitBreakerPort
+from fluxrules.ports.health import HealthCheckPort
+from fluxrules.ports.persistence import InMemoryRulePersistence, RulePersistencePort
+from fluxrules.ports.queue import QueuePort
+from fluxrules.ports.rule_cache import RuleCachePort
+
+__all__ = [
+    "CircuitBreakerPort",
+    "ExecutionStorePort",
+    "HealthCheckPort",
+    "InMemoryRulePersistence",
+    "QueuePort",
+    "RuleCachePort",
+    "RulePersistencePort",
+    "RulesetRepositoryPort",
+    "TracerPort",
+]

@@ -1,20 +1,105 @@
 site_name: FluxRules
-site_description: FluxRules SDK and Server documentation
+site_description: Python rule evaluation toolkit with optional API, powered by the PHREAK engine
+site_url: https://fluxrules.github.io/fluxrules/
+repo_url: https://github.com/fluxrules/fluxrules
 repo_name: fluxrules
 
-docs_dir: backend/docs
+docs_dir: docs
 
 theme:
   name: material
 
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/fluxrules/fluxrules
+
 plugins:
   - search
   - mkdocstrings:
+      default_handler: python
       handlers:
         python:
-          paths: [backend]
+          paths: [src]
+          show_source: true
 
 nav:
   - Home: index.md
-  - SDK Migration & Operations: sdk_migration_and_operations.md
-  - Audit Policy & Reporting: audit_policy_migration.md
+  - Getting Started: getting-started.md
+  - Installation: installation.md
+  - Quickstart: quickstart.md
+  - Concepts: concepts.md
+  - Features: features.md
+  - Architecture: architecture.md
+  - Usage:
+    - Overview: usage/index.md
+    - Python API: usage/python-api.md
+    - HTTP API: usage/http-api.md
+    - Engine Selection: usage/engines.md
+    - Configuration: usage/configuration.md
+    - Examples: usage/examples.md
+    - Advanced Capabilities: usage/advanced-capabilities.md
+  - The Engine:
+    - Decision Guide: decision-guide.md
+    - The FluxRules Engine: engine-comparison.md
+    - Choosing an Evaluation Mode: choosing-an-engine.md
+    - Algorithm Fidelity: algorithm-fidelity.md
+    - Scope and Limits: engine-scope-and-limits.md
+    - Benchmarks: benchmarks.md
+  - Authoring Rules:
+    - Rule Types: rule-types.md
+    - Pydantic Rule Guide: pydantic-rule-guide.md
+    - Conditions: conditions.md
+    - Complex Conditions: complex-conditions.md
+    - Domains and Tags: domains-and-tags.md
+    - Rule Builder: rule-builder.md
+    - YAML and CSV Rules: yaml-csv-rules.md
+    - CSV Styles: csv-styles.md
+    - ID Generation: id-generation.md
+    - Custom Actions: custom-actions.md
+  - Advanced Guides:
+    - Rule Analysis: rule-analysis.md
+    - Action Registry: action-registry.md
+    - Fact Pipeline: fact-pipeline.md
+    - Cross-Fact Rules: cross-fact-rules.md
+    - Nested Facts: nested-facts.md
+    - Validation Framework: validation-framework.md
+    - Working Memory: working-memory.md
+    - Extension Points: extension-points.md
+    - Custom Engines: custom-engines.md
+    - Custom Transforms: custom-transforms.md
+    - Custom Transforms Cheatsheet: custom-transforms-cheatsheet.md
+    - Custom Transforms Q&A: custom-transforms-answered.md
+  - Operating:
+    - Deployment: deployment.md
+    - Persistence: persistence.md
+    - Sessions: sessions.md
+    - Rule Lifecycle: rule-lifecycle.md
+    - Observability: observability.md
+    - Observability Exporters: observability-exporters.md
+    - Dependency Injection: dependency-injection.md
+    - Load Testing: load-testing.md
+  - Learning:
+    - Examples: examples.md
+    - Use Cases: usecases.md
+  - Reference:
+    - Overview: reference/index.md
+    - Public API: reference/public-api.md
+    - HTTP Endpoints: reference/http-endpoints.md
+    - REST API Guide: rest-api.md
+    - API Overview: api.md
+  - Development:
+    - Overview: development/index.md
+    - Contributing: contributing.md
+    - Testing: development/testing.md
+  - Security: security.md
+  - Troubleshooting: troubleshooting.md
+  - Changelog: changelog.md

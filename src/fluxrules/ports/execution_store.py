@@ -1,11 +1,22 @@
+"""Port interface for execution result storage."""
+
 from __future__ import annotations
 
-from typing import Protocol
+from abc import ABC, abstractmethod
+from typing import Any
 
-from fluxrules.domain.models import EvaluationResult
 
+class ExecutionStorePort(ABC):
+    """Abstract interface for persisting execution results."""
 
-class ExecutionStorePort(Protocol):
-    def save(self, result: EvaluationResult) -> None: ...
+    @abstractmethod
+    def save(self, result: Any) -> None:
+        """Save an execution result."""
 
-    def get(self, execution_id: str) -> EvaluationResult | None: ...
+    @abstractmethod
+    def get(self, execution_id: str) -> Any | None:
+        """Retrieve a stored execution result by execution ID."""
+
+    @abstractmethod
+    def delete(self, execution_id: str) -> bool:
+        """Delete a stored execution result. Return True if found and deleted."""

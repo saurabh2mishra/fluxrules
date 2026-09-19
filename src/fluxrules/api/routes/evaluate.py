@@ -1,25 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException
+"""Evaluation endpoint for the SDK (simple, no-auth version)."""
 
-from fluxrules.api.deps import get_rule_service
-from fluxrules.api.schemas import EvaluateRequest, EvaluateResponse
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+
+from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
 
-router = APIRouter(prefix="/v1/rulesets", tags=["rules"])
+router = APIRouter(tags=["evaluate"])
 
 
-@router.post("/{ruleset_id}/evaluate", response_model=EvaluateResponse)
-def evaluate_ruleset(
-    ruleset_id: str,
-    request: EvaluateRequest,
-    service: RuleService = Depends(get_rule_service),
-) -> EvaluateResponse:
+class EvaluateRequest(BaseModel):
+    """Request to evaluate a ruleset."""
+
+    ruleset: Ruleset = Field(..., description="The ruleset to evaluate")
+    facts: dict[str, object] = Field(..., description="Facts to evaluate against")
+
+
+class EvaluateResponse(BaseModel):
+    """Response from evaluation."""
+
+    execution_id: str
+    matched_rules: list[int]
+    actions: list[str]
+
+
+_service = RuleService.create()
+
+
+@router.post("/evaluate", response_model=EvaluateResponse)
+def evaluate_ruleset(request: EvaluateRequest) -> EvaluateResponse:
+    """Evaluate a ruleset against facts (SDK endpoint)."""
     try:
-        result = service.evaluate(ruleset_id, request.facts)
-    except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-    return EvaluateResponse(
-        execution_id=result.execution_id,
-        matched_rules=result.matched_rule_ids,
-        actions=result.actions,
-    )
+        result = _service.evaluate_inline(request.ruleset, request.facts)
+        _service.execution_store.save(result)
+        return EvaluateResponse(
+            execution_id=result.execution_id,
+            matched_rules=result.matched_rule_ids,
+            actions=result.actions,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -12,13 +12,21 @@ Predicate = Callable[[Any, Any], bool]
 
 OPERATORS: dict[str, Predicate] = {
     "eq": lambda left, right: left == right,
+    "==": lambda left, right: left == right,
     "ne": lambda left, right: left != right,
+    "!=": lambda left, right: left != right,
     "gt": lambda left, right: left > right,
+    ">": lambda left, right: left > right,
     "gte": lambda left, right: left >= right,
+    ">=": lambda left, right: left >= right,
     "lt": lambda left, right: left < right,
+    "<": lambda left, right: left < right,
     "lte": lambda left, right: left <= right,
+    "<=": lambda left, right: left <= right,
     "in": lambda left, right: left in right,
     "contains": lambda left, right: right in left,
+    "not_in": lambda left, right: left not in right,
+    "not_contains": lambda left, right: right not in left,
 }
 
 

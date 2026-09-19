@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-05-20T21:04:31Z",
+  "scenarios": {
+    "simple_100": {
+      "total_evaluations": 2000,
+      "elapsed_seconds": 0.218,
+      "throughput_events_per_sec": 9184.4,
+      "latency_ms": {
+        "p50": 0.105,
+        "p95": 0.116,
+        "p99": 0.269,
+        "max": 0.394
+      },
+      "network_stats": {
+        "alpha_nodes": 100,
+        "beta_nodes": 100,
+        "shared_conditions": 0
+      },
+      "errors": 0
+    },
+    "simple_500": {
+      "total_evaluations": 2000,
+      "elapsed_seconds": 1.037,
+      "throughput_events_per_sec": 1928.7,
+      "latency_ms": {
+        "p50": 0.504,
+        "p95": 0.567,
+        "p99": 1.091,
+        "max": 1.581
+      },
+      "network_stats": {
+        "alpha_nodes": 500,
+        "beta_nodes": 500,
+        "shared_conditions": 0
+      },
+      "errors": 0
+    },
+    "simple_1000": {
+      "total_evaluations": 2000,
+      "elapsed_seconds": 2.104,
+      "throughput_events_per_sec": 950.7,
+      "latency_ms": {
+        "p50": 1.014,
+        "p95": 1.24,
+        "p99": 2.017,
+        "max": 2.493
+      },
+      "network_stats": {
+        "alpha_nodes": 1000,
+        "beta_nodes": 1000,
+        "shared_conditions": 0
+      },
+      "errors": 0
+    },
+    "medium_500": {
+      "total_evaluations": 2000,
+      "elapsed_seconds": 2.49,
+      "throughput_events_per_sec": 803.2,
+      "latency_ms": {
+        "p50": 1.197,
+        "p95": 1.296,
+        "p99": 3.473,
+        "max": 5.481
+      },
+      "network_stats": {
+        "alpha_nodes": 932,
+        "beta_nodes": 2000,
+        "shared_conditions": 568
+      },
+      "errors": 0
+    },
+    "complex_500": {
+      "total_evaluations": 2000,
+      "elapsed_seconds": 7.542,
+      "throughput_events_per_sec": 265.2,
+      "latency_ms": {
+        "p50": 3.61,
+        "p95": 3.979,
+        "p99": 11.171,
+        "max": 14.694
+      },
+      "network_stats": {
+        "alpha_nodes": 1875,
+        "beta_nodes": 5645,
+        "shared_conditions": 1807
+      },
+      "errors": 0
+    }
+  }
+}

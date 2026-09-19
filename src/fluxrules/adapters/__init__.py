@@ -1,1 +1,3 @@
-"""Concrete adapters for ports."""
+"""Adapter implementations (concrete strategy classes)."""
+
+__all__ = []

@@ -1,7 +1,11 @@
-from fluxrules.domain.models import Rule, RuleCondition, Ruleset
+from fluxrules.domain.models import EngineRule, RuleCondition, Ruleset
 
 
 def test_ruleset_holds_rules() -> None:
-    rule = Rule(id="r1", conditions=(RuleCondition(fact="score", operator="gte", value=10),))
-    ruleset = Ruleset(id="rs1", rules=(rule,))
-    assert ruleset.rules[0].id == "r1"
+    rule = EngineRule(
+        id=1,
+        name="r1",
+        conditions=(RuleCondition(fact="score", operator="gte", value=10),),
+    )
+    ruleset = Ruleset(group="rs1", rules=(rule,))
+    assert ruleset.rules[0].id == 1
