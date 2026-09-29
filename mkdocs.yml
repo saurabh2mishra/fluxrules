@@ -61,8 +61,7 @@ nav:
     - Complex Conditions: complex-conditions.md
     - Domains and Tags: domains-and-tags.md
     - Rule Builder: rule-builder.md
-    - YAML and CSV Rules: yaml-csv-rules.md
-    - CSV Styles: csv-styles.md
+    - YAML Rules: yaml-rules.md
     - ID Generation: id-generation.md
     - Custom Actions: custom-actions.md
   - Advanced Guides:

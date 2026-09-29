@@ -244,29 +244,6 @@ class TestSerializationDeserialization:
         assert rule.priority == 10
         assert rule.action == "flag"
 
-    def test_model_validate_csv_row(self):
-        """Rule can be created from CSV row dict."""
-        row = {
-            "name": "CSV Rule",
-            "condition_dsl": '{"type": "condition", "field": "amount", "op": ">", "value": "100"}',
-            "action": "flag",
-            "priority": "5",
-            "enabled": "true",
-            "tags": "tag1, tag2",
-        }
-        # Note: condition_dsl would come pre-parsed from CSV loader
-        row["condition_dsl"] = {
-            "type": "condition",
-            "field": "amount",
-            "op": ">",
-            "value": 100,
-        }
-        rule = Rule.model_validate_csv_row(row)
-        assert rule.name == "CSV Rule"
-        assert rule.priority == 5
-        assert rule.enabled is True
-        assert "tag1" in rule.tags
-
     def test_model_validate_yaml(self):
         """Rule can be created from YAML dict."""
         data = {
@@ -414,30 +391,6 @@ class TestComplexScenarios:
         assert rule.priority == 10
         assert "high_value" in rule.tags
         assert rule.sla_latency_ms == 50
-
-    def test_rule_from_csv_like_dict(self):
-        """Create rule from CSV-like dictionary."""
-        csv_row = {
-            "name": "Age Check",
-            "condition_dsl": {
-                "type": "condition",
-                "field": "age",
-                "op": ">=",
-                "value": 18,
-            },
-            "action": "allow_access",
-            "priority": "5",
-            "enabled": "true",
-            "domain": "access_control",
-            "tags": "adult, verified",
-            "description": "Check if user is adult",
-        }
-        rule = Rule.model_validate_csv_row(csv_row)
-        assert rule.name == "Age Check"
-        assert rule.priority == 5
-        assert rule.enabled is True
-        assert "adult" in rule.tags
-        assert "verified" in rule.tags
 
     def test_rule_round_trip(self):
         """Rule can be serialized and deserialized."""

@@ -8,7 +8,7 @@ FluxRules supports much more than basic condition matching. This page maps advan
 |---|---|---|
 | Multiple engine implementations | Choose behavior and performance profile by workload | `09_custom_engines.py`, `10_pluggable_engines.py`, `23_streaming_vs_stateless.py` |
 | Stateful evaluation | Keep and reuse context across evaluations | `06_working_memory.py`, `20_streaming_mode.py` |
-| Rules as data | Author and load rules from YAML and CSV | `07_yaml_rules.py`, `08_decision_table.py` |
+| Rules as data | Author and load rules from YAML | `07_yaml_rules.py` |
 | Extensible actions | Register and execute custom actions | `15_action_system.py`, `21_action_registry.py` |
 | Complex decision modeling | Express nested logic and multi-fact scenarios | `13_complex_rules.py`, `24_cross_fact_joins.py`, `25_nested_facts.py` |
 | Fact normalization pipeline | Transform heterogeneous inputs before evaluation | `26_fact_loader.py`, `27_factpipeline.py`, `28_factpipeline_tier1.py`, `29_custom_transforms.py` |

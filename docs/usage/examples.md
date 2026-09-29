@@ -48,7 +48,6 @@ done
 ### Rules as Data
 
 - `07_yaml_rules.py`: YAML-driven rule definitions.
-- `08_decision_table.py`: CSV decision-table style authoring.
 
 ### Engine Architecture and Extensibility
 

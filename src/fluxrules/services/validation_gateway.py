@@ -47,7 +47,7 @@ class ValidationGateway:
     - Service layer
     - UnifiedRule persistence
     - RuleBuilder
-    - YAML/CSV loaders
+    - YAML loader
     - CLI
     - Engine
 

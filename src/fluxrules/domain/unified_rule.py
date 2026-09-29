@@ -1,7 +1,7 @@
 """Unified Rule class with Pydantic validation and automatic ID generation.
 
 This is the canonical, public ``Rule`` type. It is the single class used across
-every authoring path (CSV, YAML, REST API, ORM, CLI) and is what the modern
+every authoring path (YAML, REST API, ORM, CLI) and is what the modern
 DSL-based PHREAK engine consumes via ``condition_dsl``.
 
 For the reference evaluator and the persistence layer, which work with parsed
@@ -13,7 +13,7 @@ callers never need to guess which shape a rule is in.
 This module provides a single Rule class that:
 1. Uses Pydantic for strict type validation and fast failure
 2. Auto-generates sequential IDs by default (user-overridable)
-3. Works across all creation paths (CSV, YAML, REST API, ORM, CLI, etc.)
+3. Works across all creation paths (YAML, REST API, ORM, CLI, etc.)
 4. Provides a consistent interface for all rule creation patterns
 5. Converts between formats (dict, JSON, YAML) and the engine representation
 
@@ -41,7 +41,7 @@ Usage:
         action="flag",
     )
 
-    # From dict (e.g., from CSV/YAML)
+    # From dict (e.g., from YAML)
     rule = Rule(**row)  # Pydantic validation applied
 
     # To dict for serialization
@@ -273,53 +273,6 @@ class Rule(BaseModel):
     def model_dump_json(self, **kwargs: Any) -> str:
         """Serialize to JSON string."""
         return super().model_dump_json(**kwargs)
-
-    @classmethod
-    def model_validate_csv_row(cls, row: dict[str, Any]) -> Rule:
-        """Create Rule from CSV row (dict from DictReader).
-
-        Handles type conversions from CSV strings to proper types.
-        """
-        import json
-
-        # CSV-specific type conversions
-        if row.get("id"):
-            try:
-                row["id"] = int(row["id"])
-            except (ValueError, TypeError):
-                row.pop("id")  # Let auto-generation handle it
-
-        if "priority" in row:
-            try:
-                row["priority"] = int(row["priority"])
-            except (ValueError, TypeError):
-                row["priority"] = 0
-
-        if "enabled" in row:
-            if isinstance(row["enabled"], str):
-                row["enabled"] = row["enabled"].lower() in ("true", "1", "yes", "y")
-
-        if "sla_latency_ms" in row:
-            try:
-                row["sla_latency_ms"] = int(row["sla_latency_ms"])
-            except (ValueError, TypeError):
-                row["sla_latency_ms"] = 100
-
-        if "tags" in row and isinstance(row["tags"], str):
-            row["tags"] = [tag.strip() for tag in row["tags"].split(",") if tag.strip()]
-
-        # Parse JSON strings for condition_dsl
-        if "condition_dsl" in row and isinstance(row["condition_dsl"], str):
-            try:
-                row["condition_dsl"] = json.loads(row["condition_dsl"])
-            except (json.JSONDecodeError, ValueError):
-                # If it fails, leave as-is and let Pydantic validation catch it
-                pass
-
-        # Remove empty values
-        row = {k: v for k, v in row.items() if v not in ("", None)}
-
-        return cls(**row)
 
     @classmethod
     def model_validate_yaml(cls, data: dict[str, Any]) -> Rule:

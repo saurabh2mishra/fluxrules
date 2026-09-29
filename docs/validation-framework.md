@@ -146,7 +146,7 @@ The validation happens automatically at rule creation. If validation fails, beha
 
 - **Rule creation in code**: Validate explicitly before use
 - **REST API**: Validation is automatic (returns 400 Bad Request on error)
-- **YAML/CSV loaders**: Validation is automatic (raises exception on error)
+- **YAML loader**: Validation is automatic (raises exception on error)
 - **Engine load**: No validation (assumes rules are pre-validated)
 
 ---
@@ -244,7 +244,7 @@ The 10 valid operators are:
 - **Rule creation**: Rules are structurally validated on instantiation
 - **Engine load**: No automatic validation (`engine.load_rules()` assumes pre-validated rules)
 - **REST API** (if enabled): Automatic validation before saving
-- **YAML/CSV loaders** (if enabled): Automatic validation on load
+- **YAML loader** (if enabled): Automatic validation on load
 
 ---
 

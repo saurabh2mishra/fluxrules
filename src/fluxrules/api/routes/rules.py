@@ -1,4 +1,3 @@
-import csv
 import io
 import json
 from typing import Any
@@ -915,38 +914,6 @@ def list_async_bulk_jobs(
     return list_jobs()
 
 
-def _parse_csv_rules(content: bytes) -> list[dict]:
-    text = content.decode("utf-8-sig")
-    reader = csv.DictReader(io.StringIO(text))
-    rules: list[dict] = []
-    for i, row in enumerate(reader):
-        try:
-            rule: dict = {}
-            rule["name"] = (row.get("name") or "").strip()
-            if not rule["name"]:
-                raise ValueError(f"Row {i + 1}: 'name' is required")
-            rule["description"] = (row.get("description") or "").strip() or None
-            rule["group"] = (row.get("group") or "").strip() or None
-            rule["priority"] = int(row.get("priority", 0) or 0)
-            enabled_raw = (row.get("enabled") or "true").strip().lower()
-            rule["enabled"] = enabled_raw in ("true", "1", "yes")
-            rule["action"] = (row.get("action") or "").strip()
-            if not rule["action"]:
-                raise ValueError(f"Row {i + 1}: 'action' is required")
-            dsl_raw = (row.get("condition_dsl") or "").strip()
-            if not dsl_raw:
-                raise ValueError(f"Row {i + 1}: 'condition_dsl' is required (JSON string)")
-            rule["condition_dsl"] = json.loads(dsl_raw)
-            meta_raw = (row.get("rule_metadata") or "").strip()
-            rule["rule_metadata"] = json.loads(meta_raw) if meta_raw else None
-            rules.append(rule)
-        except (json.JSONDecodeError, ValueError) as e:
-            raise ValueError(f"Row {i + 1}: {e}")
-    if not rules:
-        raise ValueError("CSV file contains no data rows")
-    return rules
-
-
 def _parse_xlsx_rules(content: bytes) -> list[dict]:
     try:
         import openpyxl
@@ -1004,7 +971,7 @@ def _parse_xlsx_rules(content: bytes) -> list[dict]:
 
 @router.post("/bulk/upload")
 def bulk_upload_rules(
-    file: UploadFile = File(..., description="CSV or XLSX file containing rules"),
+    file: UploadFile = File(..., description="XLSX file containing rules"),
     validate_conflicts: bool = Query(True),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -1016,14 +983,12 @@ def bulk_upload_rules(
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
 
     try:
-        if filename.endswith(".csv"):
-            parsed_rules = _parse_csv_rules(content)
-        elif filename.endswith((".xlsx", ".xls")):
+        if filename.endswith((".xlsx", ".xls")):
             parsed_rules = _parse_xlsx_rules(content)
         else:
             raise HTTPException(
                 status_code=400,
-                detail="Unsupported file type. Please upload a .csv or .xlsx file.",
+                detail="Unsupported file type. Please upload an .xlsx or .xls file.",
             )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

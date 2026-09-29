@@ -13,7 +13,7 @@ All examples share a common **payment-risk triage** use case with cross-border f
 | Group | Examples | Focus |
 |-------|----------|-------|
 | **Basics** | 00-04 | Getting started, conditions, complex conditions, domains/tags, validation |
-| **Integration** | 05-12 | Persistence, working memory, YAML, CSV, engines, CLI, REST API |
+| **Integration** | 05-11 | Persistence, working memory, YAML, engines, CLI, REST API |
 | **Advanced** | 13-22 | Complex rules, error handling, actions, fact store, ID generation, unified rules, streaming, workflows |
 | **Pipelines** | 23-30 | Stateless evaluation, cross-fact joins, nested facts, fact loading, pipelines, transforms, conflict detection |
 
@@ -157,22 +157,6 @@ Define rules in YAML format. Learn:
 **Run it:**
 ```bash
 python examples/07_yaml_rules.py
-```
-
-### Example 08: Decision Tables (CSV)
-**File:** `examples/08_decision_table.py`
-
-Use spreadsheet-style decision tables. Learn:
-- CSV decision table format
-- Converting tables to rules
-- Decision logic in tables
-- Using decision tables in production
-
-**Key Concepts:** Decision Tables, CSV, Spreadsheet Rules
-
-**Run it:**
-```bash
-python examples/08_decision_table.py
 ```
 
 ---
@@ -576,7 +560,8 @@ done
 
 All examples use the same payment-risk dataset. Run examples from the `examples/` directory:
 
-```python python skip
+```python
+# python skip
 # Each example imports from the local shared_use_case module
 # Run from: cd examples && python 00_getting_started.py
 

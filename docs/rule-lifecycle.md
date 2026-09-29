@@ -65,7 +65,8 @@ engine.load_rules(rules)
 
 ### From database (persistent)
 
-```python skip
+```python
+# python skip
 from fluxrules.services.rule_service import RuleService
 
 service = RuleService.create()
@@ -74,19 +75,11 @@ loaded_rules = service.load_ruleset(ruleset_id=1)
 
 ### From YAML file
 
-```python skip
+```python
+# python skip
 from fluxrules.adapters.loaders import load_rules_from_yaml
 
 rules_dicts = load_rules_from_yaml("rules.yaml")
-rules = [Rule(**r) for r in rules_dicts]
-```
-
-### From CSV file
-
-```python skip
-from fluxrules.adapters.loaders import load_rules_from_csv
-
-rules_dicts = load_rules_from_csv("rules.csv")
 rules = [Rule(**r) for r in rules_dicts]
 ```
 
@@ -131,7 +124,8 @@ for fact in facts_list:
 
 ### From database
 
-```python skip
+```python
+# python skip
 from fluxrules.services.rule_service import RuleService
 
 service = RuleService.create()
@@ -157,7 +151,8 @@ new_engine.load_rules([rules[0]])
 
 Rules are **immutable** once created. To change a rule, create a new Rule with the updated fields:
 
-```python skip
+```python
+# python skip
 # Original rule
 old_rule = Rule(
     name="check_amount",

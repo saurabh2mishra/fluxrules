@@ -39,7 +39,7 @@ print(result.fired_rules)  # Auto-generated rule ID
 - Simpler syntax (no method chaining)
 - Auto-generated IDs (no manual management)
 - Better IDE support
-- Consistent across all creation paths (CSV, YAML, API, etc.)
+- Consistent across all creation paths (YAML, API, etc.)
 - Less boilerplate
 
 👉 **See [18_unified_rule.py](18_unified_rule.py) for comprehensive Pydantic Rule examples**
@@ -84,7 +84,7 @@ Each group has corresponding comprehensive documentation guides. Use these along
 **Data Management**
 - 📖 [Working Memory Guide](../docs/working-memory.md) - Stateful rule evaluation
 - 📖 [Sessions & State Management](../docs/sessions.md) - Long-running workflows
-- 📖 [YAML & CSV Rules](../docs/yaml-csv-rules.md) - Rules as configuration
+- 📖 [YAML Rules](../docs/yaml-rules.md) - Rules as configuration
 
 **Engine & Architecture**
 - 📖 [Engine Comparison Guide](../docs/engine-comparison.md) - Choose the right engine
@@ -120,7 +120,6 @@ Learn how to persist, manage state, and load rules from files.
 | **05** | `05_persistence.py` | Save & load rules from database | 10 min |
 | **06** | `06_working_memory.py` | Stateful evaluation with assert/retract | 15 min |
 | **07** | `07_yaml_rules.py` | Load rules from YAML (DevOps-friendly) | 10 min |
-| **08** | `08_decision_table.py` | CSV-based rules for business analysts | 10 min |
 
 ### Engine & Architecture - ~25 minutes
 
@@ -217,7 +216,6 @@ python examples/00_getting_started.py > output.txt 2>&1
 ### For Business Analysts
 Focus on rule authoring and validation:
 1. `03_domains_and_tags.py` - Understand rule organization
-2. `08_decision_table.py` - Author rules in CSV format
 3. `04_validation.py` - Ensure quality before deployment
 4. `01_conditions.py` - Reference for all operators
 5. `07_yaml_rules.py` - Configuration management
@@ -235,7 +233,6 @@ Focus on design, customization, and integration:
 ### For DevOps & Platform Engineers
 Focus on deployment, configuration, and operations:
 1. `07_yaml_rules.py` - ConfigMap/secrets integration
-2. `08_decision_table.py` - Business rules as configuration
 3. `11_cli_usage.py` - CI/CD automation
 4. `12_api_usage.py` - Microservices deployment
 5. `16_fact_store.py` - Monitoring and observability
@@ -275,7 +272,6 @@ Examples for lending and credit scoring scenarios:
 ### DevOps & Cloud Native
 Examples for container and Kubernetes deployments:
 - `07_yaml_rules.py` - ConfigMap integration
-- `08_decision_table.py` - Business rules as CSV/ConfigMaps
 - `11_cli_usage.py` - CI/CD pipeline automation
 - `12_api_usage.py` - Microservices and REST API deployment
 
@@ -358,7 +354,7 @@ For help choosing the right engine and optimizing performance:
 - **[Domain & Tags](../docs/domains-and-tags.md)** - Organization at scale
 - **[Working Memory](../docs/working-memory.md)** - Stateful evaluation
 - **[Sessions & State](../docs/sessions.md)** - Long-running workflows
-- **[YAML & CSV Rules](../docs/yaml-csv-rules.md)** - Rules as configuration
+- **[YAML Rules](../docs/yaml-rules.md)** - Rules as configuration
 - **[Engine Comparison](../docs/engine-comparison.md)** - Engine selection
 - **[REST API](../docs/rest-api.md)** - Microservice deployment
 - **[Rule Builder](../docs/rule-builder.md)** - Fluent API
