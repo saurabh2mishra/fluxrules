@@ -209,7 +209,8 @@ For **millions of facts daily** (1-10M/day):
 
 ### 1. Delta Evaluation (Field-Level Dirty Tracking)
 
-```python skip
+```python
+# python skip
 from fluxrules.engine.phreak import PhreakEngine
 
 engine = PhreakEngine()
@@ -231,7 +232,8 @@ result = engine.evaluate(facts_updated, prev_facts=facts)
 
 ### 2. Batch Evaluation with Working Memory
 
-```python skip
+```python
+# python skip
 # Accumulate facts in working memory
 for i, fact in enumerate(facts_stream):
     engine.assert_fact(fact)
@@ -245,7 +247,8 @@ for i, fact in enumerate(facts_stream):
 
 ### 3. Horizontal Scaling with Load Balancing
 
-```python skip
+```python
+# python skip
 # Deploy with Docker Compose
 # Each instance: 1 CPU, 1GB RAM
 # Network: Redis/Kafka queue

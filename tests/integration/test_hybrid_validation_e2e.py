@@ -518,12 +518,8 @@ class TestArchitectureContracts:
 
     def test_module_a_is_dependency_free(self):
         """Layer 1 imports only stdlib - no pydantic, no external packages."""
-        import importlib
-        import sys
+        from fluxrules.pipeline import validators as mod
 
-        # Reload to inspect imports fresh
-        importlib.reload(sys.modules["fluxrules.pipeline.validators"])
-        mod = sys.modules["fluxrules.pipeline.validators"]
         # Must not have pydantic in its namespace
         assert not hasattr(mod, "BaseModel")
 

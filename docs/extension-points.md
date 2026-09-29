@@ -19,7 +19,8 @@ custom engine, for example, becomes selectable everywhere the built-in engine
 is (the Python factory, the HTTP API, and the CLI `--engine` flag) the moment it
 is registered:
 
-```python python skip
+```python
+# python skip
 from fluxrules import register_engine, get_engine
 from fluxrules.engine.base import BaseEngine
 
@@ -43,7 +44,8 @@ A third-party engine can prove it matches FluxRules semantics using the public
 conformance kit, which drives it against the independent, dependency-free
 `ReferenceEvaluator` across a battery of rule shapes:
 
-```python python skip
+```python
+# python skip
 from fluxrules.testing import assert_engine_contract
 from my_pkg import MyEngine
 
@@ -78,7 +80,8 @@ redact = "my_pkg.transforms:Redact"
 
 Then, once, at application startup:
 
-```python python skip
+```python
+# python skip
 from fluxrules.plugins.discovery import load_plugins
 
 loaded = load_plugins()  # {"fluxrules.operators": ["within_range"], ...}

@@ -5,6 +5,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+_clock = time.time
+
 
 @dataclass
 class FactRecord:
@@ -34,7 +36,7 @@ class WorkingMemory:
             fact_id=fact_id,
             payload=dict(payload),
             revision=self._clock,
-            inserted_at=time.time(),
+            inserted_at=_clock(),
         )
         self._facts[fact_id] = record
         return record
@@ -55,7 +57,7 @@ class WorkingMemory:
         return self._facts
 
     def get_facts_in_window(self, seconds: int) -> list[FactRecord]:
-        now = time.time()
+        now = _clock()
         lower_bound = now - max(0, seconds)
         return [record for record in self._facts.values() if record.inserted_at >= lower_bound]
 

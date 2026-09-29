@@ -14,7 +14,8 @@ Sessions provide stateful, multi-step evaluation with snapshot support. Use sess
 
 Create a session via `RuleService`, then accumulate facts and evaluate:
 
-```python python skip
+```python
+# python skip
 from fluxrules import Rule
 from fluxrules.services.rule_service import RuleService
 
@@ -55,7 +56,8 @@ A session has these phases:
 
 Evaluations are **independent** — each `evaluate()` is stateless. The session remembers facts but not evaluation history.
 
-```python python skip
+```python
+# python skip
 # Multiple evaluations with different facts (demonstration)
 # session.add_fact("risk_score", 50)
 # result1 = session.evaluate()
@@ -69,7 +71,8 @@ Evaluations are **independent** — each `evaluate()` is stateless. The session 
 
 Serialize a session to JSON for checkpointing or recovery:
 
-```python python skip
+```python
+# python skip
 # Checkpoint current state (demonstration - requires session object)
 # snapshot = session.save()  # Returns JSON string
 #
@@ -96,7 +99,8 @@ Use snapshots to:
 
 Each session is isolated. Facts in one session do not affect another:
 
-```python python skip
+```python
+# python skip
 # Session isolation demonstration (requires service setup)
 # session1 = service.create_session()
 # session1.add_fact("user_type", "premium")

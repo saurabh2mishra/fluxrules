@@ -218,7 +218,8 @@ tier0_rules = [r for r in all_rules if "tier_0" in (r.tags or set())]
 
 To learn FluxRules, all examples use a shared `cross_border_payment_risk_triage` dataset:
 
-```python python skip
+```python
+# python skip
 from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
 
 # 3 test transactions

@@ -35,7 +35,8 @@ normalize = FactPipeline(
 
 ### What If You Want a Custom Transform?
 
-```python skip
+```python
+# python skip
 # ❌ THIS WON'T WORK - Plain function
 def my_flatten(fact):
     return {k.replace("_", "."): v for k, v in fact.items()}
@@ -185,7 +186,8 @@ pipeline = Conditional(
 
 When you pass something to `FactPipeline([...])`, it checks:
 
-```python skip
+```python
+# python skip
 # Illustrative sketch of FactPipeline's internal dispatch, not runnable code.
 class FactPipeline:
     def _eval(self, node, fact):
@@ -205,7 +207,8 @@ So **FactPipeline only accepts things that `isinstance(..., Transform)` returns 
 
 ### Mistake 1: Forgetting `metadata` property
 
-```python skip
+```python
+# python skip
 # ❌ WRONG
 class MyTransform(Transform):
     def __call__(self, fact):
@@ -259,7 +262,8 @@ class GoodTransform(Transform):
 Transforms compose directly with `>>` and `|`. You do **not** need to wrap
 each one in its own `FactPipeline` first.
 
-```python skip
+```python
+# python skip
 transform_a = MyClass()
 transform_b = MyClass()
 

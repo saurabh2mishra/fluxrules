@@ -124,7 +124,8 @@ print(f"Matched: {result.fired_rules}")  # Both rules match
 
 Sessions can be serialized to JSON snapshots for recovery:
 
-```python python skip
+```python
+# python skip
 # Save session to JSON (demonstration - requires session object)
 # snapshot_json = session.save()
 

@@ -69,7 +69,8 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
 
 For high-throughput production:
 
-```python skip
+```python
+# python skip
 import uvicorn
 
 app = create_app()

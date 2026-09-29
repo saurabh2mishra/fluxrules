@@ -25,6 +25,20 @@ from sqlalchemy.orm import sessionmaker
 from tests.docs._extract import extract_code_blocks, markdown_files
 
 
+def test_python_skip_comment_is_recognized(tmp_path: Path) -> None:
+    """Skipped blocks may keep a valid Python fence while marking themselves as non-executable."""
+    path = tmp_path / "sample.md"
+    path.write_text(
+        "```python\n# python skip\nprint('demo')\n```\n",
+        encoding="utf-8",
+    )
+
+    blocks = extract_code_blocks(path)
+    assert len(blocks) == 1
+    assert blocks[0].is_python
+    assert blocks[0].is_skipped
+
+
 def _page_ids() -> list[Path]:
     return markdown_files()
 

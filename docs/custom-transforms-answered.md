@@ -14,7 +14,8 @@ This document directly answers your question about what happens when you want to
 
 ### 1. **Plain Functions Don't Work**
 
-```python skip
+```python
+# python skip
 # ❌ This will FAIL
 from fluxrules.pipeline import FactPipeline
 
@@ -31,7 +32,8 @@ normalize = FactPipeline([my_flatten])
 
 ### 2. **Plain Classes Don't Work**
 
-```python skip
+```python
+# python skip
 # ❌ This will FAIL
 from fluxrules.pipeline import FactPipeline
 
@@ -296,7 +298,8 @@ restored = FactPipeline.from_dict(spec)  # Deserialize from dict
 
 When you create a pipeline, FactPipeline checks each item:
 
-```python skip
+```python
+# python skip
 normalize = FactPipeline(
     [
         Flatten(),  # Is this a Transform? ✓ Yes → Use it
@@ -322,7 +325,8 @@ That's why:
 
 ### Pitfall 1: Forgetting the `metadata` Property
 
-```python skip
+```python
+# python skip
 # ❌ Wrong: AttributeError on execution
 class MyTransform(Transform):
     def __call__(self, fact):
@@ -383,7 +387,8 @@ class GoodTransform(Transform):
 Transforms compose directly with `>>` and `|` - no need to wrap each one in
 its own `FactPipeline` first.
 
-```python skip
+```python
+# python skip
 my_transform = MyClass()  # inherits from Transform
 another = AnotherClass()  # inherits from Transform
 

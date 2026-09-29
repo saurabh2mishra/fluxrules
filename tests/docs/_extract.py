@@ -44,8 +44,16 @@ class CodeBlock:
 
     @property
     def is_skipped(self) -> bool:
-        """``python skip`` marks a genuine fragment that cannot execute."""
-        return "skip" in self.info.split()[1:]
+        """A block is skipped if the fence says so or if the code itself declares it."""
+        info_tokens = self.info.split()
+        if "skip" in info_tokens[1:]:
+            return True
+
+        first_lines = [line.strip() for line in self.source.splitlines()]
+        for line in first_lines:
+            if line.startswith("# python skip") or line.startswith("# doctest: skip") or line.startswith("# doctest: +SKIP"):
+                return True
+        return False
 
     @property
     def rel(self) -> str:

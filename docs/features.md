@@ -112,7 +112,8 @@ class MyEngine(BaseEngine):
 
 Actions are any Python callable:
 
-```python python skip
+```python
+# python skip
 def my_action(fact_id, amount):
     print(f"Processing {fact_id}: ${amount}")
 

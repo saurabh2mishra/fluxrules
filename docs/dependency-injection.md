@@ -8,7 +8,8 @@ FluxRules is designed for manual dependency injection via constructor parameters
 
 ## Pattern
 
-```python skip
+```python
+# python skip
 from fluxrules.engine.phreak import PhreakEngine
 
 # Inject dependencies
@@ -32,7 +33,8 @@ def log_and_store(database=database, logger=logger, **kwargs):
 
 FluxRules has zero framework dependencies. Integrate with your existing DI setup:
 
-```python skip
+```python
+# python skip
 # FastAPI
 from fastapi import Depends
 

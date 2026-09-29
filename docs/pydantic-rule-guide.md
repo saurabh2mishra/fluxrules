@@ -93,7 +93,8 @@ except ValidationError as e:
 
 ### Add tags
 
-```python python skip
+```python
+# python skip
 rule = Rule(
     name="check",
     condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "pending"},

@@ -8,7 +8,7 @@ from fluxrules.services.execution.working_memory import WorkingMemory
 def test_fifo_eviction_at_capacity(monkeypatch):
     timestamps = iter([1000.0, 1001.0, 1002.0])
     monkeypatch.setattr(
-        "fluxrules.services.execution.working_memory.time.time",
+        "fluxrules.services.execution.working_memory._clock",
         lambda: next(timestamps),
     )
 
@@ -28,7 +28,7 @@ def test_fifo_eviction_at_capacity(monkeypatch):
 def test_get_facts_in_time_window(monkeypatch):
     timestamps = iter([1000.0, 1010.0, 1020.0, 1025.0])
     monkeypatch.setattr(
-        "fluxrules.services.execution.working_memory.time.time",
+        "fluxrules.services.execution.working_memory._clock",
         lambda: next(timestamps),
     )
 

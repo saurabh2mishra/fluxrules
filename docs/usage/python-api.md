@@ -69,7 +69,8 @@ result = engine.evaluate({"amount": 2500})
 
 Use `RuleService` for stateful workflows:
 
-```python python skip
+```python
+# python skip
 from fluxrules.services.rule_service import RuleService
 
 service = RuleService.create()

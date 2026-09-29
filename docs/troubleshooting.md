@@ -32,7 +32,8 @@ python -m fluxrules.api.app --port 8001
    ```
 
 2. **Check fact format:** Ensure fact keys match condition field names
-```python python skip
+```python
+# python skip
    from fluxrules import Rule
    
    # Rule expects "amount" field

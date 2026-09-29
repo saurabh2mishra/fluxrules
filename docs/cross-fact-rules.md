@@ -41,7 +41,8 @@ result = engine.evaluate(combined)
 
 Use sessions to accumulate state:
 
-```python python skip
+```python
+# python skip
 from fluxrules.services.rule_service import RuleService
 
 service = RuleService.create()

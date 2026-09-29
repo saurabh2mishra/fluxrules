@@ -262,6 +262,7 @@ def reset_logging():
             _lg.handlers.clear()
             _lg.setLevel(logging.NOTSET)
             _lg.propagate = True
+            _lg.disabled = False
     yield
     for name in list(logging.Logger.manager.loggerDict):
         if name.startswith("fluxrules"):
@@ -269,3 +270,4 @@ def reset_logging():
             _lg.handlers.clear()
             _lg.setLevel(logging.NOTSET)
             _lg.propagate = True
+            _lg.disabled = False

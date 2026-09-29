@@ -186,7 +186,8 @@ Input DSL:
 
 ## Data Model: Rule
 
-```python skip
+```python
+# python skip
 Rule(
     name="high_value_payment",           # Identifier
     domain="fraud_detection",             # Grouping
@@ -211,14 +212,16 @@ Rule(
 FluxRules allows extension at three key layers:
 
 ### 1. Custom Engines
-```python skip
+```python
+# python skip
 class MyEngine(BaseEngine):
     def load_rules(self, rules: List[Rule]) -> None: ...
     def evaluate(self, fact: Dict) -> EvaluationResult: ...
 ```
 
 ### 2. Custom Actions
-```python skip
+```python
+# python skip
 @action(name="email_alert", category="notifications")
 def email_alert(recipient: str, subject: str) -> bool:
     send_email(recipient, subject)
@@ -226,7 +229,8 @@ def email_alert(recipient: str, subject: str) -> bool:
 ```
 
 ### 3. Custom Transforms (FactPipeline)
-```python skip
+```python
+# python skip
 class UpperCase(Transform):
     def apply(self, fact: Dict) -> Dict:
         return {k: v.upper() if isinstance(v, str) else v for k, v in fact.items()}

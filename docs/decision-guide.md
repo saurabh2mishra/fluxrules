@@ -62,7 +62,8 @@ curl -X POST http://fluxrules-service/api/v1/evaluate \
 - No database needed
 - Rules reset on app restart
 
-```python skip
+```python
+# python skip
 engine.load_rules([rule1, rule2, ...])
 ```
 
@@ -89,7 +90,8 @@ service.persist_rules([rule1, rule2, ...])
 - No side effects between evaluations
 - Simple, predictable
 
-```python skip
+```python
+# python skip
 result1 = engine.evaluate(fact1)
 result2 = engine.evaluate(fact2)  # No state from result1
 ```
@@ -99,7 +101,8 @@ result2 = engine.evaluate(fact2)  # No state from result1
 - Session snapshot support
 - Requires `[sql]` extra
 
-```python skip
+```python
+# python skip
 session.add_fact("step1", value)
 session.evaluate()
 session.add_fact("step2", value)

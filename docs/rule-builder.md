@@ -8,7 +8,8 @@ The `RuleBuilder` class provides a fluent API for constructing rules step-by-ste
 
 ## Basic usage
 
-```python python skip
+```python
+# python skip
 from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
@@ -71,7 +72,8 @@ print(f"Fired: {result.fired_rules}")
 
 The builder validates the final rule:
 
-```python python skip
+```python
+# python skip
 # Demonstration of validation - python skip for demo
 try:
     rule = Rule(

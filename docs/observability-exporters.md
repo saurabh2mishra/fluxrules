@@ -48,6 +48,7 @@ pip install prometheus_client
 ### Quick Start
 
 ```python
+# python skip
 from fluxrules.pipeline import FactPipeline, Flatten
 from fluxrules.pipeline import PrometheusHook
 
@@ -63,7 +64,7 @@ fact = pipeline({"user": {"id": "u_1"}})
 # Expose metrics (standard approach)
 from prometheus_client import start_http_server
 
-start_http_server(8000)  # Metrics available at http://localhost:8000/metrics
+start_http_server(0)  # Use an available port; production deployments may choose a fixed port.
 ```
 
 ### Metrics Exported
@@ -213,7 +214,8 @@ Transform events include:
 
 ### Example: Exporting via OTLP (Jaeger, Tempo, Collector)
 
-```python skip
+```python
+# python skip
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -246,7 +248,8 @@ pipeline({"user": {"id": "u_1"}})
 
 The `OpenTelemetryHook` degrades gracefully if OpenTelemetry is misconfigured:
 
-```python skip
+```python
+# python skip
 # If the tracer is not properly initialized, the hook
 # swallows exceptions and continues silently
 hook = OpenTelemetryHook()
@@ -396,7 +399,8 @@ rate(myapp_pipeline_transform_errors_total[1m])
 
 To reduce overhead in production, consider:
 
-```python skip
+```python
+# python skip
 # Only use OpenTelemetry if tracing is enabled
 hooks = [MetricsHook()]
 if TRACING_ENABLED:

@@ -92,7 +92,8 @@ rule = Rule(
 
 Tags must be passed as `frozenset[str]`. Rule automatically converts lists to frozensets:
 
-```python python skip
+```python
+# python skip
 # Both work:
 # Rule(name="r1", condition_dsl={...}, tags=frozenset(["tag1", "tag2"]))
 # Rule(name="r2", condition_dsl={...}, tags=["tag1", "tag2"])  # Converted to frozenset
@@ -154,7 +155,8 @@ See [Example 03: Domains and Tags](https://github.com/fluxrules/fluxrules/blob/m
 
 ### Evaluate Specific Domain Only
 
-```python python skip
+```python
+# python skip
 # Demonstration using shared dataset (run from examples/ directory)
 from fluxrules.engine.phreak import PhreakEngine
 from fluxrules.engine import EvaluationFilter

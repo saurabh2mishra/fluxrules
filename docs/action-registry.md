@@ -8,7 +8,8 @@ Advanced patterns for registering and managing custom actions.
 
 ## Basic registry operations
 
-```python python skip
+```python
+# python skip
 from fluxrules.plugins.actions import action_registry
 
 # List all registered actions
@@ -23,7 +24,8 @@ notifications = action_registry.get_actions_by_category("notifications")
 
 Every registered action exposes metadata:
 
-```python python skip
+```python
+# python skip
 from fluxrules.plugins.actions import action_registry, action
 
 @action(
@@ -43,22 +45,24 @@ print(f"Registered actions: {all_actions}")
 
 ### Direct execution
 
-```python python skip
+```python
+# python skip
 # Demonstration of action registry API
-# result = action_registry.execute(
-#     "send_alert",
-#     severity="high",
-#     message="Fraud detected"
-# )
+result = action_registry.execute(
+    "send_alert",
+    severity="high",
+    message="Fraud detected"
+)
 ```
 
 ### Batch execution
 
-```python python skip
+```python
+# python skip
 # Batch execution of actions
-# actions = ["send_alert", "log_event", "notify_team"]
-# for action_name in actions:
-#     result = action_registry.execute(action_name, **kwargs)
+actions = ["send_alert", "log_event", "notify_team"]
+for action_name in actions:
+    result = action_registry.execute(action_name, **kwargs)
 ```
 
 ### Async execution

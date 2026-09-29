@@ -10,7 +10,8 @@ Security considerations for running FluxRules in production.
 
 By default, the API has no authentication. Add it for production:
 
-```python python skip
+```python
+# python skip
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPBearer
 
@@ -35,7 +36,8 @@ For production, use OAuth2 or API keys via a gateway (nginx, AWS API Gateway, et
 
 All facts are validated before evaluation:
 
-```python python skip
+```python
+# python skip
 from fluxrules.domain.dsl.validation import validate_dsl, DSLValidationError
 from fastapi import HTTPException
 
