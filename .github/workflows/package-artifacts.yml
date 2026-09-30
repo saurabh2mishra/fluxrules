@@ -1,0 +1,76 @@
+name: Package artifact gate
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  package-smoke:
+    name: Build + install smoke test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          version: ">=0.8"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Install each artifact in a clean venv and run a core smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for artifact in dist/*.tar.gz dist/*.whl; do
+            venv_dir=".artifact-venv-$(basename "$artifact" | tr -cs '[:alnum:]' '_')"
+            python -m venv "$venv_dir"
+            . "$venv_dir/bin/activate"
+            python -m pip install --upgrade pip >/dev/null
+            python -m pip install --force-reinstall "$artifact" >/dev/null
+            python - <<'PY'
+import os
+
+from fluxrules import Rule, evaluate
+from fluxrules.domain.models import Ruleset
+
+rule = Rule(
+    name="adult",
+    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    action="allow",
+)
+ruleset = Ruleset(group="smoke", rules=(rule.to_engine_rule(group="smoke"),))
+result = evaluate(ruleset, {"age": 30})
+assert result.actions == ["allow"], result.actions
+assert rule.name == "adult"
+print(f"artifact smoke ok: {result.actions}")
+PY
+            deactivate
+            rm -rf "$venv_dir"
+          done

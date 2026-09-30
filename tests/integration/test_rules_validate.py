@@ -26,9 +26,9 @@ def _override_get_db():
         db.close()
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(autouse=True)
 def clean_db():
-    """Create fresh tables for this module and tear down afterwards."""
+    """Create fresh tables for each test and tear down afterwards."""
     app.dependency_overrides[get_db] = _override_get_db
     Base.metadata.drop_all(bind=_test_engine)
     Base.metadata.create_all(bind=_test_engine)
@@ -37,10 +37,10 @@ def clean_db():
     app.dependency_overrides.pop(get_db, None)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def auth_token():
     client = TestClient(app)
-    # Register user (ignore if already exists)
+    # Register a fresh user for each test to avoid cross-test state leakage.
     client.post(
         "/api/v1/auth/register",
         json={
@@ -666,3 +666,12 @@ def test_resolve_parked_still_checks_brms_overlap(auth_token):
     )
     assert resp4.status_code == 200, f"Resolve should have succeeded: {resp4.text}"
     assert resp4.json().get("status") == "approved"
+
+
+def test_rules_database_starts_clean_for_each_test(auth_token):
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+
+    resp = client.get("/api/v1/rules", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json() == []

@@ -133,6 +133,27 @@ FluxRules does not sandbox custom Python extensions, does not provide
 authentication middleware by default, and does not manage secrets — these are
 delegated to the deployment environment and the guidance above.
 
+## Dependency advisory triage
+
+The optional `api` extra is the only dependency path that currently resolves the
+known Starlette advisories reported by `pip-audit` in this repository. The core
+package itself depends only on `pydantic`, so the risk is limited to installs
+that include the API stack.
+
+| Dependency path | Observed report | Current status | Rationale |
+|---|---|---|---|
+| `fluxrules[api]` -> `fastapi==0.115.14` -> `starlette==0.46.2` | Multiple Starlette advisories (including `PYSEC-2026-1941`, `PYSEC-2026-1942`, `PYSEC-2026-2280`, `PYSEC-2026-2281`, `PYSEC-2026-248`, `PYSEC-2026-249`) | Under triage / not yet remediated in the project | The FastAPI cap in `pyproject.toml` is intentional: `fastapi>=0.115,<0.116` avoids the route-introspection break that appears in Starlette 1.x/FastAPI 0.116+ behavior. Upgrading the stack without adjusting route registration semantics would change API behavior and is not a safe default fix. |
+| `fluxrules[api]` -> `python-jose[cryptography]` -> `ecdsa==0.19.2` | `ecdsa` advisory (`PYSEC-2026-1325`) | Under triage / no direct remediation yet in the supported constraint set | The package is used via the auth stack. The project does not currently specify a safe replacement or a compatible patched version within the app's constraints. |
+| Core install (`fluxrules`) | No direct advisories from the project package metadata | Not currently blocked for core-only consumers | The core library does not pull in the vulnerable API/web stack by default. |
+
+This is a recorded exception, not a silent suppression: the repository keeps the
+scan visible in CI, and the project is not claiming that the API extra is free of
+known issues. The current maintainer posture is to keep the API extra under a
+compatibility guard until a version set is proven to preserve the existing route
+registration and authentication behavior. If a compatible upgrade path becomes
+available, it should be validated with the API integration tests before being
+accepted as a dependency change.
+
 ---
 
 ## Next Steps
