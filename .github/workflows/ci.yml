@@ -58,3 +58,12 @@ jobs:
 
       - name: Dependency audit
         run: uv run pip-audit
+
+      - name: Fresh API-extra dependency audit
+        run: |
+          set -euo pipefail
+          api_env="$(mktemp -d)/venv"
+          uv venv --python "${{ matrix.python-version }}" "$api_env"
+          uv pip install --python "$api_env/bin/python" '.[api]'
+          api_site_packages="$("$api_env/bin/python" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
+          uv run --no-sync pip-audit --path "$api_site_packages"

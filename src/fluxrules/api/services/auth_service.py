@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import bcrypt
-from jose import jwt
+import jwt
 from sqlalchemy.orm import Session
 
 from fluxrules.api.config import get_secret_key, settings

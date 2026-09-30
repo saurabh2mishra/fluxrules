@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jwt import InvalidTokenError
 from sqlalchemy.orm import Session
 
 from fluxrules.adapters.repository.in_memory import (
@@ -47,7 +48,7 @@ def get_current_user(
         username: str | None = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except InvalidTokenError:
         raise credentials_exception
 
     user = db.query(User).filter(User.username == username).first()

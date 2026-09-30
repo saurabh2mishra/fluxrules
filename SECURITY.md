@@ -56,9 +56,7 @@ notes.
   extras; Dependabot and the CI `security` job (bandit + pip-audit) help track
   this.
 - Review logs and traces for suspicious rule changes or evaluation spikes.
-- Dependency triage status for the optional API extra: the project currently
-  pins `fastapi>=0.115,<0.116` because newer FastAPI/Starlette stacks trigger a
-  known route-introspection compatibility regression. This intentionally leaves
-  the `starlette` advisories visible to the audit, and the project is treating
-  the API extra as a release-risk area until a compatible patched dependency set
-  is validated without changing route behavior.
+- Dependency triage status for the optional API extra: the project requires a
+  patched Starlette release and uses PyJWT instead of `python-jose` to avoid its
+  ECDSA dependency path. A clean non-editable API-extra install audited without
+  known findings on 2026-09-30; CI repeats that extra-specific audit.

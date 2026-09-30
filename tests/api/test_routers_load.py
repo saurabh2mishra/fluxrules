@@ -37,11 +37,45 @@ def test_brms_routes_are_registered() -> None:
     from fluxrules.api.app import create_app
 
     app = create_app()
-    paths = {getattr(route, "path", "") for route in app.routes}
-    # The router declares prefix="/brms" and is mounted under "/api/v1".
-    brms_paths = {path for path in paths if "/brms" in path}
+    brms_paths = {path for path in app.openapi()["paths"] if "/brms" in path}
 
-    assert brms_paths, f"no /brms routes registered; found {len(paths)} routes total"
+    assert brms_paths, "no /brms routes registered in the OpenAPI schema"
+
+
+def test_public_route_contract_is_registered() -> None:
+    """Public operations remain visible when framework routers are lazy."""
+    from fluxrules.api.app import create_app
+
+    paths = create_app().openapi()["paths"]
+    expected_operations = {
+        ("/health", "get"),
+        ("/api/v1/evaluate", "post"),
+        ("/api/v1/rules/validate", "post"),
+        ("/api/v1/auth/token", "post"),
+        ("/api/v1/brms/analyze", "post"),
+        ("/api/v1/engines/evaluate", "post"),
+    }
+
+    registered_operations = {
+        (path, method)
+        for path, operations in paths.items()
+        for method in operations
+    }
+    missing_operations = expected_operations - registered_operations
+
+    assert not missing_operations, f"API operations not registered: {sorted(missing_operations)}"
+
+
+def test_app_lifespan_starts() -> None:
+    """The API's runtime-only lifespan dependencies are available."""
+    from fastapi.testclient import TestClient
+
+    from fluxrules.api.app import create_app
+
+    with TestClient(create_app()) as client:
+        response = client.get("/health")
+
+    assert response.status_code == 200
 
 
 def test_brms_router_module_imports_cleanly() -> None:

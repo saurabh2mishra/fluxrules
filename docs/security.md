@@ -122,7 +122,7 @@ apply.
 | Arbitrary code via custom operators/actions/engines | Extension registration is explicit; entry-point discovery is opt-in (never an import side effect) | Only load trusted plugins; review `load_plugins()` sources |
 | Malicious rule DSL | `validate_dsl` / `ValidationService` reject malformed logic; the engine evaluates data, not `eval` | Validate rules at the API boundary before persisting |
 | SQL injection | ORM + parameterized queries; internal DDL uses constant table names (bandit/ruff-gated) | Use least-privilege DB accounts |
-| Unauthenticated API access | Auth primitives shipped (`bcrypt`, `python-jose`) | Enforce auth + network restrictions (no auth by default) |
+| Unauthenticated API access | Auth primitives shipped (`bcrypt`, `PyJWT`) | Enforce auth + network restrictions (no auth by default) |
 | Tampered stored rules | Audit trail with integrity hashing | Restrict who can write to the rule store |
 | Supply-chain compromise | Pinned dev tooling, Dependabot, CI `security` job (bandit + pip-audit), signed releases + SBOM | Verify release signatures/SBOM before deploying |
 | Denial of service | Working-memory high-water mark; bounded evaluation | Rate-limit and size-limit inputs at the gateway |
@@ -133,26 +133,21 @@ FluxRules does not sandbox custom Python extensions, does not provide
 authentication middleware by default, and does not manage secrets — these are
 delegated to the deployment environment and the guidance above.
 
-## Dependency advisory triage
+## Dependency advisory status
 
-The optional `api` extra is the only dependency path that currently resolves the
-known Starlette advisories reported by `pip-audit` in this repository. The core
-package itself depends only on `pydantic`, so the risk is limited to installs
-that include the API stack.
+The API extra was installed non-editably in a clean Python 3.11 environment and
+audited with `pip-audit` on 2026-09-30. The audit found no known vulnerabilities
+in its resolved dependencies (FastAPI 0.142.2, Starlette 1.7.0, and PyJWT 2.15.1).
+The API now uses PyJWT rather than `python-jose`, removing the ECDSA dependency
+path. The Starlette lower bound excludes the versions identified by the current
+audit advisories.
 
-| Dependency path | Observed report | Current status | Rationale |
-|---|---|---|---|
-| `fluxrules[api]` -> `fastapi==0.115.14` -> `starlette==0.46.2` | Multiple Starlette advisories (including `PYSEC-2026-1941`, `PYSEC-2026-1942`, `PYSEC-2026-2280`, `PYSEC-2026-2281`, `PYSEC-2026-248`, `PYSEC-2026-249`) | Under triage / not yet remediated in the project | The FastAPI cap in `pyproject.toml` is intentional: `fastapi>=0.115,<0.116` avoids the route-introspection break that appears in Starlette 1.x/FastAPI 0.116+ behavior. Upgrading the stack without adjusting route registration semantics would change API behavior and is not a safe default fix. |
-| `fluxrules[api]` -> `python-jose[cryptography]` -> `ecdsa==0.19.2` | `ecdsa` advisory (`PYSEC-2026-1325`) | Under triage / no direct remediation yet in the supported constraint set | The package is used via the auth stack. The project does not currently specify a safe replacement or a compatible patched version within the app's constraints. |
-| Core install (`fluxrules`) | No direct advisories from the project package metadata | Not currently blocked for core-only consumers | The core library does not pull in the vulnerable API/web stack by default. |
-
-This is a recorded exception, not a silent suppression: the repository keeps the
-scan visible in CI, and the project is not claiming that the API extra is free of
-known issues. The current maintainer posture is to keep the API extra under a
-compatibility guard until a version set is proven to preserve the existing route
-registration and authentication behavior. If a compatible upgrade path becomes
-available, it should be validated with the API integration tests before being
-accepted as a dependency change.
+Starlette 1.x represents included routers lazily, so `app.routes` is no longer a
+flat inventory of endpoint routes. FluxRules verifies the stable API contract
+through OpenAPI paths/methods and integration tests rather than Starlette's
+internal route representation. CI separately audits a fresh non-editable
+install of the `api` extra; the core package still does not install the API/web
+dependencies by default.
 
 ---
 

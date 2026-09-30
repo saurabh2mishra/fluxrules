@@ -619,7 +619,7 @@ class TestBackwardCompatibility:
 
     def test_existing_api_routes_still_registered(self):
         """All pre-existing API routes must still be accessible."""
-        routes = [r.path for r in app.routes if hasattr(r, "path")]
+        routes = app.openapi()["paths"]
         expected = [
             "/api/v1/auth/",
             "/api/v1/rules",
@@ -628,6 +628,6 @@ class TestBackwardCompatibility:
             "/health",
         ]
         for expected_prefix in expected:
-            assert any(expected_prefix in r for r in routes), (
+            assert any(expected_prefix in path for path in routes), (
                 f"Route prefix '{expected_prefix}' missing from app routes"
             )
