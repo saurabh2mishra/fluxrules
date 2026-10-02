@@ -66,6 +66,25 @@ def test_public_route_contract_is_registered() -> None:
     assert not missing_operations, f"API operations not registered: {sorted(missing_operations)}"
 
 
+def test_duplicate_route_registrations_are_not_mounted() -> None:
+    """The SDK and legacy routes must not register the same OpenAPI operation twice."""
+    import warnings
+
+    from fluxrules.api.app import create_app
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        create_app().openapi()
+
+    duplicate_operation_ids = [
+        str(w.message)
+        for w in caught
+        if "Duplicate Operation ID" in str(w.message)
+    ]
+
+    assert not duplicate_operation_ids, duplicate_operation_ids
+
+
 def test_app_lifespan_starts() -> None:
     """The API's runtime-only lifespan dependencies are available."""
     from fastapi.testclient import TestClient

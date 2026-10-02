@@ -14,10 +14,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from fluxrules.api.handlers import register_exception_handlers
-from fluxrules.api.routes.evaluate import router as evaluate_router
-from fluxrules.api.routes.explain import router as explain_router
 from fluxrules.api.routes.health import router as health_router
-from fluxrules.api.routes.simulate import router as simulate_router
 from fluxrules.api.routes.validate import router as validate_router
 from fluxrules.version import __version__
 
@@ -102,10 +99,7 @@ def create_app() -> FastAPI:
 
     # Core routers (always available)
     app.include_router(health_router)
-    app.include_router(evaluate_router)
     app.include_router(validate_router)
-    app.include_router(explain_router)
-    app.include_router(simulate_router)
 
     # Database-backed / optional routers
     for module_path, prefix in _OPTIONAL_ROUTERS:

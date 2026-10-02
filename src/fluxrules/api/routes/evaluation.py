@@ -1,15 +1,15 @@
 """Evaluation and explanation endpoints.
 
-Provides:
-- POST /evaluate - evaluate rules against facts
-- POST /evaluate/bulk - evaluate rules against many fact sets in one request
-- GET  /explain/{execution_id} - retrieve explanation of a prior evaluation
+These endpoints stay intentionally thin: they adapt HTTP requests into a
+canonical :class:`fluxrules.services.rule_service.RuleService` call instead of
+re-implementing rule matching in the route layer.
 """
 
 from __future__ import annotations
 
 import logging
 import uuid
+from types import SimpleNamespace
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -19,6 +19,9 @@ from sqlalchemy.orm import Session
 from fluxrules.api.database import get_db
 from fluxrules.api.deps import get_current_user
 from fluxrules.api.models.user import User
+from fluxrules.domain.models import Ruleset
+from fluxrules.persistence.mappers import orm_rule_to_canonical
+from fluxrules.services.rule_service import RuleService
 
 logger = logging.getLogger(__name__)
 
@@ -68,18 +71,13 @@ class BulkEvaluateResponse(BaseModel):
 _execution_store: dict[str, dict[str, Any]] = {}
 
 
-def _load_domain_rules(
+def _load_ruleset(
     db: Session,
     ruleset_id: str | None,
     rule_ids: list[int] | None,
-) -> list:
-    """Load enabled rules matching the filters as domain rules, once.
-
-    Returned in priority order so the same compiled set can be reused across
-    many fact sets in a bulk evaluation.
-    """
+) -> Ruleset:
+    """Load the matching persisted rules as a canonical ruleset."""
     from fluxrules.api.models.rule import Rule as OrmRule
-    from fluxrules.persistence.mappers import orm_rule_to_canonical
 
     query = db.query(OrmRule).filter(OrmRule.enabled)
     if rule_ids:
@@ -87,35 +85,25 @@ def _load_domain_rules(
     if ruleset_id:
         query = query.filter(OrmRule.group == ruleset_id)
     orm_rules = query.order_by(OrmRule.priority.desc()).all()
-    # Load canonically: reading condition_dsl straight from the column keeps
-    # OR/NOT/nested logic intact. The flat view would drop it and the rule
-    # would then match nothing, quietly.
-    return [(orm_rule.id, orm_rule_to_canonical(orm_rule)) for orm_rule in orm_rules]
+
+    canonical_rules = tuple(orm_rule_to_canonical(orm_rule).to_engine_rule() for orm_rule in orm_rules)
+    return Ruleset(group=ruleset_id or "all", rules=canonical_rules)
 
 
-def _match_facts(domain_rules: list, facts: dict[str, Any]) -> tuple[list, list[str]]:
-    """Match a single fact set against pre-loaded canonical rules."""
-    from fluxrules.domain.dsl.evaluator import UnsupportedDSLNodeError, evaluate_dsl
+def _empty_response(ruleset_group: str, facts: dict[str, Any]) -> EvaluateResponse:
+    """Return an empty-but-valid evaluation response."""
+    return EvaluateResponse(
+        execution_id=str(uuid.uuid4()),
+        ruleset_group=ruleset_group,
+        matched_rules=[],
+        actions=[],
+        facts=facts,
+    )
 
-    matched_ids: list = []
-    actions: list[str] = []
-    for rule_id, rule in domain_rules:
-        try:
-            outcome = evaluate_dsl(rule.condition_dsl, facts)
-        except UnsupportedDSLNodeError:
-            # Declining loudly beats matching by accident; a stateful rule
-            # needs a real engine, not this route.
-            logger.warning(
-                "Rule %s uses a DSL node this route cannot evaluate; skipped",
-                rule_id,
-            )
-            continue
-        if outcome:
-            matched_ids.append(rule_id)
-            for action in rule.actions:
-                if action and action not in actions:
-                    actions.append(action)
-    return matched_ids, actions
+
+def _empty_match_result() -> SimpleNamespace:
+    """Return an empty match payload for bulk evaluation."""
+    return SimpleNamespace(execution_id=str(uuid.uuid4()), matched_rule_ids=[], actions=[])
 
 
 @router.post("/evaluate", response_model=EvaluateResponse)
@@ -126,16 +114,14 @@ def evaluate(
 ) -> EvaluateResponse:
     """Evaluate rules against provided facts.
 
-    If ``ruleset_id`` is given, evaluates that SDK ruleset.
-    Otherwise falls back to evaluating all enabled DB rules.
+    If ``ruleset_id`` is given, evaluates that SDK ruleset when it is already in
+    the in-memory repository. Otherwise it loads the matching persisted rules and
+    evaluates them through the canonical RuleService engine path.
     """
     if request.ruleset_id:
-        # Try SDK-level evaluation first
-        from fluxrules.services.rule_service import RuleService as SdkRuleService
-
         try:
-            svc = SdkRuleService.create()
-            result = svc.evaluate_ruleset(request.ruleset_id, request.facts)
+            service = RuleService.create()
+            result = service.evaluate_ruleset(request.ruleset_id, request.facts)
             resp = EvaluateResponse(
                 execution_id=result.execution_id,
                 ruleset_group=result.ruleset_group,
@@ -148,19 +134,23 @@ def evaluate(
         except KeyError:
             pass
 
-    # Database-level evaluation: match facts against enabled rules
-    domain_rules = _load_domain_rules(db, request.ruleset_id, request.rule_ids)
-    matched_ids, actions = _match_facts(domain_rules, request.facts)
+    service = RuleService.create()
+    ruleset = _load_ruleset(db, request.ruleset_id, request.rule_ids)
+    if not ruleset.rules:
+        resp = _empty_response(request.ruleset_id or "all", request.facts)
+        _execution_store[resp.execution_id] = resp.model_dump()
+        return resp
 
-    execution_id = str(uuid.uuid4())
+    result = service.evaluate_inline(ruleset, request.facts)
+
     resp = EvaluateResponse(
-        execution_id=execution_id,
-        ruleset_group=request.ruleset_id or "all",
-        matched_rules=matched_ids,
-        actions=actions,
+        execution_id=result.execution_id,
+        ruleset_group=result.ruleset_group,
+        matched_rules=result.matched_rule_ids,
+        actions=result.actions,
         facts=request.facts,
     )
-    _execution_store[execution_id] = resp.model_dump()
+    _execution_store[result.execution_id] = resp.model_dump()
     return resp
 
 
@@ -170,32 +160,30 @@ def evaluate_bulk(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> BulkEvaluateResponse:
-    """Evaluate many fact sets against the same rules in one request.
-
-    The matching rules are loaded once and reused for every fact set, which
-    keeps throughput high when running large batches. Each result carries its
-    own ``execution_id`` that can be passed to ``/explain``.
-    """
-    domain_rules = _load_domain_rules(db, request.ruleset_id, request.rule_ids)
+    """Evaluate many fact sets against the same rules in one request."""
+    service = RuleService.create()
+    ruleset = _load_ruleset(db, request.ruleset_id, request.rule_ids)
     ruleset_group = request.ruleset_id or "all"
 
     results: list[BulkEvaluateResult] = []
     for index, facts in enumerate(request.facts):
-        matched_ids, actions = _match_facts(domain_rules, facts)
-        execution_id = str(uuid.uuid4())
-        _execution_store[execution_id] = {
-            "execution_id": execution_id,
+        if not ruleset.rules:
+            result = _empty_match_result()
+        else:
+            result = service.evaluate_inline(ruleset, facts)
+        _execution_store[result.execution_id] = {
+            "execution_id": result.execution_id,
             "ruleset_group": ruleset_group,
-            "matched_rules": matched_ids,
-            "actions": actions,
+            "matched_rules": result.matched_rule_ids,
+            "actions": result.actions,
             "facts": facts,
         }
         results.append(
             BulkEvaluateResult(
                 index=index,
-                execution_id=execution_id,
-                matched_rules=matched_ids,
-                actions=actions,
+                execution_id=result.execution_id,
+                matched_rules=result.matched_rule_ids,
+                actions=result.actions,
             )
         )
 
@@ -212,16 +200,11 @@ def explain(
     current_user: User = Depends(get_current_user),
 ) -> dict[str, Any]:
     """Retrieve the explanation for a prior evaluation."""
-    # Check in-memory store first
     if execution_id in _execution_store:
         return _execution_store[execution_id]
 
-    # Check SDK RuleService store
-    from fluxrules.services.rule_service import RuleService as SdkRuleService
-
     try:
-        svc = SdkRuleService.create()
-        result = svc.explain(execution_id)
+        result = RuleService.create().explain(execution_id)
         return {
             "execution_id": result.execution_id,
             "ruleset_group": result.ruleset_group,

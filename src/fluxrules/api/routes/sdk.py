@@ -78,22 +78,18 @@ def simulate_ruleset(
     service=Depends(get_rule_service),
 ) -> list[EvaluateResponse]:
     try:
-        ruleset = service.get_ruleset(ruleset_id)
+        results = service.simulate(ruleset_id, body.samples)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
-    results = []
-    for facts in body.samples:
-        result = service._engine.evaluate(ruleset, facts)
-        service._results[result.execution_id] = result
-        results.append(
-            EvaluateResponse(
-                execution_id=result.execution_id,
-                ruleset_group=result.ruleset_group,
-                matched_rules=result.matched_rule_ids,
-                actions=result.actions,
-            )
+    return [
+        EvaluateResponse(
+            execution_id=result.execution_id,
+            ruleset_group=result.ruleset_group,
+            matched_rules=result.matched_rule_ids,
+            actions=result.actions,
         )
-    return results
+        for result in results
+    ]
 
 
 @router.get("/executions/{execution_id}", response_model=EvaluateResponse)
