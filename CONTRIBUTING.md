@@ -37,9 +37,14 @@ The Nexus index is used only for installing uv. It is not configured in
 ```bash
 git clone https://github.com/fluxrules/fluxrules.git
 cd fluxrules
+unset VIRTUAL_ENV
 python scripts/check_uv.py
 uv sync --extra dev
 ```
+
+The project uses the root `.venv`. If you intentionally use another active
+environment, use `uv run --active <command>` or `uv pip install --active ...`
+to target it. Do not set `VIRTUAL_ENV=backend/.venv` for this repository.
 
 ## Common Commands
 

@@ -105,6 +105,14 @@ fluxrules --help
 
 ## Development
 
+This repository uses the root `.venv` environment. If `VIRTUAL_ENV` points to
+another environment, clear it before running `uv` commands so uv selects the
+project environment:
+
+```bash
+unset VIRTUAL_ENV
+```
+
 ```bash
 python scripts/check_uv.py
 uv sync --extra dev

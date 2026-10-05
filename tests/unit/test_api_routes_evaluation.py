@@ -166,6 +166,18 @@ class TestBulkEvaluateEndpoint:
         assert data["count"] == 0
         assert data["results"] == []
 
+    def test_bulk_evaluate_without_rules_returns_empty_matches(self, client):
+        resp = client.post(
+            "/api/v1/evaluate/bulk",
+            json={"facts": [{"age": 25}], "ruleset_id": "missing_ruleset"},
+        )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ruleset_group"] == "missing_ruleset"
+        assert data["results"][0]["matched_rules"] == []
+        assert data["results"][0]["actions"] == []
+
 
 class TestRulesetsEndpoint:
     def test_list_rulesets(self, client, rule_payload):

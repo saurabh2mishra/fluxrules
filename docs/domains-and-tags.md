@@ -119,7 +119,6 @@ fact = {"priority": "high", "type": "notification"}
 result = engine.evaluate(fact)
 print(f"Fired: {result.fired_rules}")
 ```
-```
 
 ---
 
@@ -128,7 +127,7 @@ print(f"Fired: {result.fired_rules}")
 The shared payment-risk use case demonstrates domains and tags in action:
 
 ```python
-from shared_use_case import build_shared_rules
+from examples.shared_use_case import build_shared_rules
 
 rules = build_shared_rules()
 

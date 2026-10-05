@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for interest in contributing to FluxRules!
+Thank you for your interest in contributing to FluxRules!
 
 ## Code of Conduct
 

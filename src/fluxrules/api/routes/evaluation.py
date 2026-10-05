@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 import uuid
-from types import SimpleNamespace
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -19,7 +18,7 @@ from sqlalchemy.orm import Session
 from fluxrules.api.database import get_db
 from fluxrules.api.deps import get_current_user
 from fluxrules.api.models.user import User
-from fluxrules.domain.models import Ruleset
+from fluxrules.domain.models import EvaluationResult, Ruleset
 from fluxrules.persistence.mappers import orm_rule_to_canonical
 from fluxrules.services.rule_service import RuleService
 
@@ -101,9 +100,13 @@ def _empty_response(ruleset_group: str, facts: dict[str, Any]) -> EvaluateRespon
     )
 
 
-def _empty_match_result() -> SimpleNamespace:
+def _empty_match_result(ruleset_group: str) -> EvaluationResult:
     """Return an empty match payload for bulk evaluation."""
-    return SimpleNamespace(execution_id=str(uuid.uuid4()), matched_rule_ids=[], actions=[])
+    return EvaluationResult(
+        ruleset_group=ruleset_group,
+        matched_rule_ids=[],
+        actions=[],
+    )
 
 
 @router.post("/evaluate", response_model=EvaluateResponse)
@@ -168,7 +171,7 @@ def evaluate_bulk(
     results: list[BulkEvaluateResult] = []
     for index, facts in enumerate(request.facts):
         if not ruleset.rules:
-            result = _empty_match_result()
+            result = _empty_match_result(ruleset_group)
         else:
             result = service.evaluate_inline(ruleset, facts)
         _execution_store[result.execution_id] = {

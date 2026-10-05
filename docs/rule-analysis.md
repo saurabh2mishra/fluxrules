@@ -36,9 +36,6 @@ unused = all_rule_ids - covered_ids
 print(f"Unused rules: {unused}")
 ```
 
-print(f"Unused rules: {unused}")
-```
-
 ## Conflict detection
 
 Rules may fire for the same fact:

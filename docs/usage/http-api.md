@@ -57,8 +57,3 @@ Response:
 
 - **Full API Reference** — See [REST API](../rest-api.md)
 - **Deployment** — See [Deployment](../deployment.md)
-    ]
-  },
-  "facts": {"age": 30}
-}
-```

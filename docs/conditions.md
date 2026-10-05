@@ -7,11 +7,11 @@ FluxRules uses a `condition_dsl` to define a condition or a group of conditions.
 
 ## `condition_dsl`
 
-`condition_dsl` is a small tree and creates real contract enforced by the validation logic. 
+`condition_dsl` is a small tree with a contract enforced by the validation logic.
 
 A leaf is a single check, and a grouped node combines children.
 
--  **`type`**: node kind. 
+- **`type`**: node kind.
 
     - *`"condition"`* = one field test; a condition node needs type, field, op, and value.
 

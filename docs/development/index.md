@@ -21,6 +21,13 @@ clean sync resolves the latest versions allowed by the ranges declared in
 
 ### Dev environment
 
+The project environment is the repository-root `.venv`. If your shell has
+`VIRTUAL_ENV` set to another project environment, clear it before running uv:
+
+```bash
+unset VIRTUAL_ENV
+```
+
 ```bash
 git clone https://github.com/fluxrules/fluxrules.git
 cd fluxrules
