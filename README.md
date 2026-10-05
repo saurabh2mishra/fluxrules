@@ -5,7 +5,7 @@
 
 # FluxRules
 
-FluxRules is a Python rule evaluation library with optional API and integration layers.
+FluxRules is a Business Rule Evaluation library with optional API and integration layers.
 
 ## Repository Scope
 
