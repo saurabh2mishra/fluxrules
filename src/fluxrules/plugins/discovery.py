@@ -74,7 +74,7 @@ def _iter_entry_points(group: str):
     # Python 3.10+ SelectableGroups vs. older mapping API.
     if hasattr(eps, "select"):
         return list(eps.select(group=group))
-    return list(eps.get(group, []))  # pragma: no cover - legacy API
+    return list(eps.get(group, []))  # type: ignore[attr-defined]  # pragma: no cover - legacy API
 
 
 def load_plugins(groups: tuple[str, ...] = PLUGIN_GROUPS) -> dict[str, list[str]]:
