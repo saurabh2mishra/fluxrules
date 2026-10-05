@@ -50,6 +50,8 @@ Thumbs.db
 # Project-specific generated files
 logs/
 *.log
+/.github/agents/
+/.github/skills/
 
 # SQLite / database runtime artifacts
 *.db
