@@ -345,12 +345,16 @@ def benchmark_engine(
 
         engine = get_engine(engine_type=engine_type)
 
-        # Generate test events
-        import random
-
+        # Generate repeatable synthetic events for comparable benchmark runs.
         events = [
-            {f"field_{i}": random.uniform(0, 10000) for i in range(num_fields)}
-            for _ in range(num_events)
+            {
+                f"field_{field_index}": (
+                    (event_index * num_fields + field_index) * 7919 % 10000
+                    + field_index / num_fields
+                )
+                for field_index in range(num_fields)
+            }
+            for event_index in range(num_events)
         ]
 
         # Warm up

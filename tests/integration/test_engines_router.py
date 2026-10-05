@@ -152,3 +152,25 @@ def test_available_engines_lists_only_phreak():
     response = client.get("/api/v1/engines/available")
     assert response.status_code == 200
     assert set(response.json()["available_engines"]) == {"PHREAK"}
+
+
+def test_benchmark_uses_repeatable_synthetic_events(monkeypatch):
+    from fluxrules.api.routes import engines as engine_routes
+
+    evaluated_events = []
+
+    class RecordingEngine:
+        def evaluate(self, event):
+            evaluated_events.append(event)
+
+    monkeypatch.setattr(engine_routes, "get_engine", lambda engine_type: RecordingEngine())
+    client = TestClient(app)
+
+    for _ in range(2):
+        response = client.post(
+            "/api/v1/engines/benchmark?num_events=3&num_fields=2",
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["num_events"] == 3
+
+    assert evaluated_events[:6] == evaluated_events[6:]
