@@ -23,34 +23,38 @@ Use FluxRules to keep decision logic separate from application control flow and 
 
 ## Installation
 
-Install the published wheel when available, or install from a checkout while
-developing the project:
-
-```bash
-pip install fluxrules
-```
-
-For a checkout:
+For local development, clone the repository and install the project with uv:
 
 ```bash
 git clone https://github.com/fluxrules/fluxrules.git
 cd fluxrules
-pip install .
+uv sync --extra dev
 ```
 
-Optional extras from `pyproject.toml`:
+This creates the project environment and installs FluxRules with its development
+tools. To install the published package in a virtual environment managed by uv:
 
 ```bash
-pip install '.[api]'
-pip install '.[sql]'
-pip install '.[redis]'
-pip install '.[otel]'
-pip install '.[yaml]'
-pip install '.[cli]'
-pip install '.[docs]'
-pip install '.[all]'
+uv venv
+uv pip install fluxrules
 ```
 
+Install an optional extra in the checkout with `uv sync`, for example:
+
+```bash
+uv sync --extra api
+uv sync --extra sql
+uv sync --extra redis
+uv sync --extra otel
+uv sync --extra yaml
+uv sync --extra cli
+uv sync --extra docs
+uv sync --extra all
+```
+
+For a published package, use `uv pip install 'fluxrules[api]'` (replace `api`
+with the extra you need). Pip is also supported; see the
+[installation guide](docs/installation.md) for its virtual-environment commands.
 The `all` extra combines the API, SQL, Redis, OpenTelemetry, YAML, CLI, and
 documentation integrations. The core install includes the dependencies needed
 for `import fluxrules`, the canonical `Rule`, and the top-level evaluation API.
@@ -100,7 +104,7 @@ Actions: ['manual_review']
 ## API Server (Optional)
 
 ```bash
-pip install '.[api]'
+uv sync --extra api
 uvicorn fluxrules.api.app:create_app --factory --reload
 ```
 
@@ -118,7 +122,7 @@ Additional routers are loaded when optional dependencies are available.
 ## CLI (Optional)
 
 ```bash
-pip install '.[cli]'
+uv sync --extra cli
 fluxrules --help
 ```
 
