@@ -1,4 +1,4 @@
-"""Working memory tests (ported from backend/tests/test_working_memory.py)."""
+"""Working memory tests"""
 
 from __future__ import annotations
 

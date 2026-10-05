@@ -1,4 +1,4 @@
-"""BRMS validation tests (ported from backend/tests/test_brms_validation.py & edge cases)."""
+"""BRMS validation tests"""
 
 import math
 

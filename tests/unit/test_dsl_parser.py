@@ -1,4 +1,4 @@
-"""DSL parser tests (ported from backend/tests/test_dsl_parser.py)."""
+"""DSL parser tests """
 
 from fluxrules.domain.dsl.expression_parser import DSLParser
 

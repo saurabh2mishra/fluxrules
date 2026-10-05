@@ -1,7 +1,4 @@
-"""Storage backends for execution sessions.
-
-Ported from backend/app/execution/storage_backend.py with fluxrules.* imports.
-"""
+"""Storage backends for execution sessions"""
 
 from __future__ import annotations
 

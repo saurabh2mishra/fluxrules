@@ -1,4 +1,4 @@
-"""Session context tests (ported from backend/tests/test_session_context.py)."""
+"""Session context tests"""
 
 from __future__ import annotations
 

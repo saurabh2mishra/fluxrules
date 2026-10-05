@@ -1,7 +1,4 @@
-"""Session manager for execution layer.
-
-Ported from backend/app/execution/session_manager.py with fluxrules.* imports.
-"""
+"""Session manager for execution layer."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Memory session storage tests (ported from backend/tests/test_memory_session_storage.py)."""
+"""Memory session storage tests"""
 
 import pytest
 

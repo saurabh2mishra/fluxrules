@@ -44,7 +44,7 @@ uv sync --extra dev
 
 The project uses the root `.venv`. If you intentionally use another active
 environment, use `uv run --active <command>` or `uv pip install --active ...`
-to target it. Do not set `VIRTUAL_ENV=backend/.venv` for this repository.
+to target it.
 
 ## Common Commands
 

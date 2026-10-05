@@ -1,4 +1,4 @@
-"""Dependency graph tests (ported from backend/tests/test_dependency_graph.py)."""
+"""Dependency graph tests"""
 
 from fluxrules.utils.dependency_graph import DependencyGraphBuilder
 
