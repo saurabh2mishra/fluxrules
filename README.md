@@ -68,7 +68,7 @@ from fluxrules.engine.phreak import PhreakEngine
 # Create a rule
 rule = Rule(
     name="high_value_transaction",
-    domain="fraud_detection",
+    domain="test",
     condition_dsl={
         "type": "condition",
         "field": "amount",
