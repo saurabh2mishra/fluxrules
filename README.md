@@ -5,21 +5,17 @@
 
 # FluxRules
 
-FluxRules is a light-weight python Business Rule Engine library with optional APIs and integration layers.
+FluxRules is a Python library for authoring rules and evaluating them against facts. It is loosely based on the concepts from Drools’ Phreak engine and provides optional FastAPI endpoints.
 
-## Repository Scope
+Use FluxRules to keep decision logic separate from application control flow and evaluate rules consistently across tests, services, and APIs.
 
-This repository contains:
+## Core Capabilities
 
-- A Python package under `src/fluxrules`
-- Rule evaluation powered by the PHREAK engine (stateless and streaming modes)
-- Optional FastAPI routes under `src/fluxrules/api/routes`
-- Optional integrations enabled through extras in `pyproject.toml`
-- Documentation under `docs/`
-- Runnable examples under `examples/`
-- Automated tests under `tests/`
-
-This repository does not include a hosted control plane.
+- Evaluate a ruleset against facts using the top-level Python API.
+- Run rule evaluation through FluxRules’ Phreak engine in stateless or streaming mode.
+- Validate rulesets before evaluation.
+- Retrieve evaluation explanations by execution ID.
+- Use optional HTTP endpoints for evaluation, validation, explanations, and health checks.
 
 ## Requirements
 
@@ -61,21 +57,44 @@ for `import fluxrules`, the canonical `Rule`, and the top-level evaluation API.
 
 ## Quick Use
 
-```python
-from fluxrules import Rule, evaluate, explain
-from fluxrules.domain.models import Ruleset
+---
 
+## Your First Rule
+
+```python
+from fluxrules.domain import Rule
+from fluxrules.engine.phreak import PhreakEngine
+
+# Create a rule
 rule = Rule(
-    name="adult",
-    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
-    action="allow",
+    name="high_value_transaction",
+    domain="fraud_detection",
+    condition_dsl={
+        "type": "condition",
+        "field": "amount",
+        "op": ">",
+        "value": 5000,
+    },
+    action="manual_review",
+    priority=100,
 )
 
-ruleset = Ruleset(group="eligibility", rules=(rule.to_engine_rule(),))
-result = evaluate(ruleset, {"age": 30})
+# Create an engine and load the rule
+engine = PhreakEngine()
+engine.load_rules([rule])
 
-print(result.matched_rule_ids)
-print(explain(result.execution_id))
+# Evaluate a fact
+fact = {"amount": 6000}
+result = engine.evaluate(fact)
+
+print(f"Matched rules: {result.fired_rules}")
+print(f"Actions: {result.actions}")
+```
+
+**Output:**
+```
+Matched rules: [1]
+Actions: ['manual_review']
 ```
 
 ## API Server (Optional)
