@@ -131,7 +131,11 @@ def _set_redis(group: str | None, payloads: list[dict[str, Any]]) -> None:
         client = _get_redis_client()
         if client is None:
             return
-        client.setex(_redis_key(group), _REDIS_TTL, json.dumps(payloads, default=str))
+        client.set(
+            _redis_key(group),
+            json.dumps(payloads, default=str),
+            ex=_REDIS_TTL,
+        )
     except Exception as exc:
         logger.debug("Redis compiled-cache write failed: %s", exc)
 

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from fluxrules.engine.infrastructure import EvaluationFilter, Rule
+from fluxrules import Rule
+from fluxrules.engine.infrastructure import EvaluationFilter
 from fluxrules.engine.phreak import PhreakEngine
 
 

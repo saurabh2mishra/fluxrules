@@ -51,3 +51,23 @@ def test_invalidate_conflict_cache_calls_compiled_cache(monkeypatch) -> None:
     rules_route.invalidate_conflict_cache(db=MagicMock())
 
     spy.assert_called_once_with()
+
+
+def test_set_redis_uses_set_with_expiry(monkeypatch) -> None:
+    calls = []
+
+    class FakeRedis:
+        def set(self, key, value, *, ex):
+            calls.append((key, value, ex))
+
+    monkeypatch.setattr(_compiled_cache, "_get_redis_client", lambda: FakeRedis())
+
+    _compiled_cache._set_redis("payments", [{"id": "r1"}])
+
+    assert calls == [
+        (
+            "fluxrules:compiled:payments",
+            '[{"id": "r1"}]',
+            300,
+        )
+    ]

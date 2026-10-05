@@ -114,7 +114,9 @@ class RuleCache:
             try:
                 import json
 
-                self._redis.setex(self._get_cache_key(key), self.CACHE_TTL, json.dumps(rules))
+                self._redis.set(
+                    self._get_cache_key(key), json.dumps(rules), ex=self.CACHE_TTL
+                )
             except Exception as e:
                 logger.debug(f"Failed to update Redis cache: {e}")
 

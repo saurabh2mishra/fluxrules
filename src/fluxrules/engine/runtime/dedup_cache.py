@@ -173,7 +173,7 @@ class RedisDedupBackend:
             separators=(",", ":"),
         )
         if self._ttl is not None:
-            self._client.setex(self._key(key), self._ttl, payload)
+            self._client.set(self._key(key), payload, ex=self._ttl)
         else:
             self._client.set(self._key(key), payload)
 

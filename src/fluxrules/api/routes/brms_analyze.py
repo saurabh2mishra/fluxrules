@@ -157,17 +157,22 @@ class BRMSAnalysisReport(BaseModel):
 def analyze_rules(
     request: RuleAnalysisRequest = Body(
         ...,
-        example={
-            "rule_ids": None,
-            "group": None,
-            "include_coverage": True,
-            "include_conflicts": True,
-            "include_redundancy": True,
-            "include_dead_rules": True,
-            "include_gaps": True,
-            "include_duplicates": True,
-            "include_priority_issues": True,
-        },
+        examples=[
+            {
+                "summary": "Analyze rules with all report sections enabled",
+                "value": {
+                    "rule_ids": None,
+                    "group": None,
+                    "include_coverage": True,
+                    "include_conflicts": True,
+                    "include_redundancy": True,
+                    "include_dead_rules": True,
+                    "include_gaps": True,
+                    "include_duplicates": True,
+                    "include_priority_issues": True,
+                },
+            }
+        ],
     ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
