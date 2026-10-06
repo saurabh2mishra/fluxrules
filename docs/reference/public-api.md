@@ -21,8 +21,8 @@ be interchangeable.
 
 | Surface | Label | Entry point | Input/output contract |
 |---|---|---|---|
-| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | Single fact mapping in; infrastructure `EvaluationResult` out (`fired_rules`, `actions`, explanations, metrics). |
-| Reference evaluation | **Stable reference** | `ReferenceEvaluator.evaluate(ruleset, facts)` or top-level `fluxrules.evaluate()` | `Ruleset` plus facts in; domain `EvaluationResult` out (`matched_rule_ids`, actions, trace). Used as the oracle for the single-fact subset. |
+| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | Single fact mapping in; `EvaluationResult` out (`fired_rules`, `actions`, explanations, metrics). |
+| Reference evaluation | **Stable reference** | `ReferenceEvaluator.evaluate(ruleset, facts)` or top-level `fluxrules.evaluate()` | Rules plus facts in; the same `EvaluationResult` out (`fired_rules`, actions, trace). Used as the oracle for the single-fact subset. |
 | Cross-fact correlation | **Separate contract** | `get_cross_fact_engine()` | `insert`/`update`/`retract` fact handles and activation deltas; not a `BaseEngine` replacement. |
 | Sessions and persistence | **Separate contract** | `RuleService`, persistence ports, session services | Rulesets and snapshots are managed outside the direct PHREAK matcher. |
 | CLI | **Stable adapter** | `fluxrules evaluate`, `validate`, `serve`, `init`, `version` | JSON/file-oriented command contract; uses the canonical public model and reports CLI exit/output semantics. |
@@ -39,9 +39,9 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 
 From `fluxrules`:
 
-- `evaluate(ruleset: Ruleset, facts: dict[str, object]) → EvaluationResult` — Evaluate facts against rules. `facts` may be a plain `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
-- `validate(ruleset: Ruleset) → list[str]` — Validate rules and return issues
-- `explain(execution_id: str) → dict[str, object]` — Get an explanation payload for a past execution; keys: `execution_id`, `matched_rules`, `actions`, `trace`
+- `evaluate(rules, facts) → EvaluationResult` — Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. `facts` may be a plain `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
+- `validate(rules) → list[str]` — Validate rules and return issues; accepts the same shapes as `evaluate`
+- `explain(execution_id: str) → dict[str, object]` — Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
 ## Engines
 
@@ -55,8 +55,16 @@ From `fluxrules.engine`:
 From `fluxrules`:
 
 - `Rule` — Pydantic v2 model: `id`, `name`, `domain`, `tags`, `condition_dsl`, `action`, `actions`, `priority`, `enabled`, `persist`
-- `Ruleset` — Collection of rules (`group: str`, `rules: tuple[...]`)
-- `EvaluationResult` — Result with `ruleset_group`, `matched_rule_ids`, `actions`, `trace`, `execution_id`
+- `RuleBuilder` / `ConditionBuilder` — Fluent authoring; `RuleBuilder.build()` returns a `Rule`
+- `Ruleset` — Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
+- `EvaluationResult` — The single result type for every evaluation path.
+  `fired_rules` is what matched; `actions` are the collected actions. Also
+  carries `candidate_rule_ids` (what discovery considered, always a superset of
+  `fired_rules`), `ruleset_group`, `trace`, `execution_id`, `latency_ms`,
+  `engine_type`, `explanations`, `rules_by_domain`, `rules_by_tag`,
+  `fired_segments`.
+  `fluxrules.engine.infrastructure.EvaluationResult` is a re-export of this
+  same class, not a second type.
 
 ## Service Layer
 

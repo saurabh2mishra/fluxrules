@@ -130,16 +130,16 @@ class TestUpdateDelete:
 
 
 class TestDataIntegrity:
-    def test_matched_rule_ids_are_integers(self, repo):
+    def test_fired_rules_are_integers(self, repo):
         from fluxrules.domain.models import EvaluationResult
 
         result = EvaluationResult(
             execution_id="e1",
             ruleset_group="test",
-            matched_rule_ids=[1, 2, 3],
+            fired_rules=[1, 2, 3],
             actions=["a"],
         )
-        assert all(isinstance(rid, int) for rid in result.matched_rule_ids)
+        assert all(isinstance(rid, int) for rid in result.fired_rules)
 
     def test_conditions_round_trip(self, repo):
         rule = EngineRule(

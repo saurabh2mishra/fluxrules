@@ -281,38 +281,70 @@ class TestPersistenceIntegration:
         DBConnectionManager.reset()
         reset_persistence_manager()
 
-    def test_unified_rule_auto_persists_by_default(self):
-        """Unified Rule should auto-persist by default."""
+    _DSL = {"type": "condition", "field": "age", "op": ">", "value": 18}
+
+    def _stored_names(self) -> list[str]:
+        from fluxrules.persistence.rule_repository import RuleRepository
+
+        session = DBConnectionManager.get_instance().get_session()
+        try:
+            return [r.name for r in RuleRepository(session).load_all_rules()]
+        finally:
+            session.close()
+
+    def test_constructing_a_rule_does_not_persist_it(self):
+        """``persist`` defaults to False: construction must touch no database.
+
+        The old default was True, so merely importing a module that defined
+        rules opened a connection and wrote a row.
+        """
         from fluxrules.domain.unified_rule import Rule as UnifiedRule
 
-        # Note: This test verifies the persist mechanism is integrated
-        # but we disable it for this test to avoid DB dependencies in all tests
-        pm = get_persistence_manager()
-        pm.disable_persistence()
+        rule = UnifiedRule(name="Not Stored", condition_dsl=self._DSL, action="allow")
 
-        rule = UnifiedRule(
-            name="Test Rule",
-            condition_dsl={"type": "condition", "field": "age", "op": ">", "value": 18},
-            action="allow",
-        )
-
-        assert rule.id is not None
         assert isinstance(rule.id, int)
+        assert "Not Stored" not in self._stored_names()
 
-    def test_persist_respects_opt_out(self):
-        """Unified Rule with persist=False should not persist."""
+    def test_persist_true_stores_during_construction(self):
         from fluxrules.domain.unified_rule import Rule as UnifiedRule
 
-        pm = get_persistence_manager()
-        pm.disable_persistence()
-
         rule = UnifiedRule(
-            name="Test Rule",
-            condition_dsl={"type": "condition", "field": "age", "op": ">", "value": 18},
+            name="Stored At Init",
+            condition_dsl=self._DSL,
             action="allow",
-            persist=False,
+            persist=True,
         )
 
-        assert rule.id is not None
-        # ID should be locally generated, not from DB
         assert isinstance(rule.id, int)
+        assert "Stored At Init" in self._stored_names()
+
+    def test_save_stores_a_rule_built_in_memory(self):
+        """``save()`` is the explicit path the default now steers people to."""
+        from fluxrules.domain.unified_rule import Rule as UnifiedRule
+
+        rule = UnifiedRule(name="Stored By Save", condition_dsl=self._DSL, action="allow")
+        assert "Stored By Save" not in self._stored_names()
+
+        returned = rule.save()
+
+        assert returned is rule, "save() returns self so it can be chained"
+        assert isinstance(rule.id, int)
+        assert "Stored By Save" in self._stored_names()
+
+    def test_save_inserts_and_is_not_an_upsert(self):
+        """Pin the documented semantics: ``save()`` inserts, it does not update.
+
+        Saving twice stores twice, because the underlying repository is a plain
+        insert. This is asserted rather than assumed so that anyone adding
+        upsert semantics later has to change a test that says what the old
+        behaviour was.
+        """
+        from fluxrules.domain.unified_rule import Rule as UnifiedRule
+
+        rule = UnifiedRule(name="Saved Twice", condition_dsl=self._DSL, action="allow")
+        rule.save()
+        first_id = rule.id
+        rule.save()
+
+        assert rule.id != first_id
+        assert self._stored_names().count("Saved Twice") == 2

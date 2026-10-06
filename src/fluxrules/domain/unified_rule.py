@@ -18,6 +18,7 @@ This module provides a single Rule class that:
 5. Converts between formats (dict, JSON, YAML) and the engine representation
 
 Key Design Decisions:
+- Construction is pure: no database I/O unless ``persist=True`` is passed
 - ID is auto-generated but user can override if needed
 - Pydantic v2 for strict validation with helpful error messages
 - Serialization support for all major formats
@@ -46,6 +47,9 @@ Usage:
 
     # To dict for serialization
     rule_dict = rule.model_dump()
+
+    # Store it in the configured database when you want it persisted
+    rule.save()
 """
 
 from __future__ import annotations
@@ -86,13 +90,14 @@ class Rule(BaseModel):
         sla_latency_ms: Expected latency SLA in milliseconds
         created_at: Creation timestamp (ISO 8601), assigned by the persistence layer
         updated_at: Last update timestamp (ISO 8601), assigned by the persistence layer
-        persist: Whether to persist this rule to database (default: True)
+        persist: Store this rule during construction and adopt the stored ID
+            (default: False). See also :meth:`save`.
 
     Configuration:
         - Pydantic v2 with strict validation
         - Extra fields forbidden (strict)
         - Serialization support (JSON, dict, etc.)
-        - Automatic persistence to database by default
+        - No I/O during construction; persistence is opt-in
     """
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
@@ -131,8 +136,12 @@ class Rule(BaseModel):
         description="Last update timestamp (ISO 8601), assigned by the persistence layer",
     )
     persist: bool = Field(
-        default=True,
-        description="Whether to persist this rule to database (default: True)",
+        default=False,
+        description=(
+            "Persist this rule to the database during construction and adopt "
+            "the stored ID. Defaults to False: constructing a Rule is a pure, "
+            "in-memory operation. Call Rule.save() to store one explicitly."
+        ),
     )
 
     @field_validator("tags", mode="before")
@@ -197,7 +206,7 @@ class Rule(BaseModel):
         the first element, so existing single-action code keeps working while
         multi-action rules round-trip through persistence without truncation.
 
-        This runs *before* :meth:`auto_persist_if_enabled` (Pydantic executes
+        This runs *before* :meth:`assign_id` (Pydantic executes
         ``mode="after"`` validators in definition order), so whatever is
         persisted already carries the full action list.
         """
@@ -214,44 +223,65 @@ class Rule(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def auto_persist_if_enabled(self) -> Rule:
-        """Auto-generate ID and optionally persist to database.
+    def assign_id(self) -> Rule:
+        """Assign an ID, persisting first only when explicitly asked to.
 
-        If persist=True (default), saves rule to database and gets DB-assigned ID.
-        If persist=False, generates a local sequential ID.
+        Constructing a ``Rule`` performs no I/O by default: an explicit ``id``
+        is honoured, otherwise one is generated locally. Passing
+        ``persist=True`` opts in to storing the rule now and adopting the
+        database-assigned ID; :meth:`save` is the explicit alternative.
+
+        No exception is swallowed here. ``PersistenceManager.persist_rule``
+        already degrades gracefully to a local ID when the database is
+        unavailable, so anything escaping it is a real fault the caller needs
+        to see rather than find as a warning in a log.
         """
-        # Skip persistence if ID already assigned (already persisted)
         if self.id is not None:
             return self
 
-        # Handle persistence
         if self.persist:
-            try:
-                from fluxrules.persistence.persistence_manager import (
-                    get_persistence_manager,
-                )
-
-                pm = get_persistence_manager()
-                persisted_rule = pm.persist_rule(
-                    self,
-                    group=self.domain,
-                )
-                # Update self with persisted data (including DB-assigned ID)
-                if persisted_rule.id is not None:
-                    object.__setattr__(self, "id", persisted_rule.id)
+            persisted_id = self._persist_and_get_id()
+            if persisted_id is not None:
+                object.__setattr__(self, "id", persisted_id)
                 return self
-            except Exception as e:
-                logger.warning(
-                    f"Failed to persist rule '{self.name}', falling back to local ID: {e}"
-                )
-                # Fall back to local ID generation
-                # The generator may return a str id (e.g. uuid/hash strategy);
-                # the field is typed int for the common sequential case.
-                self.id = _default_id_generator.next_id()  # type: ignore[assignment]
-        else:
-            # Persistence disabled: generate local ID
-            self.id = _default_id_generator.next_id()  # type: ignore[assignment]
 
+        # The generator may return a str id (e.g. uuid/hash strategy); the
+        # field is typed int for the common sequential case.
+        object.__setattr__(self, "id", _default_id_generator.next_id())
+        return self
+
+    def _persist_and_get_id(self) -> int | None:
+        """Store this rule and return the ID storage assigned, if any."""
+        from fluxrules.persistence.persistence_manager import get_persistence_manager
+
+        persisted = get_persistence_manager().persist_rule(self, group=self.domain)
+        return persisted.id
+
+    def save(self) -> Rule:
+        """Insert this rule into the configured database and return it.
+
+        The explicit counterpart to ``persist=True``. Use it when a rule is
+        built in memory first and stored once it is known to be good::
+
+            rule = Rule(name="high_value", condition_dsl=..., action="review")
+            rule.save()
+
+        The rule's ``id`` is replaced with the database-assigned one, and
+        ``self`` is returned so the call can be chained.
+
+        This is an **insert, not an upsert**. Calling it twice stores the rule
+        twice, exactly as constructing two rules with ``persist=True`` would;
+        it does not update an existing row and does not deduplicate. Use the
+        repository or service layer when you need update semantics.
+
+        If the database is unreachable, the underlying
+        ``PersistenceManager.persist_rule`` degrades to a locally generated ID
+        rather than raising, so a successful return does not by itself prove a
+        row was written.
+        """
+        persisted_id = self._persist_and_get_id()
+        if persisted_id is not None:
+            object.__setattr__(self, "id", persisted_id)
         return self
 
     def model_dump(self, **kwargs: Any) -> dict[str, Any]:

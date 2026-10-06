@@ -67,7 +67,7 @@ class TestInMemoryBackwardCompatibility:
         rs = _make_ruleset()
         s.persist(rs)
         result = s.evaluate_ruleset(rs.group, {"age": 25, "status": "active"})
-        assert len(result.matched_rule_ids) > 0
+        assert len(result.fired_rules) > 0
 
     def test_create_returns_fresh_instances(self):
         a = RuleService.create()

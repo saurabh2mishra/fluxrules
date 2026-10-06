@@ -104,7 +104,7 @@ def _empty_match_result(ruleset_group: str) -> EvaluationResult:
     """Return an empty match payload for bulk evaluation."""
     return EvaluationResult(
         ruleset_group=ruleset_group,
-        matched_rule_ids=[],
+        fired_rules=[],
         actions=[],
     )
 
@@ -128,7 +128,7 @@ def evaluate(
             resp = EvaluateResponse(
                 execution_id=result.execution_id,
                 ruleset_group=result.ruleset_group,
-                matched_rules=result.matched_rule_ids,
+                matched_rules=result.fired_rules,
                 actions=result.actions,
                 facts=request.facts,
             )
@@ -149,7 +149,7 @@ def evaluate(
     resp = EvaluateResponse(
         execution_id=result.execution_id,
         ruleset_group=result.ruleset_group,
-        matched_rules=result.matched_rule_ids,
+        matched_rules=result.fired_rules,
         actions=result.actions,
         facts=request.facts,
     )
@@ -177,7 +177,7 @@ def evaluate_bulk(
         _execution_store[result.execution_id] = {
             "execution_id": result.execution_id,
             "ruleset_group": ruleset_group,
-            "matched_rules": result.matched_rule_ids,
+            "matched_rules": result.fired_rules,
             "actions": result.actions,
             "facts": facts,
         }
@@ -185,7 +185,7 @@ def evaluate_bulk(
             BulkEvaluateResult(
                 index=index,
                 execution_id=result.execution_id,
-                matched_rules=result.matched_rule_ids,
+                matched_rules=result.fired_rules,
                 actions=result.actions,
             )
         )
@@ -211,7 +211,7 @@ def explain(
         return {
             "execution_id": result.execution_id,
             "ruleset_group": result.ruleset_group,
-            "matched_rules": result.matched_rule_ids,
+            "matched_rules": result.fired_rules,
             "actions": result.actions,
             "facts": {},
         }

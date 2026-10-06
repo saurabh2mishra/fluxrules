@@ -185,7 +185,7 @@ class RuleService:
             raise ValueError(f"Ruleset validation failed: {issues}")
         self.tracer.on_evaluation_start(ruleset.group)
         result = self.engine.evaluate(ruleset, facts)
-        self.tracer.on_evaluation_end(ruleset.group, len(result.matched_rule_ids))
+        self.tracer.on_evaluation_end(ruleset.group, len(result.fired_rules))
         return result
 
     def explain(self, execution_id: str) -> EvaluationResult:

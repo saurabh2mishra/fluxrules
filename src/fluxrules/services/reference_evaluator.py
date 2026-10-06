@@ -72,9 +72,14 @@ class ReferenceEvaluator(EnginePort):
         actions = [action for rule in matched for action in rule.actions]
         return EvaluationResult(
             ruleset_group=ruleset.group,
-            matched_rule_ids=[rule.id for rule in matched],
+            fired_rules=[rule.id for rule in matched],
             actions=actions,
             trace=trace,
+            # This evaluator tests every rule linearly, so every rule was a
+            # candidate. Recording that keeps `fired ⊆ candidates` true on
+            # every evaluation path, not just the engine ones.
+            candidate_rule_ids=[rule.id for rule in engine_rules],
+            engine_type=type(self).__name__,
         )
 
     def _evaluate_rule(self, rule: EngineRule, facts: dict[str, object]) -> bool:

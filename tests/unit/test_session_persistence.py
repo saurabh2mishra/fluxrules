@@ -73,7 +73,7 @@ class TestEvaluate:
         session.add_fact("amount", 200)
         result = session.evaluate()
         assert result is not None
-        assert len(result.matched_rule_ids) >= 1
+        assert len(result.fired_rules) >= 1
 
     def test_evaluate_stores_result(self, service: RuleService):
         session = service.create_session("test_rules")
@@ -112,7 +112,7 @@ class TestSaveRestore:
         session2 = EvaluationSession.restore(snapshot, service)
         result = session2.evaluate()
         assert result is not None
-        assert len(result.matched_rule_ids) >= 1
+        assert len(result.fired_rules) >= 1
 
     def test_restore_add_more_facts_and_evaluate(self, service: RuleService):
         session1 = service.create_session("test_rules")
@@ -122,7 +122,7 @@ class TestSaveRestore:
         session2 = EvaluationSession.restore(snapshot, service)
         session2.add_fact("amount", 200)
         result = session2.evaluate()
-        assert len(result.matched_rule_ids) >= 1
+        assert len(result.fired_rules) >= 1
 
 
 class TestSessionSnapshot:

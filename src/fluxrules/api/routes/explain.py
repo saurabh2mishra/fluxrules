@@ -19,7 +19,7 @@ def explain_execution(
 
     return ExplainResponse(
         execution_id=result.execution_id,
-        matched_rules=result.matched_rule_ids,
+        matched_rules=result.fired_rules,
         actions=result.actions,
         trace=result.trace,
     )

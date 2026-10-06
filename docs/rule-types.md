@@ -33,14 +33,15 @@ for the complete field reference.
 ## `RuleBuilder`
 
 `RuleBuilder` is a fluent adapter for workflows that assemble a rule
-incrementally. Its `build()` method returns an `EngineRule`, not the public
-`Rule`. Use `to_dict()` when the result must enter the public authoring path.
+incrementally. Its `build()` method returns the public `Rule`, so a built rule
+needs no conversion before evaluation. Use `build_engine_rule()` when an
+internal boundary needs the `EngineRule` shape instead.
 
 ```python
-from fluxrules.domain.rule_builder import RuleBuilder
+from fluxrules import RuleBuilder
 
-engine_rule = (
-    RuleBuilder(rule_id=1, persist=False)
+rule = (
+    RuleBuilder(rule_id=1)
     .name("High Value Transaction")
     .group("fraud_detection")
     .priority(10)
@@ -49,6 +50,12 @@ engine_rule = (
     .build()
 )
 
+assert rule.condition_dsl["type"] == "condition"
+assert rule.domain == "fraud_detection"
+
+engine_rule = RuleBuilder(rule_id=2).name("internal").condition(
+    {"type": "condition", "field": "amount", "op": ">", "value": 1}
+).action("flag").build_engine_rule()
 assert engine_rule.condition_dsl["type"] == "condition"
 ```
 
@@ -88,7 +95,8 @@ Implementation: `src/fluxrules/domain/models.py`; conversion methods:
 | API | Accepted input | Output or behavior |
 |---|---|---|
 | `PhreakEngine.load_rules(rules)` | Public `Rule` objects or rule dictionaries | Loads rules for stateless or streaming PHREAK evaluation |
-| `ReferenceEvaluator.evaluate(ruleset, facts)` | A `Ruleset` containing `EngineRule` objects | Returns `EvaluationResult` with matched IDs and ordered actions |
+| `ReferenceEvaluator.evaluate(ruleset, facts)` | A `Ruleset` containing `EngineRule` objects | Returns `EvaluationResult` with `fired_rules` and ordered actions |
+| `fluxrules.evaluate(rules, facts)` | A `Rule`, an iterable of rules, or a `Ruleset` | Returns `EvaluationResult` with `fired_rules` and ordered actions |
 | `Rule.to_engine_rule()` | One public `Rule` | Produces the immutable internal representation |
 | `Rule.from_engine_rule(engine_rule)` | One `EngineRule` | Produces a public `Rule`; persistence is disabled by default |
 

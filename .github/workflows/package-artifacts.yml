@@ -55,21 +55,40 @@ jobs:
             python -m pip install --upgrade pip >/dev/null
             python -m pip install --force-reinstall "$artifact" >/dev/null
             python - <<'PY'
-import os
+import importlib.resources
 
-from fluxrules import Rule, evaluate
-from fluxrules.domain.models import Ruleset
+from fluxrules import PhreakEngine, Rule, RuleBuilder, __version__, evaluate
 
+# The documented quickstart, exactly as the README prints it.
 rule = Rule(
     name="adult",
     condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
     action="allow",
 )
-ruleset = Ruleset(group="smoke", rules=(rule.to_engine_rule(group="smoke"),))
-result = evaluate(ruleset, {"age": 30})
+result = evaluate(rule, {"age": 30})
+assert result.fired_rules == [rule.id], result.fired_rules
 assert result.actions == ["allow"], result.actions
-assert rule.name == "adult"
-print(f"artifact smoke ok: {result.actions}")
+
+# A list of rules and a built rule go in just as directly.
+built = (
+    RuleBuilder()
+    .name("adult_built")
+    .condition({"type": "condition", "field": "age", "op": ">=", "value": 18})
+    .action("allow")
+    .build()
+)
+assert isinstance(built, Rule), type(built)
+assert evaluate([rule, built], {"age": 30}).actions == ["allow", "allow"]
+
+# The engine path returns the same type under the same field name.
+engine = PhreakEngine()
+engine.load_rules([rule])
+assert engine.evaluate({"age": 30}).fired_rules == [rule.id]
+
+# The shipped wheel must carry its typing marker.
+assert importlib.resources.files("fluxrules").joinpath("py.typed").is_file()
+
+print(f"artifact smoke ok: fluxrules {__version__} -> {result.actions}")
 PY
             deactivate
             rm -rf "$venv_dir"

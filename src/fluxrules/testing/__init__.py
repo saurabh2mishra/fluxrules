@@ -60,7 +60,6 @@ def _rule(rule_id: int, dsl: dict, *, priority: int = 0) -> Rule:
         condition_dsl=dsl,
         action="flag",
         priority=priority,
-        persist=False,
     )
 
 
@@ -142,7 +141,7 @@ def _reference_fired(rules: tuple[Rule, ...], facts: dict[str, object]) -> set[i
         warnings.simplefilter("ignore")
         ruleset = Ruleset(group="contract", rules=tuple(r.to_engine_rule() for r in rules))
         result = ReferenceEvaluator().evaluate(ruleset, facts)
-        return set(result.matched_rule_ids)
+        return set(result.fired_rules)
 
 
 def _candidate_fired(

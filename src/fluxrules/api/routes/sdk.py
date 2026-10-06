@@ -66,7 +66,7 @@ def evaluate_ruleset(
     return EvaluateResponse(
         execution_id=result.execution_id,
         ruleset_group=result.ruleset_group,
-        matched_rules=result.matched_rule_ids,
+        matched_rules=result.fired_rules,
         actions=result.actions,
     )
 
@@ -85,7 +85,7 @@ def simulate_ruleset(
         EvaluateResponse(
             execution_id=result.execution_id,
             ruleset_group=result.ruleset_group,
-            matched_rules=result.matched_rule_ids,
+            matched_rules=result.fired_rules,
             actions=result.actions,
         )
         for result in results
@@ -104,6 +104,6 @@ def get_execution(
     return EvaluateResponse(
         execution_id=result.execution_id,
         ruleset_group=result.ruleset_group,
-        matched_rules=result.matched_rule_ids,
+        matched_rules=result.fired_rules,
         actions=result.actions,
     )

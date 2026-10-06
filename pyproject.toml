@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fluxrules"
-version = "0.0.1"
+version = "0.1.0"
 description = "Backend-first rules engine library with optional API adapters"
 readme = "README.md"
 requires-python = ">=3.10"

@@ -8,6 +8,8 @@ import logging
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from fluxrules.version import __version__
+
 logger = logging.getLogger("fluxrules.api.config")
 
 
@@ -15,7 +17,9 @@ class Settings(BaseSettings):
     """Central settings container - all values can be overridden via env vars."""
 
     PROJECT_NAME: str = "FluxRules"
-    VERSION: str = "0.0.1"
+    # Sourced from the package so the served version cannot drift from the
+    # installed one; it was previously a second hardcoded string.
+    VERSION: str = __version__
     API_V1_STR: str = "/api/v1"
 
     DATABASE_URL: str = "sqlite:///./rule_engine.db"

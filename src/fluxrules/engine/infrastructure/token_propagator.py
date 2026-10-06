@@ -30,10 +30,13 @@ class TokenPropagator:
     def propagate(self, facts: dict[str, Any], affected_segments: set[str]) -> list[int]:
         """Propagate a fact through affected segments.
 
-        Returns list of rule IDs that matched (i.e., whose segments'
-        fields are all present in the fact).
+        Returns the rule IDs that are *candidates* for this fact: those whose
+        segments' fields are all present. Field presence is not a match - the
+        conditions still have to be evaluated - so this is a prefilter, which
+        is why the result feeds ``candidate_rule_ids`` and never
+        ``fired_rules``.
         """
-        matched_rule_ids: list[int] = []
+        candidate_rule_ids: list[int] = []
         fact_fields = set(facts.keys())
         fact_field_count = len(fact_fields)
 
@@ -47,12 +50,12 @@ class TokenPropagator:
             # A rule matches at the segment level if the segment's fields
             # are a subset of the fact's fields
             if seg.fields <= fact_fields:
-                matched_rule_ids.extend(seg.rule_ids)
+                candidate_rule_ids.extend(seg.rule_ids)
 
         # Deduplicate while preserving order
         seen: set[int] = set()
         unique: list[int] = []
-        for rid in matched_rule_ids:
+        for rid in candidate_rule_ids:
             if rid not in seen:
                 seen.add(rid)
                 unique.append(rid)

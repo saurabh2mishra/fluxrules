@@ -25,7 +25,7 @@ from fluxrules.services.reference_evaluator import ReferenceEvaluator
 def _oracle(rule: Rule, facts: dict) -> list[int]:
     ref = ReferenceEvaluator()
     ruleset = Ruleset(group="finding", rules=(rule.to_engine_rule(),))
-    return ref.evaluate(ruleset, facts).matched_rule_ids
+    return ref.evaluate(ruleset, facts).fired_rules
 
 
 def test_f3_streaming_handles_list_valued_fact() -> None:

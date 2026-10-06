@@ -10,6 +10,15 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **v0.1.0** (2026) — First release intended for publication
+  - One `EvaluationResult` type across every evaluation path, with
+    `fired_rules` as the single name for what matched
+  - `Rule(...)` performs no database I/O; `persist` defaults to `False` and
+    `Rule.save()` is the explicit alternative
+  - `evaluate()` and `validate()` accept a `Rule`, an iterable of rules, or a
+    `Ruleset`
+  - `RuleBuilder.build()` returns the canonical `Rule`; `RuleBuilder` and
+    `ConditionBuilder` are exported from the top-level namespace
 - **v0.0.1** (2026) — Initial, unpublished development version
   - PHREAK engine (single engine)
   - Stateless and streaming evaluation modes

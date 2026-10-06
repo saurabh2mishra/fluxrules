@@ -52,7 +52,7 @@ def test_fired_order_matches_oracle(seed: int) -> None:
     ruleset = Ruleset(group="ord", rules=tuple(r.to_engine_rule() for r in rules))
 
     pf = phreak.evaluate(facts).fired_rules
-    om = oracle.evaluate(ruleset, facts).matched_rule_ids
+    om = oracle.evaluate(ruleset, facts).fired_rules
     prio = _priority_of(rules)
 
     for fired in (pf, om):
@@ -83,5 +83,5 @@ def test_intra_priority_tiebreak_is_id_descending_and_load_order_independent() -
 
         ruleset = Ruleset(group="t", rules=tuple(r.to_engine_rule() for r in load))
         oracle_result = oracle.evaluate(ruleset, facts)
-        assert oracle_result.matched_rule_ids == [2, 1]
-        assert result.fired_rules == oracle_result.matched_rule_ids
+        assert oracle_result.fired_rules == [2, 1]
+        assert result.fired_rules == oracle_result.fired_rules

@@ -22,7 +22,7 @@ rule = Rule(
     action="require_approval",                    # Single action (string)
     # action=("act1", "act2"),                   # Multiple actions (tuple)
     priority=10,                                  # Higher = first (default: 0)
-    persist=True,                                 # Store in database (default: True)
+    persist=True,                                 # Store in database (default: False)
 )
 ```
 
@@ -36,7 +36,7 @@ rule = Rule(
 | `tags` | `frozenset[str]` | No | `frozenset()` | Search/filter keywords |
 | `action` | `str \| tuple[str, ...]` | No | `None` | Action(s) when rule fires |
 | `priority` | `int` | No | `0` | Evaluation order |
-| `persist` | `bool` | No | `True` | Database persistence flag |
+| `persist` | `bool` | No | `False` | Store in the database during construction; see `Rule.save()` |
 
 ## DSL (Condition) format
 

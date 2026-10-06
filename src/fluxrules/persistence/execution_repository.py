@@ -23,7 +23,7 @@ class EvaluationResultORM(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     execution_id: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     ruleset_id: Mapped[str | None] = mapped_column(String, nullable=True)
-    matched_rule_ids: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    fired_rules: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     actions: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     trace: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     created_at: Mapped[datetime] = mapped_column(
@@ -42,7 +42,7 @@ class ExecutionRepository:
         orm = EvaluationResultORM(
             execution_id=result.execution_id,
             ruleset_id=str(result.ruleset_group) if hasattr(result, "ruleset_group") else None,
-            matched_rule_ids=json.dumps(result.matched_rule_ids),
+            fired_rules=json.dumps(result.fired_rules),
             actions=json.dumps(result.actions),
             trace=json.dumps(result.trace),
         )
@@ -61,7 +61,7 @@ class ExecutionRepository:
         return EvaluationResult(
             execution_id=orm.execution_id,
             ruleset_group=orm.ruleset_id or "",
-            matched_rule_ids=json.loads(orm.matched_rule_ids),
+            fired_rules=json.loads(orm.fired_rules),
             actions=json.loads(orm.actions),
             trace=json.loads(orm.trace),
         )

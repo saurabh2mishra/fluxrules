@@ -154,9 +154,7 @@ class RedisDedupBackend:
             return None
         data = json.loads(raw)
         return EvaluationResult(
-            # Accept the legacy wire key so entries written by an older release
-            # survive the rename instead of silently decoding as empty.
-            candidate_rule_ids=data.get("candidate_rule_ids", data.get("matched_rule_ids", [])),
+            candidate_rule_ids=data.get("candidate_rule_ids", []),
             fired_rules=data.get("fired_rules", []),
             actions=data.get("actions", []),
             engine_type=data.get("engine_type", ""),

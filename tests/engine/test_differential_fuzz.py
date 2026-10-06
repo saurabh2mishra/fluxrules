@@ -121,7 +121,7 @@ def _streaming_fired_fresh(rules: list[Rule], facts: dict) -> list[int]:
 def _oracle_matched(rules: list[Rule], facts: dict) -> list[int]:
     ref = ReferenceEvaluator()
     ruleset = Ruleset(group="fuzz", rules=tuple(r.to_engine_rule() for r in rules))
-    return ref.evaluate(ruleset, facts).matched_rule_ids
+    return ref.evaluate(ruleset, facts).fired_rules
 
 
 def _assert_priority_major(fired: list[int], rules: list[Rule]) -> None:
@@ -240,7 +240,7 @@ def test_negation_over_absent_field_fires() -> None:
     ruleset = Ruleset(group="f1", rules=(rule.to_engine_rule(),))
 
     for facts in ({}, {"missing": 5}, {"other": 9}):
-        assert oracle.evaluate(ruleset, facts).matched_rule_ids == [1]
+        assert oracle.evaluate(ruleset, facts).fired_rules == [1]
         stateless = PhreakEngine(streaming_mode=False)
         stateless.load_rules([rule])
         assert stateless.evaluate(facts).fired_rules == [1], f"stateless missed NOT on {facts}"

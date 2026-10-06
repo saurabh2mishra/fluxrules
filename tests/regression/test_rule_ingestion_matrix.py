@@ -199,7 +199,7 @@ def _fire_reference(rule: Rule, facts: dict) -> list:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ruleset = Ruleset(group="matrix", rules=(rule.to_engine_rule(),))
-    return list(ReferenceEvaluator().evaluate(ruleset, facts).matched_rule_ids)
+    return list(ReferenceEvaluator().evaluate(ruleset, facts).fired_rules)
 
 
 ENGINES = [
@@ -296,7 +296,7 @@ class TestEmptinessNeverMatches:
         )
         result = ReferenceEvaluator().evaluate(ruleset, {"anything": 0})
 
-        assert result.matched_rule_ids == []
+        assert result.fired_rules == []
         assert result.actions == []
 
     def test_empty_group_does_not_match_by_vacuous_truth(self):

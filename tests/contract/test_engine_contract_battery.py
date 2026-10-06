@@ -28,7 +28,7 @@ from fluxrules.services.reference_evaluator import ReferenceEvaluator
 def _reference_fired(rules: list[Rule], facts: dict) -> set[int]:
     ref = ReferenceEvaluator()
     ruleset = Ruleset(group="battery", rules=tuple(r.to_engine_rule() for r in rules))
-    return set(ref.evaluate(ruleset, facts).matched_rule_ids)
+    return set(ref.evaluate(ruleset, facts).fired_rules)
 
 
 def _phreak_stateless_fired(rules: list[Rule], facts: dict) -> set[int]:

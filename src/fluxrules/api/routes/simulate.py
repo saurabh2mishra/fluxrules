@@ -21,7 +21,7 @@ def simulate_ruleset(
     return [
         EvaluateResponse(
             execution_id=result.execution_id,
-            matched_rules=result.matched_rule_ids,
+            matched_rules=result.fired_rules,
             actions=result.actions,
         )
         for result in results

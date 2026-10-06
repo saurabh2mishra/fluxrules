@@ -207,7 +207,7 @@ def test_scale_readiness_million_facts_thousand_rules() -> None:
     for _ in range(CORRECTNESS_SAMPLE):
         fact = _make_fact(sample_rng)
         phreak_fired = set(verify_engine.evaluate(fact).fired_rules)
-        reference_matched = set(reference.evaluate(ruleset, fact).matched_rule_ids)
+        reference_matched = set(reference.evaluate(ruleset, fact).fired_rules)
         assert phreak_fired == reference_matched, (
             "PHREAK and the reference evaluator disagreed on the fired-rule set"
         )

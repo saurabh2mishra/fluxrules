@@ -37,6 +37,7 @@ from fluxrules.domain.models import (
     EngineRule,
     RuleStatus,
 )
+from fluxrules.domain.unified_rule import Rule
 from fluxrules.exceptions import RuleValidationError
 from fluxrules.utils.id_generators import RuleIDGenerator
 
@@ -171,21 +172,25 @@ class RuleBuilder:
         rule_id: int | str | None = None,
         *,
         id_generator: RuleIDGenerator | None = None,
-        persist: bool = True,
+        persist: bool = False,
     ) -> None:
         """Initialize builder with rule ID.
 
         Args:
-            rule_id: Unique identifier for the rule. If ``None``, an ID
-                will be generated automatically using *id_generator* (or
-                a default Sequential generator).
-            id_generator: Optional :class:`RuleIDGenerator` instance used
-                when *rule_id* is ``None``.
-            persist: Whether to persist this rule to database (default: True).
+            rule_id: Unique identifier for the rule. If ``None``, the built
+                :class:`~fluxrules.Rule` assigns one from the same shared
+                generator every other authoring path uses, so IDs never
+                collide between built and directly-constructed rules.
+            id_generator: Optional :class:`RuleIDGenerator` to allocate the ID
+                from instead, when *rule_id* is ``None``.
+            persist: Store the built rule in the database and adopt its ID
+                (default: False, matching :class:`~fluxrules.Rule`).
         """
-        if rule_id is None:
-            if id_generator is None:
-                id_generator = RuleIDGenerator()
+        # A builder with no explicit ID defers to ``Rule``'s own generator
+        # rather than spinning up a second one. Two independent sequential
+        # generators both start at 1, so allocating here produced duplicate IDs
+        # as soon as a built rule was mixed with a directly-constructed one.
+        if rule_id is None and id_generator is not None:
             rule_id = id_generator.next_id()
         self._rule_id = rule_id
         self._id_generator = id_generator
@@ -259,10 +264,10 @@ class RuleBuilder:
         return self
 
     def persist(self, enabled: bool = True) -> RuleBuilder:
-        """Enable or disable persistence for this rule.
+        """Enable or disable persistence for the built rule.
 
         Args:
-            enabled: Whether to persist this rule to database (default: True).
+            enabled: Whether to store the built rule in the database.
 
         Returns:
             Self for chaining.
@@ -392,11 +397,16 @@ class RuleBuilder:
         self._change_request_id = request_id
         return self
 
-    def build(self) -> EngineRule:
-        """Build a basic Rule.
+    def build(self) -> Rule:
+        """Build the canonical :class:`~fluxrules.Rule`.
+
+        Returns the same public ``Rule`` type that every other authoring path
+        produces, so the result can be handed straight to
+        ``engine.load_rules()`` or :func:`fluxrules.evaluate` with no
+        conversion step.
 
         Returns:
-            Rule dataclass instance.
+            A validated :class:`~fluxrules.Rule`.
 
         Raises:
             RuleValidationError: If name or condition is missing.
@@ -406,16 +416,27 @@ class RuleBuilder:
         if self._condition_dsl is None:
             raise RuleValidationError("Rule condition is required")
 
-        return EngineRule(
+        return Rule(
             id=int(self._rule_id) if isinstance(self._rule_id, str) else self._rule_id,
             name=self._name,
+            condition_dsl=self._condition_dsl,
             actions=tuple(self._actions),
             priority=self._priority,
-            group=self._group,
+            domain=self._group or "default",
             description=self._description,
             enabled=self._enabled,
-            condition_dsl=self._condition_dsl,
+            tags=frozenset(self._tags),
+            persist=self._persist,
         )
+
+    def build_engine_rule(self) -> EngineRule:
+        """Build the internal ``EngineRule`` representation.
+
+        The escape hatch for the persistence mappers and the reference
+        evaluator, which work with parsed condition tuples. Application code
+        wants :meth:`build`.
+        """
+        return self.build().to_engine_rule(group=self._group or None)
 
     def to_dict(self) -> dict[str, Any]:
         """Build the canonical rule mapping (id, name, priority, condition_dsl, action).

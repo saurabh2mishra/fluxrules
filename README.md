@@ -59,47 +59,62 @@ The `all` extra combines the API, SQL, Redis, OpenTelemetry, YAML, CLI, and
 documentation integrations. The core install includes the dependencies needed
 for `import fluxrules`, the canonical `Rule`, and the top-level evaluation API.
 
-## Quick Use
-
----
-
 ## Your First Rule
 
 ```python
-from fluxrules.domain import Rule
-from fluxrules.engine.phreak import PhreakEngine
+from fluxrules import Rule, evaluate
 
-# Create a rule
 rule = Rule(
     name="high_value_transaction",
-    domain="test",
-    condition_dsl={
-        "type": "condition",
-        "field": "amount",
-        "op": ">",
-        "value": 5000,
-    },
+    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="manual_review",
-    priority=100,
 )
 
-# Create an engine and load the rule
-engine = PhreakEngine()
-engine.load_rules([rule])
+result = evaluate(rule, {"amount": 6000})
 
-# Evaluate a fact
-fact = {"amount": 6000}
-result = engine.evaluate(fact)
-
-print(f"Matched rules: {result.fired_rules}")
+print(f"Fired rules: {result.fired_rules}")
 print(f"Actions: {result.actions}")
 ```
 
 **Output:**
 ```
-Matched rules: [1]
+Fired rules: [1]
 Actions: ['manual_review']
 ```
+
+Constructing a `Rule` does no I/O and `evaluate()` takes rules directly, so
+there is nothing to configure to get an answer. `evaluate()` also accepts a list
+of rules, or a named `Ruleset`.
+
+Every evaluation path returns the same `EvaluationResult`, whose `fired_rules`
+is the list of rules that matched.
+
+## Using the engine directly
+
+Load rules once and evaluate many facts against them. This is the path to reach
+for in a service, and it exposes the engine's diagnostics.
+
+```python
+from fluxrules import PhreakEngine, Rule
+
+rule = Rule(
+    name="high_value_transaction",
+    domain="payments",
+    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    action="manual_review",
+    priority=100,
+)
+
+engine = PhreakEngine()
+engine.load_rules([rule])
+
+for fact in ({"amount": 6000}, {"amount": 10}):
+    result = engine.evaluate(fact)
+    print(fact, "->", result.fired_rules, result.actions)
+```
+
+To persist a rule, call `rule.save()`, or pass `persist=True` when constructing
+it. See the [persistence guide](docs/persistence.md).
 
 ## API Server (Optional)
 

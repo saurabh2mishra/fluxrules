@@ -42,8 +42,9 @@ print(rule.id)  # 999
 
 ## ID persistence
 
-- **`persist=True`** — ID from database auto-increment
-- **`persist=False`** — In-memory auto-increment per Rule instance
+- **`persist=False`** (default) — In-memory auto-increment per Rule instance
+- **`persist=True`** — ID from database auto-increment. `Rule.save()` does the
+  same thing for a rule that already exists in memory.
 
 When you persist rules to the database, the database assigns final IDs:
 

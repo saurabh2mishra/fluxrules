@@ -183,8 +183,54 @@ class Ruleset:
 
 @dataclass(slots=True)
 class EvaluationResult:
-    ruleset_group: str
-    matched_rule_ids: list[int]
-    actions: list[str]
+    """The single result type for every FluxRules evaluation path.
+
+    One type is returned by the top-level :func:`fluxrules.evaluate`, by
+    :meth:`BaseEngine.evaluate <fluxrules.engine.base.BaseEngine.evaluate>`, and
+    by the reference evaluator, so a caller never has to ask which shape it
+    received. ``fluxrules.engine.infrastructure.EvaluationResult`` is a re-export
+    of this class, not a second one.
+
+    ``fired_rules`` is the answer to "what matched". It is the only field that
+    ever means that; there is deliberately no ``matched_rule_ids``, because that
+    name previously meant *fired* on one result type and *considered* on the
+    other.
+
+    Attributes:
+        fired_rules: IDs of the rules that actually matched, highest priority
+            first. This is the result.
+        actions: Actions collected from every fired rule, in fire order.
+        ruleset_group: The evaluated ruleset's group name. Set by the service
+            layer; ``""`` when an engine is driven directly.
+        trace: Per-rule evaluation trace. Populated by the reference evaluator.
+        execution_id: Correlation ID for this evaluation, used to look the
+            result back up via :func:`fluxrules.explain`.
+        candidate_rule_ids: IDs the engine's discovery prefilter *considered*,
+            before conditions were fully evaluated. Always a superset of
+            ``fired_rules`` and never a statement about matching. Empty on
+            paths that evaluate every rule linearly.
+        rules_by_domain: Fired rule IDs grouped by their ``domain``.
+        rules_by_tag: Fired rule IDs grouped by tag.
+        fired_segments: Segment IDs touched during evaluation.
+        latency_ms: Measured evaluation latency in milliseconds.
+        engine_type: Name of the concrete engine class that produced this.
+        explanations: Per-rule human-readable reason a rule fired.
+    """
+
+    # The result. What matched.
+    fired_rules: list[int] = field(default_factory=list)
+    actions: list[str] = field(default_factory=list)
+
+    # Execution record, written by the service layer.
+    ruleset_group: str = ""
     trace: list[dict[str, Any]] = field(default_factory=list)
     execution_id: str = field(default_factory=lambda: str(uuid4()))
+
+    # Engine diagnostics. Left empty by non-engine evaluation paths.
+    candidate_rule_ids: list[int] = field(default_factory=list)
+    rules_by_domain: dict[str, list[int]] = field(default_factory=dict)
+    rules_by_tag: dict[str, list[int]] = field(default_factory=dict)
+    fired_segments: list[str] = field(default_factory=list)
+    latency_ms: float = 0.0
+    engine_type: str = ""
+    explanations: dict[int, str] = field(default_factory=dict)

@@ -35,7 +35,7 @@ def evaluate_ruleset(request: EvaluateRequest) -> EvaluateResponse:
         _service.execution_store.save(result)
         return EvaluateResponse(
             execution_id=result.execution_id,
-            matched_rules=result.matched_rule_ids,
+            matched_rules=result.fired_rules,
             actions=result.actions,
         )
     except Exception as exc:

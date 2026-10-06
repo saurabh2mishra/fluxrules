@@ -17,7 +17,7 @@ def test_reference_evaluator_matches_rule_and_actions() -> None:
         ),
     )
     result = ReferenceEvaluator().evaluate(ruleset, {"age": 30})
-    assert result.matched_rule_ids == [1]
+    assert result.fired_rules == [1]
     assert result.actions == ["allow"]
 
 
@@ -41,5 +41,5 @@ def test_reference_evaluator_accepts_canonical_rule() -> None:
         ),
     )
     result = ReferenceEvaluator().evaluate(ruleset, {"age": 30})
-    assert result.matched_rule_ids == [7]
+    assert result.fired_rules == [7]
     assert result.actions == ["allow"]

@@ -35,7 +35,7 @@ print(f"Rule created: {rule.name} (ID: {rule.id})")
 | `condition_dsl` | `dict` | Yes | Rule logic (DSL format) |
 | `action` | `str \| tuple[str, ...]` | No | Action when rule fires |
 | `priority` | `int` | No | Evaluation priority (higher first) |
-| `persist` | `bool` | No | Store in database (default: True) |
+| `persist` | `bool` | No | Store in database (default: False) |
 
 ## Load rules
 

@@ -4,85 +4,144 @@
 
 ---
 
-The `RuleBuilder` class provides a fluent API for constructing rules step-by-step without manually building DSL dictionaries.
+`RuleBuilder` is a fluent API for constructing rules step by step. It validates
+as you go and `build()` returns the same canonical `Rule` every other authoring
+path produces, so the result goes straight into an engine with no conversion.
 
 ## Basic usage
 
 ```python
-# python skip
-from fluxrules import Rule
-from fluxrules.engine.phreak import PhreakEngine
+from fluxrules import PhreakEngine, RuleBuilder
 
-# Define a rule with all parameters
-rule = Rule(
-    name="high_value_transaction",
-    domain="fraud_detection",
-    tags=frozenset(["tier_1", "manual_review"]),
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
-    action="require_approval",
-    priority=10,
-    persist=False
+rule = (
+    RuleBuilder()
+    .name("high_value_transaction")
+    .group("fraud_detection")
+    .tag("tier_1", "manual_review")
+    .priority(10)
+    .condition({"type": "condition", "field": "amount", "op": ">", "value": 5000})
+    .action("require_approval")
+    .build()
 )
 
 engine = PhreakEngine()
 engine.load_rules([rule])
 result = engine.evaluate({"amount": 7500})
+print(f"Fired: {result.fired_rules}")
+```
+
+`build()` returns a `Rule`, so it also works with the top-level `evaluate()`:
+
+```python
+from fluxrules import RuleBuilder, evaluate
+
+rule = (
+    RuleBuilder()
+    .name("adult")
+    .condition({"type": "condition", "field": "age", "op": ">=", "value": 18})
+    .action("allow")
+    .build()
+)
+
+print(evaluate(rule, {"age": 30}).fired_rules)
 ```
 
 ## Fluent API
 
 | Method | Purpose | Returns |
 |--------|---------|---------|
-| `.name(str)` | Set rule name | Builder |
-| `.domain(str)` | Set domain | Builder |
-| `.tags(list)` | Set tags | Builder |
-| `.condition_dsl(dict)` | Set condition DSL | Builder |
-| `.action(str \| tuple)` | Set action(s) | Builder |
-| `.priority(int)` | Set priority | Builder |
-| `.persist(bool)` | Set persistence flag | Builder |
-| `.build()` | Create Rule | Rule |
+| `.name(str)` | Set rule name (required) | Builder |
+| `.condition(dict)` | Set condition DSL, parsed and validated now (required) | Builder |
+| `.action(str)` | Append an action; call repeatedly for several | Builder |
+| `.priority(int)` | Set priority, higher evaluates first | Builder |
+| `.group(str)` | Set the group/domain | Builder |
+| `.description(str)` | Set a human-readable description | Builder |
+| `.tag(*str)` | Add tags | Builder |
+| `.enabled(bool)` | Set the enabled flag | Builder |
+| `.persist(bool)` | Store the built rule in the database | Builder |
+| `.status(RuleStatus)` | Set lifecycle status | Builder |
+| `.created_by(str)` | Record the author | Builder |
+| `.build()` | Create the rule | `Rule` |
+| `.build_engine_rule()` | Create the internal representation | `EngineRule` |
+| `.to_dict()` | Create the canonical rule mapping | `dict` |
+
+`RuleBuilder()` generates an ID automatically; pass one explicitly with
+`RuleBuilder(42)` when you need a specific ID.
+
+## Multiple actions
+
+Call `.action()` once per action. They fire in the order added.
+
+```python
+from fluxrules import RuleBuilder, evaluate
+
+rule = (
+    RuleBuilder()
+    .name("escalate")
+    .condition({"type": "condition", "field": "risk", "op": ">", "value": 90})
+    .action("notify_compliance")
+    .action("freeze_account")
+    .build()
+)
+
+result = evaluate(rule, {"risk": 95})
+print(result.actions)
+```
 
 ## Building complex conditions
 
-```python
-from fluxrules import Rule
-from fluxrules.engine.phreak import PhreakEngine
+`ConditionBuilder` assembles nested boolean logic without writing DSL dicts by
+hand.
 
-# Build complex conditions with nested groups
-rule = Rule(
-    name="complex_rule",
-    condition_dsl={
-        "type": "group",
-        "op": "AND",
-        "children": [
-            {"type": "condition", "field": "amount", "op": ">", "value": 5000},
-            {"type": "condition", "field": "country", "op": "in", "value": ["NG", "GH"]},
-        ]
-    },
-    action="review"
-)
+```python
+from fluxrules import ConditionBuilder, PhreakEngine, RuleBuilder
+
+cb = ConditionBuilder()
+dsl = cb.and_group(
+    {"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    {"type": "condition", "field": "country", "op": "in", "value": ["NG", "GH"]},
+).build()
+
+rule = RuleBuilder().name("complex_rule").condition(dsl).action("review").build()
 
 engine = PhreakEngine()
 engine.load_rules([rule])
-result = engine.evaluate({"amount": 6000, "country": "NG"})
-print(f"Fired: {result.fired_rules}")
+print(f"Fired: {engine.evaluate({'amount': 6000, 'country': 'NG'}).fired_rules}")
 ```
+
+Use `.or_group(...)` the same way for disjunctions, and nest the dicts it
+returns to build deeper trees.
 
 ## Validation
 
-The builder validates the final rule:
+The builder fails at the point of the mistake rather than at evaluation time.
+`.condition()` parses the DSL immediately, and `.build()` enforces that the
+required fields are present.
+
+```python
+from fluxrules import RuleBuilder
+from fluxrules.exceptions import RuleValidationError
+
+try:
+    RuleBuilder().condition(
+        {"type": "condition", "field": "x", "op": ">", "value": 1}
+    ).build()
+except RuleValidationError as e:
+    print(f"Invalid rule: {e}")
+```
+
+## Persistence
+
+Building a rule performs no I/O. Pass `.persist(True)` to store it as it is
+built, or call `Rule.save()` later:
 
 ```python
 # python skip
-# Demonstration of validation - python skip for demo
-try:
-    rule = Rule(
-        # Missing required fields will raise during creation
-        name="test"
-        .build()
-    )
-except ValueError as e:
-    print(f"Invalid rule: {e}")
+rule = RuleBuilder().name("r").condition(dsl).action("a").persist(True).build()
+
+# equivalently, decide after the fact:
+rule = RuleBuilder().name("r").condition(dsl).action("a").build()
+rule.save()
 ```
 
 ---

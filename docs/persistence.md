@@ -34,10 +34,29 @@ print(f"Matched rules: {result.fired_rules}")
 
 ## Persist flag
 
-Every rule has a `persist` flag (default: `True`):
+Every rule has a `persist` flag (default: `False`):
 
-- **`persist=True`** — Rule is stored in the database
-- **`persist=False`** — Rule is in-memory only (for testing, temporary rules)
+- **`persist=False`** (default) — Constructing the rule does no I/O. The rule is
+  in-memory only and gets a locally generated ID.
+- **`persist=True`** — The rule is written to the database during construction
+  and adopts the database-assigned ID.
+
+Constructing a `Rule` is a pure operation by default, so importing a module that
+defines rules never opens a database connection. To store a rule you built
+in memory, call `Rule.save()`:
+
+```python
+rule = Rule(
+    name="production_rule",
+    condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 10},
+    action="act",
+)
+rule.save()  # now in the database, rule.id is the stored ID
+```
+
+`save()` is an insert, not an upsert: calling it twice stores the rule twice
+and does not update an existing row. Use the repository or service layer when
+you need update semantics.
 
 ```python
 # Persisted rule (stored in database)
