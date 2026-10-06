@@ -56,10 +56,13 @@ _CASES = [
     ("coerce_true_on", "==", "true", True, {"boolean_string_coercion": True}, True),
     ("coerce_true_off", "==", "true", True, {}, False),
     ("coerce_false_on", "==", "false", False, {"boolean_string_coercion": True}, True),
-    # Regex on strings and non-strings
+    # Regex on strings and non-strings (re.search semantics: pattern may match anywhere)
     ("regex_match", "regex", "hello", "h.*o", {}, True),
     ("regex_no_match", "regex", "world", "h.*o", {}, False),
     ("regex_on_int", "regex", 12345, "12.*", {}, True),
+    # partial match: pattern does NOT start at position 0 → must still match (re.search)
+    ("regex_partial_match", "regex", "hello_world", "world", {}, True),
+    ("regex_partial_digits", "regex", "abc1234def", r"\d{4}", {}, True),
     # starts_with / ends_with, incl. non-string coercion
     ("starts_with_str", "starts_with", "hello", "he", {}, True),
     ("ends_with_str", "ends_with", "hello", "lo", {}, True),

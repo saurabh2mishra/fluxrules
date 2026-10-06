@@ -11,7 +11,7 @@ class RuleMetrics:
 
 
 class MetricsCollector:
-    def __init__(self):
+    def __init__(self) -> None:
         self._metrics: dict[str, RuleMetrics] = {}
 
     def record_hit(self, rule_id: str, execution_time_ms: float) -> None:

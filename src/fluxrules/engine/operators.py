@@ -162,7 +162,14 @@ def evaluate_operator(
         if op == "ends_with":
             return str(left).endswith(str(right))
         if op == "regex":
-            return bool(re.match(str(right), str(left)))
+            return bool(re.search(str(right), str(left)))
         return False
     except Exception:
+        logger.debug(
+            "evaluate_operator raised unexpectedly: op=%r left=%r right=%r",
+            op,
+            event_value,
+            rule_value,
+            exc_info=True,
+        )
         return False

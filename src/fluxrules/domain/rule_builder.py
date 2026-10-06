@@ -28,7 +28,7 @@ Usage:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fluxrules.domain.dsl.parser import DSLParser
@@ -369,7 +369,7 @@ class RuleBuilder:
             Self for chaining.
         """
         self._approved_by = user_id
-        self._approval_date = approval_date or datetime.utcnow()
+        self._approval_date = approval_date or datetime.now(timezone.utc)
         self._status = RuleStatus.ACTIVE
         return self
 

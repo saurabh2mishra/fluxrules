@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -116,7 +116,7 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
             elif hasattr(orm_rule, key):
                 setattr(orm_rule, key, value)
 
-        orm_rule.updated_at = datetime.utcnow()
+        orm_rule.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(orm_rule)
         return orm_rule_to_domain(orm_rule)

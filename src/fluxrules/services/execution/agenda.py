@@ -16,7 +16,7 @@ class Activation:
 class Agenda:
     """Priority queue for activations: priority > recency > specificity."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._heap: list[tuple[int, int, int, Activation]] = []
 
     def push(self, activation: Activation) -> None:
