@@ -162,13 +162,8 @@ uv's revision-2 format. If the check reports an older or missing uv, install it
 through the project package index:
 
 ```bash
-python -m pip install \
-    --index-url https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/simple/ \
-    'uv>=0.8'
+python -m pip install 'uv>=0.8'
 ```
-
-The index URL is used only for the uv installation command; it is deliberately
-not part of `pyproject.toml`, `uv.lock`, or project dependency resolution.
 
 Common commands:
 

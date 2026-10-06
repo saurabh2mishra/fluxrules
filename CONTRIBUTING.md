@@ -20,17 +20,11 @@ command:
 python scripts/check_uv.py
 ```
 
-If uv is missing or older than 0.8.0, install or upgrade it through the
-project package index, then rerun the check:
+If uv is missing or older than 0.8.0, install or upgrade it, then rerun the check:
 
 ```bash
-python -m pip install \
-  --index-url https://p-nexus-3.development.nl.eu.abnamro.com:8443/repository/python-group/simple/ \
-  'uv>=0.8'
+python -m pip install 'uv>=0.8'
 ```
-
-The Nexus index is used only for installing uv. It is not configured in
-`pyproject.toml`, `uv.lock`, or the dependency-resolution settings.
 
 ### Install
 
