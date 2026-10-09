@@ -47,49 +47,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           for artifact in dist/*.tar.gz dist/*.whl; do
             venv_dir=".artifact-venv-$(basename "$artifact" | tr -cs '[:alnum:]' '_')"
             python -m venv "$venv_dir"
             . "$venv_dir/bin/activate"
-            python -m pip install --upgrade pip >/dev/null
-            python -m pip install --force-reinstall "$artifact" >/dev/null
-            python - <<'PY'
-import importlib.resources
-
-from fluxrules import PhreakEngine, Rule, RuleBuilder, __version__, evaluate
-
-# The documented quickstart, exactly as the README prints it.
-rule = Rule(
-    name="adult",
-    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
-    action="allow",
-)
-result = evaluate(rule, {"age": 30})
-assert result.fired_rules == [rule.id], result.fired_rules
-assert result.actions == ["allow"], result.actions
-
-# A list of rules and a built rule go in just as directly.
-built = (
-    RuleBuilder()
-    .name("adult_built")
-    .condition({"type": "condition", "field": "age", "op": ">=", "value": 18})
-    .action("allow")
-    .build()
-)
-assert isinstance(built, Rule), type(built)
-assert evaluate([rule, built], {"age": 30}).actions == ["allow", "allow"]
-
-# The engine path returns the same type under the same field name.
-engine = PhreakEngine()
-engine.load_rules([rule])
-assert engine.evaluate({"age": 30}).fired_rules == [rule.id]
-
-# The shipped wheel must carry its typing marker.
-assert importlib.resources.files("fluxrules").joinpath("py.typed").is_file()
-
-print(f"artifact smoke ok: fluxrules {__version__} -> {result.actions}")
-PY
+            python -m pip install --upgrade pip --quiet
+            python -m pip install --force-reinstall "$artifact" --quiet
+            python scripts/artifact_smoke_test.py
             deactivate
             rm -rf "$venv_dir"
           done

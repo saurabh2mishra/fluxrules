@@ -103,6 +103,9 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Download dist artifacts
         uses: actions/download-artifact@v4
         with:
@@ -124,36 +127,7 @@ jobs:
             . "$venv_dir/bin/activate"
             pip install --upgrade pip --quiet
             pip install --force-reinstall "$artifact" --quiet
-            python - <<'PY'
-import importlib.resources
-from fluxrules import PhreakEngine, Rule, RuleBuilder, __version__, evaluate
-
-rule = Rule(
-    name="adult",
-    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
-    action="allow",
-)
-result = evaluate(rule, {"age": 30})
-assert result.fired_rules == [rule.id], result.fired_rules
-assert result.actions == ["allow"], result.actions
-
-built = (
-    RuleBuilder()
-    .name("adult_built")
-    .condition({"type": "condition", "field": "age", "op": ">=", "value": 18})
-    .action("allow")
-    .build()
-)
-assert isinstance(built, Rule), type(built)
-assert evaluate([rule, built], {"age": 30}).actions == ["allow", "allow"]
-
-engine = PhreakEngine()
-engine.load_rules([rule])
-assert engine.evaluate({"age": 30}).fired_rules == [rule.id]
-
-assert importlib.resources.files("fluxrules").joinpath("py.typed").is_file()
-print(f"SMOKE PASS: fluxrules {__version__} -> {result.actions}")
-PY
+            python scripts/artifact_smoke_test.py
             deactivate
             rm -rf "$venv_dir"
           done
