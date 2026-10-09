@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "fluxrules"
 version = "0.1.0"
-description = "Backend-first rules engine library with optional API adapters"
+description = "A light-weight Business Rule Engine"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
