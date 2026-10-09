@@ -13,10 +13,30 @@ authors = [
   { name = "Saurabh Mishra", email = "saurabh2.mishra@gmail.com" },
   { name = "FluxRules Contributors" },
 ]
+keywords = ["rules-engine", "rule-evaluation", "business-rules", "phreak", "inference"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
 # The core import chain (fluxrules.domain.unified_rule) requires pydantic.
 # SQLAlchemy is NOT required at core import - it is lazily loaded by the
 # optional persistence/prefilter paths (see the `sql` extra).
 dependencies = ["pydantic>=2.8"]
+
+[project.urls]
+Homepage = "https://saurabh2mishra.github.io/fluxrules/"
+Repository = "https://github.com/saurabh2mishra/fluxrules"
+Documentation = "https://saurabh2mishra.github.io/fluxrules/"
+Changelog = "https://github.com/saurabh2mishra/fluxrules/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/saurabh2mishra/fluxrules/issues"
 
 [project.scripts]
 fluxrules = "fluxrules.cli.main:app"
