@@ -124,8 +124,6 @@ fluxrules --help
 
 [Documentation](https://saurabh2mishra.github.io/fluxrules/)
 
-```
-
 ## Contributing
 
 [CONTRIBUTING](CONTRIBUTING.md) & [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
