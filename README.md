@@ -5,16 +5,16 @@
 
 # FluxRules
 
-FluxRules is a Python library for authoring rules and evaluating them against facts. It is loosely based on the concepts from Drools’ Phreak engine and provides optional FastAPI endpoints.
+FluxRules is a Python library for authoring rules and evaluating them against facts. It is loosely based on the concepts from Drools’ Phreak engine.
 
-Use FluxRules to keep decision logic separate from application control flow and evaluate rules consistently across tests, services, and APIs.
+Use FluxRules to keep decision logic separate from application flow and evaluate rules consistently across facts.
 
 ## Core Capabilities
 
 - Evaluate a ruleset against facts using the top-level Python API.
 - Run rule evaluation through FluxRules’ Phreak engine in stateless or streaming mode.
 - Validate rulesets before evaluation.
-- Retrieve evaluation explanations by execution ID.
+- Retrieve evaluation explanations
 - Use optional HTTP endpoints for evaluation, validation, explanations, and health checks.
 
 ## Requirements
@@ -52,12 +52,7 @@ uv sync --extra docs
 uv sync --extra all
 ```
 
-For a published package, use `uv pip install 'fluxrules[api]'` (replace `api`
-with the extra you need). Pip is also supported; see the
-[installation guide](docs/installation.md) for its virtual-environment commands.
-The `all` extra combines the API, SQL, Redis, OpenTelemetry, YAML, CLI, and
-documentation integrations. The core install includes the dependencies needed
-for `import fluxrules`, the canonical `Rule`, and the top-level evaluation API.
+For more details see the [installation guide](docs/installation.md).
 
 ## Your First Rule
 
@@ -86,13 +81,7 @@ Constructing a `Rule` does no I/O and `evaluate()` takes rules directly, so
 there is nothing to configure to get an answer. `evaluate()` also accepts a list
 of rules, or a named `Ruleset`.
 
-Every evaluation path returns the same `EvaluationResult`, whose `fired_rules`
-is the list of rules that matched.
-
 ## Using the engine directly
-
-Load rules once and evaluate many facts against them. This is the path to reach
-for in a service, and it exposes the engine's diagnostics.
 
 ```python
 from fluxrules import PhreakEngine, Rule
@@ -122,17 +111,7 @@ it. See the [persistence guide](docs/persistence.md).
 uv sync --extra api
 uvicorn fluxrules.api.app:create_app --factory --reload
 ```
-
-Core always-on routes include:
-
-- `GET /health`
-- `GET /v1/health`
-- `POST /evaluate`
-- `POST /validate`
-- `GET /v1/executions/{execution_id}`
-- `POST /v1/rulesets/{ruleset_id}/simulate`
-
-Additional routers are loaded when optional dependencies are available.
+see [[API](api.md)] for more detail.
 
 ## CLI (Optional)
 
@@ -143,24 +122,18 @@ fluxrules --help
 
 ## Documentation
 
-- Docs index: [docs/index.md](docs/index.md)
-- MkDocs config: [mkdocs.yml](mkdocs.yml)
+[Documentation](https://saurabh2mishra.github.io/fluxrules/)
 
-Local docs preview:
-
-```bash
-uv sync --extra dev
-uv run mkdocs serve
 ```
 
 ## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md) and [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md).
+[CONTRIBUTING](CONTRIBUTING.md) & [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
 
 ## Security
 
-See [SECURITY](SECURITY.md).
+[SECURITY](SECURITY.md)
 
 ## License
 
-See [LICENSE](LICENSE).
+[LICENSE](LICENSE)
