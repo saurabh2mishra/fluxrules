@@ -29,7 +29,7 @@ python -m pip install 'uv>=0.8'
 ### Install
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 unset VIRTUAL_ENV
 python scripts/check_uv.py
@@ -62,6 +62,33 @@ Run coverage:
 ```bash
 uv run pytest tests/ --cov=src/fluxrules --cov-report=term-missing
 ```
+
+## Contributing a Change
+
+All changes land through pull requests. The `main` branch does not accept direct
+pushes from contributors — only the project maintainer can merge or commit to it.
+
+**Workflow:**
+
+```bash
+# 1. Fork the repo (first-time contributors) or sync your fork
+git checkout main && git pull origin main
+
+# 2. Create a feature branch — never commit directly to main
+git checkout -b feature/my-change
+
+# 3. Make changes, then verify locally before pushing
+make lint
+make type-check
+make test
+
+# 4. Push your branch and open a pull request
+git push origin feature/my-change
+# → open a PR on GitHub targeting main
+```
+
+The PR must pass all CI checks and receive an approving review from the
+maintainer before it can be merged.
 
 ## Pull Requests
 
