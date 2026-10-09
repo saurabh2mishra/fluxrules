@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PY_VERSION="$(grep -m1 '__version__' src/fluxrules/version.py | sed 's/.*"\(.*\)".*/\1/')"
+          PY_VERSION="$(grep -m1 '^__version__' src/fluxrules/version.py | sed 's/.*"\(.*\)".*/\1/')"
           PKG_VERSION="$(python3 -c "
           import tomllib, pathlib
           print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])
