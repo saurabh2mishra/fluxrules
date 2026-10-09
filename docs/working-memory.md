@@ -142,4 +142,4 @@ The snapshot includes facts, session ID, timestamp, and optional metadata. Use t
 
 - **Multi-fact correlation** - See [Cross-Fact Rules](cross-fact-rules.md) for the `CrossFactEngine`
 - **Sessions in production** - See [Sessions](sessions.md) for session lifecycle and lifecycle management
-- **Streaming mode** - See example [23_streaming_vs_stateless.py](https://github.com/fluxrules/fluxrules/blob/main/examples/23_streaming_vs_stateless.py) for delta behavior
+- **Streaming mode** - See example [23_streaming_vs_stateless.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/23_streaming_vs_stateless.py) for delta behavior

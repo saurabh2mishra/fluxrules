@@ -29,7 +29,7 @@ unset VIRTUAL_ENV
 ```
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 
 # Recommended: creates .venv, installs the dev + docs extras

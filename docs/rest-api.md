@@ -219,4 +219,4 @@ Common error codes:
 ## Next Steps
 
 - **API Overview** - See [API](api.md) for quick start
-- **Example** - See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for working client code
+- **Example** - See [Example 12: API Usage](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/12_api_usage.py) for working client code

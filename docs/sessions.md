@@ -120,5 +120,5 @@ Use sessions to evaluate the same ruleset independently for different users, tra
 ## Next Steps
 
 - **Working Memory** - See [Working Memory](working-memory.md) for fact store details
-- **Example** - See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for session patterns in HTTP services
+- **Example** - See [Example 12: API Usage](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/12_api_usage.py) for session patterns in HTTP services
 - **Persistence** - See [Persistence](persistence.md) for database integration

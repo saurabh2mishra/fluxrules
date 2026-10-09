@@ -111,5 +111,5 @@ for normalized_fact in loader:
 ## Next Steps
 
 - **Custom Transforms** - See [Custom Transforms](custom-transforms.md) for building domain-specific transforms
-- **Example** - See [Example 27: FactPipeline](https://github.com/fluxrules/fluxrules/blob/main/examples/27_factpipeline.py) for complete example
+- **Example** - See [Example 27: FactPipeline](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/27_factpipeline.py) for complete example
 - **Fact Store** - See [Persistence](persistence.md) for storing enriched facts

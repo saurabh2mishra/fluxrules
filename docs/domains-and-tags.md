@@ -146,7 +146,7 @@ triage_for_hard_block: domain=compliance, tags=frozenset({'tier_2', 'block', 'ge
 triage_for_step_up_auth: domain=risk_ops, tags=frozenset({'tier_1', 'step_up', 'identity'})
 ```
 
-See [Example 03: Domains and Tags](https://github.com/fluxrules/fluxrules/blob/main/examples/03_domains_and_tags.py) for complete working code.
+See [Example 03: Domains and Tags](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/03_domains_and_tags.py) for complete working code.
 
 ---
 
@@ -283,4 +283,4 @@ print(f"Matched: {result.fired_rules}")
 
 - **[Complex Conditions](complex-conditions.md)** - AND/OR/NOT boolean logic for rules
 - **[Custom Actions](custom-actions.md)** - Execute custom code when rules match
-- **[Examples 03](https://github.com/fluxrules/fluxrules/blob/main/examples/03_domains_and_tags.py)** - Working code example
+- **[Examples 03](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/03_domains_and_tags.py)** - Working code example

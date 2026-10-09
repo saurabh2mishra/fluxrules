@@ -176,9 +176,9 @@ nested_condition = {
 validate_dsl(nested_condition)  # ✅ Passes
 ```
 
-See [Example 04: Validation](https://github.com/fluxrules/fluxrules/blob/main/examples/04_validation.py) for complete working code.
+See [Example 04: Validation](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py) for complete working code.
 
-For error handling with validation, see [Example 14: Error Handling](https://github.com/fluxrules/fluxrules/blob/main/examples/14_error_handling.py).
+For error handling with validation, see [Example 14: Error Handling](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/14_error_handling.py).
 
 ---
 
@@ -270,5 +270,5 @@ For advanced validation, use manual review or rule analysis tools (see [Rule Ana
 
 - **[Complex Conditions](complex-conditions.md)** - Nested AND/OR/NOT logic
 - **[Conditions Reference](conditions.md)** - All operators explained
-- **[Error Handling](https://github.com/fluxrules/fluxrules/blob/main/examples/14_error_handling.py)** - Catch validation errors in code
+- **[Error Handling](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/14_error_handling.py)** - Catch validation errors in code
 - **[Examples 04 & 14](examples.md)** - Working validation examples

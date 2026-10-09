@@ -12,7 +12,7 @@ This page helps you run FluxRules locally in a few minutes.
 The recommended setup is to use uv for dependency management and a local virtual environment:
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 uv sync --extra dev
 ```
@@ -24,7 +24,7 @@ This creates the project environment and installs the package plus the developer
 If you prefer pip, the project also installs normally with a standard virtual environment:
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 python -m venv .venv
 source .venv/bin/activate

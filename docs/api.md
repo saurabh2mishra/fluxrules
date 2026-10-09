@@ -125,5 +125,5 @@ All endpoints are under `/api/v1` for stability. Breaking changes will use `/api
 ## Next Steps
 
 - **REST API Detailed** - See [REST API](rest-api.md) for full endpoint reference
-- **Example** - See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for working client code
+- **Example** - See [Example 12: API Usage](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/12_api_usage.py) for working client code
 - **Deployment** - See [Deployment](deployment.md) for production setup

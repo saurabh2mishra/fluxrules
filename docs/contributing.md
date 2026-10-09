@@ -26,7 +26,7 @@ Be respectful, inclusive, and constructive in all interactions.
 
 ```bash
 # Clone repository
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 
 # Install with dev extras
