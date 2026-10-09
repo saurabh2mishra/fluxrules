@@ -141,38 +141,6 @@ uv sync --extra cli
 fluxrules --help
 ```
 
-## Development
-
-This repository uses the root `.venv` environment. If `VIRTUAL_ENV` points to
-another environment, clear it before running `uv` commands so uv selects the
-project environment:
-
-```bash
-unset VIRTUAL_ENV
-```
-
-```bash
-python scripts/check_uv.py
-uv sync --extra dev
-uv run pytest tests/ -v
-```
-
-FluxRules requires **uv 0.8.0 or newer** because the committed lockfile uses
-uv's revision-2 format. If the check reports an older or missing uv, install it
-through the project package index:
-
-```bash
-python -m pip install 'uv>=0.8'
-```
-
-Common commands:
-
-- `make lint`
-- `make type-check`
-- `make test`
-- `make docs`
-- `make build` (build the sdist and wheel with the locked developer toolchain)
-
 ## Documentation
 
 - Docs index: [docs/index.md](docs/index.md)
@@ -195,4 +163,4 @@ See [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+See [LICENSE](LICENSE).

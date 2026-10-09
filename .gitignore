@@ -70,6 +70,5 @@ rule_engine.db-shm
 # Optional generated docs/assets
 mkdocs_material/
 
-# Claude Code — project-level config (.claude/agents/, settings.json) is committed.
-# Only exclude the local-override settings file which may contain personal tokens.
-.claude/settings.local.json
+# Claude Code — keep local only, do not publish to remote.
+.claude/
