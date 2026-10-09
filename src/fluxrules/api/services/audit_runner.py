@@ -7,7 +7,7 @@ import hmac
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -98,7 +98,7 @@ class AuditRunner:
                 overall_status = "error"
 
         duration = round(time.monotonic() - start, 4)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
 
         summary_parts = [f"{len(checks)} checks executed in {duration:.2f}s"]
         if integrity_violations:

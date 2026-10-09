@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -49,7 +49,7 @@ def compute_next_run(cron_expr: str, after: datetime | None = None) -> datetime:
     weekdays = _parse_cron_field(fields[4], 0, 6)
 
     if after is None:
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc).replace(tzinfo=None)
     candidate = after.replace(second=0, microsecond=0) + timedelta(minutes=1)
 
     limit = after + timedelta(days=366)
@@ -86,7 +86,7 @@ def _scheduler_loop() -> None:
 def _process_due_policies() -> None:
     db: Session = SessionLocal()
     try:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         due: list[AuditPolicy] = (
             db.query(AuditPolicy)
             .filter(

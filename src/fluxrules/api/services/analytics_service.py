@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -44,7 +44,7 @@ class AnalyticsService:
         event_payload: dict[str, Any],
         explanation: str | None = None,
     ) -> None:
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
         self.store.increment_rule(str(rule_id), execution_time_ms, timestamp)
         self._collector.record_hit(str(rule_id), execution_time_ms)
         if explanation:

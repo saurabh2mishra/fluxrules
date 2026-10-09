@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import (
@@ -39,9 +39,13 @@ class Rule(Base):
     rule_metadata: Mapped[Any] = mapped_column(JSON, nullable=True)
     evaluation_mode: Mapped[str | None] = mapped_column(String, nullable=True, default="stateless")
     current_version: Mapped[int] = mapped_column(Integer, default=1)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
     )
     created_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
 
@@ -65,7 +69,9 @@ class RuleVersion(Base):
     condition_dsl: Mapped[str] = mapped_column(Text, nullable=False)
     action: Mapped[str] = mapped_column(Text, nullable=False)
     rule_metadata: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
     created_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
 
     rule: Mapped["Rule"] = relationship("Rule", back_populates="versions")
