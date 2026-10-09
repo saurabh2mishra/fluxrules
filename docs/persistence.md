@@ -6,9 +6,9 @@
 
 FluxRules rules can be persisted to a database. Use persistence when you need to:
 
-1. **Store rules permanently** — survive application restarts
-2. **Share rules across instances** — load the same ruleset in multiple processes
-3. **Audit trail** — track rule evaluation for compliance
+1. **Store rules permanently** - survive application restarts
+2. **Share rules across instances** - load the same ruleset in multiple processes
+3. **Audit trail** - track rule evaluation for compliance
 
 ## Quick start: Store and load rules
 
@@ -36,9 +36,9 @@ print(f"Matched rules: {result.fired_rules}")
 
 Every rule has a `persist` flag (default: `False`):
 
-- **`persist=False`** (default) — Constructing the rule does no I/O. The rule is
+- **`persist=False`** (default) - Constructing the rule does no I/O. The rule is
   in-memory only and gets a locally generated ID.
-- **`persist=True`** — The rule is written to the database during construction
+- **`persist=True`** - The rule is written to the database during construction
   and adopts the database-assigned ID.
 
 Constructing a `Rule` is a pure operation by default, so importing a module that
@@ -145,6 +145,6 @@ Persist audit records to your logging backend as needed.
 
 ## Next Steps
 
-- **Sessions** — See [Sessions](sessions.md) for stateful evaluation with persisted rulesets
-- **Rule Lifecycle** — See [Rule Lifecycle](rule-lifecycle.md) for rule versioning and deletion
-- **Example** — See [Example 05: Persistence](https://github.com/fluxrules/fluxrules/blob/main/examples/05_persistence.py) for evaluation and audit patterns
+- **Sessions** - See [Sessions](sessions.md) for stateful evaluation with persisted rulesets
+- **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for rule versioning and deletion
+- **Example** - See [Example 05: Persistence](https://github.com/fluxrules/fluxrules/blob/main/examples/05_persistence.py) for evaluation and audit patterns

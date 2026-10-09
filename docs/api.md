@@ -111,10 +111,10 @@ Returns why/why-not a rule matched.
 
 Additional endpoints are available if extras are installed:
 
-- **Rules management** (`/api/v1/rules`) — CRUD operations (requires `[sql]`)
-- **Sessions** (`/api/v1/sessions`) — Stateful evaluation (requires `[sql]`)
-- **Audit logging** (`/api/v1/audit`) — Audit trail (requires `[sql]`)
-- **Metrics** (`/api/v1/metrics`) — Prometheus metrics (requires `[otel]`)
+- **Rules management** (`/api/v1/rules`) - CRUD operations (requires `[sql]`)
+- **Sessions** (`/api/v1/sessions`) - Stateful evaluation (requires `[sql]`)
+- **Audit logging** (`/api/v1/audit`) - Audit trail (requires `[sql]`)
+- **Metrics** (`/api/v1/metrics`) - Prometheus metrics (requires `[otel]`)
 
 ## API versioning
 
@@ -124,6 +124,6 @@ All endpoints are under `/api/v1` for stability. Breaking changes will use `/api
 
 ## Next Steps
 
-- **REST API Detailed** — See [REST API](rest-api.md) for full endpoint reference
-- **Example** — See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for working client code
-- **Deployment** — See [Deployment](deployment.md) for production setup
+- **REST API Detailed** - See [REST API](rest-api.md) for full endpoint reference
+- **Example** - See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for working client code
+- **Deployment** - See [Deployment](deployment.md) for production setup

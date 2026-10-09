@@ -10,7 +10,7 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
-- **v0.1.0** (2026) — First release intended for publication
+- **v0.1.0** (2026) - First release intended for publication
   - One `EvaluationResult` type across every evaluation path, with
     `fired_rules` as the single name for what matched
   - `Rule(...)` performs no database I/O; `persist` defaults to `False` and
@@ -19,7 +19,7 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
     `Ruleset`
   - `RuleBuilder.build()` returns the canonical `Rule`; `RuleBuilder` and
     `ConditionBuilder` are exported from the top-level namespace
-- **v0.0.1** (2026) — Initial, unpublished development version
+- **v0.0.1** (2026) - Initial, unpublished development version
   - PHREAK engine (single engine)
   - Stateless and streaming evaluation modes
   - Pydantic v2 rule validation
@@ -42,5 +42,5 @@ Breaking changes will be released under `/api/v2` to maintain backward compatibi
 
 ## Next Steps
 
-- **Contributing** — See [Contributing](contributing.md)
-- **Architecture** — See [Architecture](architecture.md)
+- **Contributing** - See [Contributing](contributing.md)
+- **Architecture** - See [Architecture](architecture.md)

@@ -117,5 +117,5 @@ Response:
 
 ## Next Steps
 
-- **Troubleshooting** — See [Troubleshooting](troubleshooting.md) for common issues
-- **Deployment** — See [Deployment](deployment.md) for production setup
+- **Troubleshooting** - See [Troubleshooting](troubleshooting.md) for common issues
+- **Deployment** - See [Deployment](deployment.md) for production setup

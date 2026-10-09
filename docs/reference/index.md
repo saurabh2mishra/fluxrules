@@ -4,8 +4,8 @@ API reference and configuration documentation.
 
 ## API
 
-- **[Public API](public-api.md)** — Exported functions and classes
-- **[HTTP Endpoints](http-endpoints.md)** — REST endpoint reference
+- **[Public API](public-api.md)** - Exported functions and classes
+- **[HTTP Endpoints](http-endpoints.md)** - REST endpoint reference
 
 ## Configuration
 

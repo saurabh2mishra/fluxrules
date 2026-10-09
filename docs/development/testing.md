@@ -22,10 +22,10 @@ pytest tests/ -n auto
 
 ```
 tests/
-├── test_engine.py          — Engine tests
-├── test_conditions.py      — DSL and condition tests
-├── test_integration.py     — End-to-end scenarios
-└── performance/            — Benchmarks
+├── test_engine.py          - Engine tests
+├── test_conditions.py      - DSL and condition tests
+├── test_integration.py     - End-to-end scenarios
+└── performance/            - Benchmarks
 ```
 
 ## Test Standards

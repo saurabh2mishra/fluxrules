@@ -126,5 +126,5 @@ fact = pipeline(raw_fact)
 
 ## Next Steps
 
-- **Fact Pipeline** — See [Fact Pipeline](fact-pipeline.md) for built-in transforms
-- **Example** — See [Example 29: Custom Transforms](https://github.com/fluxrules/fluxrules/blob/main/examples/29_custom_transforms.py)
+- **Fact Pipeline** - See [Fact Pipeline](fact-pipeline.md) for built-in transforms
+- **Example** - See [Example 29: Custom Transforms](https://github.com/fluxrules/fluxrules/blob/main/examples/29_custom_transforms.py)

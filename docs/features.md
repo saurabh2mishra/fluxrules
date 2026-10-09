@@ -8,7 +8,7 @@ FluxRules provides everything needed for production rule engines.
 
 ## The Essentials
 
-- **One Engine**: [PhreakEngine](concepts.md) — a single lazy, agenda-driven engine with stateless (default) and streaming modes
+- **One Engine**: [PhreakEngine](concepts.md) - a single lazy, agenda-driven engine with stateless (default) and streaming modes
 - **Complex Logic**: [AND/OR/NOT boolean logic](complex-conditions.md) with deep, arbitrary nesting
 - **Rule Organization**: [Domains and Tags](domains-and-tags.md) for categorization and filtering
 - **Priority-Based Execution**: Higher priority rules fire first when multiple match

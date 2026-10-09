@@ -125,11 +125,11 @@ print(f"Actions: {result.actions}")       # ['block_payment']
 
 ## Learn More
 
-- **[Concepts](concepts.md)** — Understanding Rule, Engine, Fact, Domain, Tag
-- **[Conditions](conditions.md)** — All available operators
-- **[Complex Conditions](complex-conditions.md)** — Nested AND/OR/NOT logic
-- **[Domains & Tags](domains-and-tags.md)** — Organizing rules
-- **[Examples](examples.md)** — Full working examples (31 files)
+- **[Concepts](concepts.md)** - Understanding Rule, Engine, Fact, Domain, Tag
+- **[Conditions](conditions.md)** - All available operators
+- **[Complex Conditions](complex-conditions.md)** - Nested AND/OR/NOT logic
+- **[Domains & Tags](domains-and-tags.md)** - Organizing rules
+- **[Examples](examples.md)** - Full working examples (31 files)
 
 ---
 

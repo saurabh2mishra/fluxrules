@@ -69,7 +69,7 @@ A pinned, machine-stamped result is committed at
 --json benchmarks/<date>.json`). It streams **1,000,000 facts** through a
 **pre-loaded 1,000-rule** engine (memory-flat via a fact generator) and records
 p50/p95/p99, throughput, peak RSS, the alpha-on-vs-off **correctness parity**
-check, plus a process-pool scaling run — so the "millions/day" and "horizontal
+check, plus a process-pool scaling run - so the "millions/day" and "horizontal
 scaling" claims are backed by a reproducible artifact, not extrapolation.
 
 Measured on the environment stamped in the artifact
@@ -77,9 +77,9 @@ Measured on the environment stamped in the artifact
 
 | Run | Result |
 |-----|--------|
-| Streaming — 1,000 rules × 1,000,000 facts | p50 **0.89 ms** / p95 **1.12 ms** / p99 **1.25 ms**; **1,107 facts/s**; peak RSS **77.2 MiB** |
+| Streaming - 1,000 rules × 1,000,000 facts | p50 **0.89 ms** / p95 **1.12 ms** / p99 **1.25 ms**; **1,107 facts/s**; peak RSS **77.2 MiB** |
 | Correctness parity (alpha on vs off) | **0 mismatches / 100,000 facts** |
-| Horizontal scaling — 400,000 facts, 8 workers | **6.39× speedup**, 889 facts/s/core, fired-facts parity **OK** (400,000 == 400,000) |
+| Horizontal scaling - 400,000 facts, 8 workers | **6.39× speedup**, 889 facts/s/core, fired-facts parity **OK** (400,000 == 400,000) |
 
 The alpha layer pruned **84.1%** of candidates on this selective set. These are
 this machine's numbers; regenerate on your target hardware before sizing.

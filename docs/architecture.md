@@ -14,7 +14,7 @@ FluxRules is a lightweight rule evaluation engine with a clean layered architect
 │       (Rules, Facts, Actions, Workflows)         │
 └──────────────────────┬───────────────────────────┘
                        │
-        ┌──────────────▼──────────────—┐
+        ┌──────────────▼──────────────-┐
         │   Public API (fluxrules)     │
         │  ┌──────────────────────┐    │
         │  │ Rule (Pydantic v2)   │    │
@@ -106,7 +106,7 @@ User: session = service.create_session()
 
 **For evaluation modes and selection guidance**, see [The FluxRules Engine](engine-comparison.md) and [Choosing an Evaluation Mode](choosing-an-engine.md).
 
-### PHREAK (Phased Evaluation and Knowledge—the single engine)
+### PHREAK (Phased Evaluation and Knowledge-the single engine)
 
 **Data flow:**
 ```

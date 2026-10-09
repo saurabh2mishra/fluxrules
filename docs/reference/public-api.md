@@ -39,25 +39,25 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 
 From `fluxrules`:
 
-- `evaluate(rules, facts) → EvaluationResult` — Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. `facts` may be a plain `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
-- `validate(rules) → list[str]` — Validate rules and return issues; accepts the same shapes as `evaluate`
-- `explain(execution_id: str) → dict[str, object]` — Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
+- `evaluate(rules, facts) → EvaluationResult` - Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. `facts` may be a plain `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
+- `validate(rules) → list[str]` - Validate rules and return issues; accepts the same shapes as `evaluate`
+- `explain(execution_id: str) → dict[str, object]` - Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
 ## Engines
 
 From `fluxrules.engine`:
 
-- `PhreakEngine` (the single production engine, lazy evaluation) — stateless (default) and streaming modes
+- `PhreakEngine` (the single production engine, lazy evaluation) - stateless (default) and streaming modes
 - `BaseEngine` (abstract base for custom engines)
 
 ## Domain Models
 
 From `fluxrules`:
 
-- `Rule` — Pydantic v2 model: `id`, `name`, `domain`, `tags`, `condition_dsl`, `action`, `actions`, `priority`, `enabled`, `persist`
-- `RuleBuilder` / `ConditionBuilder` — Fluent authoring; `RuleBuilder.build()` returns a `Rule`
-- `Ruleset` — Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
-- `EvaluationResult` — The single result type for every evaluation path.
+- `Rule` - Pydantic v2 model: `id`, `name`, `domain`, `tags`, `condition_dsl`, `action`, `actions`, `priority`, `enabled`, `persist`
+- `RuleBuilder` / `ConditionBuilder` - Fluent authoring; `RuleBuilder.build()` returns a `Rule`
+- `Ruleset` - Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
+- `EvaluationResult` - The single result type for every evaluation path.
   `fired_rules` is what matched; `actions` are the collected actions. Also
   carries `candidate_rule_ids` (what discovery considered, always a superset of
   `fired_rules`), `ruleset_group`, `trace`, `execution_id`, `latency_ms`,
@@ -70,11 +70,11 @@ From `fluxrules`:
 
 From `fluxrules.services`:
 
-- `RuleService.create()` — Factory for rule management
-- `ValidationService()` — Validate rules and conditions
-- `EvaluationService()` — Core evaluation
-- `PersistenceService()` — Database operations
-- `AuditService()` — Track rule executions
+- `RuleService.create()` - Factory for rule management
+- `ValidationService()` - Validate rules and conditions
+- `EvaluationService()` - Core evaluation
+- `PersistenceService()` - Database operations
+- `AuditService()` - Track rule executions
 
 ## Error Hierarchy
 
@@ -106,7 +106,7 @@ may be reworded; **codes will not change**.
 
 A `UserWarning` (not an error) emitted when reading `.conditions` on a rule
 whose logic uses `OR`/`NOT`/nesting. The leaves are still returned, but the
-boolean structure is not in the result — see
+boolean structure is not in the result - see
 [Rule Types](../rule-types.md). To turn it into a hard failure:
 
 ```python

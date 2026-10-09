@@ -89,6 +89,6 @@ service = RuleService.create()
 
 ## Next Steps
 
-- **Engines** — See [The FluxRules Engine](../engine-comparison.md)
-- **Sessions** — See [Sessions](../sessions.md) for stateful workflows
-- **API Reference** — See [Reference: Public API](../reference/public-api.md)
+- **Engines** - See [The FluxRules Engine](../engine-comparison.md)
+- **Sessions** - See [Sessions](../sessions.md) for stateful workflows
+- **API Reference** - See [Reference: Public API](../reference/public-api.md)

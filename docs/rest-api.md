@@ -11,9 +11,9 @@ Comprehensive reference for all REST API endpoints.
 All requests use `Content-Type: application/json`.
 
 All responses include:
-- `fired_rules` — List of matched rule IDs
-- `actions` — List of triggered actions
-- `latency_ms` — Evaluation time in milliseconds
+- `fired_rules` - List of matched rule IDs
+- `actions` - List of triggered actions
+- `latency_ms` - Evaluation time in milliseconds
 
 ## Endpoints
 
@@ -209,14 +209,14 @@ All errors follow this format:
 ```
 
 Common error codes:
-- `VALIDATION_ERROR` — Invalid request format
-- `DSL_ERROR` — Invalid DSL syntax
-- `RULE_NOT_FOUND` — Rule ID does not exist
-- `INTERNAL_ERROR` — Server error
+- `VALIDATION_ERROR` - Invalid request format
+- `DSL_ERROR` - Invalid DSL syntax
+- `RULE_NOT_FOUND` - Rule ID does not exist
+- `INTERNAL_ERROR` - Server error
 
 ---
 
 ## Next Steps
 
-- **API Overview** — See [API](api.md) for quick start
-- **Example** — See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for working client code
+- **API Overview** - See [API](api.md) for quick start
+- **Example** - See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for working client code
