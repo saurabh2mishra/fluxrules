@@ -36,6 +36,20 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Reject runs triggered by a tag that is not reachable from main.
+      # This prevents a tag pushed from a feature branch from publishing.
+      - name: Assert tag commit is on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=50
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME was pushed from a commit not on main."
+            echo "Only tags on main may trigger a release."
+            exit 1
+          fi
+          echo "tag-on-main-gate: $GITHUB_SHA is reachable from origin/main OK"
+
       - name: Build sdist and wheel
         run: uv build
 

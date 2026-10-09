@@ -1,0 +1,4 @@
+# Every file in the repository requires review from the project owner.
+# GitHub enforces this when "Require review from Code Owners" is enabled
+# in the branch protection rule for main.
+* @saurabh2mishra
