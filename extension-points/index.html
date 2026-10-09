@@ -2601,7 +2601,7 @@ policy; the deep how-to guides live on their own pages and are linked below.</p>
 </tr>
 </tbody>
 </table>
-<p>Each registry is a plain, importable object — there is no hidden framework. A
+<p>Each registry is a plain, importable object - there is no hidden framework. A
 custom engine, for example, becomes selectable everywhere the built-in engine
 is (the Python factory, the HTTP API, and the CLI <code>--engine</code> flag) the moment it
 is registered:</p>
@@ -2658,7 +2658,7 @@ package's <code>pyproject.toml</code>:</p>
 
 <span class="n">loaded</span> <span class="o">=</span> <span class="n">load_plugins</span><span class="p">()</span>  <span class="c1"># {"fluxrules.operators": ["within_range"], ...}</span>
 </code></pre></div>
-<p>Discovery is <strong>explicit</strong> — it is never an import side effect — so applications
+<p>Discovery is <strong>explicit</strong> - it is never an import side effect - so applications
 stay in control of when third-party code is loaded. A plugin that fails to load
 is logged and skipped rather than aborting discovery.</p>
 <h2 id="stability-policy">Stability policy<a class="headerlink" href="#stability-policy" title="Permanent link">&para;</a></h2>

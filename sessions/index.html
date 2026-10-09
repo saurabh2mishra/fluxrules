@@ -2623,13 +2623,13 @@
 <h2 id="session-lifecycle">Session lifecycle<a class="headerlink" href="#session-lifecycle" title="Permanent link">&para;</a></h2>
 <p>A session has these phases:</p>
 <ol>
-<li><strong>Create</strong> — <code>service.create_session()</code> initializes an empty session</li>
-<li><strong>Accumulate</strong> — <code>add_fact()</code>, <code>add_facts()</code>, <code>remove_fact()</code>, <code>clear_facts()</code></li>
-<li><strong>Evaluate</strong> — <code>evaluate()</code> matches rules against accumulated facts</li>
-<li><strong>Save</strong> — <code>save()</code> exports to JSON snapshot</li>
-<li><strong>Restore</strong> — <code>EvaluationSession.restore(json, service)</code> reconstructs from snapshot</li>
+<li><strong>Create</strong> - <code>service.create_session()</code> initializes an empty session</li>
+<li><strong>Accumulate</strong> - <code>add_fact()</code>, <code>add_facts()</code>, <code>remove_fact()</code>, <code>clear_facts()</code></li>
+<li><strong>Evaluate</strong> - <code>evaluate()</code> matches rules against accumulated facts</li>
+<li><strong>Save</strong> - <code>save()</code> exports to JSON snapshot</li>
+<li><strong>Restore</strong> - <code>EvaluationSession.restore(json, service)</code> reconstructs from snapshot</li>
 </ol>
-<p>Evaluations are <strong>independent</strong> — each <code>evaluate()</code> is stateless. The session remembers facts but not evaluation history.</p>
+<p>Evaluations are <strong>independent</strong> - each <code>evaluate()</code> is stateless. The session remembers facts but not evaluation history.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
 <span class="c1"># Multiple evaluations with different facts (demonstration)</span>
 <span class="c1"># session.add_fact("risk_score", 50)</span>
@@ -2653,14 +2653,14 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">restored</span><span class="o">.</span><span class="n">facts</span><span class="p">)</span>  <span class="c1"># Same as original session</span>
 </code></pre></div>
 <p>Snapshots include:
-- <strong>execution_id</strong> — unique session identifier
-- <strong>facts</strong> — all accumulated fact key-value pairs
-- <strong>timestamp</strong> — when the snapshot was created
-- <strong>metadata</strong> — optional custom data (application-specific)</p>
+- <strong>execution_id</strong> - unique session identifier
+- <strong>facts</strong> - all accumulated fact key-value pairs
+- <strong>timestamp</strong> - when the snapshot was created
+- <strong>metadata</strong> - optional custom data (application-specific)</p>
 <p>Use snapshots to:
-- <strong>Pause workflows</strong> — save after step 1, restore in step 2
-- <strong>Recover failures</strong> — restart from a known state
-- <strong>Audit trail</strong> — keep JSON copies of evaluation context</p>
+- <strong>Pause workflows</strong> - save after step 1, restore in step 2
+- <strong>Recover failures</strong> - restart from a known state
+- <strong>Audit trail</strong> - keep JSON copies of evaluation context</p>
 <h2 id="isolation">Isolation<a class="headerlink" href="#isolation" title="Permanent link">&para;</a></h2>
 <p>Each session is isolated. Facts in one session do not affect another:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
@@ -2679,9 +2679,9 @@
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Working Memory</strong> — See <a href="../working-memory/">Working Memory</a> for fact store details</li>
-<li><strong>Example</strong> — See <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py">Example 12: API Usage</a> for session patterns in HTTP services</li>
-<li><strong>Persistence</strong> — See <a href="../persistence/">Persistence</a> for database integration</li>
+<li><strong>Working Memory</strong> - See <a href="../working-memory/">Working Memory</a> for fact store details</li>
+<li><strong>Example</strong> - See <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py">Example 12: API Usage</a> for session patterns in HTTP services</li>
+<li><strong>Persistence</strong> - See <a href="../persistence/">Persistence</a> for database integration</li>
 </ul>
 
 

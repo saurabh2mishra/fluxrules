@@ -2655,14 +2655,14 @@
 <h2 id="evidence-boundary">Evidence boundary<a class="headerlink" href="#evidence-boundary" title="Permanent link">&para;</a></h2>
 <p>The repository has two benchmark categories:</p>
 <ol>
-<li><strong>Pure matcher evidence</strong> — <code>tests/performance/test_scale_readiness.py</code>
+<li><strong>Pure matcher evidence</strong> - <code>tests/performance/test_scale_readiness.py</code>
     directly evaluated 1,000,000 generated facts against 1,200 generated rules
     on commit <code>a572be9</code> using CPython 3.11.13 on macOS arm64. It compared 2,000
     complete fired-rule sets against <code>ReferenceEvaluator</code>, measured 428.82
     facts/s and 140.70 MB peak RSS, and passed the 150 facts/s and 2,048 MB
     thresholds. The retained artifact is
     <code>.research/scale-readiness-2026-09-16.json</code>.</li>
-<li><strong>Boundary evidence</strong> — actions, persistence, HTTP serialization, auth,
+<li><strong>Boundary evidence</strong> - actions, persistence, HTTP serialization, auth,
     queueing, process concurrency, and sticky streaming are separate costs and
     contracts. They are not included in the pure matcher result above.</li>
 </ol>
@@ -2731,7 +2731,7 @@ failure counts for each boundary independently.</p>
 </tbody>
 </table>
 <p><strong>Notes:</strong>
-- Constant footprint — rules are loaded once and facts evaluate independently</p>
+- Constant footprint - rules are loaded once and facts evaluate independently</p>
 <h2 id="startup-time">Startup time<a class="headerlink" href="#startup-time" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2777,8 +2777,8 @@ failure counts for each boundary independently.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>The FluxRules Engine</strong> — See <a href="../engine-comparison/">The FluxRules Engine</a></li>
-<li><strong>Deployment</strong> — See <a href="../deployment/">Deployment</a> for scaling</li>
+<li><strong>The FluxRules Engine</strong> - See <a href="../engine-comparison/">The FluxRules Engine</a></li>
+<li><strong>Deployment</strong> - See <a href="../deployment/">Deployment</a> for scaling</li>
 </ul>
 
 

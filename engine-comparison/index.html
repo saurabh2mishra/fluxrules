@@ -2586,7 +2586,7 @@
 <p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (Engine).</p>
 <hr />
 <p>FluxRules is built on a single production engine: <strong>PHREAK</strong>, a lazy,
-agenda-driven matching algorithm. There is no engine to choose — the design goal
+agenda-driven matching algorithm. There is no engine to choose - the design goal
 is one fast, memory-efficient engine that covers every supported use case.</p>
 <p>PHREAK exposes two <strong>evaluation modes</strong> on the same engine, plus a dependency-free
 <strong>reference evaluator</strong> used internally as a correctness oracle.</p>
@@ -2677,15 +2677,15 @@ unchanged fact reports an empty delta.</p>
 <p>See <a href="../working-memory/">Working Memory</a> for the streaming contract in full.</p>
 <h2 id="reference-evaluator-correctness-oracle">Reference evaluator (correctness oracle)<a class="headerlink" href="#reference-evaluator-correctness-oracle" title="Permanent link">&para;</a></h2>
 <p><code>fluxrules.services.reference_evaluator.ReferenceEvaluator</code> is a small,
-deterministic, dependency-free evaluator. It is <strong>not</strong> a selectable engine — it
+deterministic, dependency-free evaluator. It is <strong>not</strong> a selectable engine - it
 is the default <code>RuleService</code> engine and an independent oracle the test suite
 checks PHREAK against, so shared-code defects cannot hide behind a single
 implementation.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Choosing an Engine</strong> — See <a href="../choosing-an-engine/">Choosing an Evaluation Mode</a> for mode-selection logic</li>
-<li><strong>Engine Limits</strong> — See <a href="../engine-scope-and-limits/">Engine Scope and Limits</a></li>
+<li><strong>Choosing an Engine</strong> - See <a href="../choosing-an-engine/">Choosing an Evaluation Mode</a> for mode-selection logic</li>
+<li><strong>Engine Limits</strong> - See <a href="../engine-scope-and-limits/">Engine Scope and Limits</a></li>
 </ul>
 
 

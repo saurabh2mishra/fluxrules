@@ -2795,23 +2795,23 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 <h2 id="top-level-functions">Top-Level Functions<a class="headerlink" href="#top-level-functions" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules</code>:</p>
 <ul>
-<li><code>evaluate(rules, facts) → EvaluationResult</code> — Evaluate facts against rules. <code>rules</code> may be a single <code>Rule</code>, any iterable of <code>Rule</code>, or a <code>Ruleset</code>. <code>facts</code> may be a plain <code>dict</code>, a Pydantic v2/v1 model, or any object with <code>model_dump()</code> / <code>dict()</code>.</li>
-<li><code>validate(rules) → list[str]</code> — Validate rules and return issues; accepts the same shapes as <code>evaluate</code></li>
-<li><code>explain(execution_id: str) → dict[str, object]</code> — Get an explanation payload for a past execution; keys: <code>execution_id</code>, <code>fired_rules</code>, <code>actions</code>, <code>trace</code></li>
+<li><code>evaluate(rules, facts) → EvaluationResult</code> - Evaluate facts against rules. <code>rules</code> may be a single <code>Rule</code>, any iterable of <code>Rule</code>, or a <code>Ruleset</code>. <code>facts</code> may be a plain <code>dict</code>, a Pydantic v2/v1 model, or any object with <code>model_dump()</code> / <code>dict()</code>.</li>
+<li><code>validate(rules) → list[str]</code> - Validate rules and return issues; accepts the same shapes as <code>evaluate</code></li>
+<li><code>explain(execution_id: str) → dict[str, object]</code> - Get an explanation payload for a past execution; keys: <code>execution_id</code>, <code>fired_rules</code>, <code>actions</code>, <code>trace</code></li>
 </ul>
 <h2 id="engines">Engines<a class="headerlink" href="#engines" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules.engine</code>:</p>
 <ul>
-<li><code>PhreakEngine</code> (the single production engine, lazy evaluation) — stateless (default) and streaming modes</li>
+<li><code>PhreakEngine</code> (the single production engine, lazy evaluation) - stateless (default) and streaming modes</li>
 <li><code>BaseEngine</code> (abstract base for custom engines)</li>
 </ul>
 <h2 id="domain-models">Domain Models<a class="headerlink" href="#domain-models" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules</code>:</p>
 <ul>
-<li><code>Rule</code> — Pydantic v2 model: <code>id</code>, <code>name</code>, <code>domain</code>, <code>tags</code>, <code>condition_dsl</code>, <code>action</code>, <code>actions</code>, <code>priority</code>, <code>enabled</code>, <code>persist</code></li>
-<li><code>RuleBuilder</code> / <code>ConditionBuilder</code> — Fluent authoring; <code>RuleBuilder.build()</code> returns a <code>Rule</code></li>
-<li><code>Ruleset</code> — Optional named collection of rules (<code>group: str</code>, <code>rules: tuple[...]</code>). <code>evaluate()</code> accepts bare rules, so you only need this to name a group.</li>
-<li><code>EvaluationResult</code> — The single result type for every evaluation path.
+<li><code>Rule</code> - Pydantic v2 model: <code>id</code>, <code>name</code>, <code>domain</code>, <code>tags</code>, <code>condition_dsl</code>, <code>action</code>, <code>actions</code>, <code>priority</code>, <code>enabled</code>, <code>persist</code></li>
+<li><code>RuleBuilder</code> / <code>ConditionBuilder</code> - Fluent authoring; <code>RuleBuilder.build()</code> returns a <code>Rule</code></li>
+<li><code>Ruleset</code> - Optional named collection of rules (<code>group: str</code>, <code>rules: tuple[...]</code>). <code>evaluate()</code> accepts bare rules, so you only need this to name a group.</li>
+<li><code>EvaluationResult</code> - The single result type for every evaluation path.
   <code>fired_rules</code> is what matched; <code>actions</code> are the collected actions. Also
   carries <code>candidate_rule_ids</code> (what discovery considered, always a superset of
   <code>fired_rules</code>), <code>ruleset_group</code>, <code>trace</code>, <code>execution_id</code>, <code>latency_ms</code>,
@@ -2823,11 +2823,11 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 <h2 id="service-layer">Service Layer<a class="headerlink" href="#service-layer" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules.services</code>:</p>
 <ul>
-<li><code>RuleService.create()</code> — Factory for rule management</li>
-<li><code>ValidationService()</code> — Validate rules and conditions</li>
-<li><code>EvaluationService()</code> — Core evaluation</li>
-<li><code>PersistenceService()</code> — Database operations</li>
-<li><code>AuditService()</code> — Track rule executions</li>
+<li><code>RuleService.create()</code> - Factory for rule management</li>
+<li><code>ValidationService()</code> - Validate rules and conditions</li>
+<li><code>EvaluationService()</code> - Core evaluation</li>
+<li><code>PersistenceService()</code> - Database operations</li>
+<li><code>AuditService()</code> - Track rule executions</li>
 </ul>
 <h2 id="error-hierarchy">Error Hierarchy<a class="headerlink" href="#error-hierarchy" title="Permanent link">&para;</a></h2>
 <p>All errors derive from <code>FluxRulesError</code>:</p>
@@ -2897,7 +2897,7 @@ may be reworded; <strong>codes will not change</strong>.</p>
 <h3 id="lossyconditionviewwarning"><code>LossyConditionViewWarning</code><a class="headerlink" href="#lossyconditionviewwarning" title="Permanent link">&para;</a></h3>
 <p>A <code>UserWarning</code> (not an error) emitted when reading <code>.conditions</code> on a rule
 whose logic uses <code>OR</code>/<code>NOT</code>/nesting. The leaves are still returned, but the
-boolean structure is not in the result — see
+boolean structure is not in the result - see
 <a href="../../rule-types/">Rule Types</a>. To turn it into a hard failure:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 

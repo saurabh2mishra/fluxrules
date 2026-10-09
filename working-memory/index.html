@@ -2587,9 +2587,9 @@
 <hr />
 <p>FluxRules evaluates fact maps against rules. This page describes:</p>
 <ol>
-<li><strong>Single-fact evaluation</strong> — how engines match one fact at a time</li>
-<li><strong>Working memory</strong> — how to store and retrieve facts</li>
-<li><strong>Stateful sessions</strong> — how to accumulate facts across multiple evaluations</li>
+<li><strong>Single-fact evaluation</strong> - how engines match one fact at a time</li>
+<li><strong>Working memory</strong> - how to store and retrieve facts</li>
+<li><strong>Stateful sessions</strong> - how to accumulate facts across multiple evaluations</li>
 </ol>
 <p>Each engine evaluates independently. If you need multi-fact correlation, see <a href="../cross-fact-rules/">Cross-Fact Rules</a>.</p>
 <h2 id="single-fact-evaluation">Single-fact evaluation<a class="headerlink" href="#single-fact-evaluation" title="Permanent link">&para;</a></h2>
@@ -2611,7 +2611,7 @@
 <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">7500</span><span class="p">})</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Matched rules: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># [1]</span>
 </code></pre></div>
-<p>Each call to <code>evaluate()</code> is independent—engines do not correlate facts across time or aggregate over collections. Pass pre-aggregated facts to the engine.</p>
+<p>Each call to <code>evaluate()</code> is independent-engines do not correlate facts across time or aggregate over collections. Pass pre-aggregated facts to the engine.</p>
 <hr />
 <h2 id="working-memory-fact-store">Working memory (fact store)<a class="headerlink" href="#working-memory-fact-store" title="Permanent link">&para;</a></h2>
 <p>Every engine has a built-in fact store accessed via <code>assert_fact</code> and <code>retract_fact</code>:</p>
@@ -2627,7 +2627,7 @@
 <span class="n">fact_id_1</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">assert_fact</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">15</span><span class="p">})</span>  <span class="c1"># Returns a fact ID</span>
 <span class="n">fact_id_2</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">assert_fact</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
 
-<span class="c1"># Retrieve fact_id_1 — still in working memory</span>
+<span class="c1"># Retrieve fact_id_1 - still in working memory</span>
 <span class="c1"># But evaluate() does not automatically use stored facts</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Matched: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># [1] (matches the evaluate() call, not stored facts)</span>
@@ -2676,11 +2676,11 @@
 </code></pre></div>
 <p><strong>Session methods:</strong></p>
 <ul>
-<li><code>add_fact(key, value)</code> — set or update one field</li>
-<li><code>add_facts(dict)</code> — merge multiple fields</li>
-<li><code>remove_fact(key)</code> — remove one field (no error if missing)</li>
-<li><code>clear_facts()</code> — remove all facts</li>
-<li><code>evaluate()</code> — evaluate ruleset against accumulated facts</li>
+<li><code>add_fact(key, value)</code> - set or update one field</li>
+<li><code>add_facts(dict)</code> - merge multiple fields</li>
+<li><code>remove_fact(key)</code> - remove one field (no error if missing)</li>
+<li><code>clear_facts()</code> - remove all facts</li>
+<li><code>evaluate()</code> - evaluate ruleset against accumulated facts</li>
 </ul>
 <hr />
 <h2 id="snapshot-save-and-restore">Snapshot save and restore<a class="headerlink" href="#snapshot-save-and-restore" title="Permanent link">&para;</a></h2>
@@ -2697,9 +2697,9 @@
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Multi-fact correlation</strong> — See <a href="../cross-fact-rules/">Cross-Fact Rules</a> for the <code>CrossFactEngine</code></li>
-<li><strong>Sessions in production</strong> — See <a href="../sessions/">Sessions</a> for session lifecycle and lifecycle management</li>
-<li><strong>Streaming mode</strong> — See example <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/23_streaming_vs_stateless.py">23_streaming_vs_stateless.py</a> for delta behavior</li>
+<li><strong>Multi-fact correlation</strong> - See <a href="../cross-fact-rules/">Cross-Fact Rules</a> for the <code>CrossFactEngine</code></li>
+<li><strong>Sessions in production</strong> - See <a href="../sessions/">Sessions</a> for session lifecycle and lifecycle management</li>
+<li><strong>Streaming mode</strong> - See example <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/23_streaming_vs_stateless.py">23_streaming_vs_stateless.py</a> for delta behavior</li>
 </ul>
 
 

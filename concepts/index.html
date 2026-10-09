@@ -2691,13 +2691,13 @@
 <span class="p">)</span>
 </code></pre></div>
 <p><strong>Key Attributes:</strong>
-- <code>id</code> — Auto-generated unique identifier (or manual override)
-- <code>name</code> — Human-readable rule name
-- <code>domain</code> — Logical grouping (e.g., "fraud_detection", "compliance")
-- <code>tags</code> — String set for filtering and categorization
-- <code>condition_dsl</code> — Nested tree defining when the rule fires
-- <code>action</code> — What to do when the rule matches
-- <code>priority</code> — Execution order (higher = runs first)</p>
+- <code>id</code> - Auto-generated unique identifier (or manual override)
+- <code>name</code> - Human-readable rule name
+- <code>domain</code> - Logical grouping (e.g., "fraud_detection", "compliance")
+- <code>tags</code> - String set for filtering and categorization
+- <code>condition_dsl</code> - Nested tree defining when the rule fires
+- <code>action</code> - What to do when the rule matches
+- <code>priority</code> - Execution order (higher = runs first)</p>
 <p><strong>See:</strong> <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/18_unified_rule.py">examples/18_unified_rule.py</a></p>
 <hr />
 <h2 id="engine">Engine<a class="headerlink" href="#engine" title="Permanent link">&para;</a></h2>
@@ -2705,7 +2705,7 @@
 <p><strong>Source:</strong> <code>src/fluxrules/engine/</code> (interfaces and implementations)</p>
 <p>A single engine is available:</p>
 <ul>
-<li><strong>PhreakEngine</strong> (the only engine) — Lazy, agenda-driven evaluation with stateless (default) and streaming modes</li>
+<li><strong>PhreakEngine</strong> (the only engine) - Lazy, agenda-driven evaluation with stateless (default) and streaming modes</li>
 </ul>
 <p><strong>Quick Example:</strong>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
@@ -2777,9 +2777,9 @@
 <p>When you evaluate a fact, the engine returns a result object with:</p>
 <div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
 
-<span class="c1"># result.fired_rules — list of rule IDs that matched</span>
-<span class="c1"># result.actions — list of actions to execute</span>
-<span class="c1"># result.latency_ms — execution time in milliseconds</span>
+<span class="c1"># result.fired_rules - list of rule IDs that matched</span>
+<span class="c1"># result.actions - list of actions to execute</span>
+<span class="c1"># result.latency_ms - execution time in milliseconds</span>
 </code></pre></div>
 <p><strong>Example:</strong>
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Matched: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># [1001, 1003]</span>
@@ -2791,9 +2791,9 @@
 <h2 id="domain">Domain<a class="headerlink" href="#domain" title="Permanent link">&para;</a></h2>
 <p>A <strong>Domain</strong> is a logical grouping of rules. Rules with the same domain typically handle a specific problem area.</p>
 <p><strong>Common domains in payment risk:</strong>
-- <code>fraud_detection</code> — Anti-fraud rules
-- <code>compliance</code> — Regulatory rules
-- <code>risk_ops</code> — Risk assessment rules</p>
+- <code>fraud_detection</code> - Anti-fraud rules
+- <code>compliance</code> - Regulatory rules
+- <code>risk_ops</code> - Risk assessment rules</p>
 <p><strong>Filtering by domain:</strong>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span><span class="p">,</span> <span class="n">PhreakEngine</span>
 
@@ -2815,10 +2815,10 @@
 <h2 id="tag">Tag<a class="headerlink" href="#tag" title="Permanent link">&para;</a></h2>
 <p>A <strong>Tag</strong> is a string label for categorization and filtering.</p>
 <p><strong>Typical tags:</strong>
-- <code>tier_0</code>, <code>tier_1</code>, <code>tier_2</code> — Rule priority tiers
-- <code>cross_border</code> — Rules for cross-border scenarios
-- <code>manual_review</code> — Rules requiring human review
-- <code>auto_approve</code> — Rules for automatic approval</p>
+- <code>tier_0</code>, <code>tier_1</code>, <code>tier_2</code> - Rule priority tiers
+- <code>cross_border</code> - Rules for cross-border scenarios
+- <code>manual_review</code> - Rules requiring human review
+- <code>auto_approve</code> - Rules for automatic approval</p>
 <p><strong>Filtering by tag:</strong>
 <div class="highlight"><pre><span></span><code><span class="c1"># Get all tier_0 rules</span>
 <span class="n">tier0_rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">all_rules</span> <span class="k">if</span> <span class="s2">"tier_0"</span> <span class="ow">in</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">tags</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">())]</span>
@@ -2844,10 +2844,10 @@
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong><a href="../quickstart/">Quickstart</a></strong> — 5-minute working example</li>
-<li><strong><a href="../conditions/">Conditions</a></strong> — Operator reference</li>
-<li><strong><a href="../complex-conditions/">Complex Conditions</a></strong> — AND/OR/NOT logic</li>
-<li><strong><a href="../domains-and-tags/">Domains &amp; Tags</a></strong> — Rule organization</li>
+<li><strong><a href="../quickstart/">Quickstart</a></strong> - 5-minute working example</li>
+<li><strong><a href="../conditions/">Conditions</a></strong> - Operator reference</li>
+<li><strong><a href="../complex-conditions/">Complex Conditions</a></strong> - AND/OR/NOT logic</li>
+<li><strong><a href="../domains-and-tags/">Domains &amp; Tags</a></strong> - Rule organization</li>
 </ul>
 
 

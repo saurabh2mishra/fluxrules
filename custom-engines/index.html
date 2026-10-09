@@ -2610,9 +2610,9 @@
 <p>FluxRules provides one standard engine: <code>PhreakEngine</code> (lazy, agenda-driven). You can implement a custom engine by subclassing <code>BaseEngine</code>.</p>
 <h2 id="why-custom-engines">Why custom engines?<a class="headerlink" href="#why-custom-engines" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Specialized algorithms</strong> — Implement domain-specific matching logic</li>
-<li><strong>Performance optimization</strong> — Tailor to your data patterns</li>
-<li><strong>Integration</strong> — Wrap external rule systems</li>
+<li><strong>Specialized algorithms</strong> - Implement domain-specific matching logic</li>
+<li><strong>Performance optimization</strong> - Tailor to your data patterns</li>
+<li><strong>Integration</strong> - Wrap external rule systems</li>
 </ul>
 <h2 id="custom-engine-structure">Custom engine structure<a class="headerlink" href="#custom-engine-structure" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEngine</span>
@@ -2682,16 +2682,16 @@
 <h2 id="standard-interfaces">Standard interfaces<a class="headerlink" href="#standard-interfaces" title="Permanent link">&para;</a></h2>
 <p>Your custom engine should:</p>
 <ol>
-<li><strong>Inherit from <code>BaseEngine</code></strong> — Provides working memory and utilities</li>
-<li><strong>Return <code>EvaluationResult</code></strong> — Consistent result format</li>
-<li><strong>Preserve the result contract</strong> — Return fired IDs, actions, and explanations from <code>_evaluate_rules</code></li>
-<li><strong>Use <code>BaseEngine.evaluate()</code></strong> — It supplies discovery, filters, grouping, and latency measurement</li>
+<li><strong>Inherit from <code>BaseEngine</code></strong> - Provides working memory and utilities</li>
+<li><strong>Return <code>EvaluationResult</code></strong> - Consistent result format</li>
+<li><strong>Preserve the result contract</strong> - Return fired IDs, actions, and explanations from <code>_evaluate_rules</code></li>
+<li><strong>Use <code>BaseEngine.evaluate()</code></strong> - It supplies discovery, filters, grouping, and latency measurement</li>
 </ol>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>The FluxRules Engine</strong> — See <a href="../engine-comparison/">The FluxRules Engine</a> for the built-in PhreakEngine</li>
-<li><strong>Example</strong> — See <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/09_custom_engines.py">Example 09: Custom Engines</a></li>
+<li><strong>The FluxRules Engine</strong> - See <a href="../engine-comparison/">The FluxRules Engine</a> for the built-in PhreakEngine</li>
+<li><strong>Example</strong> - See <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/09_custom_engines.py">Example 09: Custom Engines</a></li>
 </ul>
 
 

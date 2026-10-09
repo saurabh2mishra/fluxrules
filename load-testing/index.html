@@ -3372,7 +3372,7 @@ budget</strong> on every regular CI run so scaling regressions fail the build.</
 --json benchmarks/&lt;date&gt;.json</code>). It streams <strong>1,000,000 facts</strong> through a
 <strong>pre-loaded 1,000-rule</strong> engine (memory-flat via a fact generator) and records
 p50/p95/p99, throughput, peak RSS, the alpha-on-vs-off <strong>correctness parity</strong>
-check, plus a process-pool scaling run — so the "millions/day" and "horizontal
+check, plus a process-pool scaling run - so the "millions/day" and "horizontal
 scaling" claims are backed by a reproducible artifact, not extrapolation.</p>
 <p>Measured on the environment stamped in the artifact
 (CPython 3.11.13, arm64, 12 cores):</p>
@@ -3385,7 +3385,7 @@ scaling" claims are backed by a reproducible artifact, not extrapolation.</p>
 </thead>
 <tbody>
 <tr>
-<td>Streaming — 1,000 rules × 1,000,000 facts</td>
+<td>Streaming - 1,000 rules × 1,000,000 facts</td>
 <td>p50 <strong>0.89 ms</strong> / p95 <strong>1.12 ms</strong> / p99 <strong>1.25 ms</strong>; <strong>1,107 facts/s</strong>; peak RSS <strong>77.2 MiB</strong></td>
 </tr>
 <tr>
@@ -3393,7 +3393,7 @@ scaling" claims are backed by a reproducible artifact, not extrapolation.</p>
 <td><strong>0 mismatches / 100,000 facts</strong></td>
 </tr>
 <tr>
-<td>Horizontal scaling — 400,000 facts, 8 workers</td>
+<td>Horizontal scaling - 400,000 facts, 8 workers</td>
 <td><strong>6.39× speedup</strong>, 889 facts/s/core, fired-facts parity <strong>OK</strong> (400,000 == 400,000)</td>
 </tr>
 </tbody>

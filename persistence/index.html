@@ -2609,9 +2609,9 @@
 <hr />
 <p>FluxRules rules can be persisted to a database. Use persistence when you need to:</p>
 <ol>
-<li><strong>Store rules permanently</strong> — survive application restarts</li>
-<li><strong>Share rules across instances</strong> — load the same ruleset in multiple processes</li>
-<li><strong>Audit trail</strong> — track rule evaluation for compliance</li>
+<li><strong>Store rules permanently</strong> - survive application restarts</li>
+<li><strong>Share rules across instances</strong> - load the same ruleset in multiple processes</li>
+<li><strong>Audit trail</strong> - track rule evaluation for compliance</li>
 </ol>
 <h2 id="quick-start-store-and-load-rules">Quick start: Store and load rules<a class="headerlink" href="#quick-start-store-and-load-rules" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
@@ -2635,9 +2635,9 @@
 <h2 id="persist-flag">Persist flag<a class="headerlink" href="#persist-flag" title="Permanent link">&para;</a></h2>
 <p>Every rule has a <code>persist</code> flag (default: <code>False</code>):</p>
 <ul>
-<li><strong><code>persist=False</code></strong> (default) — Constructing the rule does no I/O. The rule is
+<li><strong><code>persist=False</code></strong> (default) - Constructing the rule does no I/O. The rule is
   in-memory only and gets a locally generated ID.</li>
-<li><strong><code>persist=True</code></strong> — The rule is written to the database during construction
+<li><strong><code>persist=True</code></strong> - The rule is written to the database during construction
   and adopts the database-assigned ID.</li>
 </ul>
 <p>Constructing a <code>Rule</code> is a pure operation by default, so importing a module that
@@ -2724,9 +2724,9 @@ you need update semantics.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Sessions</strong> — See <a href="../sessions/">Sessions</a> for stateful evaluation with persisted rulesets</li>
-<li><strong>Rule Lifecycle</strong> — See <a href="../rule-lifecycle/">Rule Lifecycle</a> for rule versioning and deletion</li>
-<li><strong>Example</strong> — See <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/05_persistence.py">Example 05: Persistence</a> for evaluation and audit patterns</li>
+<li><strong>Sessions</strong> - See <a href="../sessions/">Sessions</a> for stateful evaluation with persisted rulesets</li>
+<li><strong>Rule Lifecycle</strong> - See <a href="../rule-lifecycle/">Rule Lifecycle</a> for rule versioning and deletion</li>
+<li><strong>Example</strong> - See <a href="https://github.com/fluxrules/fluxrules/blob/main/examples/05_persistence.py">Example 05: Persistence</a> for evaluation and audit patterns</li>
 </ul>
 
 
