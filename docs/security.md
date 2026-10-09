@@ -130,7 +130,7 @@ apply.
 ### Out of scope
 
 FluxRules does not sandbox custom Python extensions, does not provide
-authentication middleware by default, and does not manage secrets — these are
+authentication middleware by default, and does not manage secrets - these are
 delegated to the deployment environment and the guidance above.
 
 ## Dependency advisory status
@@ -153,5 +153,5 @@ dependencies by default.
 
 ## Next Steps
 
-- **Deployment** — See [Deployment](deployment.md) for production setup
-- **Observability** — See [Observability](observability.md) for monitoring
+- **Deployment** - See [Deployment](deployment.md) for production setup
+- **Observability** - See [Observability](observability.md) for monitoring

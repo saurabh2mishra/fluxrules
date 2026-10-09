@@ -91,5 +91,5 @@ export FLUXRULES_FALLBACK_MODE=true
 
 ## Next Steps
 
-- **Security** — See [Security](security.md) for authentication
-- **Observability** — See [Observability](observability.md) for monitoring
+- **Security** - See [Security](security.md) for authentication
+- **Observability** - See [Observability](observability.md) for monitoring

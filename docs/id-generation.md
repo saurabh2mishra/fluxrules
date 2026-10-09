@@ -42,8 +42,8 @@ print(rule.id)  # 999
 
 ## ID persistence
 
-- **`persist=False`** (default) — In-memory auto-increment per Rule instance
-- **`persist=True`** — ID from database auto-increment. `Rule.save()` does the
+- **`persist=False`** (default) - In-memory auto-increment per Rule instance
+- **`persist=True`** - ID from database auto-increment. `Rule.save()` does the
   same thing for a rule that already exists in memory.
 
 When you persist rules to the database, the database assigns final IDs:
@@ -73,5 +73,5 @@ service.persist(Ruleset(group="default", rules=(rule.to_engine_rule(),)))
 
 ## Next Steps
 
-- **Rule Lifecycle** — See [Rule Lifecycle](rule-lifecycle.md) for rule creation and deletion
-- **Persistence** — See [Persistence](persistence.md) for database ID management
+- **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for rule creation and deletion
+- **Persistence** - See [Persistence](persistence.md) for database ID management

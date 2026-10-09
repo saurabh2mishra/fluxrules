@@ -128,6 +128,6 @@ livenessProbe:
 
 ## Next Steps
 
-- **Security** — See [Security](security.md) for authentication & authorization
-- **Observability** — See [Observability](observability.md) for monitoring
-- **Troubleshooting** — See [Troubleshooting](troubleshooting.md) for common issues
+- **Security** - See [Security](security.md) for authentication & authorization
+- **Observability** - See [Observability](observability.md) for monitoring
+- **Troubleshooting** - See [Troubleshooting](troubleshooting.md) for common issues

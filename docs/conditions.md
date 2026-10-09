@@ -235,6 +235,6 @@ A numeric field should compare with a number, a string field with a string, and 
 
 ## Next Steps
 
-- **[Complex Conditions](complex-conditions.md)** — Learn how to combine simple conditions with AND/OR/NOT logic
-- **[Validation Framework](validation-framework.md)** — Validate DSL structures
-- **[Concepts](concepts.md)** — Understand rules, engines, and facts
+- **[Complex Conditions](complex-conditions.md)** - Learn how to combine simple conditions with AND/OR/NOT logic
+- **[Validation Framework](validation-framework.md)** - Validate DSL structures
+- **[Concepts](concepts.md)** - Understand rules, engines, and facts

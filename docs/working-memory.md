@@ -6,9 +6,9 @@
 
 FluxRules evaluates fact maps against rules. This page describes:
 
-1. **Single-fact evaluation** — how engines match one fact at a time
-2. **Working memory** — how to store and retrieve facts
-3. **Stateful sessions** — how to accumulate facts across multiple evaluations
+1. **Single-fact evaluation** - how engines match one fact at a time
+2. **Working memory** - how to store and retrieve facts
+3. **Stateful sessions** - how to accumulate facts across multiple evaluations
 
 Each engine evaluates independently. If you need multi-fact correlation, see [Cross-Fact Rules](cross-fact-rules.md).
 
@@ -35,7 +35,7 @@ result = engine.evaluate({"amount": 7500})
 print(f"Matched rules: {result.fired_rules}")  # [1]
 ```
 
-Each call to `evaluate()` is independent—engines do not correlate facts across time or aggregate over collections. Pass pre-aggregated facts to the engine.
+Each call to `evaluate()` is independent-engines do not correlate facts across time or aggregate over collections. Pass pre-aggregated facts to the engine.
 
 ---
 
@@ -56,7 +56,7 @@ engine.load_rules([
 fact_id_1 = engine.assert_fact({"x": 15})  # Returns a fact ID
 fact_id_2 = engine.assert_fact({"x": 5})
 
-# Retrieve fact_id_1 — still in working memory
+# Retrieve fact_id_1 - still in working memory
 # But evaluate() does not automatically use stored facts
 result = engine.evaluate({"x": 20})
 print(f"Matched: {result.fired_rules}")  # [1] (matches the evaluate() call, not stored facts)
@@ -112,11 +112,11 @@ print(f"Matched: {result.fired_rules}")  # Both rules match
 
 **Session methods:**
 
-- `add_fact(key, value)` — set or update one field
-- `add_facts(dict)` — merge multiple fields
-- `remove_fact(key)` — remove one field (no error if missing)
-- `clear_facts()` — remove all facts
-- `evaluate()` — evaluate ruleset against accumulated facts
+- `add_fact(key, value)` - set or update one field
+- `add_facts(dict)` - merge multiple fields
+- `remove_fact(key)` - remove one field (no error if missing)
+- `clear_facts()` - remove all facts
+- `evaluate()` - evaluate ruleset against accumulated facts
 
 ---
 
@@ -140,6 +140,6 @@ The snapshot includes facts, session ID, timestamp, and optional metadata. Use t
 
 ## Next Steps
 
-- **Multi-fact correlation** — See [Cross-Fact Rules](cross-fact-rules.md) for the `CrossFactEngine`
-- **Sessions in production** — See [Sessions](sessions.md) for session lifecycle and lifecycle management
-- **Streaming mode** — See example [23_streaming_vs_stateless.py](https://github.com/fluxrules/fluxrules/blob/main/examples/23_streaming_vs_stateless.py) for delta behavior
+- **Multi-fact correlation** - See [Cross-Fact Rules](cross-fact-rules.md) for the `CrossFactEngine`
+- **Sessions in production** - See [Sessions](sessions.md) for session lifecycle and lifecycle management
+- **Streaming mode** - See example [23_streaming_vs_stateless.py](https://github.com/fluxrules/fluxrules/blob/main/examples/23_streaming_vs_stateless.py) for delta behavior

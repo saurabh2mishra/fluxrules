@@ -8,9 +8,9 @@ FluxRules provides one standard engine: `PhreakEngine` (lazy, agenda-driven). Yo
 
 ## Why custom engines?
 
-- **Specialized algorithms** — Implement domain-specific matching logic
-- **Performance optimization** — Tailor to your data patterns
-- **Integration** — Wrap external rule systems
+- **Specialized algorithms** - Implement domain-specific matching logic
+- **Performance optimization** - Tailor to your data patterns
+- **Integration** - Wrap external rule systems
 
 ## Custom engine structure
 
@@ -69,14 +69,14 @@ print(f"Matched: {result.fired_rules}")
 
 Your custom engine should:
 
-1. **Inherit from `BaseEngine`** — Provides working memory and utilities
-2. **Return `EvaluationResult`** — Consistent result format
-3. **Preserve the result contract** — Return fired IDs, actions, and explanations from `_evaluate_rules`
-4. **Use `BaseEngine.evaluate()`** — It supplies discovery, filters, grouping, and latency measurement
+1. **Inherit from `BaseEngine`** - Provides working memory and utilities
+2. **Return `EvaluationResult`** - Consistent result format
+3. **Preserve the result contract** - Return fired IDs, actions, and explanations from `_evaluate_rules`
+4. **Use `BaseEngine.evaluate()`** - It supplies discovery, filters, grouping, and latency measurement
 
 ---
 
 ## Next Steps
 
-- **The FluxRules Engine** — See [The FluxRules Engine](engine-comparison.md) for the built-in PhreakEngine
-- **Example** — See [Example 09: Custom Engines](https://github.com/fluxrules/fluxrules/blob/main/examples/09_custom_engines.py)
+- **The FluxRules Engine** - See [The FluxRules Engine](engine-comparison.md) for the built-in PhreakEngine
+- **Example** - See [Example 09: Custom Engines](https://github.com/fluxrules/fluxrules/blob/main/examples/09_custom_engines.py)

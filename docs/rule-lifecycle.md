@@ -178,7 +178,7 @@ service.persist(Ruleset(group="default", rules=(new_rule.to_engine_rule(),)))
 
 ## Next Steps
 
-- **Validation** — See [Validation Framework](validation-framework.md) for DSL validation
-- **Complex Conditions** — See [Complex Conditions](complex-conditions.md) for AND/OR/NOT logic
-- **Persistence** — See [Persistence](persistence.md) for database management
-- **Custom Actions** — See [Custom Actions](custom-actions.md) for action handlers
+- **Validation** - See [Validation Framework](validation-framework.md) for DSL validation
+- **Complex Conditions** - See [Complex Conditions](complex-conditions.md) for AND/OR/NOT logic
+- **Persistence** - See [Persistence](persistence.md) for database management
+- **Custom Actions** - See [Custom Actions](custom-actions.md) for action handlers

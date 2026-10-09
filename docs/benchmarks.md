@@ -10,14 +10,14 @@ Performance characteristics of the FluxRules PHREAK engine.
 
 The repository has two benchmark categories:
 
-1. **Pure matcher evidence** — `tests/performance/test_scale_readiness.py`
+1. **Pure matcher evidence** - `tests/performance/test_scale_readiness.py`
 	directly evaluated 1,000,000 generated facts against 1,200 generated rules
 	on commit `a572be9` using CPython 3.11.13 on macOS arm64. It compared 2,000
 	complete fired-rule sets against `ReferenceEvaluator`, measured 428.82
 	facts/s and 140.70 MB peak RSS, and passed the 150 facts/s and 2,048 MB
 	thresholds. The retained artifact is
 	`.research/scale-readiness-2026-09-16.json`.
-2. **Boundary evidence** — actions, persistence, HTTP serialization, auth,
+2. **Boundary evidence** - actions, persistence, HTTP serialization, auth,
 	queueing, process concurrency, and sticky streaming are separate costs and
 	contracts. They are not included in the pure matcher result above.
 
@@ -55,7 +55,7 @@ failure counts for each boundary independently.
 | 1000 rules | ~2MB |
 
 **Notes:**
-- Constant footprint — rules are loaded once and facts evaluate independently
+- Constant footprint - rules are loaded once and facts evaluate independently
 
 ## Startup time
 
@@ -93,5 +93,5 @@ Each profile must identify whether it measures matcher-only or end-to-end work.
 
 ## Next Steps
 
-- **The FluxRules Engine** — See [The FluxRules Engine](engine-comparison.md)
-- **Deployment** — See [Deployment](deployment.md) for scaling
+- **The FluxRules Engine** - See [The FluxRules Engine](engine-comparison.md)
+- **Deployment** - See [Deployment](deployment.md) for scaling

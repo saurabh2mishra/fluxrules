@@ -10,8 +10,8 @@ decision you make is which **evaluation mode** fits your workload.
 ## Decision flowchart
 
 1. **Do you keep state between facts?**
-   - No — each request is independent → **Stateless mode** (default)
-   - Yes — you assert/retract into a long-lived session → **Streaming mode**
+   - No - each request is independent → **Stateless mode** (default)
+   - Yes - you assert/retract into a long-lived session → **Streaming mode**
 
 2. **What is the evaluation pattern?**
    - Request-response (HTTP) → **Stateless mode**
@@ -47,6 +47,6 @@ Enable streaming only when you need incremental deltas across a session.
 
 ## Next Steps
 
-- **The FluxRules Engine** — See [The FluxRules Engine](engine-comparison.md) for how the modes work
-- **Working Memory** — See [Working Memory](working-memory.md) for the streaming contract
-- **Concepts** — See [Concepts](concepts.md) for engine fundamentals
+- **The FluxRules Engine** - See [The FluxRules Engine](engine-comparison.md) for how the modes work
+- **Working Memory** - See [Working Memory](working-memory.md) for the streaming contract
+- **Concepts** - See [Concepts](concepts.md) for engine fundamentals

@@ -24,11 +24,11 @@ uvicorn fluxrules.api.app:create_app --factory --host 0.0.0.0 --port 8000
 
 The API includes these core routes:
 
-- `GET /health` — Health check
-- `POST /api/v1/evaluate` — Evaluate facts against rules
-- `POST /api/v1/validate` — Validate DSL or ruleset
-- `GET /api/v1/executions/{id}` — Get execution details
-- `POST /api/v1/simulate` — Simulate rule with custom facts
+- `GET /health` - Health check
+- `POST /api/v1/evaluate` - Evaluate facts against rules
+- `POST /api/v1/validate` - Validate DSL or ruleset
+- `GET /api/v1/executions/{id}` - Get execution details
+- `POST /api/v1/simulate` - Simulate rule with custom facts
 
 ## Evaluate Request
 
@@ -55,5 +55,5 @@ Response:
 
 ## Next Steps
 
-- **Full API Reference** — See [REST API](../rest-api.md)
-- **Deployment** — See [Deployment](../deployment.md)
+- **Full API Reference** - See [REST API](../rest-api.md)
+- **Deployment** - See [Deployment](../deployment.md)

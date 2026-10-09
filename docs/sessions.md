@@ -48,13 +48,13 @@ rules = [
 
 A session has these phases:
 
-1. **Create** — `service.create_session()` initializes an empty session
-2. **Accumulate** — `add_fact()`, `add_facts()`, `remove_fact()`, `clear_facts()`
-3. **Evaluate** — `evaluate()` matches rules against accumulated facts
-4. **Save** — `save()` exports to JSON snapshot
-5. **Restore** — `EvaluationSession.restore(json, service)` reconstructs from snapshot
+1. **Create** - `service.create_session()` initializes an empty session
+2. **Accumulate** - `add_fact()`, `add_facts()`, `remove_fact()`, `clear_facts()`
+3. **Evaluate** - `evaluate()` matches rules against accumulated facts
+4. **Save** - `save()` exports to JSON snapshot
+5. **Restore** - `EvaluationSession.restore(json, service)` reconstructs from snapshot
 
-Evaluations are **independent** — each `evaluate()` is stateless. The session remembers facts but not evaluation history.
+Evaluations are **independent** - each `evaluate()` is stateless. The session remembers facts but not evaluation history.
 
 ```python
 # python skip
@@ -85,15 +85,15 @@ print(restored.facts)  # Same as original session
 ```
 
 Snapshots include:
-- **execution_id** — unique session identifier
-- **facts** — all accumulated fact key-value pairs
-- **timestamp** — when the snapshot was created
-- **metadata** — optional custom data (application-specific)
+- **execution_id** - unique session identifier
+- **facts** - all accumulated fact key-value pairs
+- **timestamp** - when the snapshot was created
+- **metadata** - optional custom data (application-specific)
 
 Use snapshots to:
-- **Pause workflows** — save after step 1, restore in step 2
-- **Recover failures** — restart from a known state
-- **Audit trail** — keep JSON copies of evaluation context
+- **Pause workflows** - save after step 1, restore in step 2
+- **Recover failures** - restart from a known state
+- **Audit trail** - keep JSON copies of evaluation context
 
 ## Isolation
 
@@ -119,6 +119,6 @@ Use sessions to evaluate the same ruleset independently for different users, tra
 
 ## Next Steps
 
-- **Working Memory** — See [Working Memory](working-memory.md) for fact store details
-- **Example** — See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for session patterns in HTTP services
-- **Persistence** — See [Persistence](persistence.md) for database integration
+- **Working Memory** - See [Working Memory](working-memory.md) for fact store details
+- **Example** - See [Example 12: API Usage](https://github.com/fluxrules/fluxrules/blob/main/examples/12_api_usage.py) for session patterns in HTTP services
+- **Persistence** - See [Persistence](persistence.md) for database integration

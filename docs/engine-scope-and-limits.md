@@ -145,5 +145,5 @@ stream identity and keep each shard ordered on one owner.
 
 ## Next Steps
 
-- **The FluxRules Engine** — See [The FluxRules Engine](engine-comparison.md) for algorithm details
-- **Choosing an Evaluation Mode** — See [Choosing an Evaluation Mode](choosing-an-engine.md) for selection logic
+- **The FluxRules Engine** - See [The FluxRules Engine](engine-comparison.md) for algorithm details
+- **Choosing an Evaluation Mode** - See [Choosing an Evaluation Mode](choosing-an-engine.md) for selection logic

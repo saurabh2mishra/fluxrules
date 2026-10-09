@@ -148,6 +148,6 @@ rule.save()
 
 ## Next Steps
 
-- **Rule Lifecycle** — See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations
-- **Conditions** — See [Conditions](conditions.md) for DSL operators
-- **Example** — See [Example 18: Unified Rule](https://github.com/fluxrules/fluxrules/blob/main/examples/18_unified_rule.py) for working code
+- **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations
+- **Conditions** - See [Conditions](conditions.md) for DSL operators
+- **Example** - See [Example 18: Unified Rule](https://github.com/fluxrules/fluxrules/blob/main/examples/18_unified_rule.py) for working code

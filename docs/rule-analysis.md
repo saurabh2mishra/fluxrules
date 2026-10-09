@@ -88,5 +88,5 @@ print(f"Dead rules: {[r.name for r in dead]}")
 
 ## Next Steps
 
-- **Concepts** — See [Concepts](concepts.md) for rule fundamentals
-- **Rule Lifecycle** — See [Rule Lifecycle](rule-lifecycle.md) for rule management
+- **Concepts** - See [Concepts](concepts.md) for rule fundamentals
+- **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for rule management

@@ -117,6 +117,6 @@ session.evaluate()
 
 ## Next Steps
 
-- **Concepts** — See [Concepts](concepts.md) for fundamentals
-- **Quickstart** — See [Quickstart](quickstart.md) for hands-on
-- **Architecture** — See [Architecture](architecture.md) for detailed design
+- **Concepts** - See [Concepts](concepts.md) for fundamentals
+- **Quickstart** - See [Quickstart](quickstart.md) for hands-on
+- **Architecture** - See [Architecture](architecture.md) for detailed design

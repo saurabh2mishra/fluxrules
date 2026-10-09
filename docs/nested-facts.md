@@ -102,6 +102,6 @@ result = engine.evaluate(flat)
 
 ## Next Steps
 
-- **Fact Pipeline** — See [Fact Pipeline](fact-pipeline.md) for transform details
-- **Cross-Fact Rules** — See [Cross-Fact Rules](cross-fact-rules.md) for multi-fact correlation
-- **Example** — See [Example 25: Nested Facts](https://github.com/fluxrules/fluxrules/blob/main/examples/25_nested_facts.py)
+- **Fact Pipeline** - See [Fact Pipeline](fact-pipeline.md) for transform details
+- **Cross-Fact Rules** - See [Cross-Fact Rules](cross-fact-rules.md) for multi-fact correlation
+- **Example** - See [Example 25: Nested Facts](https://github.com/fluxrules/fluxrules/blob/main/examples/25_nested_facts.py)

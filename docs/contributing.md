@@ -67,5 +67,5 @@ Open an issue or discussion in the repository.
 
 ## Next Steps
 
-- **Development** — See development/ folder for setup details
-- **Architecture** — See [Architecture](architecture.md) for codebase overview
+- **Development** - See development/ folder for setup details
+- **Architecture** - See [Architecture](architecture.md) for codebase overview

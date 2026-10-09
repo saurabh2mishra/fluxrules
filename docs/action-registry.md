@@ -103,5 +103,5 @@ notifications = action_registry.get_actions_by_category("notifications")
 
 ## Next Steps
 
-- **Custom Actions** — See [Custom Actions](custom-actions.md) for @action decorator
-- **Example** — See [Example 21: Action Registry](https://github.com/fluxrules/fluxrules/blob/main/examples/21_action_registry.py)
+- **Custom Actions** - See [Custom Actions](custom-actions.md) for @action decorator
+- **Example** - See [Example 21: Action Registry](https://github.com/fluxrules/fluxrules/blob/main/examples/21_action_registry.py)

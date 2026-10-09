@@ -29,13 +29,13 @@ rule = Rule(
 ```
 
 **Key Attributes:**
-- `id` — Auto-generated unique identifier (or manual override)
-- `name` — Human-readable rule name
-- `domain` — Logical grouping (e.g., "fraud_detection", "compliance")
-- `tags` — String set for filtering and categorization
-- `condition_dsl` — Nested tree defining when the rule fires
-- `action` — What to do when the rule matches
-- `priority` — Execution order (higher = runs first)
+- `id` - Auto-generated unique identifier (or manual override)
+- `name` - Human-readable rule name
+- `domain` - Logical grouping (e.g., "fraud_detection", "compliance")
+- `tags` - String set for filtering and categorization
+- `condition_dsl` - Nested tree defining when the rule fires
+- `action` - What to do when the rule matches
+- `priority` - Execution order (higher = runs first)
 
 **See:** [examples/18_unified_rule.py](https://github.com/fluxrules/fluxrules/blob/main/examples/18_unified_rule.py)
 
@@ -49,7 +49,7 @@ An **Engine** evaluates facts against loaded rules and returns matched rules and
 
 A single engine is available:
 
-- **PhreakEngine** (the only engine) — Lazy, agenda-driven evaluation with stateless (default) and streaming modes
+- **PhreakEngine** (the only engine) - Lazy, agenda-driven evaluation with stateless (default) and streaming modes
 
 **Quick Example:**
 ```python
@@ -146,9 +146,9 @@ When you evaluate a fact, the engine returns a result object with:
 ```python
 result = engine.evaluate(fact)
 
-# result.fired_rules — list of rule IDs that matched
-# result.actions — list of actions to execute
-# result.latency_ms — execution time in milliseconds
+# result.fired_rules - list of rule IDs that matched
+# result.actions - list of actions to execute
+# result.latency_ms - execution time in milliseconds
 ```
 
 **Example:**
@@ -167,9 +167,9 @@ print(f"Time: {result.latency_ms}ms")     # 1.2ms
 A **Domain** is a logical grouping of rules. Rules with the same domain typically handle a specific problem area.
 
 **Common domains in payment risk:**
-- `fraud_detection` — Anti-fraud rules
-- `compliance` — Regulatory rules
-- `risk_ops` — Risk assessment rules
+- `fraud_detection` - Anti-fraud rules
+- `compliance` - Regulatory rules
+- `risk_ops` - Risk assessment rules
 
 **Filtering by domain:**
 ```python
@@ -198,10 +198,10 @@ engine.load_rules(fraud_rules)
 A **Tag** is a string label for categorization and filtering.
 
 **Typical tags:**
-- `tier_0`, `tier_1`, `tier_2` — Rule priority tiers
-- `cross_border` — Rules for cross-border scenarios
-- `manual_review` — Rules requiring human review
-- `auto_approve` — Rules for automatic approval
+- `tier_0`, `tier_1`, `tier_2` - Rule priority tiers
+- `cross_border` - Rules for cross-border scenarios
+- `manual_review` - Rules requiring human review
+- `auto_approve` - Rules for automatic approval
 
 **Filtering by tag:**
 ```python
@@ -238,8 +238,8 @@ This shared context lets you focus on learning features without context-switchin
 
 ## Next Steps
 
-- **[Quickstart](quickstart.md)** — 5-minute working example
-- **[Conditions](conditions.md)** — Operator reference
-- **[Complex Conditions](complex-conditions.md)** — AND/OR/NOT logic
-- **[Domains & Tags](domains-and-tags.md)** — Rule organization
+- **[Quickstart](quickstart.md)** - 5-minute working example
+- **[Conditions](conditions.md)** - Operator reference
+- **[Complex Conditions](complex-conditions.md)** - AND/OR/NOT logic
+- **[Domains & Tags](domains-and-tags.md)** - Rule organization
 

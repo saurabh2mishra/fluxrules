@@ -85,6 +85,6 @@ result = engine.evaluate({
 
 ## Next Steps
 
-- **Working Memory** — See [Working Memory](working-memory.md) for fact storage
-- **Sessions** — See [Sessions](sessions.md) for multi-step workflows
-- **Examples** — See [Example 24: Cross-Fact Joins](https://github.com/fluxrules/fluxrules/blob/main/examples/24_cross_fact_joins.py)
+- **Working Memory** - See [Working Memory](working-memory.md) for fact storage
+- **Sessions** - See [Sessions](sessions.md) for multi-step workflows
+- **Examples** - See [Example 24: Cross-Fact Joins](https://github.com/fluxrules/fluxrules/blob/main/examples/24_cross_fact_joins.py)

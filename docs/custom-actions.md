@@ -6,9 +6,9 @@
 
 Actions are strings or tuples of strings that are executed when a rule fires. FluxRules supports:
 
-1. **String actions** — Simple action names from your application
-2. **Action registry** — Register custom handlers with the `@action` decorator
-3. **Built-in actions** — Default actions like `flag` and `alert`
+1. **String actions** - Simple action names from your application
+2. **Action registry** - Register custom handlers with the `@action` decorator
+3. **Built-in actions** - Default actions like `flag` and `alert`
 
 ## Using actions in rules
 
@@ -39,10 +39,10 @@ print(f"Actions: {result.actions}")  # ["require_approval"] + ["block", "notify_
 
 ## Built-in actions
 
-- **`flag`** — Mark fact for manual review
-- **`alert`** — Send alert notification
-- **`skip`** — Skip further evaluation
-- Custom strings — Any string your application recognizes
+- **`flag`** - Mark fact for manual review
+- **`alert`** - Send alert notification
+- **`skip`** - Skip further evaluation
+- Custom strings - Any string your application recognizes
 
 ## Register custom action handlers
 
@@ -126,7 +126,7 @@ for action_name in result.actions:
         handler_result = action_registry.execute(action_name, **fact)
         print(f"  Result: {handler_result}")
     except ValueError:
-        # Action not registered — your app handles the string
+        # Action not registered - your app handles the string
         print(f"  (Application handles '{action_name}')")
 ```
 
@@ -175,6 +175,6 @@ def notify_then_block(**kwargs) -> dict:
 
 ## Next Steps
 
-- **Rule Lifecycle** — See [Rule Lifecycle](rule-lifecycle.md) for rule creation and deletion
-- **Example** — See [Example 15: Action System](https://github.com/fluxrules/fluxrules/blob/main/examples/15_action_system.py) for working code
-- **Action Registry** — See [Action Registry](action-registry.md) for advanced registration patterns
+- **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for rule creation and deletion
+- **Example** - See [Example 15: Action System](https://github.com/fluxrules/fluxrules/blob/main/examples/15_action_system.py) for working code
+- **Action Registry** - See [Action Registry](action-registry.md) for advanced registration patterns

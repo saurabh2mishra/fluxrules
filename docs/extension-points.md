@@ -14,7 +14,7 @@ policy; the deep how-to guides live on their own pages and are linked below.
 | Pipeline transform | [`pipeline.registry.register(cls)`](fact-pipeline.md) | [Custom Transforms](custom-transforms.md) |
 | Validator | [`ValidationService.register_validator(...)`](validation-framework.md) | [Validation Framework](validation-framework.md) |
 
-Each registry is a plain, importable object — there is no hidden framework. A
+Each registry is a plain, importable object - there is no hidden framework. A
 custom engine, for example, becomes selectable everywhere the built-in engine
 is (the Python factory, the HTTP API, and the CLI `--engine` flag) the moment it
 is registered:
@@ -87,7 +87,7 @@ from fluxrules.plugins.discovery import load_plugins
 loaded = load_plugins()  # {"fluxrules.operators": ["within_range"], ...}
 ```
 
-Discovery is **explicit** — it is never an import side effect — so applications
+Discovery is **explicit** - it is never an import side effect - so applications
 stay in control of when third-party code is loaded. A plugin that fails to load
 is logged and skipped rather than aborting discovery.
 

@@ -66,6 +66,6 @@ Real-world scenarios where FluxRules excels.
 
 ## Next Steps
 
-- **Concepts** — See [Concepts](concepts.md) for fundamentals
-- **Quickstart** — See [Quickstart](quickstart.md) to build your first rules
-- **Examples** — See [Examples](examples.md) for working code
+- **Concepts** - See [Concepts](concepts.md) for fundamentals
+- **Quickstart** - See [Quickstart](quickstart.md) to build your first rules
+- **Examples** - See [Examples](examples.md) for working code
