@@ -155,11 +155,11 @@ uv run mkdocs serve
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+See [CONTRIBUTING](CONTRIBUTING.md) and [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md).
 
 ## Security
 
-See [SECURITY.md](SECURITY.md).
+See [SECURITY](SECURITY.md).
 
 ## License
 
