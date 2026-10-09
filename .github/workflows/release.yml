@@ -146,13 +146,16 @@ jobs:
             rm -rf "$venv_dir"
           done
 
-  # ── 3. Publish to PyPI (production — manual environment gate) ────────────
+  # ── 3. Publish to PyPI ───────────────────────────────────────────────────
   #
   # TestPyPI skipped: name is unavailable on test.pypi.org.
   # Validation is covered by build gates + smoke-test on 3 Python versions.
   #
-  # This job requires a human to approve the "pypi" GitHub environment.
-  # Set up Required Reviewers on the environment at:
+  # Requires secret PYPI_API_TOKEN set at:
+  #   https://github.com/saurabh2mishra/fluxrules/settings/secrets/actions
+  #
+  # The pypi GitHub environment gate gives a manual confirmation click
+  # before the upload proceeds. Set up at:
   #   https://github.com/saurabh2mishra/fluxrules/settings/environments
   #
   publish-pypi:
@@ -164,7 +167,6 @@ jobs:
       name: pypi
       url: https://pypi.org/p/fluxrules
     permissions:
-      id-token: write   # OIDC Trusted Publishing
       contents: write   # create GitHub release
 
     steps:
@@ -177,6 +179,7 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
           print-hash: true
           verbose: true
 
