@@ -13,8 +13,7 @@ Get your first rule working in 5 minutes.
 Create a Python script:
 
 ```python
-from fluxrules.domain import Rule
-from fluxrules.engine.phreak import PhreakEngine
+from fluxrules import Rule, PhreakEngine
 
 # Create a rule
 rule = Rule(

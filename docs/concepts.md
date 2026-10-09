@@ -11,7 +11,7 @@ A **Rule** is the core abstraction. It combines a condition, an action, and meta
 **Source:** `src/fluxrules/domain/unified_rule.py`
 
 ```python
-from fluxrules.domain import Rule
+from fluxrules import Rule
 
 rule = Rule(
     name="payment_risk_high",
@@ -53,7 +53,7 @@ A single engine is available:
 
 **Quick Example:**
 ```python
-from fluxrules.engine.phreak import PhreakEngine
+from fluxrules import PhreakEngine
 
 engine = PhreakEngine()
 engine.load_rules([rule])
@@ -173,8 +173,7 @@ A **Domain** is a logical grouping of rules. Rules with the same domain typicall
 
 **Filtering by domain:**
 ```python
-from fluxrules import Rule
-from fluxrules.engine.phreak import PhreakEngine
+from fluxrules import Rule, PhreakEngine
 
 # Define rules with domains
 rule1 = Rule(name="rule1", domain="fraud_detection", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")

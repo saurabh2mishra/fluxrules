@@ -1,8 +1,8 @@
 site_name: FluxRules
 site_description: Python rule evaluation toolkit with optional API, powered by the PHREAK engine
-site_url: https://fluxrules.github.io/fluxrules/
-repo_url: https://github.com/fluxrules/fluxrules
-repo_name: fluxrules
+site_url: https://saurabh2mishra.github.io/fluxrules/
+repo_url: https://github.com/saurabh2mishra/fluxrules
+repo_name: saurabh2mishra/fluxrules
 
 docs_dir: docs
 

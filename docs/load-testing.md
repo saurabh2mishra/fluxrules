@@ -234,13 +234,13 @@ result = engine.evaluate(facts_updated, prev_facts=facts)
 
 ```python
 # python skip
-# Accumulate facts in working memory
+# Accumulate facts in working memory (streaming_mode=True engine)
 for i, fact in enumerate(facts_stream):
     engine.assert_fact(fact)
     if i % 1000 == 0:
-        # Flush periodically
-        engine.evaluate_working_memory()
-        results.extend(engine.get_matched_rules())
+        # Flush: evaluate the current working-memory fact set
+        result = engine.evaluate(fact)
+        results.append(result)
 ```
 
 **Impact:** Amortizes compilation overhead, ~50K facts/batch.
@@ -424,7 +424,8 @@ def test_phreak_batch_1m_facts():
         batch = [generate_fact(i) for i in range(batch_idx * batch_size, (batch_idx + 1) * batch_size)]
         for fact in batch:
             engine.assert_fact(fact)
-        engine.evaluate_working_memory()
+        # Evaluate the last fact in the batch to flush working memory
+        engine.evaluate(batch[-1])
     
     elapsed = time.time() - start
     throughput = total_facts / elapsed

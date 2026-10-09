@@ -9,7 +9,10 @@ description = "Backend-first rules engine library with optional API adapters"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "FluxRules Contributors" }]
+authors = [
+  { name = "Saurabh Mishra", email = "saurabh2.mishra@gmail.com" },
+  { name = "FluxRules Contributors" },
+]
 # The core import chain (fluxrules.domain.unified_rule) requires pydantic.
 # SQLAlchemy is NOT required at core import - it is lazily loaded by the
 # optional persistence/prefilter paths (see the `sql` extra).

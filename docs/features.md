@@ -49,7 +49,7 @@ print(f"Latency: {result.latency_ms}ms")  # [execution time]
 - Debugging (understand rule behavior)
 - User transparency (explain approvals/denials)
 
-**Source:** `src/fluxrules/engine/base.py` - `EvaluationResult` class
+**Source:** `src/fluxrules/domain/models.py` - `EvaluationResult` class
 
 ---
 

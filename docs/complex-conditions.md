@@ -36,8 +36,7 @@ All conditions must be true for the group to match.
 
 **Example Rule:**
 ```python
-from fluxrules.domain import Rule
-from fluxrules.engine.phreak import PhreakEngine
+from fluxrules import Rule, PhreakEngine
 
 rule = Rule(
     name="high_value_international",
@@ -271,26 +270,25 @@ A OR (B AND C)  means:  Either A is true, or (B and C are both true)
 Use nested structures to be explicit about precedence:
 
 ```python
+from fluxrules import Rule
+
 # Scenario: "Gold members OR (new customers with high purchase intent)"
-rule = {
-    'id': 'retention_offer',
-    'name': 'Special Retention Offer',
-    'conditions': [
-        {'type': 'or', 'conditions': [
+rule = Rule(
+    name="Special Retention Offer",
+    condition_dsl={
+        'type': 'group', 'op': 'OR', 'children': [
             # Group 1: Existing loyal customers
-            {'attribute': 'membership_level', 'operator': '==', 'value': 'gold'},
+            {'type': 'condition', 'field': 'membership_level', 'op': '==', 'value': 'gold'},
             # Group 2: New customers with high purchase intent
-            {'type': 'and', 'conditions': [
-                {'attribute': 'is_new_customer', 'operator': '==', 'value': True},
-                {'attribute': 'cart_value', 'operator': '>', 'value': 500},
-                {'attribute': 'browse_time_minutes', 'operator': '>', 'value': 10}
-            ]}
-        ]}
-    ],
-    'actions': [
-        {'action': 'set', 'target': 'offer_type', 'value': 'premium_discount'}
-    ]
-}
+            {'type': 'group', 'op': 'AND', 'children': [
+                {'type': 'condition', 'field': 'is_new_customer', 'op': '==', 'value': True},
+                {'type': 'condition', 'field': 'cart_value', 'op': '>', 'value': 500},
+                {'type': 'condition', 'field': 'browse_time_minutes', 'op': '>', 'value': 10},
+            ]},
+        ]
+    },
+    action="premium_discount",
+)
 ```
 
 ## Practical Examples
@@ -299,125 +297,114 @@ rule = {
 Approve loans based on credit and income criteria:
 
 ```python
-rule = {
-    'id': 'loan_approval',
-    'name': 'Fast Track Loan Approval',
-    'conditions': [
-        {'type': 'and', 'conditions': [
-            {'attribute': 'credit_score', 'operator': '>=', 'value': 750},
-            {'attribute': 'debt_to_income_ratio', 'operator': '<=', 'value': 0.4},
-            {'type': 'or', 'conditions': [
-                {'attribute': 'employment_years', 'operator': '>=', 'value': 3},
-                {'attribute': 'annual_income', 'operator': '>', 'value': 100000}
-            ]}
-        ]}
-    ],
-    'actions': [
-        {'action': 'set', 'target': 'approval_status', 'value': 'approved'},
-        {'action': 'set', 'target': 'processing_priority', 'value': 'fast_track'}
-    ]
-}
+from fluxrules import Rule
+
+rule = Rule(
+    name="Fast Track Loan Approval",
+    condition_dsl={
+        'type': 'group', 'op': 'AND', 'children': [
+            {'type': 'condition', 'field': 'credit_score', 'op': '>=', 'value': 750},
+            {'type': 'condition', 'field': 'debt_to_income_ratio', 'op': '<=', 'value': 0.4},
+            {'type': 'group', 'op': 'OR', 'children': [
+                {'type': 'condition', 'field': 'employment_years', 'op': '>=', 'value': 3},
+                {'type': 'condition', 'field': 'annual_income', 'op': '>', 'value': 100000},
+            ]},
+        ]
+    },
+    action="fast_track_approved",
+)
 ```
 
 ### Example 2: Email Campaign Targeting
 Target specific customer segments:
 
 ```python
-rule = {
-    'id': 'summer_sale_email',
-    'name': 'Send Summer Sale Email',
-    'conditions': [
-        {'type': 'and', 'conditions': [
+from fluxrules import Rule
+
+rule = Rule(
+    name="Send Summer Sale Email",
+    condition_dsl={
+        'type': 'group', 'op': 'AND', 'children': [
             # Must be active and opted-in
-            {'attribute': 'account_status', 'operator': '==', 'value': 'active'},
-            {'attribute': 'email_opted_in', 'operator': '==', 'value': True},
+            {'type': 'condition', 'field': 'account_status', 'op': '==', 'value': 'active'},
+            {'type': 'condition', 'field': 'email_opted_in', 'op': '==', 'value': True},
             # Either high-value or seasonal buyer
-            {'type': 'or', 'conditions': [
-                {'attribute': 'annual_spend', 'operator': '>', 'value': 1000},
-                {'attribute': 'summer_purchases_count', 'operator': '>', 'value': 2}
+            {'type': 'group', 'op': 'OR', 'children': [
+                {'type': 'condition', 'field': 'annual_spend', 'op': '>', 'value': 1000},
+                {'type': 'condition', 'field': 'summer_purchases_count', 'op': '>', 'value': 2},
             ]},
             # Not recently emailed
-            {'attribute': 'days_since_last_email', 'operator': '>', 'value': 7}
-        ]}
-    ],
-    'actions': [
-        {'action': 'set', 'target': 'send_email', 'value': True},
-        {'action': 'set', 'target': 'campaign_name', 'value': 'summer_sale_2024'}
-    ]
-}
+            {'type': 'condition', 'field': 'days_since_last_email', 'op': '>', 'value': 7},
+        ]
+    },
+    action="send_summer_sale_email",
+)
 ```
 
 ### Example 3: Inventory Management
 Trigger different actions based on stock levels:
 
 ```python
-engine = PhreakEngine()
+from fluxrules import Rule, PhreakEngine
 
-# Reorder rule
-engine.add_rule({
-    'id': 'reorder_stock',
-    'name': 'Reorder Low Stock Items',
-    'conditions': [
-        {'type': 'and', 'conditions': [
-            {'attribute': 'stock_quantity', 'operator': '<', 'value': 50},
-            {'type': 'or', 'conditions': [
-                {'attribute': 'is_bestseller', 'operator': '==', 'value': True},
-                {'attribute': 'stock_out_days', 'operator': '>', 'value': 3}
+reorder_rule = Rule(
+    name="Reorder Low Stock Items",
+    condition_dsl={
+        'type': 'group', 'op': 'AND', 'children': [
+            {'type': 'condition', 'field': 'stock_quantity', 'op': '<', 'value': 50},
+            {'type': 'group', 'op': 'OR', 'children': [
+                {'type': 'condition', 'field': 'is_bestseller', 'op': '==', 'value': True},
+                {'type': 'condition', 'field': 'stock_out_days', 'op': '>', 'value': 3},
             ]},
-            {'attribute': 'supplier_available', 'operator': '==', 'value': True}
-        ]}
-    ],
-    'actions': [
-        {'action': 'set', 'target': 'action', 'value': 'reorder'},
-        {'action': 'set', 'target': 'quantity', 'value': 100}
-    ]
-})
+            {'type': 'condition', 'field': 'supplier_available', 'op': '==', 'value': True},
+        ]
+    },
+    action="reorder",
+)
 
-# Discontinue rule
-engine.add_rule({
-    'id': 'discontinue_item',
-    'name': 'Discontinue Slow-Moving Items',
-    'conditions': [
-        {'type': 'and', 'conditions': [
-            {'attribute': 'stock_quantity', 'operator': '>', 'value': 200},
-            {'attribute': 'units_sold_annual', 'operator': '<', 'value': 10},
-            {'attribute': 'list_price', 'operator': '<', 'value': 5}
-        ]}
-    ],
-    'actions': [
-        {'action': 'set', 'target': 'action', 'value': 'discontinue'}
-    ]
-})
+discontinue_rule = Rule(
+    name="Discontinue Slow-Moving Items",
+    condition_dsl={
+        'type': 'group', 'op': 'AND', 'children': [
+            {'type': 'condition', 'field': 'stock_quantity', 'op': '>', 'value': 200},
+            {'type': 'condition', 'field': 'units_sold_annual', 'op': '<', 'value': 10},
+            {'type': 'condition', 'field': 'list_price', 'op': '<', 'value': 5},
+        ]
+    },
+    action="discontinue",
+)
+
+engine = PhreakEngine()
+engine.load_rules([reorder_rule, discontinue_rule])
 ```
 
 ### Example 4: Premium Feature Access
 Grant features based on subscription and usage:
 
 ```python
-rule = {
-    'id': 'advanced_analytics',
-    'name': 'Grant Advanced Analytics Access',
-    'conditions': [
-        {'type': 'and', 'conditions': [
+from fluxrules import Rule
+
+rule = Rule(
+    name="Grant Advanced Analytics Access",
+    condition_dsl={
+        'type': 'group', 'op': 'AND', 'children': [
             # Must have active subscription
-            {'attribute': 'subscription_status', 'operator': '==', 'value': 'active'},
+            {'type': 'condition', 'field': 'subscription_status', 'op': '==', 'value': 'active'},
             # Must be on Pro plan or higher
-            {'type': 'or', 'conditions': [
-                {'attribute': 'plan_type', 'operator': 'in', 'value': ['pro', 'enterprise']},
+            {'type': 'group', 'op': 'OR', 'children': [
+                {'type': 'condition', 'field': 'plan_type', 'op': 'in', 'value': ['pro', 'enterprise']},
                 # OR free tier but heavy user
-                {'type': 'and', 'conditions': [
-                    {'attribute': 'plan_type', 'operator': '==', 'value': 'free'},
-                    {'attribute': 'api_calls_monthly', 'operator': '>', 'value': 100000}
-                ]}
+                {'type': 'group', 'op': 'AND', 'children': [
+                    {'type': 'condition', 'field': 'plan_type', 'op': '==', 'value': 'free'},
+                    {'type': 'condition', 'field': 'api_calls_monthly', 'op': '>', 'value': 100000},
+                ]},
             ]},
             # Not suspended
-            {'attribute': 'is_suspended', 'operator': '==', 'value': False}
-        ]}
-    ],
-    'actions': [
-        {'action': 'set', 'target': 'feature_enabled', 'value': True}
-    ]
-}
+            {'type': 'condition', 'field': 'is_suspended', 'op': '==', 'value': False},
+        ]
+    },
+    action="grant_advanced_analytics",
+)
 ```
 
 ## Boolean Operations Reference
@@ -435,51 +422,42 @@ NOT (A OR B)   ≡  (NOT A) AND (NOT B)
 ## Building Complex Conditions Programmatically
 
 ```python
-from fluxrules import PhreakEngine
+from fluxrules import Rule, PhreakEngine
 
-engine = PhreakEngine()
-
-# Build conditions step by step
+# Build sub-conditions step by step, then compose them
 credit_check = {
-    'type': 'and',
-    'conditions': [
-        {'attribute': 'credit_score', 'operator': '>=', 'value': 700},
-        {'attribute': 'credit_inquiries_30days', 'operator': '<', 'value': 3}
+    'type': 'group', 'op': 'AND',
+    'children': [
+        {'type': 'condition', 'field': 'credit_score', 'op': '>=', 'value': 700},
+        {'type': 'condition', 'field': 'credit_inquiries_30days', 'op': '<', 'value': 3},
     ]
 }
 
 income_check = {
-    'attribute': 'annual_income',
-    'operator': '>=',
-    'value': 50000
+    'type': 'condition', 'field': 'annual_income', 'op': '>=', 'value': 50000
 }
 
 employment_check = {
-    'type': 'or',
-    'conditions': [
-        {'attribute': 'employment_status', 'operator': '==', 'value': 'employed'},
-        {'attribute': 'is_self_employed', 'operator': '==', 'value': True},
-        {'attribute': 'retirement_account_balance', 'operator': '>', 'value': 200000}
+    'type': 'group', 'op': 'OR',
+    'children': [
+        {'type': 'condition', 'field': 'employment_status', 'op': '==', 'value': 'employed'},
+        {'type': 'condition', 'field': 'is_self_employed', 'op': '==', 'value': True},
+        {'type': 'condition', 'field': 'retirement_account_balance', 'op': '>', 'value': 200000},
     ]
 }
 
-# Combine them
-rule = {
-    'id': 'credit_card_approval',
-    'name': 'Credit Card Approval',
-    'conditions': [
-        {'type': 'and', 'conditions': [
-            credit_check,
-            income_check,
-            employment_check
-        ]}
-    ],
-    'actions': [
-        {'action': 'set', 'target': 'card_approved', 'value': True}
-    ]
-}
+# Combine them into a Rule
+rule = Rule(
+    name="Credit Card Approval",
+    condition_dsl={
+        'type': 'group', 'op': 'AND',
+        'children': [credit_check, income_check, employment_check],
+    },
+    action="approve_card",
+)
 
-engine.add_rule(rule)
+engine = PhreakEngine()
+engine.load_rules([rule])
 ```
 
 ## Testing Complex Conditions
@@ -524,16 +502,16 @@ for fact in boundary_cases:
 ### 1. Keep Conditions Readable
 ```python
 # Good: Easy to understand intent
-{'type': 'and', 'conditions': [
-    {'attribute': 'age', 'operator': '>=', 'value': 18},
-    {'attribute': 'has_drivers_license', 'operator': '==', 'value': True}
+{'type': 'group', 'op': 'AND', 'children': [
+    {'type': 'condition', 'field': 'age', 'op': '>=', 'value': 18},
+    {'type': 'condition', 'field': 'has_drivers_license', 'op': '==', 'value': True}
 ]}
 
 # Harder to read: Too nested
-{'type': 'or', 'conditions': [
-    {'type': 'and', 'conditions': [
-        {'type': 'or', 'conditions': [...]},
-        {'type': 'and', 'conditions': [...]}
+{'type': 'group', 'op': 'OR', 'children': [
+    {'type': 'group', 'op': 'AND', 'children': [
+        {'type': 'group', 'op': 'OR', 'children': [...]},
+        {'type': 'group', 'op': 'AND', 'children': [...]}
     ]},
     ...
 ]}
@@ -545,17 +523,17 @@ Group related conditions together:
 ```python
 # Good: Grouped by concept
 {
-    'type': 'and',
-    'conditions': [
+    'type': 'group', 'op': 'AND',
+    'children': [
         # Account verification
-        {'type': 'and', 'conditions': [
-            {'attribute': 'email_verified', 'operator': '==', 'value': True},
-            {'attribute': 'phone_verified', 'operator': '==', 'value': True}
+        {'type': 'group', 'op': 'AND', 'children': [
+            {'type': 'condition', 'field': 'email_verified', 'op': '==', 'value': True},
+            {'type': 'condition', 'field': 'phone_verified', 'op': '==', 'value': True}
         ]},
         # Payment method
-        {'type': 'or', 'conditions': [
-            {'attribute': 'has_credit_card', 'operator': '==', 'value': True},
-            {'attribute': 'has_bank_account', 'operator': '==', 'value': True}
+        {'type': 'group', 'op': 'OR', 'children': [
+            {'type': 'condition', 'field': 'has_credit_card', 'op': '==', 'value': True},
+            {'type': 'condition', 'field': 'has_bank_account', 'op': '==', 'value': True}
         ]}
     ]
 }
@@ -564,36 +542,39 @@ Group related conditions together:
 ### 3. Avoid Redundancy
 ```python
 # Good: Simple and clear
-{'type': 'and', 'conditions': [
-    {'attribute': 'age', 'operator': '>=', 'value': 18},
-    {'attribute': 'country', 'operator': 'in', 'value': ['US', 'CA', 'UK']}
+{'type': 'group', 'op': 'AND', 'children': [
+    {'type': 'condition', 'field': 'age', 'op': '>=', 'value': 18},
+    {'type': 'condition', 'field': 'country', 'op': 'in', 'value': ['US', 'CA', 'UK']}
 ]}
 
 # Redundant: age >= 18 AND age >= 0 is unnecessary
-{'type': 'and', 'conditions': [
-    {'attribute': 'age', 'operator': '>=', 'value': 18},
-    {'attribute': 'age', 'operator': '>=', 'value': 0}
+{'type': 'group', 'op': 'AND', 'children': [
+    {'type': 'condition', 'field': 'age', 'op': '>=', 'value': 18},
+    {'type': 'condition', 'field': 'age', 'op': '>=', 'value': 0}
 ]}
 ```
 
 ### 4. Document Complex Logic
 ```python
-rule = {
-    'id': 'special_pricing',
-    'name': 'Apply Special Pricing',
-    'description': 'Grant special pricing if (new customer OR loyal customer) AND (high order value)',
-    'conditions': [
-        {'type': 'and', 'conditions': [
+from fluxrules import Rule
+
+# Grant special pricing if (new customer OR loyal customer) AND (high order value)
+rule = Rule(
+    name="Apply Special Pricing",
+    description="Grant special pricing if (new customer OR loyal customer) AND (high order value)",
+    condition_dsl={
+        'type': 'group', 'op': 'AND', 'children': [
             # New OR loyal customers
-            {'type': 'or', 'conditions': [
-                {'attribute': 'days_as_customer', 'operator': '<', 'value': 30},
-                {'attribute': 'lifetime_purchases', 'operator': '>', 'value': 10000}
+            {'type': 'group', 'op': 'OR', 'children': [
+                {'type': 'condition', 'field': 'days_as_customer', 'op': '<', 'value': 30},
+                {'type': 'condition', 'field': 'lifetime_purchases', 'op': '>', 'value': 10000},
             ]},
             # With significant orders
-            {'attribute': 'current_order_value', 'operator': '>', 'value': 500}
-        ]}
-    ]
-}
+            {'type': 'condition', 'field': 'current_order_value', 'op': '>', 'value': 500},
+        ]
+    },
+    action="apply_special_pricing",
+)
 ```
 
 ## Next Steps
