@@ -1,0 +1,4053 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Python rule evaluation toolkit with optional API, powered by the PHREAK engine">
+      
+      
+      
+        <link rel="canonical" href="https://saurabh2mishra.github.io/fluxrules/examples/">
+      
+      
+        <link rel="prev" href="../load-testing/">
+      
+      
+        <link rel="next" href="../usecases/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Examples - FluxRules</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#examples-learning-path" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FluxRules" class="md-header__button md-logo" aria-label="FluxRules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FluxRules
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Examples
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/saurabh2mishra/fluxrules" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    saurabh2mishra/fluxrules
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FluxRules" class="md-nav__button md-logo" aria-label="FluxRules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FluxRules
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/saurabh2mishra/fluxrules" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    saurabh2mishra/fluxrules
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/python-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/http-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/engines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/advanced-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Engine
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Engine
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decision-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The FluxRules Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choosing-an-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing an Evaluation Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithm-fidelity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm Fidelity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine-scope-and-limits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope and Limits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authoring Rules
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Authoring Rules
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pydantic-rule-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pydantic Rule Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conditions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../complex-conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complex Conditions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../domains-and-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domains and Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-builder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Builder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../yaml-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../id-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ID Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fact-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fact Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cross-fact-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Fact Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested Facts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation-framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../working-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extension-points/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension Points
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-engines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Engines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms-cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms-answered/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms Q&A
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operating
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operating
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sessions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sessions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability-exporters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../load-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Learning
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#learning-path-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Path Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basics-30-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basics (30 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basics (30 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-00-getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 00: Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-01-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 01: Conditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-02-complex-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 02: Complex Conditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#organization-45-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organization (45 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Organization (45 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-03-domains-and-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 03: Domains and Tags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-04-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 04: Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#persistence-45-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistence (45 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Persistence (45 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-05-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 05: Persistence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-06-working-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 06: Working Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules-as-data-60-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules as Data (60 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rules as Data (60 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-07-yaml-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 07: YAML Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-features-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Features (2+ hours)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Features (2+ hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-09-custom-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 09: Custom Engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-10-pluggable-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 10: Pluggable Engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-11-cli-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 11: CLI Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-12-rest-api-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 12: REST API Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-13-complex-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 13: Complex Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-14-rule-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 14: Rule Builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-15-action-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 15: Action System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-16-fact-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 16: Fact Store
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-17-id-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 17: ID Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-18-unified-rule-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 18: Unified Rule Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-19-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 19: Advanced Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-processing-pipelines-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Processing Pipelines (2+ hours)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Processing Pipelines (2+ hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-20-streaming-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 20: Streaming Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-21-action-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 21: Action Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-22-real-world-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 22: Real-World Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-data-processing-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Data Processing (2+ hours)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Data Processing (2+ hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-23-streaming-vs-stateless" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 23: Streaming vs Stateless
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-24-cross-fact-joins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 24: Cross-Fact Joins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-25-nested-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 25: Nested Facts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-26-fact-loader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 26: Fact Loader
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-27-factpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 27: FactPipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-28-factpipeline-tier-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 28: FactPipeline (Tier 1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-29-custom-transforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 29: Custom Transforms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-30-conflict-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 30: Conflict Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-all-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running All Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-dataset-examplesshared_use_casepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared Dataset (examples/shared_use_case.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips-for-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips for Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usecases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/public-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/http-endpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Endpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#learning-path-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Path Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basics-30-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basics (30 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basics (30 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-00-getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 00: Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-01-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 01: Conditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-02-complex-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 02: Complex Conditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#organization-45-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organization (45 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Organization (45 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-03-domains-and-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 03: Domains and Tags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-04-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 04: Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#persistence-45-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistence (45 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Persistence (45 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-05-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 05: Persistence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-06-working-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 06: Working Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules-as-data-60-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules as Data (60 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rules as Data (60 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-07-yaml-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 07: YAML Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-features-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Features (2+ hours)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Features (2+ hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-09-custom-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 09: Custom Engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-10-pluggable-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 10: Pluggable Engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-11-cli-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 11: CLI Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-12-rest-api-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 12: REST API Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-13-complex-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 13: Complex Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-14-rule-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 14: Rule Builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-15-action-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 15: Action System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-16-fact-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 16: Fact Store
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-17-id-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 17: ID Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-18-unified-rule-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 18: Unified Rule Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-19-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 19: Advanced Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-processing-pipelines-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Processing Pipelines (2+ hours)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Processing Pipelines (2+ hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-20-streaming-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 20: Streaming Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-21-action-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 21: Action Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-22-real-world-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 22: Real-World Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-data-processing-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Data Processing (2+ hours)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Data Processing (2+ hours)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-23-streaming-vs-stateless" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 23: Streaming vs Stateless
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-24-cross-fact-joins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 24: Cross-Fact Joins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-25-nested-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 25: Nested Facts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-26-fact-loader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 26: Fact Loader
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-27-factpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 27: FactPipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-28-factpipeline-tier-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 28: FactPipeline (Tier 1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-29-custom-transforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 29: Custom Transforms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-30-conflict-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 30: Conflict Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-all-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running All Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-dataset-examplesshared_use_casepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared Dataset (examples/shared_use_case.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips-for-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips for Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="examples-learning-path">Examples &amp; Learning Path<a class="headerlink" href="#examples-learning-path" title="Permanent link">&para;</a></h1>
+<p>Welcome to the FluxRules learning path! This guide walks you through progressively more sophisticated examples that teach you how to build rules in FluxRules. </p>
+<p><strong>All examples use a shared <code>cross_border_payment_risk_triage</code> dataset</strong> located in <code>examples/shared_use_case.py</code>. This means you can focus on learning each feature without switching between different problem domains. Each example is a standalone Python script in the <code>examples/</code> directory.</p>
+<p><strong>Estimated time:</strong> 30 minutes to run all examples end-to-end.</p>
+<h2 id="learning-path-overview">Learning Path Overview<a class="headerlink" href="#learning-path-overview" title="Permanent link">&para;</a></h2>
+<p>All examples share a common <strong>payment-risk triage</strong> use case with cross-border fraud detection rules. This lets you focus on learning each feature without context switching between different problem domains.</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Examples</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Basics</strong></td>
+<td>00-04</td>
+<td>Getting started, conditions, complex conditions, domains/tags, validation</td>
+</tr>
+<tr>
+<td><strong>Integration</strong></td>
+<td>05-11</td>
+<td>Persistence, working memory, YAML, engines, CLI, REST API</td>
+</tr>
+<tr>
+<td><strong>Advanced</strong></td>
+<td>13-22</td>
+<td>Complex rules, error handling, actions, fact store, ID generation, unified rules, streaming, workflows</td>
+</tr>
+<tr>
+<td><strong>Pipelines</strong></td>
+<td>23-30</td>
+<td>Stateless evaluation, cross-fact joins, nested facts, fact loading, pipelines, transforms, conflict detection</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="basics-30-minutes">Basics (30 minutes)<a class="headerlink" href="#basics-30-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="example-00-getting-started">Example 00: Getting Started<a class="headerlink" href="#example-00-getting-started" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/00_getting_started.py</code></p>
+<p>Your first rule engine! This example shows:
+- Creating a rule engine
+- Defining a simple rule with one condition
+- Running facts through the engine
+- Inspecting results</p>
+<p><strong>Key Concepts:</strong> Engine, Rule, Condition, Fact</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/00_getting_started.py
+</code></pre></div></p>
+<h3 id="example-01-conditions">Example 01: Conditions<a class="headerlink" href="#example-01-conditions" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/01_conditions.py</code></p>
+<p>Deep dive into condition types. Learn:
+- Different condition operators (equality, comparison, pattern matching)
+- Building conditions with the validation framework
+- Debugging condition evaluation</p>
+<p><strong>Key Concepts:</strong> Validation Framework, Conditions, Operators</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/01_conditions.py
+</code></pre></div></p>
+<h3 id="example-02-complex-conditions">Example 02: Complex Conditions<a class="headerlink" href="#example-02-complex-conditions" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/02_complex_conditions.py</code></p>
+<p>Combine conditions with logic. Learn:
+- AND/OR logic between conditions
+- Condition groups and precedence
+- Nested conditions</p>
+<p><strong>Key Concepts:</strong> Condition Logic, Groups, Precedence</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/02_complex_conditions.py
+</code></pre></div></p>
+<hr />
+<h2 id="organization-45-minutes">Organization (45 minutes)<a class="headerlink" href="#organization-45-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="example-03-domains-and-tags">Example 03: Domains and Tags<a class="headerlink" href="#example-03-domains-and-tags" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/03_domains_and_tags.py</code></p>
+<p>Organize your rules at scale. Learn:
+- What are domains and why they matter
+- Tagging rules for organization and filtering
+- Querying rules by domain and tags
+- Domain-specific validation</p>
+<p><strong>Key Concepts:</strong> Domains, Tags, Rule Organization, Filtering</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/03_domains_and_tags.py
+</code></pre></div></p>
+<h3 id="example-04-validation">Example 04: Validation<a class="headerlink" href="#example-04-validation" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/04_validation.py</code></p>
+<p>Ensure data quality and correctness. Learn:
+- Rule validation
+- Fact validation against schemas
+- Error handling and messages
+- Pre-execution validation</p>
+<p><strong>Key Concepts:</strong> Validation, Error Handling, Data Quality</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/04_validation.py
+</code></pre></div></p>
+<hr />
+<h2 id="persistence-45-minutes">Persistence (45 minutes)<a class="headerlink" href="#persistence-45-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="example-05-persistence">Example 05: Persistence<a class="headerlink" href="#example-05-persistence" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/05_persistence.py</code></p>
+<p>Save and load rules from databases. Learn:
+- Persisting rules to SQLite/PostgreSQL
+- Loading rules from disk
+- Database schema and migrations
+- Versioning rules</p>
+<p><strong>Key Concepts:</strong> Persistence, Databases, Versioning</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/05_persistence.py
+</code></pre></div></p>
+<h3 id="example-06-working-memory">Example 06: Working Memory<a class="headerlink" href="#example-06-working-memory" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/06_working_memory.py</code></p>
+<p>Maintain state between rule executions. Learn:
+- What is working memory?
+- Adding facts to working memory
+- Querying working memory
+- Using working memory for complex workflows</p>
+<p><strong>Key Concepts:</strong> Working Memory, State, Sessions</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/06_working_memory.py
+</code></pre></div></p>
+<hr />
+<h2 id="rules-as-data-60-minutes">Rules as Data (60 minutes)<a class="headerlink" href="#rules-as-data-60-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="example-07-yaml-rules">Example 07: YAML Rules<a class="headerlink" href="#example-07-yaml-rules" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/07_yaml_rules.py</code></p>
+<p>Define rules in YAML format. Learn:
+- YAML rule syntax
+- Loading rules from files
+- Rule definitions without code
+- Domain-specific configurations</p>
+<p><strong>Key Concepts:</strong> YAML, Declarative Rules, File-based Configuration</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/07_yaml_rules.py
+</code></pre></div></p>
+<hr />
+<h2 id="advanced-features-2-hours">Advanced Features (2+ hours)<a class="headerlink" href="#advanced-features-2-hours" title="Permanent link">&para;</a></h2>
+<h3 id="example-09-custom-engines">Example 09: Custom Engines<a class="headerlink" href="#example-09-custom-engines" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/09_custom_engines.py</code></p>
+<p>Build your own rule engine. Learn:
+- Engine interface and lifecycle
+- Implementing a custom engine
+- Optimization opportunities
+- When to use custom engines</p>
+<p><strong>Key Concepts:</strong> Custom Engines, Architecture, Extensibility</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/09_custom_engines.py
+</code></pre></div></p>
+<h3 id="example-10-pluggable-engines">Example 10: Pluggable Engines<a class="headerlink" href="#example-10-pluggable-engines" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/10_pluggable_engines.py</code></p>
+<p>Switch engines at runtime. Learn:
+- Engine registration and discovery
+- Using the engine factory
+- Switching between engines
+- Benchmarking different engines</p>
+<p><strong>Key Concepts:</strong> Pluggable Architecture, Factory Pattern, Engine Selection</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/10_pluggable_engines.py
+</code></pre></div></p>
+<h3 id="example-11-cli-usage">Example 11: CLI Usage<a class="headerlink" href="#example-11-cli-usage" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/11_cli_usage.py</code></p>
+<p>Use FluxRules from the command line. Learn:
+- CLI interface
+- Loading rules and facts
+- Producing reports
+- Scripting with FluxRules</p>
+<p><strong>Key Concepts:</strong> CLI, Scripting, Automation</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/11_cli_usage.py
+</code></pre></div></p>
+<h3 id="example-12-rest-api-usage">Example 12: REST API Usage<a class="headerlink" href="#example-12-rest-api-usage" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/12_api_usage.py</code></p>
+<p>Call FluxRules over HTTP. Learn:
+- Starting a REST API server
+- Calling rules via HTTP
+- Integration patterns
+- Error handling</p>
+<p><strong>Key Concepts:</strong> REST API, HTTP, Integration</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/12_api_usage.py
+</code></pre></div></p>
+<h3 id="example-13-complex-rules">Example 13: Complex Rules<a class="headerlink" href="#example-13-complex-rules" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/13_complex_rules.py</code></p>
+<p>Build real-world rule systems. Learn:
+- Chaining rules together
+- Multi-stage rule evaluation
+- Stateful rule workflows
+- Complex action systems</p>
+<p><strong>Key Concepts:</strong> Rule Chains, Workflows, Advanced Actions</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/13_complex_rules.py
+</code></pre></div></p>
+<h3 id="example-14-rule-builder">Example 14: Rule Builder<a class="headerlink" href="#example-14-rule-builder" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/14_rule_builder.py</code></p>
+<p>Use the fluent rule builder API. Learn:
+- The Rule Builder pattern
+- Fluent API for rule construction
+- DSL-like rule definitions
+- Type safety and IDE support</p>
+<p><strong>Key Concepts:</strong> Builder Pattern, Fluent API, DSLs</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/14_rule_builder.py
+</code></pre></div></p>
+<h3 id="example-15-action-system">Example 15: Action System<a class="headerlink" href="#example-15-action-system" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/15_action_system.py</code></p>
+<p>Master the action system. Learn:
+- Built-in actions (set, increment, transform)
+- Custom action implementations
+- Action chains and pipelines
+- Action context and execution</p>
+<p><strong>Key Concepts:</strong> Actions, Custom Actions, Action Pipelines</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/15_action_system.py
+</code></pre></div></p>
+<h3 id="example-16-fact-store">Example 16: Fact Store<a class="headerlink" href="#example-16-fact-store" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/16_fact_store.py</code></p>
+<p>Manage facts at scale. Learn:
+- Fact storage and retrieval
+- Indexing for performance
+- Querying facts efficiently
+- Fact lifecycle management</p>
+<p><strong>Key Concepts:</strong> Fact Store, Indexing, Performance</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/16_fact_store.py
+</code></pre></div></p>
+<h3 id="example-17-id-generation">Example 17: ID Generation<a class="headerlink" href="#example-17-id-generation" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/17_id_generation.py</code></p>
+<p>Generate and manage rule IDs. Learn:
+- ID generation strategies
+- UUIDs, sequential IDs, custom IDs
+- ID tracking and versioning
+- ID resolution in rule chains</p>
+<p><strong>Key Concepts:</strong> ID Generation, Versioning, Tracking</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/17_id_generation.py
+</code></pre></div></p>
+<h3 id="example-18-unified-rule-engine">Example 18: Unified Rule Engine<a class="headerlink" href="#example-18-unified-rule-engine" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/18_unified_rule.py</code></p>
+<p>The flagship example showcasing the unified engine. Learn:
+- All components working together
+- Multi-domain rule systems
+- Full lifecycle workflows
+- Production-ready patterns</p>
+<p><strong>Key Concepts:</strong> Unified Engine, Integration, Best Practices</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/18_unified_rule.py
+</code></pre></div></p>
+<h3 id="example-19-advanced-features">Example 19: Advanced Features<a class="headerlink" href="#example-19-advanced-features" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/19_advanced_features.py</code></p>
+<p>Deep dives into advanced capabilities. Learn:
+- Performance analysis and latency measurement
+- Statistics and metrics from evaluations
+- Working with complex rule sets at scale</p>
+<p><strong>Key Concepts:</strong> Performance, Latency, Metrics</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/19_advanced_features.py
+</code></pre></div></p>
+<hr />
+<h2 id="data-processing-pipelines-2-hours">Data Processing Pipelines (2+ hours)<a class="headerlink" href="#data-processing-pipelines-2-hours" title="Permanent link">&para;</a></h2>
+<h3 id="example-20-streaming-mode">Example 20: Streaming Mode<a class="headerlink" href="#example-20-streaming-mode" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/20_streaming_mode.py</code></p>
+<p>Process facts as a stream. Learn:
+- Streaming fact processing
+- Latency measurement per fact
+- Incremental evaluation
+- Pipeline throughput</p>
+<p><strong>Key Concepts:</strong> Streaming, Incremental Processing</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/20_streaming_mode.py
+</code></pre></div></p>
+<h3 id="example-21-action-registry">Example 21: Action Registry<a class="headerlink" href="#example-21-action-registry" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/21_action_registry.py</code></p>
+<p>Manage and track actions. Learn:
+- Extracting unique actions from rules
+- Action execution counts
+- Action registry patterns
+- Tracking action usage</p>
+<p><strong>Key Concepts:</strong> Action Registry, Tracking, Metrics</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/21_action_registry.py
+</code></pre></div></p>
+<h3 id="example-22-real-world-workflow">Example 22: Real-World Workflow<a class="headerlink" href="#example-22-real-world-workflow" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/22_real_world_workflow.py</code></p>
+<p>End-to-end production workflow. Learn:
+- Real-world transaction triage
+- Multi-step decision logic
+- Audit trail integration
+- Production-ready patterns</p>
+<p><strong>Key Concepts:</strong> Workflows, Production Patterns, Audit Trails</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/22_real_world_workflow.py
+</code></pre></div></p>
+<hr />
+<h2 id="advanced-data-processing-2-hours">Advanced Data Processing (2+ hours)<a class="headerlink" href="#advanced-data-processing-2-hours" title="Permanent link">&para;</a></h2>
+<h3 id="example-23-streaming-vs-stateless">Example 23: Streaming vs Stateless<a class="headerlink" href="#example-23-streaming-vs-stateless" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/23_streaming_vs_stateless.py</code></p>
+<p>Compare evaluation modes. Learn:
+- Stateless evaluation (default)
+- Streaming evaluation characteristics
+- Performance differences
+- When to use each mode</p>
+<p><strong>Key Concepts:</strong> Evaluation Modes, Stateless Processing</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/23_streaming_vs_stateless.py
+</code></pre></div></p>
+<h3 id="example-24-cross-fact-joins">Example 24: Cross-Fact Joins<a class="headerlink" href="#example-24-cross-fact-joins" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/24_cross_fact_joins.py</code></p>
+<p>Relate multiple facts. Learn:
+- Processing multiple facts together
+- Cross-fact pattern detection
+- Relational evaluation
+- Fact correlation</p>
+<p><strong>Key Concepts:</strong> Cross-Fact Joins, Relational Logic</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/24_cross_fact_joins.py
+</code></pre></div></p>
+<h3 id="example-25-nested-facts">Example 25: Nested Facts<a class="headerlink" href="#example-25-nested-facts" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/25_nested_facts.py</code></p>
+<p>Work with hierarchical data. Learn:
+- Nested fact structures
+- Accessing nested fields
+- Hierarchical condition evaluation
+- Complex data models</p>
+<p><strong>Key Concepts:</strong> Nested Structures, Hierarchical Data</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/25_nested_facts.py
+</code></pre></div></p>
+<h3 id="example-26-fact-loader">Example 26: Fact Loader<a class="headerlink" href="#example-26-fact-loader" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/26_fact_loader.py</code></p>
+<p>Load facts at scale. Learn:
+- Batch fact loading
+- Fact preprocessing
+- Large-scale processing
+- Throughput optimization</p>
+<p><strong>Key Concepts:</strong> Fact Loading, Batch Processing</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/26_fact_loader.py
+</code></pre></div></p>
+<h3 id="example-27-factpipeline">Example 27: FactPipeline<a class="headerlink" href="#example-27-factpipeline" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/27_factpipeline.py</code></p>
+<p>Pipeline-based fact processing. Learn:
+- Multi-stage fact pipelines
+- Loading, enrichment, evaluation workflow
+- Result output and formatting
+- End-to-end data flow</p>
+<p><strong>Key Concepts:</strong> Fact Pipelines, ETL, Data Flow</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/27_factpipeline.py
+</code></pre></div></p>
+<h3 id="example-28-factpipeline-tier-1">Example 28: FactPipeline (Tier 1)<a class="headerlink" href="#example-28-factpipeline-tier-1" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/28_factpipeline_tier1.py</code></p>
+<p>High-priority rule filtering. Learn:
+- Filtering rules by tags
+- Tier-based rule organization
+- Priority-based evaluation
+- Optimized rule selection</p>
+<p><strong>Key Concepts:</strong> Rule Tiers, Filtering, Priority</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/28_factpipeline_tier1.py
+</code></pre></div></p>
+<h3 id="example-29-custom-transforms">Example 29: Custom Transforms<a class="headerlink" href="#example-29-custom-transforms" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/29_custom_transforms.py</code></p>
+<p>Transform facts before evaluation. Learn:
+- Custom fact enrichment
+- Computed field addition
+- Data transformation pipelines
+- Pre-evaluation preprocessing</p>
+<p><strong>Key Concepts:</strong> Transforms, Data Enrichment, Preprocessing</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/29_custom_transforms.py
+</code></pre></div></p>
+<h3 id="example-30-conflict-detection">Example 30: Conflict Detection<a class="headerlink" href="#example-30-conflict-detection" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>examples/30_conflict_detection.py</code></p>
+<p>Analyze rule coverage and conflicts. Learn:
+- Rule coverage analysis
+- Rule firing statistics
+- Conflict detection
+- Rule health assessment</p>
+<p><strong>Key Concepts:</strong> Conflict Detection, Rule Analysis, Coverage</p>
+<p><strong>Run it:</strong>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/30_conflict_detection.py
+</code></pre></div></p>
+<hr />
+<h2 id="running-all-examples">Running All Examples<a class="headerlink" href="#running-all-examples" title="Permanent link">&para;</a></h2>
+<p>To run all examples in sequence:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>examples
+<span class="k">for</span><span class="w"> </span>file<span class="w"> </span><span class="k">in</span><span class="w"> </span>*.py<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Running </span><span class="nv">$file</span><span class="s2">..."</span>
+<span class="w">    </span>python<span class="w"> </span><span class="s2">"</span><span class="nv">$file</span><span class="s2">"</span>
+<span class="k">done</span>
+</code></pre></div>
+<h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<h3 id="running-examples">Running Examples<a class="headerlink" href="#running-examples" title="Permanent link">&para;</a></h3>
+<p><strong>Run a single example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>examples
+python<span class="w"> </span>00_getting_started.py
+python<span class="w"> </span>13_complex_rules.py
+</code></pre></div></p>
+<p><strong>Run all examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>examples
+<span class="k">for</span><span class="w"> </span>file<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">[</span><span class="m">0</span>-3<span class="o">][</span><span class="m">0</span>-9<span class="o">]</span>_*.py<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Running </span><span class="nv">$file</span><span class="s2">..."</span>
+<span class="w">    </span>python<span class="w"> </span><span class="s2">"</span><span class="nv">$file</span><span class="s2">"</span>
+<span class="k">done</span>
+</code></pre></div></p>
+<h3 id="shared-dataset-examplesshared_use_casepy">Shared Dataset (<code>examples/shared_use_case.py</code>)<a class="headerlink" href="#shared-dataset-examplesshared_use_casepy" title="Permanent link">&para;</a></h3>
+<p>All examples use the same payment-risk dataset. Run examples from the <code>examples/</code> directory:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<span class="c1"># Each example imports from the local shared_use_case module</span>
+<span class="c1"># Run from: cd examples &amp;&amp; python 00_getting_started.py</span>
+
+<span class="c1"># Inside examples/00_getting_started.py:</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">'.'</span><span class="p">)</span>  <span class="c1"># Add current directory to path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">shared_use_case</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHARED_FACTS</span><span class="p">,</span> <span class="n">USE_CASE_NAME</span><span class="p">,</span> <span class="n">build_shared_rules</span><span class="p">,</span> <span class="n">complex_risk_condition</span>
+
+<span class="c1"># Shared facts (3 test transactions)</span>
+<span class="k">for</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">SHARED_FACTS</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">fact</span><span class="p">[</span><span class="s2">"fact_id"</span><span class="p">])</span>  <span class="c1"># txn-001, txn-002, txn-003</span>
+
+<span class="c1"># Shared rules (3 risk-triage rules)</span>
+<span class="n">rules</span> <span class="o">=</span> <span class="n">build_shared_rules</span><span class="p">()</span>
+
+<span class="c1"># Shared DSL (8-condition nested payment-risk rule)</span>
+<span class="n">dsl</span> <span class="o">=</span> <span class="n">complex_risk_condition</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>After completing the learning path:</p>
+<ol>
+<li><strong>Read the <a href="../validation-framework/">Unified Validation Framework</a></strong> to understand the core validation system</li>
+<li><strong>Review <a href="../engine-comparison/">The FluxRules Engine</a></strong> to pick the right evaluation mode for your use case</li>
+<li><strong>Explore <a href="../custom-engines/">Custom Engines</a></strong> to extend FluxRules</li>
+<li><strong>Check <a href="../troubleshooting/">Troubleshooting</a></strong> for common issues</li>
+</ol>
+<hr />
+<h2 id="tips-for-learning">Tips for Learning<a class="headerlink" href="#tips-for-learning" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Run each example:</strong> Don't just read the code; execute it and modify it</li>
+<li><strong>Experiment:</strong> Change conditions, add rules, see what happens</li>
+<li><strong>Debug:</strong> Use print statements and the engine's debug mode</li>
+<li><strong>Build:</strong> Create your own rules based on the patterns you see</li>
+<li><strong>Integrate:</strong> Try using FluxRules in your own projects</li>
+</ul>
+<p>Happy rule engineering! </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/fluxrules/fluxrules" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

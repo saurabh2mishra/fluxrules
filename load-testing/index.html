@@ -1,0 +1,3923 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Python rule evaluation toolkit with optional API, powered by the PHREAK engine">
+      
+      
+      
+        <link rel="canonical" href="https://saurabh2mishra.github.io/fluxrules/load-testing/">
+      
+      
+        <link rel="prev" href="../dependency-injection/">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Load Testing - FluxRules</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fluxrules-load-testing-scalability-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FluxRules" class="md-header__button md-logo" aria-label="FluxRules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FluxRules
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Load Testing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/saurabh2mishra/fluxrules" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    saurabh2mishra/fluxrules
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FluxRules" class="md-nav__button md-logo" aria-label="FluxRules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FluxRules
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/saurabh2mishra/fluxrules" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    saurabh2mishra/fluxrules
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/python-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/http-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/engines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/advanced-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Engine
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Engine
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decision-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The FluxRules Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choosing-an-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing an Evaluation Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithm-fidelity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm Fidelity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine-scope-and-limits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope and Limits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authoring Rules
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Authoring Rules
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pydantic-rule-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pydantic Rule Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conditions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../complex-conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complex Conditions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../domains-and-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domains and Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-builder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Builder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../yaml-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../id-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ID Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fact-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fact Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cross-fact-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Fact Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested Facts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation-framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../working-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extension-points/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension Points
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-engines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Engines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms-cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms-answered/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms Q&A
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operating
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operating
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sessions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sessions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability-exporters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load Testing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Executive Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Benchmark Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#realistic-rule-benchmark-the-honest-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Realistic-rule benchmark (the honest path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#committed-readiness-run-million-fact-horizontal-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Committed readiness run (million-fact + horizontal scaling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-micro-benchmark-phreak-vs-reference-evaluator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy micro-benchmark (PHREAK vs reference evaluator)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scaling-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scaling Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-process-capacity-measured-not-extrapolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-process capacity (measured, not extrapolated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adversarial-caveat-the-honest-worst-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adversarial caveat (the honest worst case)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-core-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distributed-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distributed architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phreak-optimizations-for-high-throughput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PHREAK Optimizations for High Throughput
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PHREAK Optimizations for High Throughput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-delta-evaluation-field-level-dirty-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Delta Evaluation (Field-Level Dirty Tracking)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-batch-evaluation-with-working-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Batch Evaluation with Working Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-horizontal-scaling-with-load-balancing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Horizontal Scaling with Load Balancing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-world-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Real-World Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-fraud-detection-1m-factsday-5k-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Fraud Detection (1M facts/day, 5K rules)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-e-commerce-100m-factsday-50k-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: E-commerce (100M facts/day, 50K rules)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-financial-risk-500m-factsday-100k-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: Financial Risk (500M facts/day, 100K rules)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-testing-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Testing Coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current Testing Coverage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#existing-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Benchmarks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-we-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What We Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-we-dont-test-yet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What We Don't Test (Yet)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-test-suite-for-production-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended Test Suite for Production Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recommended Test Suite for Production Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-streaming-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Streaming Benchmark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-batch-processing-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Batch Processing Benchmark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-distributed-load-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Distributed Load Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known Limitations &amp; Future Work
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Known Limitations &amp; Future Work">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roadmap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-phreak-fluxrules-vs-drools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison: PHREAK (FluxRules) vs. Drools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References &amp; Further Reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Questions?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Learning
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usecases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/public-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/http-endpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Endpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Executive Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Benchmark Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#realistic-rule-benchmark-the-honest-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Realistic-rule benchmark (the honest path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#committed-readiness-run-million-fact-horizontal-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Committed readiness run (million-fact + horizontal scaling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-micro-benchmark-phreak-vs-reference-evaluator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy micro-benchmark (PHREAK vs reference evaluator)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scaling-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scaling Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-process-capacity-measured-not-extrapolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-process capacity (measured, not extrapolated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adversarial-caveat-the-honest-worst-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adversarial caveat (the honest worst case)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-core-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distributed-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distributed architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phreak-optimizations-for-high-throughput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PHREAK Optimizations for High Throughput
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PHREAK Optimizations for High Throughput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-delta-evaluation-field-level-dirty-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Delta Evaluation (Field-Level Dirty Tracking)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-batch-evaluation-with-working-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Batch Evaluation with Working Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-horizontal-scaling-with-load-balancing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Horizontal Scaling with Load Balancing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-world-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Real-World Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-fraud-detection-1m-factsday-5k-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Fraud Detection (1M facts/day, 5K rules)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-e-commerce-100m-factsday-50k-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: E-commerce (100M facts/day, 50K rules)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-financial-risk-500m-factsday-100k-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: Financial Risk (500M facts/day, 100K rules)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-testing-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Testing Coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current Testing Coverage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#existing-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Benchmarks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-we-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What We Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-we-dont-test-yet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What We Don't Test (Yet)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-test-suite-for-production-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended Test Suite for Production Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recommended Test Suite for Production Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-streaming-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Streaming Benchmark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-batch-processing-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Batch Processing Benchmark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-distributed-load-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Distributed Load Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known Limitations &amp; Future Work
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Known Limitations &amp; Future Work">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roadmap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-phreak-fluxrules-vs-drools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison: PHREAK (FluxRules) vs. Drools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References &amp; Further Reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Questions?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="fluxrules-load-testing-scalability-analysis">FluxRules Load Testing &amp; Scalability Analysis<a class="headerlink" href="#fluxrules-load-testing-scalability-analysis" title="Permanent link">&para;</a></h1>
+<p>This document addresses production scalability concerns: <strong>Can PHREAK handle millions of facts daily with 50K+ rules?</strong></p>
+<blockquote>
+<p><strong>How to read these numbers.</strong> Throughput and daily-capacity figures below come
+from the <strong>realistic-rule benchmark</strong> (<code>tests/performance/perf_realistic_rules.py</code>),
+measured on a <strong>pre-loaded</strong> engine (the per-request reload defect was fixed in
+the P0 trust work - the engine is built once and hot-swapped, never rebuilt per
+fact). They are <strong>measured, not extrapolated</strong> from idealized batch throughput.
+Your numbers depend on your rules' selectivity - <strong>measure your real set</strong> with
+the harness before sizing.</p>
+</blockquote>
+<hr />
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p><strong>Short answer:</strong> Yes for millions/day; the path to tens-to-hundreds of millions
+is <strong>horizontal</strong> (more processes/pods), not a single magic thread.</p>
+<ul>
+<li><strong>Single process:</strong> A pre-loaded PHREAK engine evaluates one fact against the
+ surviving candidate rules. Per-fact cost scales with <strong>surviving candidates</strong>,
+ which the always-on alpha pre-filter minimizes on realistic (selective) rules.</li>
+<li><strong>Throughput (measured, realistic mixed rules):</strong> order <strong>10²-10³ facts/sec
+ per process</strong> at 10K-100K rules, depending on selectivity. Run the harness for
+ your set: <code>python tests/performance/perf_realistic_rules.py</code>.</li>
+<li><strong>Daily volume (one process):</strong> reported as <strong>measured sustained throughput ×
+ 86,400 s</strong> with the method stated - typically <strong>single-digit to low-tens of
+ millions/day</strong> per process on realistic rules. (No "billions/day single-thread"
+ claim - that was idealized batch math and has been removed.)</li>
+<li><strong>For tens-to-hundreds of millions daily:</strong> deploy N processes/pods behind a
+ queue (Kafka, Redis Streams) with sticky routing for any streaming state.</li>
+<li><strong>Honest worst case:</strong> if most rules test <strong>one low-selectivity field that
+ every fact carries</strong>, the alpha filter cannot prune and per-fact cost is
+ <strong>O(rules)</strong>. Measure this case (<code>--adversarial</code>) and size for it if your rules
+ look like that.</li>
+</ul>
+<hr />
+<h2 id="benchmark-data">Benchmark Data<a class="headerlink" href="#benchmark-data" title="Permanent link">&para;</a></h2>
+<h3 id="realistic-rule-benchmark-the-honest-path">Realistic-rule benchmark (the honest path)<a class="headerlink" href="#realistic-rule-benchmark-the-honest-path" title="Permanent link">&para;</a></h3>
+<p>Run: <code>python tests/performance/perf_realistic_rules.py [--rules N ...] [--adversarial] [--parallel]</code></p>
+<p>This harness generates rule sets with <strong>mixed fields, ranges, <code>in</code>-sets, <code>==</code>,
+and AND/OR depth</strong> at a configurable match rate, then reports <strong>per-fact p50 /
+p95 / p99</strong>, candidates/fact before and after the alpha layer, the cumulative
+<strong>alpha prune ratio</strong>, throughput, and an honest daily-capacity projection. A
+<strong>process-pool</strong> run (<code>--parallel</code>) reports multi-core scaling, and
+<code>--adversarial</code> measures the low-selectivity hot-field worst case.</p>
+<p>A CI smoke subset (<code>tests/engine/test_realistic_rules_smoke.py</code>) gates a <strong>p95
+budget</strong> on every regular CI run so scaling regressions fail the build.</p>
+<blockquote>
+<p>Record your own measured table here from a pinned machine (median of N runs):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Scale</th>
+<th style="text-align: left;">p50 / p95 / p99 (ms/fact)</th>
+<th style="text-align: left;">Throughput (facts/s)</th>
+<th style="text-align: left;">Alpha prune</th>
+<th style="text-align: left;">Daily / process</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">10K</td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">50K</td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">100K</td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+<td style="text-align: left;"><em>measure</em></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<h3 id="committed-readiness-run-million-fact-horizontal-scaling">Committed readiness run (million-fact + horizontal scaling)<a class="headerlink" href="#committed-readiness-run-million-fact-horizontal-scaling" title="Permanent link">&para;</a></h3>
+<p>A pinned, machine-stamped result is committed at
+<code>benchmarks/readiness_2026-09-11.json</code> (regenerate with
+<code>python tests/performance/perf_realistic_rules.py --readiness --readiness-rules 1000
+--readiness-facts 1000000 --parity-facts 100000 --parallel-facts 400000 --workers 8
+--json benchmarks/&lt;date&gt;.json</code>). It streams <strong>1,000,000 facts</strong> through a
+<strong>pre-loaded 1,000-rule</strong> engine (memory-flat via a fact generator) and records
+p50/p95/p99, throughput, peak RSS, the alpha-on-vs-off <strong>correctness parity</strong>
+check, plus a process-pool scaling run — so the "millions/day" and "horizontal
+scaling" claims are backed by a reproducible artifact, not extrapolation.</p>
+<p>Measured on the environment stamped in the artifact
+(CPython 3.11.13, arm64, 12 cores):</p>
+<table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Streaming — 1,000 rules × 1,000,000 facts</td>
+<td>p50 <strong>0.89 ms</strong> / p95 <strong>1.12 ms</strong> / p99 <strong>1.25 ms</strong>; <strong>1,107 facts/s</strong>; peak RSS <strong>77.2 MiB</strong></td>
+</tr>
+<tr>
+<td>Correctness parity (alpha on vs off)</td>
+<td><strong>0 mismatches / 100,000 facts</strong></td>
+</tr>
+<tr>
+<td>Horizontal scaling — 400,000 facts, 8 workers</td>
+<td><strong>6.39× speedup</strong>, 889 facts/s/core, fired-facts parity <strong>OK</strong> (400,000 == 400,000)</td>
+</tr>
+</tbody>
+</table>
+<p>The alpha layer pruned <strong>84.1%</strong> of candidates on this selective set. These are
+this machine's numbers; regenerate on your target hardware before sizing.</p>
+<h3 id="legacy-micro-benchmark-phreak-vs-reference-evaluator">Legacy micro-benchmark (PHREAK vs reference evaluator)<a class="headerlink" href="#legacy-micro-benchmark-phreak-vs-reference-evaluator" title="Permanent link">&para;</a></h3>
+<p>Run: <code>pytest tests/performance/test_benchmark.py -v -s</code></p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Rules</th>
+<th>Facts per Eval</th>
+<th>Reference</th>
+<th><strong>PHREAK</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Micro</td>
+<td>10</td>
+<td>5</td>
+<td><strong>0.004 ms</strong></td>
+<td><strong>0.003 ms</strong></td>
+</tr>
+<tr>
+<td>Small</td>
+<td>100</td>
+<td>20</td>
+<td><strong>0.028 ms</strong></td>
+<td><strong>0.063 ms</strong></td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>1,000</td>
+<td>50</td>
+<td><strong>0.324 ms</strong></td>
+<td><strong>0.598 ms</strong></td>
+</tr>
+<tr>
+<td>Large</td>
+<td>10,000</td>
+<td>100</td>
+<td><strong>3.391 ms</strong></td>
+<td><strong>6.286 ms</strong></td>
+</tr>
+<tr>
+<td><strong>XL</strong></td>
+<td><strong>50,000</strong></td>
+<td><strong>200</strong></td>
+<td>33.745 ms</td>
+<td><strong>102.640 ms</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>These use <strong>single-field synthetic</strong> rules (every fact carries the hot field),
+which is the <em>easy</em> case but <strong>not</strong> representative of production selectivity.
+Use the realistic-rule harness above for capacity planning; use this table only
+to compare PHREAK against the naive reference evaluator.</p>
+</blockquote>
+<p><strong>Key insight:</strong> PHREAK stays within a small constant factor of the naive
+reference evaluator while scaling to 50K rules.</p>
+<hr />
+<h2 id="scaling-analysis">Scaling Analysis<a class="headerlink" href="#scaling-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="single-process-capacity-measured-not-extrapolated">Single-process capacity (measured, not extrapolated)<a class="headerlink" href="#single-process-capacity-measured-not-extrapolated" title="Permanent link">&para;</a></h3>
+<p>Per-fact cost is <strong>linear in the number of surviving candidate rules</strong>, not the
+total rule count - the always-on alpha pre-filter drops rules whose necessary
+conditions provably fail before any per-rule evaluation. So capacity depends on
+your rules' <strong>selectivity</strong>, which is why we measure rather than assert a single
+number.</p>
+<p><strong>Methodology (§7):</strong></p>
+<ol>
+<li>Build the engine <strong>once</strong> (production uses a versioned hot-swap holder - no
+ per-request reload).</li>
+<li>Warm up, then time <strong>each</strong> fact individually; report <strong>p50/p95/p99</strong>, not
+ just a mean.</li>
+<li>Pause GC during the timed loop so numbers reflect matcher cost.</li>
+<li>Daily capacity = <strong>measured sustained throughput × 86,400 s</strong>, reported with
+ the method stated (never idealized batch throughput × a day).</li>
+</ol>
+<div class="highlight"><pre><span></span><code>Single process, realistic rules:
+- Measure per-fact p50/p95/p99 with perf_realistic_rules.py on your rule set.
+- Daily/process  = sustained facts/sec × 86,400.
+- Typical range  = single-digit to low-tens of millions/day per process,
+                   driven by selectivity (alpha prune ratio).
+</code></pre></div>
+<blockquote>
+<p><strong>Removed claim.</strong> Earlier revisions stated "<strong>2.6 billion facts/day</strong>
+single-thread" and "<strong>8-26 billion/day per process</strong>." Those multiplied an
+<em>idealized batch</em> throughput by 86,400 and assumed away per-request reload,
+real selectivity, GC, and I/O. They are not defensible and have been replaced
+by the measured methodology above.</p>
+</blockquote>
+<h3 id="adversarial-caveat-the-honest-worst-case">Adversarial caveat (the honest worst case)<a class="headerlink" href="#adversarial-caveat-the-honest-worst-case" title="Permanent link">&para;</a></h3>
+<p>If most rules test <strong>one low-selectivity field that every fact carries</strong>, the
+alpha pre-filter cannot prune - every fact reaches <strong>O(rules)</strong> per-rule
+evaluations. The harness measures this directly:</p>
+<div class="highlight"><pre><span></span><code>python tests/performance/perf_realistic_rules.py --adversarial
+</code></pre></div>
+<p>Plan capacity for <strong>this</strong> number, not the selective best case, if your rule set
+looks like that. (FluxRules is a high-throughput <strong>single-fact</strong> matcher; cross-
+fact joins/temporal correlation are out of scope - see
+<a href="../engine-scope-and-limits/">Engine Scope &amp; Limits</a>.)</p>
+<h3 id="multi-core-scaling">Multi-core scaling<a class="headerlink" href="#multi-core-scaling" title="Permanent link">&para;</a></h3>
+<p>Python's GIL serializes CPU-bound condition evaluation within a process, so
+multi-core throughput comes from <strong>processes</strong>, not threads. Use
+<code>evaluate_batch_parallel</code> (one engine per worker process):</p>
+<div class="highlight"><pre><span></span><code>python tests/performance/perf_realistic_rules.py --parallel --workers 8
+</code></pre></div>
+<p>The harness reports parallel throughput, per-core throughput, and the speedup,
+with a fired-facts parity check proving results are identical to single-process.</p>
+<h3 id="distributed-architecture">Distributed architecture<a class="headerlink" href="#distributed-architecture" title="Permanent link">&para;</a></h3>
+<p>For <strong>millions of facts daily</strong> (1-10M/day):</p>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────┐
+│        Message Queue (Kafka/Redis)          │
+│  (Buffer: 100K-1M facts waiting)            │
+└─────────────────────────────────────────────┘
+              │
+              ├────────┬──────────┬──────────┐
+              │        │          │          │
+              ▼        ▼          ▼          ▼
+         ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
+         │Instance1│ │Instance2│ │Instance3│ │Instance4│
+         │PHREAK   │ │PHREAK   │ │PHREAK   │ │PHREAK   │
+         │Network  │ │Network  │ │Network  │ │Network  │
+         │(50K)    │ │(50K)    │ │(50K)    │ │(50K)    │
+         └─────────┘ └─────────┘ └─────────┘ └─────────┘
+              │        │          │          │
+              └────────┴──────────┴──────────┘
+                       │
+                       ▼
+              ┌──────────────────┐
+              │  Results DB      │
+              │ (PostgreSQL)     │
+              └──────────────────┘
+</code></pre></div>
+<p><strong>Capacity (illustrative - substitute your measured per-process number):</strong>
+- N processes × (your measured facts/sec) = aggregate facts/sec
+- aggregate facts/sec × 86,400 = facts/day
+- Scaling is ~linear in processes for stateless evaluation; verify with
+ <code>perf_realistic_rules.py --parallel</code>.</p>
+<hr />
+<h2 id="phreak-optimizations-for-high-throughput">PHREAK Optimizations for High Throughput<a class="headerlink" href="#phreak-optimizations-for-high-throughput" title="Permanent link">&para;</a></h2>
+<h3 id="1-delta-evaluation-field-level-dirty-tracking">1. Delta Evaluation (Field-Level Dirty Tracking)<a class="headerlink" href="#1-delta-evaluation-field-level-dirty-tracking" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+
+<span class="c1"># Compile ruleset once</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">ruleset</span><span class="p">)</span>
+
+<span class="c1"># Evaluate many facts with incremental updates</span>
+<span class="n">facts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"customer_id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">"amount"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">facts</span><span class="p">)</span>
+
+<span class="c1"># Next fact: only "amount" changed</span>
+<span class="n">facts_updated</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"customer_id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">"amount"</span><span class="p">:</span> <span class="mi">6000</span><span class="p">}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">facts_updated</span><span class="p">,</span> <span class="n">prev_facts</span><span class="o">=</span><span class="n">facts</span><span class="p">)</span>
+<span class="c1"># PHREAK recomputes only alphas for "amount" field ✓</span>
+</code></pre></div>
+<p><strong>Impact:</strong> 5-10× faster for incremental updates vs. full re-evaluation.</p>
+<h3 id="2-batch-evaluation-with-working-memory">2. Batch Evaluation with Working Memory<a class="headerlink" href="#2-batch-evaluation-with-working-memory" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<span class="c1"># Accumulate facts in working memory (streaming_mode=True engine)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fact</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">facts_stream</span><span class="p">):</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">assert_fact</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Flush: evaluate the current working-memory fact set</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Impact:</strong> Amortizes compilation overhead, ~50K facts/batch.</p>
+<h3 id="3-horizontal-scaling-with-load-balancing">3. Horizontal Scaling with Load Balancing<a class="headerlink" href="#3-horizontal-scaling-with-load-balancing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<span class="c1"># Deploy with Docker Compose</span>
+<span class="c1"># Each instance: 1 CPU, 1GB RAM</span>
+<span class="c1"># Network: Redis/Kafka queue</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">queue</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">"redis"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">ruleset</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/evaluate"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">evaluate_fact</span><span class="p">(</span><span class="n">fact</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
+    <span class="n">queue</span><span class="o">.</span><span class="n">rpush</span><span class="p">(</span><span class="s2">"results"</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="s2">"queued"</span><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="real-world-scenarios">Real-World Scenarios<a class="headerlink" href="#real-world-scenarios" title="Permanent link">&para;</a></h2>
+<h3 id="scenario-1-fraud-detection-1m-factsday-5k-rules">Scenario 1: Fraud Detection (1M facts/day, 5K rules)<a class="headerlink" href="#scenario-1-fraud-detection-1m-factsday-5k-rules" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Daily Volume: 1,000,000 facts  (≈ 12 facts/sec average)
+Rules: 5,000 (fraud detection patterns)
+
+Setup:
+- 1 process is ample: 1M/day ≈ 12 facts/sec average; even the adversarial
+  worst case at 5K rules clears this with wide headroom.
+- Deploy on a small instance (1 CPU, 4GB RAM).
+
+Architecture:
+API ──────▶ PHREAK Engine ──────▶ Results DB
+(1 process, pre-loaded + hot-swapped on rule change)
+</code></pre></div>
+<h3 id="scenario-2-e-commerce-100m-factsday-50k-rules">Scenario 2: E-commerce (100M facts/day, 50K rules)<a class="headerlink" href="#scenario-2-e-commerce-100m-factsday-50k-rules" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Daily Volume: 100,000,000 facts  (≈ 1,160 facts/sec average;
+                                   higher at peak - size for peak, not average)
+Rules: 50,000 (pricing, promotions, inventory)
+
+Setup:
+- Multiple processes/pods behind a queue. Size N from YOUR measured per-process
+  throughput: N ≈ peak facts/sec ÷ (measured facts/sec/process), plus headroom.
+- Run perf_realistic_rules.py on your 50K rule set (and --adversarial) first.
+- Load balancer (nginx/HAProxy); message queue: Kafka (fault tolerance);
+  results store: PostgreSQL with replication.
+
+Architecture:
+         Kafka Queue
+            │
+    ┌───────┼───────┐
+    ▼       ▼       ▼       ▼
+  API1   API2   API3   API4
+  (PHREAK)
+    │       │       │       │
+    └───────┼───────┘
+            ▼
+        PostgreSQL
+</code></pre></div>
+<h3 id="scenario-3-financial-risk-500m-factsday-100k-rules">Scenario 3: Financial Risk (500M facts/day, 100K rules)<a class="headerlink" href="#scenario-3-financial-risk-500m-factsday-100k-rules" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Daily Volume: 500,000,000 facts  (≈ 5,800 facts/sec average; size for peak)
+Rules: 100,000 (regulatory, risk, compliance)
+
+Per-fact latency: MEASURE at 100K rules with perf_realistic_rules.py. Per-fact
+cost scales with surviving candidates (post-alpha), not raw rule count, so the
+number depends on selectivity - do not assume a fixed multiple of the 50K case.
+
+Setup:
+- Many processes/pods (size from measured per-process throughput + headroom).
+- Pre-load the rule network per pod; hot-swap on rule change (no per-request
+  reload).
+- Deploy across multiple availability zones.
+
+Architecture:
+    Kafka Cluster (distributed)
+           │
+    ┌──────┼──────┬──────┬──────┐
+    ▼      ▼      ▼      ▼      ▼
+  K8s Pod × 20 (auto-scaling)
+  PHREAK Engine (100K rules)
+    │      │      │      │      │
+    └──────┼──────┘      └──────┘
+           │
+      PostgreSQL (sharded)
+      + Redis Cache
+</code></pre></div>
+<hr />
+<h2 id="current-testing-coverage">Current Testing Coverage<a class="headerlink" href="#current-testing-coverage" title="Permanent link">&para;</a></h2>
+<h3 id="existing-benchmarks">Existing Benchmarks<a class="headerlink" href="#existing-benchmarks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Scope:</strong> Single-process, 50K rules maximum</li>
+<li><strong>File:</strong> <code>tests/performance/test_benchmark.py</code></li>
+<li><strong>Run:</strong> <code>pytest tests/performance/test_benchmark.py -v -s</code></li>
+</ul>
+<h3 id="what-we-test">What We Test<a class="headerlink" href="#what-we-test" title="Permanent link">&para;</a></h3>
+<p>10, 100, 1K, 10K, <strong>50K rules</strong> 
+ 5-200 facts per evaluation 
+ Field-level dirty tracking 
+ Priority scheduling 
+ Segment-based memory management </p>
+<h3 id="what-we-dont-test-yet">What We Don't Test (Yet)<a class="headerlink" href="#what-we-dont-test-yet" title="Permanent link">&para;</a></h3>
+<p>Distributed deployment (multi-process, multi-machine) 
+ 100K+ rules (beyond current single-process limits) 
+ Millions of facts in real-time streaming 
+ Stateful evaluation with working memory at scale 
+ Redis cache performance under high throughput </p>
+<hr />
+<h2 id="recommended-test-suite-for-production-validation">Recommended Test Suite for Production Validation<a class="headerlink" href="#recommended-test-suite-for-production-validation" title="Permanent link">&para;</a></h2>
+<p>To validate your specific workload (millions of facts, 50K+ rules), implement:</p>
+<h3 id="1-streaming-benchmark">1. Streaming Benchmark<a class="headerlink" href="#1-streaming-benchmark" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/performance/test_streaming.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_phreak_streaming_1m_facts</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Validate 1M facts/day throughput with 50K rules."""</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">ruleset_50k</span><span class="p">)</span>
+
+    <span class="c1"># Simulate 1M facts arriving over 24 hours</span>
+    <span class="n">fact_rate</span> <span class="o">=</span> <span class="mi">1_000_000</span> <span class="o">/</span> <span class="p">(</span><span class="mi">24</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">)</span>  <span class="c1"># ~12 facts/sec</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">):</span>
+        <span class="n">fact</span> <span class="o">=</span> <span class="n">generate_fact</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="n">throughput</span> <span class="o">=</span> <span class="mi">1_000_000</span> <span class="o">/</span> <span class="n">elapsed</span>
+
+    <span class="k">assert</span> <span class="n">throughput</span> <span class="o">&gt;</span> <span class="mi">10_000</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Expected &gt;10K facts/sec, got </span><span class="si">{</span><span class="n">throughput</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Throughput: </span><span class="si">{</span><span class="n">throughput</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> facts/sec"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="2-batch-processing-benchmark">2. Batch Processing Benchmark<a class="headerlink" href="#2-batch-processing-benchmark" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/performance/test_batch_processing.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_phreak_batch_1m_facts</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Validate batch processing of 1M facts."""</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">ruleset_50k</span><span class="p">)</span>
+
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">total_facts</span> <span class="o">=</span> <span class="mi">1_000_000</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">batch_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_facts</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">):</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="p">[</span><span class="n">generate_fact</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_idx</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">assert_fact</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
+        <span class="c1"># Evaluate the last fact in the batch to flush working memory</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="n">throughput</span> <span class="o">=</span> <span class="n">total_facts</span> <span class="o">/</span> <span class="n">elapsed</span>
+
+    <span class="k">assert</span> <span class="n">throughput</span> <span class="o">&gt;</span> <span class="mi">50_000</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Expected &gt;50K facts/sec, got </span><span class="si">{</span><span class="n">throughput</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Batch Throughput: </span><span class="si">{</span><span class="n">throughput</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> facts/sec"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="3-distributed-load-test">3. Distributed Load Test<a class="headerlink" href="#3-distributed-load-test" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/performance/test_distributed.py</span>
+<span class="c1"># (Run with Docker Compose)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_distributed_4_instances_100m_facts</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Validate 4-instance deployment handles 100M facts/day."""</span>
+    <span class="c1"># Deploy 4 instances of FluxRules API</span>
+    <span class="c1"># Generate load with locust/vegeta</span>
+    <span class="c1"># Expected: 6K facts/sec collective throughput</span>
+</code></pre></div>
+<hr />
+<h2 id="production-checklist">Production Checklist<a class="headerlink" href="#production-checklist" title="Permanent link">&para;</a></h2>
+<p>Before deploying PHREAK to handle millions of facts:</p>
+<ul>
+<li>[ ] <strong>Baseline:</strong> Run <code>pytest tests/performance/test_benchmark.py</code> with your ruleset</li>
+<li>[ ] <strong>Streaming:</strong> Implement test for your expected fact rate (e.g., 10K facts/sec)</li>
+<li>[ ] <strong>Batching:</strong> Measure throughput with batch processing</li>
+<li>[ ] <strong>Memory:</strong> Monitor RSS (resident memory) during load test</li>
+<li>[ ] <strong>Latency:</strong> Track p50, p95, p99 latencies with <code>latency_tracking=True</code></li>
+<li>[ ] <strong>Database:</strong> Stress-test your persistence layer (PostgreSQL/SQLite)</li>
+<li>[ ] <strong>Caching:</strong> Consider Redis for rule network sharing across instances</li>
+<li>[ ] <strong>Monitoring:</strong> Set up Prometheus metrics and alerting</li>
+<li>[ ] <strong>Horizontal Scaling:</strong> Test load balancer failover and auto-scaling</li>
+</ul>
+<hr />
+<h2 id="known-limitations-future-work">Known Limitations &amp; Future Work<a class="headerlink" href="#known-limitations-future-work" title="Permanent link">&para;</a></h2>
+<h3 id="current-limitations">Current Limitations<a class="headerlink" href="#current-limitations" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Single-Process Baseline:</strong> Standard benchmarks measure one Python process</li>
+<li>
+<p>Workaround: Run multiple instances behind a queue (Kafka/Redis)</p>
+</li>
+<li>
+<p><strong>Working Memory Limits:</strong> Not tested with &gt;1M facts in memory</p>
+</li>
+<li>
+<p>Workaround: Batch evaluation with periodic cleanup</p>
+</li>
+<li>
+<p><strong>100K+ Rules:</strong> Extrapolated linearly; direct testing pending</p>
+</li>
+<li>
+<p>Workaround: Shard rules by domain (fraud vs. promotions) across instances</p>
+</li>
+<li>
+<p><strong>Real-Time Validation:</strong> Benchmarks are offline; streaming latency untested</p>
+</li>
+<li>Workaround: Use <code>latency_tracking=True</code> in production</li>
+</ol>
+<h3 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] <strong>v2.1</strong> - Distributed load testing suite (Kafka integration)</li>
+<li>[ ] <strong>v2.2</strong> - Redis-backed rule network caching (cross-process sharing)</li>
+<li>[ ] <strong>v3.0</strong> - Truth Maintenance System (TMS) for stateful rulesets</li>
+<li>[ ] <strong>v4.0</strong> - Complex Event Processing (CEP) for temporal reasoning</li>
+</ul>
+<hr />
+<h2 id="comparison-phreak-fluxrules-vs-drools">Comparison: PHREAK (FluxRules) vs. Drools<a class="headerlink" href="#comparison-phreak-fluxrules-vs-drools" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>PHREAK (FluxRules)</th>
+<th>Drools (Industry)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>50K Rules</strong></td>
+<td><strong>133ms</strong></td>
+<td>~50ms</td>
+</tr>
+<tr>
+<td><strong>1M Facts/Day</strong></td>
+<td>** (4-6 instances)**</td>
+<td>(1-2 instances)</td>
+</tr>
+<tr>
+<td><strong>Delta Evaluation</strong></td>
+<td>Full</td>
+<td>Full</td>
+</tr>
+<tr>
+<td><strong>Working Memory</strong></td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>TMS</strong></td>
+<td>v3.0</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>CEP</strong></td>
+<td>v4.0</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>Memory (50K)</strong></td>
+<td><strong>O(active segments)</strong></td>
+<td>Similar</td>
+</tr>
+<tr>
+<td><strong>Learning Curve</strong></td>
+<td>Easy (Python)</td>
+<td>Steep (Java)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="references-further-reading">References &amp; Further Reading<a class="headerlink" href="#references-further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../benchmarks/">Benchmarks</a> - Full benchmark results</li>
+<li><a href="../algorithm-fidelity/">Algorithm Fidelity</a> - PHREAK vs. reference evaluator equivalence</li>
+<li><a href="../custom-engines/">Custom Engines</a> - Building engines for specialized workloads</li>
+<li><a href="../deployment/">Deployment Patterns</a> - How to deploy FluxRules in production</li>
+</ul>
+<hr />
+<h2 id="questions">Questions?<a class="headerlink" href="#questions" title="Permanent link">&para;</a></h2>
+<p>See <a href="../contributing/">Contributing</a> for how to propose load tests or scalability improvements.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/fluxrules/fluxrules" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
