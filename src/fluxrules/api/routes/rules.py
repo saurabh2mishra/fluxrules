@@ -718,7 +718,7 @@ def review_parked_conflict(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     parked = db.query(ConflictedRule).filter(ConflictedRule.id == parked_id).first()
     if not parked:
@@ -727,7 +727,7 @@ def review_parked_conflict(
     if action == "dismiss":
         parked.status = "dismissed"
         parked.reviewed_by = current_user.id
-        parked.reviewed_at = datetime.utcnow()
+        parked.reviewed_at = datetime.now(timezone.utc).replace(tzinfo=None)
         parked.review_notes = notes
         db.commit()
         return {
@@ -750,7 +750,7 @@ def resolve_parked_conflict(
     current_user: User = Depends(get_current_user),
 ):
     import hashlib
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     parked = db.query(ConflictedRule).filter(ConflictedRule.id == parked_id).first()
     if not parked:
@@ -851,7 +851,7 @@ def resolve_parked_conflict(
 
     parked.status = "approved"
     parked.reviewed_by = current_user.id
-    parked.reviewed_at = datetime.utcnow()
+    parked.reviewed_at = datetime.now(timezone.utc).replace(tzinfo=None)
     parked.review_notes = notes or "Resolved with modifications"
     db.commit()
 

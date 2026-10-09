@@ -3,7 +3,7 @@
 import hashlib
 import hmac
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,11 @@ from fluxrules.api.config import get_secret_key, settings
 from fluxrules.api.models.audit import AuditLog
 
 logger = logging.getLogger("fluxrules.audit")
+
+
+def _utcnow() -> datetime:
+    # Naive UTC — matches what SQLAlchemy's DateTime column returns after a DB round-trip.
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def _compute_integrity_hash(
@@ -21,7 +26,10 @@ def _compute_integrity_hash(
     details: str,
     timestamp: datetime,
 ) -> str:
-    payload = f"{action_type}|{entity_type}|{entity_id}|{user_id}|{details}|{timestamp.isoformat()}"
+    # Always hash the naive representation so the result is stable across
+    # timezone-aware (pre-commit) and naive (post-DB-read) timestamps.
+    ts_str = timestamp.replace(tzinfo=None).isoformat()
+    payload = f"{action_type}|{entity_type}|{entity_id}|{user_id}|{details}|{ts_str}"
     return hmac.new(
         get_secret_key().encode("utf-8"),
         payload.encode("utf-8"),
@@ -57,7 +65,7 @@ class AuditService:
         execution_time: float | None = None,
         auto_commit: bool = True,
     ) -> AuditLog:
-        now = datetime.utcnow()
+        now = _utcnow()
 
         integrity_hash: str | None = None
         if settings.AUDIT_INTEGRITY_ENABLED:
@@ -90,7 +98,7 @@ class AuditService:
         if days <= 0:
             return 0
 
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = _utcnow() - timedelta(days=days)
         count = (
             self.db.query(AuditLog)
             .filter(AuditLog.timestamp < cutoff)
