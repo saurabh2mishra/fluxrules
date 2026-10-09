@@ -8,7 +8,7 @@ see [getting-started.md](getting-started.md).
 Use uv for a fast project-local environment and dependency management:
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 uv sync --extra dev
 ```
@@ -30,7 +30,7 @@ python -m pip install fluxrules
 ## Install from a checkout
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 python -m venv .venv
 source .venv/bin/activate
@@ -41,7 +41,7 @@ python -m pip install .
 For the same workflow with uv:
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
+git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 uv sync
 ```

@@ -14,7 +14,7 @@ Real-world scenarios where FluxRules excels.
 
 **FluxRules advantage:** Simple DSL for complex business logic, millisecond latency.
 
-**Example:** [Example 22: Real-World Workflow](https://github.com/fluxrules/fluxrules/blob/main/examples/22_real_world_workflow.py)
+**Example:** [Example 22: Real-World Workflow](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/22_real_world_workflow.py)
 
 ## Compliance Automation
 

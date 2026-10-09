@@ -231,8 +231,8 @@ rule = Rule(
 
 All examples demonstrate nested logic:
 
-- **[02_complex_conditions.py](https://github.com/fluxrules/fluxrules/blob/main/examples/02_complex_conditions.py)** - Nested boolean logic
-- **[13_complex_rules.py](https://github.com/fluxrules/fluxrules/blob/main/examples/13_complex_rules.py)** - 8-condition complex payment rule
+- **[02_complex_conditions.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py)** - Nested boolean logic
+- **[13_complex_rules.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/13_complex_rules.py)** - 8-condition complex payment rule
 
 **Run:**
 ```bash

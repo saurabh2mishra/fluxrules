@@ -519,7 +519,7 @@ for dead in loader.dead_letter:
 |----------|---------|
 | **[Custom Transforms Guide](custom-transforms.md)** | Comprehensive patterns and best practices |
 | **[Custom Transforms Cheat Sheet](custom-transforms-cheatsheet.md)** | Quick reference and decision tree |
-| **[Example 29: Custom Transforms](https://github.com/fluxrules/fluxrules/blob/main/examples/29_custom_transforms.py)** | 8 real-world working examples |
+| **[Example 29: Custom Transforms](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/29_custom_transforms.py)** | 8 real-world working examples |
 | **[FactPipeline Framework](fact-pipeline.md)** | Full framework overview |
 | **[Troubleshooting](troubleshooting.md)** | Common issues and solutions |
 

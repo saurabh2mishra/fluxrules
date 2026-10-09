@@ -37,7 +37,7 @@ rule = Rule(
 - `action` - What to do when the rule matches
 - `priority` - Execution order (higher = runs first)
 
-**See:** [examples/18_unified_rule.py](https://github.com/fluxrules/fluxrules/blob/main/examples/18_unified_rule.py)
+**See:** [examples/18_unified_rule.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py)
 
 ---
 
@@ -87,7 +87,7 @@ fact = {
 
 **Important:** A fact is **stateless** by default. Each `engine.evaluate(fact)` call is independent.
 
-**See:** [examples/06_working_memory.py](https://github.com/fluxrules/fluxrules/blob/main/examples/06_working_memory.py) (state management patterns)
+**See:** [examples/06_working_memory.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/06_working_memory.py) (state management patterns)
 
 ---
 
@@ -135,7 +135,7 @@ A **Condition DSL** (Domain-Specific Language) is a nested tree that defines whe
 
 **Validation:** Use `from fluxrules.domain.dsl.validation import validate_dsl`
 
-**See:** [examples/02_complex_conditions.py](https://github.com/fluxrules/fluxrules/blob/main/examples/02_complex_conditions.py), [examples/13_complex_rules.py](https://github.com/fluxrules/fluxrules/blob/main/examples/13_complex_rules.py)
+**See:** [examples/02_complex_conditions.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py), [examples/13_complex_rules.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/13_complex_rules.py)
 
 ---
 
@@ -158,7 +158,7 @@ print(f"Actions: {result.actions}")       # ['manual_review', 'block_payment']
 print(f"Time: {result.latency_ms}ms")     # 1.2ms
 ```
 
-**See:** [examples/15_action_system.py](https://github.com/fluxrules/fluxrules/blob/main/examples/15_action_system.py)
+**See:** [examples/15_action_system.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py)
 
 ---
 
@@ -189,7 +189,7 @@ engine = PhreakEngine()
 engine.load_rules(fraud_rules)
 ```
 
-**See:** [examples/03_domains_and_tags.py](https://github.com/fluxrules/fluxrules/blob/main/examples/03_domains_and_tags.py)
+**See:** [examples/03_domains_and_tags.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/03_domains_and_tags.py)
 
 ---
 
@@ -209,7 +209,7 @@ A **Tag** is a string label for categorization and filtering.
 tier0_rules = [r for r in all_rules if "tier_0" in (r.tags or set())]
 ```
 
-**See:** [examples/03_domains_and_tags.py](https://github.com/fluxrules/fluxrules/blob/main/examples/03_domains_and_tags.py)
+**See:** [examples/03_domains_and_tags.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/03_domains_and_tags.py)
 
 ---
 

@@ -176,5 +176,5 @@ def notify_then_block(**kwargs) -> dict:
 ## Next Steps
 
 - **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for rule creation and deletion
-- **Example** - See [Example 15: Action System](https://github.com/fluxrules/fluxrules/blob/main/examples/15_action_system.py) for working code
+- **Example** - See [Example 15: Action System](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py) for working code
 - **Action Registry** - See [Action Registry](action-registry.md) for advanced registration patterns

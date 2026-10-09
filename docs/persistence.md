@@ -147,4 +147,4 @@ Persist audit records to your logging backend as needed.
 
 - **Sessions** - See [Sessions](sessions.md) for stateful evaluation with persisted rulesets
 - **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for rule versioning and deletion
-- **Example** - See [Example 05: Persistence](https://github.com/fluxrules/fluxrules/blob/main/examples/05_persistence.py) for evaluation and audit patterns
+- **Example** - See [Example 05: Persistence](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/05_persistence.py) for evaluation and audit patterns

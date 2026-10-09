@@ -398,5 +398,5 @@ fact = enhanced_normalize({"user": {"id": "u_1"}, "amount": "1500"})
 
 For detailed patterns and examples, see:
 - **[Custom Transforms Guide](custom-transforms.md)** - Comprehensive patterns and best practices
-- **[Example 29: Custom Transforms](https://github.com/fluxrules/fluxrules/blob/main/examples/29_custom_transforms.py)** - Real-world working examples
+- **[Example 29: Custom Transforms](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/29_custom_transforms.py)** - Real-world working examples
 - **[FactPipeline Documentation](fact-pipeline.md)** - Full framework overview
