@@ -71,15 +71,13 @@ jobs:
           fi
           echo "tag-version-gate: $TAG == v$PKG_VERSION OK"
 
-      # Verify both version fields are in sync.
+      # Verify both version fields are in sync — read version.py with grep,
+      # no package import needed (avoids pydantic not being installed yet).
       - name: Assert pyproject.toml and version.py agree
         shell: bash
         run: |
           set -euo pipefail
-          PY_VERSION="$(python3 -c "
-          import sys; sys.path.insert(0,'src')
-          from fluxrules.version import __version__; print(__version__)
-          ")"
+          PY_VERSION="$(grep -m1 '__version__' src/fluxrules/version.py | sed 's/.*"\(.*\)".*/\1/')"
           PKG_VERSION="$(python3 -c "
           import tomllib, pathlib
           print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])
