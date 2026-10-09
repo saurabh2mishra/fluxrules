@@ -3,7 +3,7 @@
 import hashlib
 import hmac
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -57,7 +57,7 @@ class AuditService:
         execution_time: float | None = None,
         auto_commit: bool = True,
     ) -> AuditLog:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         integrity_hash: str | None = None
         if settings.AUDIT_INTEGRITY_ENABLED:
@@ -90,7 +90,7 @@ class AuditService:
         if days <= 0:
             return 0
 
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         count = (
             self.db.query(AuditLog)
             .filter(AuditLog.timestamp < cutoff)
