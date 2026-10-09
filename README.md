@@ -111,7 +111,7 @@ it. See the [persistence guide](docs/persistence.md).
 uv sync --extra api
 uvicorn fluxrules.api.app:create_app --factory --reload
 ```
-see [[API](api.md)] for more detail.
+see [API](/docs/api.md) for more detail.
 
 ## CLI (Optional)
 
