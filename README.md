@@ -122,7 +122,7 @@ fluxrules --help
 
 ## Documentation
 
-[Documentation](https://saurabh2mishra.github.io/fluxrules/)
+[DOCS](https://saurabh2mishra.github.io/fluxrules/)
 
 ## Contributing
 
