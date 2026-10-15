@@ -1882,6 +1882,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#servicefactory-and-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServiceFactory and persistence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2508,6 +2519,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#servicefactory-and-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServiceFactory and persistence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2583,8 +2605,27 @@
     <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
 </code></pre></div>
 <hr />
+<h2 id="servicefactory-and-persistence">ServiceFactory and persistence<a class="headerlink" href="#servicefactory-and-persistence" title="Permanent link">&para;</a></h2>
+<p>When you register a persistence adapter via <code>ServiceFactory.create_persistence_adapter()</code>,
+<code>Rule(persist=True)</code> and <code>Rule.save()</code> automatically delegate to that adapter rather
+than the built-in SQLite default. This is the recommended pattern for production
+deployments that use PostgreSQL, SQL Server, or another provider:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># python skip  — requires a live database and session provider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.di</span><span class="w"> </span><span class="kn">import</span> <span class="n">ServiceFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuntimeConfig</span><span class="p">,</span> <span class="n">PersistenceConfig</span>
+
+<span class="n">ServiceFactory</span><span class="o">.</span><span class="n">create_persistence_adapter</span><span class="p">(</span>
+    <span class="n">session_provider</span><span class="o">=</span><span class="n">SessionLocal</span><span class="p">,</span>          <span class="c1"># your SQLAlchemy sessionmaker</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">RuntimeConfig</span><span class="p">(</span>
+        <span class="n">persistence</span><span class="o">=</span><span class="n">PersistenceConfig</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">"postgres"</span><span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>See <a href="../persistence/#using-a-different-sql-provider-postgres-sql-server-etc">Persistence</a> for a full example.</p>
+<hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
+<li><strong>Persistence</strong> - See <a href="../persistence/">Persistence</a> for database configuration</li>
 <li><strong>Custom Engines</strong> - See <a href="../custom-engines/">Custom Engines</a></li>
 <li><strong>Custom Actions</strong> - See <a href="../custom-actions/">Custom Actions</a></li>
 </ul>

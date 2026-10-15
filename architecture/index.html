@@ -2919,50 +2919,7 @@
 <hr />
 <p>FluxRules is a lightweight rule evaluation engine with a clean layered architecture. This page describes the system design from the DSL down to engine execution.</p>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────┐
-│          Your Application Code                   │
-│       (Rules, Facts, Actions, Workflows)         │
-└──────────────────────┬───────────────────────────┘
-                       │
-        ┌──────────────▼──────────────-┐
-        │   Public API (fluxrules)     │
-        │  ┌──────────────────────┐    │
-        │  │ Rule (Pydantic v2)   │    │
-        │  │ - condition_dsl      │    │
-        │  │ - action             │    │
-        │  │ - domain, tags       │    │
-        │  └──────────────────────┘    │
-        └──────────────┬───────────────┘
-                       │
-        ┌──────────────▼──────────────────┐
-        │   Evaluation Engine             │
-        │  ┌────────────┬────────────┐    │
-        │  │  Stateless │  Streaming │    │
-        │  │  (default) │  (opt-in)  │    │
-        │  └────────────┴────────────┘    │
-        │   PHREAK engine                 │
-        │  → EvaluationResult             │
-        └──────────────┬──────────────────┘
-                       │
-        ┌──────────────▼──────────────────┐
-        │   Infrastructure                │
-        │  ┌────────────────────────┐     │
-        │  │ DSL Validation         │     │
-        │  │ Working Memory         │     │
-        │  │ Field Index            │     │
-        │  │ ActionRegistry         │     │
-        │  │ FactPipeline           │     │
-        │  └────────────────────────┘     │
-        └──────────────┬──────────────────┘
-                       │
-        ┌──────────────▼──────────────────┐
-        │   Services (Optional)           │
-        │  ┌────────────────────────┐     │
-        │  │ RuleService (CRUD)     │     │
-        │  │ EvaluationSession      │     │
-        │  └────────────────────────┘     │
-        └─────────────────────────────────┘
-</code></pre></div>
+<p><img alt="FluxRules System Architecture" src="../images/system_architecture.png" /></p>
 <hr />
 <h2 id="evaluation-flow-from-fact-to-result">Evaluation Flow: From Fact to Result<a class="headerlink" href="#evaluation-flow-from-fact-to-result" title="Permanent link">&para;</a></h2>
 <h3 id="single-fact-evaluation-simple-api">Single Fact Evaluation (Simple API)<a class="headerlink" href="#single-fact-evaluation-simple-api" title="Permanent link">&para;</a></h3>

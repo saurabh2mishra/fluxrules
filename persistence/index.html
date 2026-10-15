@@ -1775,6 +1775,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#using-a-different-sql-provider-postgres-sql-server-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using a different SQL provider (Postgres, SQL Server, etc.)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using a different SQL provider (Postgres, SQL Server, etc.)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-postgresql-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastAPI + PostgreSQL example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority order
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2574,6 +2613,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#using-a-different-sql-provider-postgres-sql-server-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using a different SQL provider (Postgres, SQL Server, etc.)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using a different SQL provider (Postgres, SQL Server, etc.)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-postgresql-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastAPI + PostgreSQL example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority order
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2720,7 +2798,74 @@ you need update semantics.</p>
 <ul>
 <li><strong>SQLite</strong> (default, development, single-file)</li>
 <li><strong>PostgreSQL</strong> (production, scales to 100K+ rules)</li>
+<li><strong>SQL Server, MySQL, and any SQLAlchemy-supported dialect</strong> — via the ServiceFactory path below</li>
 </ul>
+<hr />
+<h2 id="using-a-different-sql-provider-postgres-sql-server-etc">Using a different SQL provider (Postgres, SQL Server, etc.)<a class="headerlink" href="#using-a-different-sql-provider-postgres-sql-server-etc" title="Permanent link">&para;</a></h2>
+<p>By default <code>persist=True</code> writes through the <code>DBConnectionManager</code> path, which is
+configured via <code>initialize_persistence()</code> or the <code>FLUXRULES_DB_URL</code> / <code>FLUXRULES_ENV</code>
+environment variables.</p>
+<p>In real applications you typically configure a connection once at startup (e.g. in a
+FastAPI lifespan handler). When you register a persistence adapter with <code>ServiceFactory</code>,
+<code>persist=True</code> <strong>automatically delegates to that adapter</strong> instead of the default
+SQLite path — no other changes needed.</p>
+<h3 id="fastapi-postgresql-example">FastAPI + PostgreSQL example<a class="headerlink" href="#fastapi-postgresql-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">asynccontextmanager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PersistenceConfig</span><span class="p">,</span> <span class="n">RuntimeConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.di</span><span class="w"> </span><span class="kn">import</span> <span class="n">ServiceFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+
+<span class="n">DATABASE_URL</span> <span class="o">=</span> <span class="s2">"postgresql://user:pass@db.example.com/fluxrules"</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">DATABASE_URL</span><span class="p">,</span> <span class="n">pool_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_overflow</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">SessionLocal</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+
+<span class="nd">@asynccontextmanager</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lifespan</span><span class="p">(</span><span class="n">app</span><span class="p">:</span> <span class="n">FastAPI</span><span class="p">):</span>
+    <span class="c1"># Register the Postgres-backed adapter once at startup.</span>
+    <span class="n">ServiceFactory</span><span class="o">.</span><span class="n">create_persistence_adapter</span><span class="p">(</span>
+        <span class="n">session_provider</span><span class="o">=</span><span class="n">SessionLocal</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">RuntimeConfig</span><span class="p">(</span><span class="n">persistence</span><span class="o">=</span><span class="n">PersistenceConfig</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">"postgres"</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="k">yield</span>
+    <span class="n">ServiceFactory</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+
+<span class="c1"># Anywhere in your app — persist=True now writes to Postgres, not SQLite.</span>
+<span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"kyc_verified"</span><span class="p">,</span>
+    <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span>
+    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">},</span>
+    <span class="n">action</span><span class="o">=</span><span class="s2">"proceed"</span><span class="p">,</span>
+    <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The same pattern works for SQL Server, MySQL, or any dialect SQLAlchemy supports —
+just change the <code>DATABASE_URL</code> scheme (e.g. <code>mssql+pyodbc://...</code>).</p>
+<h3 id="priority-order">Priority order<a class="headerlink" href="#priority-order" title="Permanent link">&para;</a></h3>
+<p>When <code>persist=True</code> is used, fluxrules checks in this order:</p>
+<ol>
+<li><strong>ServiceFactory adapter</strong> — if one is registered and it is not the in-memory
+   fallback, it is used. This covers Postgres, SQL Server, and any custom adapter.</li>
+<li><strong>DBConnectionManager</strong> — the <code>initialize_persistence()</code> / env-var path. Used
+   when no ServiceFactory adapter is registered (the common case for standalone
+   scripts and simple deployments).</li>
+<li><strong>Fallback</strong> — if neither is reachable, a locally generated ID is assigned and
+   a <code>DEBUG</code>-level log entry is emitted. The rule is still usable in-memory.</li>
+</ol>
+<blockquote>
+<p><strong>Note — table creation:</strong> <code>ServiceFactory</code> does not create database tables.
+When using the ServiceFactory path you are responsible for running schema
+migrations before the application starts (e.g. via Alembic). The
+<code>initialize_persistence()</code> helper creates tables automatically and is the
+right choice when you want a zero-config startup with SQLite or a simple
+PostgreSQL setup.</p>
+</blockquote>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
