@@ -98,6 +98,36 @@ class PersistenceManager:
             return rule
 
         try:
+            # Prefer a ServiceFactory-registered adapter (e.g. Postgres, SQL Server)
+            # over the DBConnectionManager path so that persist=True respects whatever
+            # the application configured at startup. We skip InMemoryRulePersistence
+            # because a caller who set persist=True expects durable storage, and
+            # silently writing to an in-memory adapter would violate that expectation.
+            from fluxrules.di import ServiceFactory
+            from fluxrules.ports.persistence import InMemoryRulePersistence
+
+            sf_adapter = ServiceFactory.get_persistence()
+            if sf_adapter is not None and not isinstance(sf_adapter, InMemoryRulePersistence):
+                db_id = sf_adapter.save_rule(rule, group=group, created_by=created_by)
+                persisted_rule = EngineRule(
+                    id=db_id,
+                    name=rule.name,
+                    actions=rule.actions,
+                    priority=rule.priority,
+                    group=group or rule.group,
+                    description=rule.description,
+                    enabled=rule.enabled,
+                    created_at=rule.created_at,
+                    updated_at=rule.updated_at,
+                    condition_dsl=rule.condition_dsl,
+                )
+                logger.info(
+                    "Rule persisted via ServiceFactory adapter: %s (ID: %d)",
+                    persisted_rule.name,
+                    db_id,
+                )
+                return persisted_rule
+
             session = DBConnectionManager.get_instance().get_session()
             repo = RuleRepository(session)
 

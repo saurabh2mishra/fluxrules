@@ -55,7 +55,32 @@ def evaluate_view(request):
 
 ---
 
+## ServiceFactory and persistence
+
+When you register a persistence adapter via `ServiceFactory.create_persistence_adapter()`,
+`Rule(persist=True)` and `Rule.save()` automatically delegate to that adapter rather
+than the built-in SQLite default. This is the recommended pattern for production
+deployments that use PostgreSQL, SQL Server, or another provider:
+
+```python
+# python skip  — requires a live database and session provider
+from fluxrules.di import ServiceFactory
+from fluxrules.config import RuntimeConfig, PersistenceConfig
+
+ServiceFactory.create_persistence_adapter(
+    session_provider=SessionLocal,          # your SQLAlchemy sessionmaker
+    config=RuntimeConfig(
+        persistence=PersistenceConfig(backend="postgres")
+    ),
+)
+```
+
+See [Persistence](persistence.md#using-a-different-sql-provider-postgres-sql-server-etc) for a full example.
+
+---
+
 ## Next Steps
 
+- **Persistence** - See [Persistence](persistence.md) for database configuration
 - **Custom Engines** - See [Custom Engines](custom-engines.md)
 - **Custom Actions** - See [Custom Actions](custom-actions.md)
