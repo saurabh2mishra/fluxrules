@@ -164,8 +164,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi import FastAPI
 
+from fluxrules.config import PersistenceConfig, RuntimeConfig
 from fluxrules.di import ServiceFactory
-from fluxrules.adapters.persistence import SQLAlchemyPersistenceAdapter
 from fluxrules import Rule
 
 DATABASE_URL = "postgresql://user:pass@db.example.com/fluxrules"
