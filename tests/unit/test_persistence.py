@@ -6,7 +6,7 @@ components that enable automatic rule persistence.
 
 import pytest
 
-from fluxrules.domain.models import EngineRule, RuleCondition
+from fluxrules.domain.models import EngineRule, RuleCondition, Ruleset
 from fluxrules.domain.unified_rule import Rule as CanonicalRule
 from fluxrules.persistence.database_config import DatabaseConfig
 from fluxrules.persistence.db_connection_manager import DBConnectionManager
@@ -16,6 +16,7 @@ from fluxrules.persistence.persistence_manager import (
     reset_persistence_manager,
     set_persistence_manager,
 )
+from fluxrules.ports.persistence import RulePersistencePort
 
 
 class TestDatabaseConfig:
@@ -348,3 +349,88 @@ class TestPersistenceIntegration:
 
         assert rule.id != first_id
         assert self._stored_names().count("Saved Twice") == 2
+
+
+class _StubPersistenceAdapter(RulePersistencePort):
+    """Minimal non-in-memory stub used to test ServiceFactory delegation."""
+
+    def __init__(self, assigned_id: int = 999) -> None:
+        self.saved: list[tuple] = []
+        self._assigned_id = assigned_id
+
+    def save_rule(self, rule: EngineRule, group: str = "", created_by=None) -> int:
+        self.saved.append((rule, group))
+        return self._assigned_id
+
+    def load_rule(self, rule_id): return None
+    def load_all_rules(self): return []
+    def delete_rule(self, rule_id): return False
+    def save_ruleset(self, ruleset, created_by=None): return []
+    def load_ruleset(self, group): return Ruleset(group=group, rules=())
+    def load_all_rulesets(self): return {}
+    def update_rule(self, rule_id, **kwargs): return None
+
+
+class TestPersistenceManagerServiceFactoryDelegation:
+    """PersistenceManager delegates to ServiceFactory when a real adapter is registered."""
+
+    _DSL = {"type": "condition", "field": "amount", "op": ">", "value": 0}
+
+    @pytest.fixture(autouse=True)
+    def _reset(self):
+        from fluxrules.di import ServiceFactory
+
+        DBConnectionManager.reset()
+        config = DatabaseConfig.for_testing()
+        mgr = DBConnectionManager.initialize(config)
+        mgr.create_all_tables()
+        reset_persistence_manager()
+        ServiceFactory.reset()
+        yield
+        DBConnectionManager.reset()
+        reset_persistence_manager()
+        ServiceFactory.reset()
+
+    def _make_rule(self, name: str = "sf_rule") -> EngineRule:
+        return EngineRule(
+            id=None,
+            name=name,
+            conditions=(RuleCondition(fact="amount", operator=">", value=0),),
+            actions=("act",),
+            condition_dsl=self._DSL,
+        )
+
+    def test_delegates_to_registered_adapter(self):
+        """persist_rule() uses the ServiceFactory adapter when one is registered."""
+        from fluxrules.di import ServiceFactory
+
+        stub = _StubPersistenceAdapter(assigned_id=999)
+        ServiceFactory._instances["persistence"] = stub
+
+        pm = PersistenceManager(enabled=True)
+        result = pm.persist_rule(self._make_rule())
+
+        assert result.id == 999
+        assert len(stub.saved) == 1
+
+    def test_skips_in_memory_adapter_and_uses_db(self):
+        """persist_rule() falls through to DBConnectionManager for InMemoryRulePersistence."""
+        from fluxrules.di import ServiceFactory
+        from fluxrules.ports.persistence import InMemoryRulePersistence
+
+        ServiceFactory._instances["persistence"] = InMemoryRulePersistence()
+
+        pm = PersistenceManager(enabled=True)
+        result = pm.persist_rule(self._make_rule("in_memory_skip"))
+
+        # ID comes from DBConnectionManager (SQLite), not from the in-memory adapter
+        assert result.id is not None
+        assert isinstance(result.id, int)
+
+    def test_falls_through_when_no_adapter_registered(self):
+        """persist_rule() uses DBConnectionManager when ServiceFactory has no adapter."""
+        pm = PersistenceManager(enabled=True)
+        result = pm.persist_rule(self._make_rule("no_sf_adapter"))
+
+        assert result.id is not None
+        assert isinstance(result.id, int)
