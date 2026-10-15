@@ -71,8 +71,11 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
         """Return the active database session.
 
         When a *session_provider* was supplied at construction time the
-        provider is called each time this property is accessed, enabling
-        request-scoped or lazy session semantics.
+        provider is called to obtain a session.  Each write method captures
+        this property **once** into a local variable so that add/commit/refresh
+        all operate on the same session object — a plain ``sessionmaker``
+        returns a new session on every call, so re-accessing the property
+        inside a single operation would silently commit an empty transaction.
         """
         if self._session_provider is not None:
             return self._session_provider()
@@ -82,10 +85,11 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
     # ── Write operations ─────────────────────────────────────────────────────
 
     def save_rule(self, rule: EngineRule, group: str = "", created_by: int | None = None) -> int:
+        db = self.db  # capture once — session_provider may return a new session each call
         orm_rule = domain_rule_to_orm(rule, group=group, created_by=created_by)
-        self.db.add(orm_rule)
-        self.db.commit()
-        self.db.refresh(orm_rule)
+        db.add(orm_rule)
+        db.commit()
+        db.refresh(orm_rule)
         return orm_rule.id
 
     def save_ruleset(self, ruleset: Ruleset, created_by: int | None = None) -> list[int]:
@@ -98,7 +102,8 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
     def update_rule(self, rule_id: int, **kwargs) -> EngineRule | None:
         from fluxrules.api.models.rule import Rule as OrmRule
 
-        orm_rule = self.db.query(OrmRule).filter(OrmRule.id == rule_id).first()
+        db = self.db  # capture once — session_provider may return a new session each call
+        orm_rule = db.query(OrmRule).filter(OrmRule.id == rule_id).first()
         if orm_rule is None:
             return None
 
@@ -117,18 +122,19 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
                 setattr(orm_rule, key, value)
 
         orm_rule.updated_at = datetime.now(timezone.utc)
-        self.db.commit()
-        self.db.refresh(orm_rule)
+        db.commit()
+        db.refresh(orm_rule)
         return orm_rule_to_domain(orm_rule)
 
     def delete_rule(self, rule_id: int) -> bool:
         from fluxrules.api.models.rule import Rule as OrmRule
 
-        orm_rule = self.db.query(OrmRule).filter(OrmRule.id == rule_id).first()
+        db = self.db  # capture once — session_provider may return a new session each call
+        orm_rule = db.query(OrmRule).filter(OrmRule.id == rule_id).first()
         if orm_rule is None:
             return False
-        self.db.delete(orm_rule)
-        self.db.commit()
+        db.delete(orm_rule)
+        db.commit()
         return True
 
     # ── Read operations ──────────────────────────────────────────────────────

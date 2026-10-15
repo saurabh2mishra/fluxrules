@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.2] - 2026-10-15
 
+### Fixed
+
+- **`SQLAlchemyPersistenceAdapter` write methods used a fresh session per operation.**  
+  `save_rule`, `update_rule`, and `delete_rule` each accessed the `db` property
+  multiple times. Because a plain `sessionmaker` returns a new `Session` on every
+  call, `commit()` and `refresh()` operated on an empty second session rather than
+  the one that received the ORM object — silently producing no row and falling back
+  to a local ID. Each write method now captures `self.db` once at entry.
+
 ### Added
 
 - **Multi-provider persistence for `persist=True`.**  
