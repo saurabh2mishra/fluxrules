@@ -8,51 +8,7 @@ FluxRules is a lightweight rule evaluation engine with a clean layered architect
 
 ## System Architecture
 
-```
-┌──────────────────────────────────────────────────┐
-│          Your Application Code                   │
-│       (Rules, Facts, Actions, Workflows)         │
-└──────────────────────┬───────────────────────────┘
-                       │
-        ┌──────────────▼──────────────-┐
-        │   Public API (fluxrules)     │
-        │  ┌──────────────────────┐    │
-        │  │ Rule (Pydantic v2)   │    │
-        │  │ - condition_dsl      │    │
-        │  │ - action             │    │
-        │  │ - domain, tags       │    │
-        │  └──────────────────────┘    │
-        └──────────────┬───────────────┘
-                       │
-        ┌──────────────▼──────────────────┐
-        │   Evaluation Engine             │
-        │  ┌────────────┬────────────┐    │
-        │  │  Stateless │  Streaming │    │
-        │  │  (default) │  (opt-in)  │    │
-        │  └────────────┴────────────┘    │
-        │   PHREAK engine                 │
-        │  → EvaluationResult             │
-        └──────────────┬──────────────────┘
-                       │
-        ┌──────────────▼──────────────────┐
-        │   Infrastructure                │
-        │  ┌────────────────────────┐     │
-        │  │ DSL Validation         │     │
-        │  │ Working Memory         │     │
-        │  │ Field Index            │     │
-        │  │ ActionRegistry         │     │
-        │  │ FactPipeline           │     │
-        │  └────────────────────────┘     │
-        └──────────────┬──────────────────┘
-                       │
-        ┌──────────────▼──────────────────┐
-        │   Services (Optional)           │
-        │  ┌────────────────────────┐     │
-        │  │ RuleService (CRUD)     │     │
-        │  │ EvaluationSession      │     │
-        │  └────────────────────────┘     │
-        └─────────────────────────────────┘
-```
+![FluxRules System Architecture](images/system_architecture.png)
 
 ---
 

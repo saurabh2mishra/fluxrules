@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-15
+
+### Fixed
+
+- **`SQLAlchemyPersistenceAdapter` write methods used a fresh session per operation.**  
+  `save_rule`, `update_rule`, and `delete_rule` each accessed the `db` property
+  multiple times. Because a plain `sessionmaker` returns a new `Session` on every
+  call, `commit()` and `refresh()` operated on an empty second session rather than
+  the one that received the ORM object — silently producing no row and falling back
+  to a local ID. Each write method now captures `self.db` once at entry.
+
+### Added
+
+- **Multi-provider persistence for `persist=True`.**  
+  `Rule(persist=True)` and `Rule.save()` now delegate to the
+  `ServiceFactory`-registered adapter when one is present (e.g. PostgreSQL,
+  SQL Server, or any SQLAlchemy-supported dialect), falling back to the
+  existing `DBConnectionManager` / `initialize_persistence()` path when no
+  adapter is registered. This makes `persist=True` respect whatever the
+  application configured at startup without any change to call sites.
+
+### Changed
+
+- **`docs/persistence.md`** — new section "Using a different SQL provider"
+  with a FastAPI + PostgreSQL example, the adapter priority order, and a note
+  that the ServiceFactory path requires schema migrations to be run separately
+  (e.g. via Alembic) since it does not call `create_all_tables()`.
+- **`docs/dependency-injection.md`** — new "ServiceFactory and persistence"
+  section linking the DI setup to the `persist=True` behaviour.
+- **`docs/architecture.md`** — replaced the ASCII system-architecture sketch
+  with the official diagram (`docs/images/system_architecture.png`).
+
+## [0.1.1] - 2026-10-07
+
 ## [0.1.0] - 2026-10-06
 
 First release intended for publication. The changes below tighten the public
