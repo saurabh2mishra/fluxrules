@@ -3,7 +3,6 @@
 **Prerequisites:** [API](api.md) (core endpoints).
 
 ---
-
 Comprehensive reference for all REST API endpoints.
 
 ## Request/Response Format
@@ -11,6 +10,7 @@ Comprehensive reference for all REST API endpoints.
 All requests use `Content-Type: application/json`.
 
 All responses include:
+
 - `fired_rules` - List of matched rule IDs
 - `actions` - List of triggered actions
 - `latency_ms` - Evaluation time in milliseconds
@@ -84,7 +84,7 @@ Get detailed explanation of rule matching.
 {
   "rule_id": 1,
   "rule_name": "high_value_transaction",
-  "condition_dsl": {...},
+  "conditions": {...},
   "matched": true,
   "matching_conditions": ["amount > 5000"],
   "explanation": "Amount exceeds threshold"
@@ -101,7 +101,7 @@ Simulate rule changes without persisting.
   "rules": [
     {
       "name": "test_rule",
-      "condition_dsl": {...},
+      "conditions": {...},
       "action": "flag"
     }
   ],
@@ -120,12 +120,12 @@ Simulate rule changes without persisting.
 
 ### POST /api/v1/validate
 
-Validate DSL syntax.
+Validate condition tree syntax.
 
 **Request:**
 ```json
 {
-  "condition_dsl": {
+  "conditions": {
     "type": "condition",
     "field": "amount",
     "op": ">",
@@ -165,7 +165,7 @@ Create a new rule.
 {
   "name": "new_rule",
   "domain": "fraud_detection",
-  "condition_dsl": {...},
+  "conditions": {...},
   "action": "flag"
 }
 ```
@@ -209,8 +209,9 @@ All errors follow this format:
 ```
 
 Common error codes:
+
 - `VALIDATION_ERROR` - Invalid request format
-- `DSL_ERROR` - Invalid DSL syntax
+- `DSL_ERROR` - Invalid condition tree syntax
 - `RULE_NOT_FOUND` - Rule ID does not exist
 - `INTERNAL_ERROR` - Server error
 

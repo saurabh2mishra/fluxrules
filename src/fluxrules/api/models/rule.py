@@ -34,7 +34,7 @@ class Rule(Base):
     group: Mapped[str | None] = mapped_column(String, index=True)
     priority: Mapped[int] = mapped_column(Integer, default=0, index=True)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
-    condition_dsl: Mapped[Any] = mapped_column(JSON, nullable=False)
+    conditions: Mapped[Any] = mapped_column(JSON, nullable=False)
     action: Mapped[str] = mapped_column(Text, nullable=False)
     rule_metadata: Mapped[Any] = mapped_column(JSON, nullable=True)
     evaluation_mode: Mapped[str | None] = mapped_column(String, nullable=True, default="stateless")
@@ -66,7 +66,7 @@ class RuleVersion(Base):
     group: Mapped[str | None] = mapped_column(String)
     priority: Mapped[int | None] = mapped_column(Integer)
     enabled: Mapped[bool | None] = mapped_column(Boolean)
-    condition_dsl: Mapped[str] = mapped_column(Text, nullable=False)
+    conditions: Mapped[str] = mapped_column(Text, nullable=False)
     action: Mapped[str] = mapped_column(Text, nullable=False)
     rule_metadata: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(

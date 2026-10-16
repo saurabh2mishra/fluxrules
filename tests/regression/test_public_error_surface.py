@@ -27,7 +27,7 @@ PUBLIC_ERRORS = {
     "InvalidRuleError": ("FluxRulesError", "INVALID_RULE"),
     "UnknownOperatorError": ("FluxRulesError", "UNKNOWN_OPERATOR"),
     "CyclicDependencyError": ("FluxRulesError", "CYCLIC_DEPENDENCY"),
-    "DSLValidationError": ("InvalidRuleError", "DSL_VALIDATION_ERROR"),
+    "ConditionValidationError": ("InvalidRuleError", "DSL_VALIDATION_ERROR"),
     "EmptyRuleLogicError": ("InvalidRuleError", "EMPTY_RULE_LOGIC"),
     "CorruptStoredRuleError": ("FluxRulesError", "CORRUPT_STORED_RULE"),
     "LossyConditionRebuildError": ("InvalidRuleError", "LOSSY_CONDITION_REBUILD"),
@@ -88,16 +88,16 @@ def test_one_except_clause_catches_the_whole_family() -> None:
 
 
 def test_dsl_validation_error_is_not_redefined_by_the_module_that_raises_it() -> None:
-    """Regression: there were two distinct ``DSLValidationError`` classes.
+    """Regression: there were two distinct ``ConditionValidationError`` classes.
 
-    ``domain/errors.py`` and ``domain/dsl/validation.py`` each declared one.
+    ``domain/errors.py`` and ``domain/conditions/validation.py`` each declared one.
     They shared a name and a code but not a base class, and only the latter was
-    ever raised - so a caller doing ``except errors.DSLValidationError`` around
-    ``validate_dsl()`` caught nothing, and the traceback named the class they
+    ever raised - so a caller doing ``except errors.ConditionValidationError`` around
+    ``validate_conditions()`` caught nothing, and the traceback named the class they
     thought they had handled.
     """
-    from fluxrules.domain.dsl.validation import DSLValidationError as raised
-    from fluxrules.domain.errors import DSLValidationError as canonical
+    from fluxrules.domain.conditions.validation import ConditionValidationError as raised
+    from fluxrules.domain.errors import ConditionValidationError as canonical
 
     assert raised is canonical
 

@@ -8,7 +8,7 @@ Quick reference for all REST endpoints.
 |--------|------|---------|
 | GET | `/health` | Health check |
 | POST | `/api/v1/evaluate` | Evaluate facts against rules |
-| POST | `/api/v1/validate` | Validate DSL or ruleset |
+| POST | `/api/v1/validate` | Validate conditions or ruleset |
 | GET | `/api/v1/executions/{id}` | Get execution details |
 
 ## Setup

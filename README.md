@@ -61,7 +61,7 @@ from fluxrules import Rule, evaluate
 
 rule = Rule(
     name="high_value_transaction",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="manual_review",
 )
 
@@ -89,7 +89,7 @@ from fluxrules import PhreakEngine, Rule
 rule = Rule(
     name="high_value_transaction",
     domain="payments",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="manual_review",
     priority=100,
 )

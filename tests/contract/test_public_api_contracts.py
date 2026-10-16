@@ -18,7 +18,7 @@ def test_stable_single_fact_contract_is_explicit() -> None:
 
     rule = Rule(
         name="amount-check",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 100},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 100},
         action="review",
         persist=False,
     )
@@ -41,7 +41,7 @@ def test_every_evaluation_path_shares_one_result_type() -> None:
 
     rule = Rule(
         name="amount-check",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 100},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 100},
         action="review",
     )
 
@@ -68,7 +68,7 @@ def test_public_evaluate_takes_rules_not_only_a_ruleset() -> None:
 
     rule = Rule(
         name="amount-check",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 100},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 100},
         action="review",
     )
 

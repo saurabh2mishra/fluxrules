@@ -11,7 +11,7 @@ def _make_ruleset(rules=None):
             EngineRule(
                 id=1,
                 name="r1",
-                conditions=(RuleCondition(fact="x", operator="==", value=1),),
+                condition_nodes=(RuleCondition(fact="x", operator="==", value=1),),
             ),
         )
     return Ruleset(group="test", rules=rules)
@@ -35,12 +35,12 @@ class TestValidationService:
             EngineRule(
                 id=1,
                 name="r1",
-                conditions=(RuleCondition(fact="x", operator="==", value=1),),
+                condition_nodes=(RuleCondition(fact="x", operator="==", value=1),),
             ),
             EngineRule(
                 id=1,
                 name="r2",
-                conditions=(RuleCondition(fact="y", operator="==", value=2),),
+                condition_nodes=(RuleCondition(fact="y", operator="==", value=2),),
             ),
         )
         issues = ValidationService().validate_ruleset(_make_ruleset(rules=rules))

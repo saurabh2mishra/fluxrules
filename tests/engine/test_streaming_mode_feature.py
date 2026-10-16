@@ -45,7 +45,7 @@ class TestStreamingModeCaching:
         rule = Rule(
             id=1,
             name="Age Check",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "age",
                 "op": ">",
@@ -74,7 +74,7 @@ class TestStreamingModeCaching:
         rule = Rule(
             id=1,
             name="Age Check",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "age",
                 "op": ">",
@@ -106,7 +106,7 @@ class TestStreamingModeCaching:
         rule = Rule(
             id=1,
             name="Age Check",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "age",
                 "op": ">",
@@ -139,7 +139,7 @@ class TestStreamingModeFieldTracking:
         age_rule = Rule(
             id=1,
             name="Age Check",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "age",
                 "op": ">",
@@ -153,7 +153,7 @@ class TestStreamingModeFieldTracking:
         salary_rule = Rule(
             id=2,
             name="Salary Check",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "salary",
                 "op": ">",
@@ -186,7 +186,7 @@ class TestStreamingModeFieldTracking:
         rule = Rule(
             id=1,
             name="Test",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "x",
                 "op": ">",
@@ -219,7 +219,7 @@ class TestStreamingModeCompositeConditions:
         rule = Rule(
             id=1,
             name="Complex",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     {"type": "condition", "field": "age", "op": ">", "value": 18},
@@ -256,7 +256,7 @@ class TestStreamingModeCompositeConditions:
         rule = Rule(
             id=1,
             name="OR Rule",
-            condition_dsl={
+            conditions={
                 "type": "or",
                 "conditions": [
                     {"type": "condition", "field": "admin", "op": "==", "value": True},
@@ -300,7 +300,7 @@ class TestStatelessVsStreamingMode:
         rule = Rule(
             id=1,
             name="Test",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "x",
                 "op": ">",
@@ -323,7 +323,7 @@ class TestStatelessVsStreamingMode:
         rule = Rule(
             id=1,
             name="Test",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "x",
                 "op": ">",
@@ -353,7 +353,7 @@ class TestStatelessVsStreamingMode:
         rule = Rule(
             id=1,
             name="Test",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "x",
                 "op": ">",
@@ -401,7 +401,7 @@ class TestStreamingModePerformance:
             Rule(
                 id=i,
                 name=f"rule_{i}",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": f"field_{i % 5}",
                     "op": ">",
@@ -449,7 +449,7 @@ class TestStreamingModePerformance:
             Rule(
                 id=i,
                 name=f"rule_{i}",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": f"field_{i % 5}",
                     "op": ">",
@@ -505,7 +505,7 @@ class TestStreamingModeEdgeCases:
         rule = Rule(
             id=1,
             name="Test",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "x",
                 "op": ">",
@@ -529,7 +529,7 @@ class TestStreamingModeEdgeCases:
             Rule(
                 id=1,
                 name="Rule 1",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -542,7 +542,7 @@ class TestStreamingModeEdgeCases:
             Rule(
                 id=2,
                 name="Rule 2",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -576,7 +576,7 @@ class TestStreamingModeEdgeCases:
         rule = Rule(
             id=1,
             name="Test",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "x",
                 "op": ">",
@@ -624,7 +624,7 @@ class TestStreamingModeWithConfig:
             Rule(
                 id=i,
                 name=f"rule_{i}",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "x",
                     "op": ">",
@@ -670,7 +670,7 @@ class TestStreamingDeltaLinkingParity:
                 Rule(
                     id=rid,
                     name=f"r{rid}",
-                    condition_dsl={"type": "and", "conditions": conds},
+                    conditions={"type": "and", "conditions": conds},
                     priority=rid % 5,
                     domain="test",
                 )

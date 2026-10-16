@@ -24,7 +24,7 @@ def generate_rules(n):
             "name": f"rule_{i}",
             "priority": i % 100,
             "group": f"g{i % 10}",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": f"field_{i % 5}",
                 "op": ">=",

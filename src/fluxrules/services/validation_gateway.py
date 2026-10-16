@@ -172,9 +172,9 @@ class ValidationGateway:
         if hasattr(rule_data, "model_dump"):
             data = rule_data.model_dump(exclude_none=False)
             # Convert JSON strings to dicts
-            if isinstance(data.get("condition_dsl"), str):
+            if isinstance(data.get("conditions"), str):
                 try:
-                    data["condition_dsl"] = json.loads(data["condition_dsl"])
+                    data["conditions"] = json.loads(data["conditions"])
                 except (json.JSONDecodeError, TypeError):
                     pass
             return data
@@ -184,7 +184,7 @@ class ValidationGateway:
             data = {}
             for column in rule_data.__table__.columns:
                 value = getattr(rule_data, column.name, None)
-                if column.name == "condition_dsl" and isinstance(value, str):
+                if column.name == "conditions" and isinstance(value, str):
                     try:
                         value = json.loads(value)
                     except (json.JSONDecodeError, TypeError):

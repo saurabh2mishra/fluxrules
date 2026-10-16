@@ -27,7 +27,7 @@ class TestMultiEngineRuleEvaluation:
         rule = Rule(
             id=1,
             name="Enterprise Credit Approval - Tier 1",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     # Age and employment
@@ -175,7 +175,7 @@ class TestMultiEngineRuleEvaluation:
         rule = Rule(
             id=2,
             name="Advanced Fraud Detection - Block Transaction",
-            condition_dsl={
+            conditions={
                 "type": "or",
                 "conditions": [
                     {
@@ -342,7 +342,7 @@ class TestMultiEngineRuleEvaluation:
         rule = Rule(
             id=3,
             name="Insurance Premium Calculation - Standard Risk",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     {"type": "condition", "field": "age", "op": ">=", "value": 18},
@@ -438,7 +438,7 @@ class TestStreamingModeAdvanced:
         rule = Rule(
             id=1,
             name="Composite",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     {"type": "condition", "field": "age", "op": ">", "value": 18},
@@ -471,7 +471,7 @@ class TestStreamingModeAdvanced:
         rule = Rule(
             id=1,
             name="Complex Rule",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     {"type": "condition", "field": "x", "op": ">", "value": 0},
@@ -508,7 +508,7 @@ class TestStreamingModeAdvanced:
             Rule(
                 id=i,
                 name=f"Rule {i}",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": f"field_{i % 10}",
                     "op": ">",
@@ -560,7 +560,7 @@ class TestComplexConditionDSLs:
         rule = Rule(
             id=1,
             name="Nested Logic",
-            condition_dsl={
+            conditions={
                 "type": "or",
                 "conditions": [
                     {
@@ -605,7 +605,7 @@ class TestComplexConditionDSLs:
         rule = Rule(
             id=1,
             name="Not Rule",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     {
@@ -647,7 +647,7 @@ class TestComplexConditionDSLs:
         rule = Rule(
             id=1,
             name="Has Email",
-            condition_dsl={
+            conditions={
                 "type": "exists",
                 "field": "email",
             },
@@ -680,7 +680,7 @@ class TestCrossDomainRuleInteractions:
             Rule(
                 id=1,
                 name="User Domain Rule",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "status",
                     "op": "==",
@@ -693,7 +693,7 @@ class TestCrossDomainRuleInteractions:
             Rule(
                 id=2,
                 name="Account Domain Rule",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "status",
                     "op": "==",
@@ -722,7 +722,7 @@ class TestCrossDomainRuleInteractions:
             Rule(
                 id=1,
                 name="High Priority User Rule",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "priority",
                     "op": "==",
@@ -735,7 +735,7 @@ class TestCrossDomainRuleInteractions:
             Rule(
                 id=2,
                 name="Low Priority User Rule",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "priority",
                     "op": "==",
@@ -748,7 +748,7 @@ class TestCrossDomainRuleInteractions:
             Rule(
                 id=3,
                 name="Payment Rule",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "amount",
                     "op": ">",
@@ -783,7 +783,7 @@ class TestRealWorldWorkflows:
         rule = Rule(
             id=1,
             name="High Priority Warehouse Allocation",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     {
@@ -898,7 +898,7 @@ class TestRealWorldWorkflows:
         rule = Rule(
             id=2,
             name="High Risk Patient - ICU Admission Pathway",
-            condition_dsl={
+            conditions={
                 "type": "or",
                 "conditions": [
                     {
@@ -1081,7 +1081,7 @@ class TestRealWorldWorkflows:
         rule = Rule(
             id=3,
             name="At-Risk Subscriber - Proactive Retention Campaign",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [
                     {
@@ -1193,7 +1193,7 @@ class TestEdgeCasesAndErrorHandling:
         rule = Rule(
             id=1,
             name="Always Fire",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "flag",
                 "op": "==",
@@ -1218,7 +1218,7 @@ class TestEdgeCasesAndErrorHandling:
         rule = Rule(
             id=1,
             name="Has Value",
-            condition_dsl={
+            conditions={
                 "type": "exists",
                 "field": "value",
             },
@@ -1248,7 +1248,7 @@ class TestEdgeCasesAndErrorHandling:
         rule = Rule(
             id=1,
             name="String Comparison",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "status",
                 "op": "==",
@@ -1276,7 +1276,7 @@ class TestEdgeCasesAndErrorHandling:
         rule = Rule(
             id=1,
             name="Float Comparison",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "ratio",
                 "op": ">",

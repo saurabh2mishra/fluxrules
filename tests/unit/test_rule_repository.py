@@ -37,7 +37,7 @@ def _make_rule(name="test", group="grp", priority=0, **kw):
     return EngineRule(
         id=0,
         name=name,
-        conditions=(RuleCondition(fact="age", operator="gt", value=18),),
+        condition_nodes=(RuleCondition(fact="age", operator="gt", value=18),),
         actions=("allow",),
         priority=priority,
         group=group,
@@ -58,7 +58,7 @@ class TestSaveAndLoad:
         assert loaded.id == rid
         assert loaded.name == "r1"
         assert loaded.group == "grp"
-        assert loaded.conditions[0].fact == "age"
+        assert loaded.condition_nodes[0].fact == "age"
         assert loaded.actions == ("allow",)
 
     def test_load_nonexistent(self, repo):
@@ -145,7 +145,7 @@ class TestDataIntegrity:
         rule = EngineRule(
             id=0,
             name="conds",
-            conditions=(
+            condition_nodes=(
                 RuleCondition(fact="x", operator="eq", value="hello"),
                 RuleCondition(fact="y", operator="gt", value=42),
                 RuleCondition(fact="z", operator="contains", value="abc"),
@@ -154,7 +154,7 @@ class TestDataIntegrity:
         )
         rid = repo.save_rule(rule)
         loaded = repo.load_rule(rid)
-        assert len(loaded.conditions) == 3
-        assert loaded.conditions[0].value == "hello"
-        assert loaded.conditions[1].value == 42
+        assert len(loaded.condition_nodes) == 3
+        assert loaded.condition_nodes[0].value == "hello"
+        assert loaded.condition_nodes[1].value == 42
         assert loaded.actions == ("act1", "act2")

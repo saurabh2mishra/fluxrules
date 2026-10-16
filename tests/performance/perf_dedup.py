@@ -31,7 +31,7 @@ def _rule(rid: int, field: str, value: int) -> Rule:
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": field, "op": ">", "value": value},
+        conditions={"type": "condition", "field": field, "op": ">", "value": value},
         priority=rid % 10,
         domain=f"d{rid % 5}",
         tags=frozenset(),

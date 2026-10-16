@@ -1,8 +1,8 @@
 from fluxrules.domain import schemas
 from fluxrules.domain.errors import (
+    ConditionValidationError,
     CorruptStoredRuleError,
     CyclicDependencyError,
-    DSLValidationError,
     EmptyRuleLogicError,
     FluxRulesError,
     InvalidRuleError,
@@ -16,7 +16,7 @@ from fluxrules.domain.unified_rule import Rule
 __all__ = [
     "CorruptStoredRuleError",
     "CyclicDependencyError",
-    "DSLValidationError",
+    "ConditionValidationError",
     "EmptyRuleLogicError",
     "EvaluationResult",
     "Fact",

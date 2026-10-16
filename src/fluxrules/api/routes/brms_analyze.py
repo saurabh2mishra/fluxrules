@@ -246,7 +246,7 @@ def analyze_rules(
             {
                 "id": r.id,
                 "name": r.name,
-                "condition_dsl": r.condition_dsl,
+                "conditions": r.conditions,
                 "priority": r.priority,
                 "enabled": r.enabled,
                 "action": r.action,
@@ -323,7 +323,7 @@ def analyze_summary(
             {
                 "id": r.id,
                 "name": r.name,
-                "condition_dsl": r.condition_dsl,
+                "conditions": r.conditions,
                 "priority": r.priority,
                 "enabled": r.enabled,
                 "action": r.action,

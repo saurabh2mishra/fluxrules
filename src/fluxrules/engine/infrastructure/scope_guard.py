@@ -10,7 +10,7 @@ sliding-window correlation. A rule that needs to correlate two events
 must receive **pre-joined** facts from upstream (a stream processor / feature
 store).
 
-This module scans a rule's ``condition_dsl`` and reports constructs that imply
+This module scans a rule's ``conditions`` and reports constructs that imply
 **cross-fact** semantics the engine cannot honor, so misuse fails fast (loudly)
 instead of silently under-matching.
 
@@ -201,7 +201,7 @@ def _walk(node: Any) -> Iterable[dict[str, Any]]:
 
 
 def check_condition(rule_id: Any, condition: Any) -> list[BoundaryFinding]:
-    """Return boundary findings for a single rule's ``condition_dsl``.
+    """Return boundary findings for a single rule's ``conditions``.
 
     Detects, conservatively, every shape that implies the engine would have to
     correlate more than the one flattened fact it is given:
@@ -354,10 +354,10 @@ def check_rules(rules: Iterable[Any]) -> list[BoundaryFinding]:
     for rule in rules:
         if isinstance(rule, dict):
             rid = rule.get("id")
-            condition = rule.get("condition_dsl")
+            condition = rule.get("conditions")
         else:
             rid = getattr(rule, "id", None)
-            condition = getattr(rule, "condition_dsl", None)
+            condition = getattr(rule, "conditions", None)
         if condition is not None:
             findings.extend(check_condition(rid, condition))
     return findings

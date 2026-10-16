@@ -20,7 +20,7 @@ from fluxrules.engine.phreak import PhreakEngine
 rules = [
     Rule(
         name="high_value_transaction",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
         action="require_approval",
     ),
 ]
@@ -48,7 +48,7 @@ in memory, call `Rule.save()`:
 ```python
 rule = Rule(
     name="production_rule",
-    condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
     action="act",
 )
 rule.save()  # now in the database, rule.id is the stored ID
@@ -62,7 +62,7 @@ you need update semantics.
 # Persisted rule (stored in database)
 rule1 = Rule(
     name="production_rule",
-    condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
     action="act",
     persist=True,  # Database storage
 )
@@ -70,7 +70,7 @@ rule1 = Rule(
 # Temporary rule (in-memory only)
 rule2 = Rule(
     name="test_rule",
-    condition_dsl={"type": "condition", "field": "y", "op": "==", "value": "test"},
+    conditions={"type": "condition", "field": "y", "op": "==", "value": "test"},
     action="test_act",
     persist=False,  # No database storage
 )
@@ -111,7 +111,7 @@ from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Setup engine and rules
-rule = Rule(name="test", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule = Rule(name="test", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
 engine = PhreakEngine()
 engine.load_rules([rule])
 
@@ -140,7 +140,7 @@ Persist audit records to your logging backend as needed.
 
 - **SQLite** (default, development, single-file)
 - **PostgreSQL** (production, scales to 100K+ rules)
-- **SQL Server, MySQL, and any SQLAlchemy-supported dialect** — via the ServiceFactory path below
+- **MySQL, SQL Server, and any other SQLAlchemy-supported dialect** — via the ServiceFactory path below; see the note on `backend` in that section
 
 ---
 
@@ -188,26 +188,42 @@ app = FastAPI(lifespan=lifespan)
 rule = Rule(
     name="kyc_verified",
     domain="compliance",
-    condition_dsl={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+    conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
     action="proceed",
     persist=True,
 )
 ```
 
-The same pattern works for SQL Server, MySQL, or any dialect SQLAlchemy supports —
-just change the `DATABASE_URL` scheme (e.g. `mssql+pyodbc://...`).
+`SQLAlchemyPersistenceAdapter` is dialect-agnostic — it works with any database
+SQLAlchemy supports (PostgreSQL, MySQL, SQL Server, SQLite). The key thing to know:
+`backend="postgres"` is the configuration value that activates the SQLAlchemy path
+in `ServiceFactory`, regardless of the actual database dialect. Change the
+`DATABASE_URL` scheme for your target database but keep `backend="postgres"`:
+
+```python
+# MySQL
+DATABASE_URL = "mysql+pymysql://user:pass@db.example.com/fluxrules"
+
+# SQL Server
+DATABASE_URL = "mssql+pyodbc://user:pass@db.example.com/fluxrules?driver=ODBC+Driver+17+for+SQL+Server"
+```
+
+The rest of the setup — `session_provider`, `ServiceFactory.create_persistence_adapter()` —
+is identical.
 
 ### Priority order
 
 When `persist=True` is used, fluxrules checks in this order:
 
 1. **ServiceFactory adapter** — if one is registered and it is not the in-memory
-   fallback, it is used. This covers Postgres, SQL Server, and any custom adapter.
+   fallback, it is used. This covers any SQLAlchemy-backed dialect (Postgres, MySQL,
+   SQL Server) as long as `backend="postgres"` was set at registration time.
 2. **DBConnectionManager** — the `initialize_persistence()` / env-var path. Used
    when no ServiceFactory adapter is registered (the common case for standalone
    scripts and simple deployments).
 3. **Fallback** — if neither is reachable, a locally generated ID is assigned and
-   a `DEBUG`-level log entry is emitted. The rule is still usable in-memory.
+   an `INFO`-level log entry is emitted (`"No database configured; using in-memory mode"`).
+   The rule is still usable in-memory.
 
 > **Note — table creation:** `ServiceFactory` does not create database tables.
 > When using the ServiceFactory path you are responsible for running schema

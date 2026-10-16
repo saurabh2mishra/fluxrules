@@ -13,14 +13,14 @@ from fluxrules import Rule
 
 rule1 = Rule(
     name="check_1",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
     persist=False,
 )
 print(rule1.id)  # 1
 
 rule2 = Rule(
     name="check_2",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
     persist=False,
 )
 print(rule2.id)  # 2
@@ -34,7 +34,7 @@ Override auto-generation with the `id` parameter:
 rule = Rule(
     id=999,  # Custom ID
     name="custom_id_rule",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
     persist=False,
 )
 print(rule.id)  # 999
@@ -55,7 +55,7 @@ from fluxrules.services.rule_service import RuleService
 service = RuleService.create()
 rule = Rule(
     name="will_be_persisted",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
     persist=True,  # Will store in database
 )
 

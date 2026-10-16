@@ -76,7 +76,7 @@ def and_rule(
     return Rule(
         id=rid,
         name=f"rule_{rid}_and{n_conditions}",
-        condition_dsl={"type": "and", "conditions": conditions},
+        conditions={"type": "and", "conditions": conditions},
         priority=rid % 10,
         domain=f"d{rid % 5}",
         tags=frozenset([f"tag_{rid % 3}"]),
@@ -187,7 +187,7 @@ def nested_bool_rules(
         Rule(
             id=rid,
             name=f"rule_{rid}_nested",
-            condition_dsl=_build_condition(max_depth),
+            conditions=_build_condition(max_depth),
             priority=rid % 10,
             domain=f"d{rid % 5}",
             tags=frozenset(),

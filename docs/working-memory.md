@@ -1,6 +1,6 @@
 # Working Memory and State
 
-**Prerequisites:** [Concepts](concepts.md) (Rule, Engine, Fact) and [Conditions](conditions.md) (DSL format).
+**Prerequisites:** [Concepts](concepts.md) (Rule, Engine, Fact) and [Conditions](conditions.md) (condition tree format).
 
 ---
 
@@ -22,7 +22,7 @@ from fluxrules.engine.phreak import PhreakEngine
 
 rule = Rule(
     name="high_value_flag",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="flag_for_review",
     persist=False,
 )
@@ -49,7 +49,7 @@ from fluxrules.engine.phreak import PhreakEngine
 
 engine = PhreakEngine()
 engine.load_rules([
-    Rule(name="test", condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 10}, action="act", persist=False)
+    Rule(name="test", conditions={"type": "condition", "field": "x", "op": ">", "value": 10}, action="act", persist=False)
 ])
 
 # Assert facts into the store
@@ -83,14 +83,14 @@ rules = [
     Rule(
         name="kyc_verified",
         domain="compliance",
-        condition_dsl={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+        conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
         action="proceed",
         persist=True,
     ),
     Rule(
         name="high_risk",
         domain="fraud",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 10000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 10000},
         action="review",
         persist=True,
     ),

@@ -69,7 +69,7 @@ def seed_rules():
                 group="g1",
                 priority=10,
                 enabled=True,
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "amount",
                     "op": ">",
@@ -83,7 +83,7 @@ def seed_rules():
                 group="g1",
                 priority=1,
                 enabled=True,
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "amount",
                     "op": "<",

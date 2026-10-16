@@ -23,7 +23,7 @@ def test_build_graph_with_shared_fields():
         {
             "id": 1,
             "name": "Rule1",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "amount",
                 "op": ">",
@@ -33,7 +33,7 @@ def test_build_graph_with_shared_fields():
         {
             "id": 2,
             "name": "Rule2",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "amount",
                 "op": "<",

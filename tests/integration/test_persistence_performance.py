@@ -36,7 +36,7 @@ class TestPHREAKWithPersistence:
         rule = EngineRule(
             id=None,
             name="test_rule",
-            conditions=(RuleCondition(fact="status", operator="==", value="active"),),
+            condition_nodes=(RuleCondition(fact="status", operator="==", value="active"),),
             actions=("process",),
             priority=10,
         )
@@ -58,15 +58,15 @@ class TestPHREAKWithPersistence:
         rule = EngineRule(
             id=1,
             name="phreak_rule",
-            conditions=(RuleCondition(fact="score", operator=">", value=75),),
+            condition_nodes=(RuleCondition(fact="score", operator=">", value=75),),
             actions=("approve",),
         )
 
         # Verify rule integrity after creation
         assert rule.id == 1
         assert rule.name == "phreak_rule"
-        assert len(rule.conditions) == 1
-        assert rule.conditions[0].fact == "score"
+        assert len(rule.condition_nodes) == 1
+        assert rule.condition_nodes[0].fact == "score"
 
 
 class TestPersistenceRuleIntegrity:
@@ -77,7 +77,7 @@ class TestPersistenceRuleIntegrity:
         rule = EngineRule(
             id=None,
             name="condition_test",
-            conditions=(
+            condition_nodes=(
                 RuleCondition(fact="amount", operator=">", value=1000),
                 RuleCondition(fact="status", operator="==", value="pending"),
             ),
@@ -89,16 +89,16 @@ class TestPersistenceRuleIntegrity:
         persisted = pm.persist_rule(rule)
 
         # Check all conditions preserved
-        assert len(persisted.conditions) == 2
-        assert persisted.conditions[0].fact == "amount"
-        assert persisted.conditions[1].fact == "status"
+        assert len(persisted.condition_nodes) == 2
+        assert persisted.condition_nodes[0].fact == "amount"
+        assert persisted.condition_nodes[1].fact == "status"
 
     def test_persisted_rule_preserves_actions(self):
         """Persisted rules should maintain action integrity."""
         rule = EngineRule(
             id=None,
             name="action_test",
-            conditions=(RuleCondition(fact="test", operator="==", value=True),),
+            condition_nodes=(RuleCondition(fact="test", operator="==", value=True),),
             actions=("action1", "action2", "action3"),
             priority=1,
         )
@@ -117,7 +117,7 @@ class TestPersistenceRuleIntegrity:
         rule = EngineRule(
             id=None,
             name="priority_test",
-            conditions=(RuleCondition(fact="test", operator="==", value=True),),
+            condition_nodes=(RuleCondition(fact="test", operator="==", value=True),),
             actions=("test",),
             priority=100,
         )
@@ -141,7 +141,7 @@ class TestPersistenceScale:
             EngineRule(
                 id=None,
                 name=f"rule_{i}",
-                conditions=(RuleCondition(fact="value", operator=">", value=i),),
+                condition_nodes=(RuleCondition(fact="value", operator=">", value=i),),
                 actions=(f"action_{i}",),
                 priority=i,
             )
@@ -164,7 +164,7 @@ class TestPersistenceScale:
         rule = EngineRule(
             id=None,
             name="complex_rule",
-            conditions=tuple(
+            condition_nodes=tuple(
                 RuleCondition(fact=f"field_{i}", operator=">", value=i) for i in range(10)
             ),
             actions=("complex_action",),
@@ -174,4 +174,4 @@ class TestPersistenceScale:
         persisted = pm.persist_rule(rule)
 
         # All conditions preserved
-        assert len(persisted.conditions) == 10
+        assert len(persisted.condition_nodes) == 10

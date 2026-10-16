@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 
 import pytest
+from pydantic import ValidationError
 
 from fluxrules import Rule
 from fluxrules.engine.infrastructure.scope_guard import (
@@ -74,7 +75,7 @@ class TestScopeGuardDetection:
 
 # --- P3 Track A: structural cross-fact detection -------------------------------
 
-# Each entry: (label, condition_dsl, expected_unsupported_node_type | None).
+# Each entry: (label, conditions, expected_unsupported_node_type | None).
 # ``None`` means the shape must stay clean (no UNSUPPORTED finding) - these are
 # the negative cases that guard against false positives.
 _TRACK_A_CASES = [
@@ -282,17 +283,20 @@ class TestTrackAStrictIntegration:
         ids=[c[0] for c in _TRACK_A_CASES if c[2] is not None],
     )
     def test_strict_raises_per_shape(self, cond):
-        rule = Rule(
-            id=1,
-            name="bad",
-            condition_dsl=cond,
-            priority=0,
-            domain="d",
-            tags=frozenset(),
-            persist=False,
-        )
-        engine = PhreakEngine(strict_scope=True)
-        with pytest.raises(UnsupportedRuleShapeError):
+        # Unsupported shapes must be refused somewhere in the authoring pipeline:
+        # the deep validator catches unknown types/keys at Rule construction;
+        # the scope guard catches valid-but-cross-fact shapes at engine load.
+        with pytest.raises((ValidationError, UnsupportedRuleShapeError)):
+            rule = Rule(
+                id=1,
+                name="bad",
+                conditions=cond,
+                priority=0,
+                domain="d",
+                tags=frozenset(),
+                persist=False,
+            )
+            engine = PhreakEngine(strict_scope=True)
             engine.load_rules([rule])
 
 
@@ -301,7 +305,7 @@ class TestEnforce:
         rules = [
             {
                 "id": 1,
-                "condition_dsl": {
+                "conditions": {
                     "type": "join",
                     "conditions": [_leaf("a"), _leaf("b")],
                 },
@@ -313,14 +317,23 @@ class TestEnforce:
         assert "single-fact boundary" in caplog.text
 
     def test_strict_raises_on_unsupported(self):
-        rules = [{"id": 1, "condition_dsl": {"type": "window", "condition": _leaf("ts")}}]
+        rules = [{"id": 1, "conditions": {"type": "window", "condition": _leaf("ts")}}]
         with pytest.raises(UnsupportedRuleShapeError):
             enforce_single_fact_boundary(rules, strict=True)
 
     def test_strict_does_not_raise_on_supported_rules(self):
-        rules = [{"id": 1, "condition_dsl": _leaf()}]
+        rules = [{"id": 1, "conditions": _leaf()}]
         # Should return findings (empty) without raising.
         assert enforce_single_fact_boundary(rules, strict=True) == []
+
+
+_CROSS_ENTITY_COND = {
+    "type": "and",
+    "children": [
+        {"type": "condition", "field": "order.amount", "op": ">", "value": 1},
+        {"type": "condition", "field": "customer.tier", "op": "==", "value": "gold"},
+    ],
+}
 
 
 class TestEngineIntegration:
@@ -328,7 +341,7 @@ class TestEngineIntegration:
         rule = Rule(
             id=1,
             name="bad",
-            condition_dsl={"type": "join", "conditions": [_leaf("a"), _leaf("b")]},
+            conditions=_CROSS_ENTITY_COND,
             priority=0,
             domain="d",
             tags=frozenset(),
@@ -343,7 +356,7 @@ class TestEngineIntegration:
         rule = Rule(
             id=1,
             name="bad",
-            condition_dsl={"type": "join", "conditions": [_leaf("a"), _leaf("b")]},
+            conditions=_CROSS_ENTITY_COND,
             priority=0,
             domain="d",
             tags=frozenset(),
@@ -358,7 +371,7 @@ class TestEngineIntegration:
             Rule(
                 id=i,
                 name=f"r{i}",
-                condition_dsl=_leaf(field=f"f{i}", value=i),
+                conditions=_leaf(field=f"f{i}", value=i),
                 priority=0,
                 domain="d",
                 tags=frozenset(),

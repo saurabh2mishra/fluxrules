@@ -32,24 +32,24 @@ class BRMSValidator(Validator):
         self, rule_data: dict[str, Any], result: ValidationResult
     ) -> None:
         """Check for patterns that would make a rule dead (unreachable)."""
-        condition_dsl = rule_data.get("condition_dsl")
-        if not isinstance(condition_dsl, dict):
+        conditions = rule_data.get("conditions")
+        if not isinstance(conditions, dict):
             return
 
         # Check for AND with contradictory conditions
-        if self._has_contradictory_and(condition_dsl):
+        if self._has_contradictory_and(conditions):
             result.add_warning(
                 "dead_rule_and",
                 "Condition contains AND with contradictory subconditions (e.g., field == 1 AND field == 2)",
-                field="condition_dsl",
+                field="conditions",
             )
 
         # Check for impossible comparisons
-        if self._has_impossible_comparison(condition_dsl):
+        if self._has_impossible_comparison(conditions):
             result.add_warning(
                 "dead_rule_comparison",
                 "Condition has impossible comparison (e.g., field == null AND field != null)",
-                field="condition_dsl",
+                field="conditions",
             )
 
     def _check_suspicious_conditions(
@@ -57,21 +57,21 @@ class BRMSValidator(Validator):
     ) -> None:
         """Check for suspicious condition patterns."""
         enabled = rule_data.get("enabled", True)
-        condition_dsl = rule_data.get("condition_dsl")
+        conditions = rule_data.get("conditions")
 
-        if not isinstance(condition_dsl, dict):
+        if not isinstance(conditions, dict):
             return
 
         # Check for empty condition groups
-        if self._is_empty_group(condition_dsl):
+        if self._is_empty_group(conditions):
             result.add_info(
                 "empty_condition_group",
                 "Condition has empty group (no subconditions)",
-                field="condition_dsl",
+                field="conditions",
             )
 
         # Warn if disabled rule has complex conditions
-        if not enabled and self._is_complex_condition(condition_dsl):
+        if not enabled and self._is_complex_condition(conditions):
             result.add_info(
                 "disabled_complex_rule",
                 "Rule is disabled but has complex conditions (consider deleting if no longer needed)",

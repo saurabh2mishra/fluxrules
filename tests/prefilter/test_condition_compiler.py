@@ -30,7 +30,7 @@ from fluxrules.engine.phreak.condition_compiler import compile_condition
 
 
 def _rule(rid: int, dsl: dict) -> Rule:
-    return Rule(id=rid, name=f"r{rid}", condition_dsl=dsl, priority=rid % 5, persist=False)
+    return Rule(id=rid, name=f"r{rid}", conditions=dsl, priority=rid % 5, persist=False)
 
 
 def _leaf(field: str, op: str, value) -> dict:

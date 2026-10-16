@@ -288,7 +288,7 @@ class TestDatabaseRulesetRepository:
         rule = EngineRule(
             id=1,
             name="r1",
-            conditions=(RuleCondition(fact="x", operator="==", value=1),),
+            condition_nodes=(RuleCondition(fact="x", operator="==", value=1),),
             actions=("a1",),
             group="grp",
         )
@@ -316,7 +316,7 @@ class TestDatabaseRulesetRepository:
         rule = EngineRule(
             id=1,
             name="r1",
-            conditions=(RuleCondition(fact="x", operator="==", value=1),),
+            condition_nodes=(RuleCondition(fact="x", operator="==", value=1),),
             actions=("a1",),
             group="grp",
         )
@@ -336,7 +336,7 @@ class TestDatabaseRulesetRepository:
         rule = EngineRule(
             id=1,
             name="r1",
-            conditions=(RuleCondition(fact="x", operator="==", value=1),),
+            condition_nodes=(RuleCondition(fact="x", operator="==", value=1),),
             actions=("a1",),
             group="del_grp",
         )
@@ -374,7 +374,7 @@ class TestPersistenceServiceDefault:
         rule = EngineRule(
             id=1,
             name="svc_test",
-            conditions=(RuleCondition(fact="x", operator="==", value=1),),
+            condition_nodes=(RuleCondition(fact="x", operator="==", value=1),),
             actions=("a1",),
         )
         rule_id = service.save_rule(rule)

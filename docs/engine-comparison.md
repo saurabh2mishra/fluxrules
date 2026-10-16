@@ -39,8 +39,8 @@ call matches the fact map it is given and returns the complete fired set.
 from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
-rule1 = Rule(name="rule1", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
-rule2 = Rule(name="rule2", condition_dsl={"type": "condition", "field": "country", "op": "==", "value": "US"}, action="allow")
+rule1 = Rule(name="rule1", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule2 = Rule(name="rule2", conditions={"type": "condition", "field": "country", "op": "==", "value": "US"}, action="allow")
 rules = [rule1, rule2]
 
 engine = PhreakEngine()

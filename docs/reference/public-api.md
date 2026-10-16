@@ -31,7 +31,7 @@ be interchangeable.
 | `EngineRule`, infrastructure nodes, repositories | **Internal** | Internal conversion/persistence paths | Do not use as the authoring API; `Rule.to_engine_rule()` is the explicit boundary. |
 
 The compatibility guarantee is per row. For example, PHREAK and the reference
-evaluator are parity-tested for the supported single-fact DSL subset, while a
+evaluator are parity-tested for the supported single-fact condition subset, while a
 Cross-Fact activation delta is intentionally not comparable to a stateless
 `EvaluationResult`.
 
@@ -39,7 +39,8 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 
 From `fluxrules`:
 
-- `evaluate(rules, facts) → EvaluationResult` - Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. `facts` may be a plain `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
+- `evaluate(rules, facts) → EvaluationResult` - Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. 
+- `facts` may be a plain python `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
 - `validate(rules) → list[str]` - Validate rules and return issues; accepts the same shapes as `evaluate`
 - `explain(execution_id: str) → dict[str, object]` - Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
@@ -54,7 +55,7 @@ From `fluxrules.engine`:
 
 From `fluxrules`:
 
-- `Rule` - Pydantic v2 model: `id`, `name`, `domain`, `tags`, `condition_dsl`, `action`, `actions`, `priority`, `enabled`, `persist`
+- `Rule` - Pydantic v2 model: `id`, `name`, `domain`, `tags`, `conditions`, `action`, `actions`, `priority`, `enabled`, `persist`
 - `RuleBuilder` / `ConditionBuilder` - Fluent authoring; `RuleBuilder.build()` returns a `Rule`
 - `Ruleset` - Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
 - `EvaluationResult` - The single result type for every evaluation path.
@@ -63,8 +64,8 @@ From `fluxrules`:
   `fired_rules`), `ruleset_group`, `trace`, `execution_id`, `latency_ms`,
   `engine_type`, `explanations`, `rules_by_domain`, `rules_by_tag`,
   `fired_segments`.
-  `fluxrules.engine.infrastructure.EvaluationResult` is a re-export of this
-  same class, not a second type.
+
+  `fluxrules.engine.infrastructure.EvaluationResult` is a re-export of this same class, not a second type.
 
 ## Service Layer
 
@@ -95,9 +96,9 @@ except FluxRulesError as exc:
 | `InvalidRuleError` | `FluxRulesError` | `INVALID_RULE` | A rule is structurally unusable |
 | `UnknownOperatorError` | `FluxRulesError` | `UNKNOWN_OPERATOR` | A condition names an operator that does not exist |
 | `CyclicDependencyError` | `FluxRulesError` | `CYCLIC_DEPENDENCY` | Rule dependencies form a cycle |
-| `DSLValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `condition_dsl` tree fails strict validation |
+| `ConditionValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `conditions` tree fails strict validation |
 | `EmptyRuleLogicError` | `InvalidRuleError` | `EMPTY_RULE_LOGIC` | A rule with no condition logic would be stored |
-| `LossyConditionRebuildError` | `InvalidRuleError` | `LOSSY_CONDITION_REBUILD` | A DSL tree would be rebuilt from a lossy `.conditions` view |
+| `LossyConditionRebuildError` | `InvalidRuleError` | `LOSSY_CONDITION_REBUILD` | A condition tree would be rebuilt from a lossy `.conditions` view |
 
 Each carries a stable `code` intended for logging and API responses. Messages
 may be reworded; **codes will not change**.

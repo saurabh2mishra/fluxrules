@@ -36,7 +36,7 @@ engine.load_rules(
     [
         Rule(
             name="amount_check",
-            condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+            conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
             action="review",
             persist=False,
         )
@@ -49,7 +49,7 @@ semantics genuinely require joins, windows, or truth maintenance.
 
 ## Rule complexity
 
-**Scope:** DSL supports arbitrary nesting of AND/OR/NOT operators.
+**Scope:** Conditions support arbitrary nesting of AND/OR/NOT operators.
 
 **Limits enforced by the code:**
 - Rules: default cap of **50,000** per engine (`GlobalRuleRepository`); configurable via `PhreakEngine(max_rules=...)`. Exceeding the cap raises `ValueError("Repository full")`.
@@ -77,7 +77,7 @@ from fluxrules import Rule
 rules = [
     Rule(
         name="amount_check",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
         action="review",
         persist=False,
     )

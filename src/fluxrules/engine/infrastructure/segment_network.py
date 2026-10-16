@@ -9,35 +9,35 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def _extract_fields(condition_dsl: dict[str, Any]) -> set[str]:
+def _extract_fields(conditions: dict[str, Any]) -> set[str]:
     """Recursively extract field names from a condition DSL dict."""
     fields: set[str] = set()
-    if not isinstance(condition_dsl, dict):
+    if not isinstance(conditions, dict):
         return fields
-    ctype = condition_dsl.get("type")
+    ctype = conditions.get("type")
     if ctype == "condition":
-        f = condition_dsl.get("field")
+        f = conditions.get("field")
         if f:
             fields.add(f)
     elif ctype in ("composite", "group", "and", "or"):
-        children = condition_dsl.get("conditions") or condition_dsl.get("children") or []
+        children = conditions.get("conditions") or conditions.get("children") or []
         for child in children:
             fields.update(_extract_fields(child))
     elif ctype == "not":
-        inner = condition_dsl.get("condition")
+        inner = conditions.get("condition")
         if inner:
             fields.update(_extract_fields(inner))
-        for sub in condition_dsl.get("conditions", []):
+        for sub in conditions.get("conditions", []):
             fields.update(_extract_fields(sub))
     elif ctype == "exists":
-        f = condition_dsl.get("field")
+        f = conditions.get("field")
         if f:
             fields.add(f)
-        inner = condition_dsl.get("condition")
+        inner = conditions.get("condition")
         if inner:
             fields.update(_extract_fields(inner))
     elif ctype == "accumulate":
-        f = condition_dsl.get("field")
+        f = conditions.get("field")
         if f:
             fields.add(f)
     return fields
@@ -91,7 +91,7 @@ class SegmentNetwork:
 
         for rule in rules:
             # Normalise dicts (and anything else rule-shaped) to canonical Rule.
-            # The check is on *type*, not on the presence of a ``condition_dsl``
+            # The check is on *type*, not on the presence of a ``conditions``
             # attribute: other rule shapes carry that attribute too, sometimes
             # unset, and duck-typing here let them through unnormalised with no
             # fields - so the rule got an empty segment and never fired.
@@ -102,7 +102,7 @@ class SegmentNetwork:
                 raise ValueError("Rule must have an id before segment registration")
             rule_id = rule.id
 
-            fields = _extract_fields(rule.condition_dsl)
+            fields = _extract_fields(rule.conditions)
             if not fields:
                 # Rule with no condition fields gets its own segment
                 seg_id = f"seg_{rule_id}"

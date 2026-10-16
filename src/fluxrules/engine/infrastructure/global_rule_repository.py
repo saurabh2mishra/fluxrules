@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 _RUNTIME_FIELDS = (
     "id",
     "name",
-    "condition_dsl",
+    "conditions",
     "action",
     "actions",
     "priority",
@@ -31,7 +31,7 @@ _RUNTIME_FIELDS = (
 )
 
 
-def _coerce_condition_dsl(value: Any) -> Any:
+def _coerce_conditions(value: Any) -> Any:
     """Turn the persistence layer's condition shapes into a real DSL dict.
 
     ``domain_rule_to_orm`` stores an :class:`EngineRule`'s conditions as a bare
@@ -96,7 +96,7 @@ def normalize_rule(rule: Any) -> Rule:
     validated path is both faster and stricter, so it is preferred.
 
     Persistence shapes are *converted* rather than tolerated: see
-    :func:`_coerce_condition_dsl`. A rule whose ``condition_dsl`` was a bare
+    :func:`_coerce_conditions`. A rule whose ``conditions`` was a bare
     list used to be stored unvalidated and then never matched anything, so
     "preserving" it preserved a silent failure.
 
@@ -115,11 +115,11 @@ def normalize_rule(rule: Any) -> Rule:
         data = {k: getattr(rule, k) for k in _RUNTIME_FIELDS if hasattr(rule, k)}
 
     # ``EngineRule`` (the persistence/domain type) exposes its logic as the
-    # authoritative ``condition_dsl`` tree. Without this the whole condition
+    # authoritative ``conditions`` tree. Without this the whole condition
     # tree was dropped and the rule silently matched nothing once inside an
     # engine.
-    if not data.get("condition_dsl") and getattr(rule, "condition_dsl", None):
-        data["condition_dsl"] = rule.condition_dsl
+    if not data.get("conditions") and getattr(rule, "conditions", None):
+        data["conditions"] = rule.conditions
 
     actions = data.get("actions") or ()
     action = data.get("action") or ""
@@ -135,7 +135,7 @@ def normalize_rule(rule: Any) -> Rule:
     fields = {
         "id": data.get("id", 0),
         "name": data.get("name", "") or "",
-        "condition_dsl": _coerce_condition_dsl(data.get("condition_dsl") or {}),
+        "conditions": _coerce_conditions(data.get("conditions") or {}),
         "action": action,
         "actions": actions,
         "priority": data.get("priority", 0) or 0,
@@ -270,7 +270,7 @@ class _DeprecatedRuntimeRule:
             names = (
                 "id",
                 "name",
-                "condition_dsl",
+                "conditions",
                 "action",
                 "priority",
                 "enabled",

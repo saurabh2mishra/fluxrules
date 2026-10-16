@@ -23,7 +23,7 @@ def _generate_rules(count: int) -> list[Rule]:
             Rule(
                 id=i + 1,
                 name=f"rule_{i + 1}",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": f"field_{i % 50}",
                     "op": ">",

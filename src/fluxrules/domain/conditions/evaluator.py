@@ -1,6 +1,6 @@
-"""Dependency-free evaluation of a ``condition_dsl`` tree.
+"""Dependency-free evaluation of a ``conditions`` tree.
 
-``condition_dsl`` is the canonical representation of rule logic. Anything that
+``conditions`` is the canonical representation of rule logic. Anything that
 decides whether a rule matches must read it, rather than the flat
 ``conditions`` tuple, which cannot express ``OR``, ``NOT`` or nesting.
 
@@ -24,16 +24,16 @@ from fluxrules.domain.predicates import evaluate_operator
 
 __all__ = [
     "LossyConditionRebuildError",
-    "UnsupportedDSLNodeError",
-    "conditions_to_dsl",
-    "evaluate_dsl",
+    "UnsupportedConditionTreeNodeError",
+    "conditions_to_tree",
+    "evaluate_conditions",
     "has_logic",
 ]
 
 _STATEFUL_NODES = frozenset({"accumulate", "sequence", "join", "cross_fact_join"})
 
 
-def conditions_to_dsl(conditions) -> dict:
+def conditions_to_tree(conditions) -> dict:
     """Build a DSL tree from a flat sequence of ``RuleCondition``.
 
     The single place that converts parsed conditions into the canonical DSL
@@ -49,14 +49,14 @@ def conditions_to_dsl(conditions) -> dict:
     Flattening ``OR(a, b)`` produces the same two leaves as ``AND(a, b)``, so
     rebuilding from it would quietly emit an ``and`` tree - a stricter rule
     that fires less often, with nothing raised and a row that looks perfectly
-    healthy. The caller must pass the original ``condition_dsl`` instead.
+    healthy. The caller must pass the original ``conditions`` instead.
     """
     if getattr(conditions, "lossy", False):
         raise LossyConditionRebuildError(
             "Refusing to rebuild a DSL tree from a lossy condition view: the "
             "original node was an OR/NOT (or nested under one) and rebuilding "
             "would silently turn it into an AND. Pass the rule's "
-            "'condition_dsl' instead."
+            "'conditions' instead."
         )
 
     leaves = [
@@ -74,7 +74,7 @@ def conditions_to_dsl(conditions) -> dict:
     return {"type": "and", "children": leaves}
 
 
-def has_logic(condition_dsl: dict | list) -> bool:
+def has_logic(conditions: dict | list) -> bool:
     """Whether a DSL value carries at least one real condition.
 
     Used to refuse rules that cannot match anything. A composite node with no
@@ -85,27 +85,27 @@ def has_logic(condition_dsl: dict | list) -> bool:
     persistence need the same answer, and they must not disagree about what
     counts as an empty rule.
     """
-    if isinstance(condition_dsl, list):
-        return any(has_logic(item) for item in condition_dsl if isinstance(item, dict))
+    if isinstance(conditions, list):
+        return any(has_logic(item) for item in conditions if isinstance(item, dict))
 
-    if not isinstance(condition_dsl, dict) or not condition_dsl:
+    if not isinstance(conditions, dict) or not conditions:
         return False
 
-    ctype = condition_dsl.get("type")
+    ctype = conditions.get("type")
 
     if ctype in (None, "condition"):
         # A bare `{fact, operator, value}` dict (the legacy list element
         # shape) counts as logic; so does a `condition` node.
-        return bool(condition_dsl.get("field") or condition_dsl.get("fact") or ctype == "condition")
+        return bool(conditions.get("field") or conditions.get("fact") or ctype == "condition")
 
     if ctype == "exists":
-        return bool(condition_dsl.get("field") or condition_dsl.get("condition"))
+        return bool(conditions.get("field") or conditions.get("condition"))
 
     children = (
-        condition_dsl.get("children")
-        or condition_dsl.get("conditions")
-        or condition_dsl.get("condition")
-        or condition_dsl.get("child")
+        conditions.get("children")
+        or conditions.get("conditions")
+        or conditions.get("condition")
+        or conditions.get("child")
     )
     if isinstance(children, dict):
         children = [children]
@@ -118,15 +118,15 @@ def has_logic(condition_dsl: dict | list) -> bool:
     return any(has_logic(child) for child in children)
 
 
-class UnsupportedDSLNodeError(ValueError):
+class UnsupportedConditionTreeNodeError(ValueError):
     """A DSL node needs engine state this evaluator does not have."""
 
 
-def evaluate_dsl(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
-    """Evaluate a ``condition_dsl`` tree against a flat fact dict.
+def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
+    """Evaluate a ``conditions`` tree against a flat fact dict.
 
     Raises:
-        UnsupportedDSLNodeError: For nodes requiring working memory.
+        UnsupportedConditionTreeNodeError: For nodes requiring working memory.
     """
     if not isinstance(dsl, dict) or not dsl:
         return False
@@ -152,16 +152,16 @@ def evaluate_dsl(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
             # match everything by vacuous truth - the failure this whole path
             # exists to avoid.
             return False
-        results = [evaluate_dsl(child, facts) for child in children]
+        results = [evaluate_conditions(child, facts) for child in children]
         return all(results) if logic == "AND" else any(results)
 
     if ctype == "not":
         inner = dsl.get("condition") or dsl.get("child")
         if inner:
-            return not evaluate_dsl(inner, facts)
+            return not evaluate_conditions(inner, facts)
         inner_list = dsl.get("conditions") or dsl.get("children") or []
         if inner_list:
-            return not any(evaluate_dsl(child, facts) for child in inner_list)
+            return not any(evaluate_conditions(child, facts) for child in inner_list)
         return False
 
     if ctype == "exists":
@@ -169,12 +169,12 @@ def evaluate_dsl(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
         if field:
             return field in facts and facts[field] is not None
         inner = dsl.get("condition")
-        return evaluate_dsl(inner, facts) if inner else False
+        return evaluate_conditions(inner, facts) if inner else False
 
     if ctype in _STATEFUL_NODES:
-        raise UnsupportedDSLNodeError(
+        raise UnsupportedConditionTreeNodeError(
             f"DSL node type {ctype!r} requires working memory; evaluate this "
             "rule with PhreakEngine."
         )
 
-    raise UnsupportedDSLNodeError(f"Unknown DSL node type {ctype!r}")
+    raise UnsupportedConditionTreeNodeError(f"Unknown DSL node type {ctype!r}")

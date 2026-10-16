@@ -43,7 +43,7 @@ def _selective_rule(rid: int, n_fields: int, n_conditions: int, threshold: int) 
     return Rule(
         id=rid,
         name=f"r{rid}",
-        condition_dsl={"type": "and", "conditions": conds},
+        conditions={"type": "and", "conditions": conds},
         persist=False,
     )
 
@@ -54,7 +54,7 @@ def _broad_rule(rid: int, n_fields: int) -> Rule:
     return Rule(
         id=rid,
         name=f"r{rid}",
-        condition_dsl={
+        conditions={
             "type": "condition",
             "field": f"field_{f}",
             "op": ">",

@@ -333,7 +333,7 @@ class TestAuditRunner:
                 group="g",
                 priority=1,
                 enabled=True,
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "x",
                     "op": ">",
@@ -350,7 +350,7 @@ class TestAuditRunner:
                 group="g",
                 priority=2,
                 enabled=False,
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "y",
                     "op": "==",
@@ -384,7 +384,7 @@ class TestAuditRunner:
                 group="g",
                 priority=1,
                 enabled=True,
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "x",
                     "op": ">",
@@ -402,7 +402,7 @@ class TestAuditRunner:
                 group="g",
                 priority=2,
                 enabled=False,
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "y",
                     "op": "==",
@@ -798,7 +798,7 @@ class TestAuditPerformance:
                     group="perf_group",
                     priority=i,
                     enabled=True,
-                    condition_dsl={
+                    conditions={
                         "type": "condition",
                         "field": "x",
                         "op": ">",

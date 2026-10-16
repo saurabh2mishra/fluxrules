@@ -15,7 +15,7 @@ from fluxrules.engine.phreak import PhreakEngine
 # Define rules
 rule = Rule(
     name="high_value",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
     action="flag"
 )
 
@@ -40,7 +40,7 @@ from fluxrules.services.rule_service import RuleService
 # Create a rule and service
 rule = Rule(
     name="check",
-    condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "active"},
+    conditions={"type": "condition", "field": "status", "op": "==", "value": "active"},
     action="proceed"
 )
 
@@ -56,8 +56,8 @@ For more control, use engines directly:
 from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
-rule1 = Rule(name="rule1", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="flag")
-rule2 = Rule(name="rule2", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="review")
+rule1 = Rule(name="rule1", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="flag")
+rule2 = Rule(name="rule2", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="review")
 
 engine = PhreakEngine()
 engine.load_rules([rule1, rule2])

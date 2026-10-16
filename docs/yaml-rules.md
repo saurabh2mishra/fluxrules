@@ -9,13 +9,13 @@ FluxRules provides a YAML file loader. It returns rule mappings; the canonical
 ## YAML
 
 YAML files contain either one mapping or a list of mappings using the canonical
-`Rule` fields. `condition_dsl` is the full condition tree.
+`Rule` fields. `conditions` is the full condition tree.
 
 ```yaml
 - id: 7
   name: high_value
   action: review
-  condition_dsl:
+  conditions:
     type: condition
     field: amount
     op: ">"
@@ -57,7 +57,7 @@ from fluxrules import Rule
 rule = Rule.model_validate_yaml(
     {
         "name": "country_check",
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "country",
             "op": "==",
@@ -69,7 +69,7 @@ rule = Rule.model_validate_yaml(
 )
 ```
 
-This rejects empty logic, unknown operators, malformed DSL structure, and
+This rejects empty logic, unknown operators, malformed condition tree structure, and
 conflicting action fields at the authoring boundary.
 
 ## Operational guidance

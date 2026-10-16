@@ -15,7 +15,7 @@ def main() -> None:
     rule = Rule(
         id=201,
         name="nested_triage_rule",
-        condition_dsl=complex_risk_condition(),
+        conditions=complex_risk_condition(),
         action="manual_review",
         priority=20,
         domain="fraud_detection",

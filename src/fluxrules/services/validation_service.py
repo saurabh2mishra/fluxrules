@@ -30,18 +30,18 @@ class BuiltinRulesetValidator(Validator):
             )
 
         for rule in ruleset.rules:
-            if not rule.conditions:
+            if not rule.condition_nodes:
                 # Distinguish two very different situations that both surface
                 # as an empty flat view: a rule that genuinely carries no
-                # logic (a defect), and one whose ``condition_dsl`` is present
+                # logic (a defect), and one whose ``conditions`` tree is present
                 # but not expressible as a flat conjunction (fine - the
                 # DSL-based engines evaluate it correctly).
-                dsl = getattr(rule, "condition_dsl", None)
+                dsl = getattr(rule, "conditions", None)
                 if dsl:
                     issues.append(
                         ValidationIssue(
                             message=(
-                                f"Rule '{rule.id}' has a condition_dsl that cannot be "
+                                f"Rule '{rule.id}' has a conditions tree that cannot be "
                                 "represented as a flat condition list; evaluate it with "
                                 "PhreakEngine rather than the reference "
                                 "evaluator"
@@ -60,7 +60,7 @@ class BuiltinRulesetValidator(Validator):
                             validator=self.name,
                         )
                     )
-            for condition in rule.conditions:
+            for condition in rule.condition_nodes:
                 if condition.operator not in OPERATORS:
                     issues.append(
                         ValidationIssue(

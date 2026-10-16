@@ -18,10 +18,10 @@ def _and_rule(rid: int, fields: list[str]) -> Rule:
     return Rule(
         id=rid,
         name=f"rule{rid}",
-        condition_dsl={
+        conditions={
             "type": "and",
             "conditions": [
-                {"type": "condition", "field": f, "operator": ">", "value": 1} for f in fields
+                {"type": "condition", "field": f, "op": ">", "value": 1} for f in fields
             ],
         },
         action="log",

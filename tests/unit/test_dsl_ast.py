@@ -2,7 +2,7 @@
 
 import pytest
 
-from fluxrules.domain.dsl import (
+from fluxrules.domain.conditions import (
     AccumulateNode,
     ConditionNode,
     CrossFactJoinNode,
@@ -11,15 +11,15 @@ from fluxrules.domain.dsl import (
     NotNode,
     SequenceNode,
 )
-from fluxrules.domain.dsl.parser import DSLParser
-from fluxrules.exceptions import DSLParseError
+from fluxrules.domain.conditions.parser import ConditionParser
+from fluxrules.exceptions import ConditionParseError
 
 
-class TestDSLParser:
+class TestConditionParser:
     """Test DSL parser produces correct AST."""
 
     def setup_method(self):
-        self.parser = DSLParser()
+        self.parser = ConditionParser()
 
     def test_parse_simple_condition(self):
         ast = self.parser.parse({"type": "condition", "field": "age", "op": ">", "value": 18})
@@ -182,23 +182,23 @@ class TestDSLParser:
         assert ast.correlate_field == "user_id"
 
     def test_parse_empty_raises(self):
-        with pytest.raises(DSLParseError):
+        with pytest.raises(ConditionParseError):
             self.parser.parse({})
 
     def test_parse_unknown_type_raises(self):
-        with pytest.raises(DSLParseError, match="Unknown DSL node type"):
+        with pytest.raises(ConditionParseError, match="Unknown DSL node type"):
             self.parser.parse({"type": "unknown_node"})
 
     def test_parse_condition_missing_field_raises(self):
-        with pytest.raises(DSLParseError):
+        with pytest.raises(ConditionParseError):
             self.parser.parse({"type": "condition", "op": ">"})
 
     def test_parse_not_missing_inner_raises(self):
-        with pytest.raises(DSLParseError):
+        with pytest.raises(ConditionParseError):
             self.parser.parse({"type": "not"})
 
     def test_parse_cross_fact_join_missing_field_raises(self):
-        with pytest.raises(DSLParseError):
+        with pytest.raises(ConditionParseError):
             self.parser.parse({"type": "cross_fact_join"})
 
     def test_nested_group(self):
@@ -224,7 +224,7 @@ class TestDSLParser:
         assert ast.children[1].logic == "OR"
 
 
-class TestDSLNodeAccept:
+class TestConditionTreeNodeAccept:
     """Test visitor dispatch via accept()."""
 
     class MockVisitor:

@@ -14,7 +14,7 @@ def test_create_rule():
         group="test_group",
         priority=10,
         enabled=True,
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 100},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 100},
         action="print('matched')",
     )
 

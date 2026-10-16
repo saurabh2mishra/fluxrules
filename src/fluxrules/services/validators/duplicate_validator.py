@@ -87,15 +87,15 @@ class DuplicateValidator(Validator):
         try:
             from fluxrules.api.models.rule import Rule
 
-            condition_dsl = rule_data.get("condition_dsl")
-            if not condition_dsl:
+            conditions = rule_data.get("conditions")
+            if not conditions:
                 return
 
             # Normalize condition for comparison
-            if isinstance(condition_dsl, dict):
-                condition_str = json.dumps(condition_dsl, sort_keys=True)
+            if isinstance(conditions, dict):
+                condition_str = json.dumps(conditions, sort_keys=True)
             else:
-                condition_str = condition_dsl
+                condition_str = conditions
 
             rule_id = rule_data.get("id")
 
@@ -109,16 +109,16 @@ class DuplicateValidator(Validator):
 
                 # Compare conditions
                 try:
-                    if isinstance(rule.condition_dsl, dict):
-                        existing_condition_str = json.dumps(rule.condition_dsl, sort_keys=True)
+                    if isinstance(rule.conditions, dict):
+                        existing_condition_str = json.dumps(rule.conditions, sort_keys=True)
                     else:
-                        existing_condition_str = rule.condition_dsl
+                        existing_condition_str = rule.conditions
 
                     if condition_str == existing_condition_str:
                         result.add_warning(
                             "duplicate_condition",
                             f"Rule with identical condition already exists in group '{group}' (ID: {rule.id}, Name: {rule.name})",
-                            field="condition_dsl",
+                            field="conditions",
                             details={
                                 "existing_rule_id": rule.id,
                                 "existing_rule_name": rule.name,

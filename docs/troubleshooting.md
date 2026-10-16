@@ -24,11 +24,11 @@ python -m fluxrules.api.app --port 8001
 **Problem:** Expected rule matches, but `fired_rules` is empty.
 
 **Solutions:**
-1. **Validate DSL syntax:**
+1. **Validate condition tree syntax:**
    ```bash
    curl -X POST http://localhost:8000/api/v1/validate \
      -H "Content-Type: application/json" \
-     -d '{"condition_dsl": {...}}'
+     -d '{"conditions": {...}}'
    ```
 
 2. **Check fact format:** Ensure fact keys match condition field names
@@ -38,7 +38,7 @@ python -m fluxrules.api.app --port 8001
    
    # Rule expects "amount" field
    rule = Rule(
-       condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}
+       conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}
    )
    
    # Fact must have "amount"

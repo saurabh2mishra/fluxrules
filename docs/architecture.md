@@ -4,7 +4,7 @@
 
 ---
 
-FluxRules is a lightweight rule evaluation engine with a clean layered architecture. This page describes the system design from the DSL down to engine execution.
+FluxRules is a lightweight rule evaluation engine with a clean layered architecture. This page describes the system design from the condition tree down to engine execution.
 
 ## System Architecture
 
@@ -25,7 +25,7 @@ User: engine.evaluate({"amount": 5000, "country": "NG"})
   │    (via the PHREAK network)
   │
   ├─→ [3. For each rule:
-  │       - Evaluate condition_dsl against fact
+  │       - Evaluate conditions against fact
   │       - If matched: add to fired_rules list
   │       - If matched & action exists: execute action
   │
@@ -78,9 +78,13 @@ Fact input → [Linear iteration over rules]
 ```
 
 **Stateless mode (default):**
+
 - Most HTTP/stateless workloads
+
 - Rules added/removed frequently
+
 - Low memory footprint required
+
 - Single-fact evaluation (typical)
 
 ---
@@ -101,18 +105,21 @@ Fact input → [Assert into working memory]
 ```
 
 **When to use:**
+
 - Many facts over same rule set within a session
+
 - Event streams where only changes matter
+
 - Incremental fact updates (assert/retract)
 
 ---
 
-## DSL Processing Pipeline
+## Condition Processing Pipeline
 
-The condition_dsl is a recursive JSON structure that's validated, compiled, and executed:
+The conditions is a recursive JSON structure that's validated, compiled, and executed:
 
 ```
-Input DSL:
+Input condition tree:
 {
   "type": "group",
   "op": "AND",
@@ -149,16 +156,20 @@ Rule(
     domain="fraud_detection",             # Grouping
     tags=frozenset(["tier_1", "urgent"]), # Cross-cutting labels
     priority=10,                          # Execution order (higher first)
-    condition_dsl={...},                  # The DSL above
+    conditions={...},                  # The condition tree above
     action="flag_for_review",             # Or callable
     persist=False                         # Optional: store in database
 )
 ```
 
 **Key design:**
+
 - Rule is immutable once created (frozen Pydantic model)
+
 - Conditions are pure predicates (no side effects)
+
 - Actions are simple strings or callables
+
 - Domain/tags allow flexible rule organization
 
 ---

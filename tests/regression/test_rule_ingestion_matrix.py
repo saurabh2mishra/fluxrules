@@ -141,18 +141,18 @@ SHAPE_IDS = [s[0] for s in SHAPES]
 
 
 def _via_authoring(dsl: dict) -> Rule:
-    return Rule(id=7, name="matrix", condition_dsl=dsl, action="flag", persist=False)
+    return Rule(id=7, name="matrix", conditions=dsl, action="flag", persist=False)
 
 
 def _via_dict(dsl: dict) -> Rule:
-    return Rule(id=7, name="matrix", condition_dsl=dsl, action="flag", persist=False)
+    return Rule(id=7, name="matrix", conditions=dsl, action="flag", persist=False)
 
 
 def _via_yaml(dsl: dict) -> Rule:
     import yaml
 
     payload = yaml.safe_load(
-        yaml.safe_dump({"id": 7, "name": "matrix", "condition_dsl": dsl, "action": "flag"})
+        yaml.safe_dump({"id": 7, "name": "matrix", "conditions": dsl, "action": "flag"})
     )
     payload["persist"] = False
     return Rule.model_validate_yaml(payload)
@@ -234,7 +234,7 @@ def test_rule_fires_exactly_where_it_should(ingest_name, ingest, shape, engine_n
 
 @pytest.mark.parametrize("shape", SHAPES, ids=SHAPE_IDS)
 def test_orm_round_trip_preserves_the_dsl_verbatim(shape):
-    """``condition_dsl`` is persisted as-is, not flattened into conditions."""
+    """``conditions`` is persisted as-is, not flattened into conditions."""
     _, make_dsl, _, _ = shape
     dsl = make_dsl()
 
@@ -243,8 +243,8 @@ def test_orm_round_trip_preserves_the_dsl_verbatim(shape):
     orm.created_at = None
     orm.updated_at = None
 
-    assert orm.condition_dsl == dsl
-    assert orm_rule_to_canonical(orm).condition_dsl == dsl
+    assert orm.conditions == dsl
+    assert orm_rule_to_canonical(orm).conditions == dsl
 
 
 @pytest.mark.parametrize("shape", SHAPES, ids=SHAPE_IDS)
@@ -257,8 +257,8 @@ def test_engine_rule_round_trip_preserves_dsl(shape):
         warnings.simplefilter("ignore")
         engine_rule = _via_authoring(dsl).to_engine_rule()
 
-    assert engine_rule.condition_dsl == dsl
-    assert Rule.from_engine_rule(engine_rule, persist=False).condition_dsl == dsl
+    assert engine_rule.conditions == dsl
+    assert Rule.from_engine_rule(engine_rule, persist=False).conditions == dsl
 
 
 class TestLossIsLoud:
@@ -267,21 +267,21 @@ class TestLossIsLoud:
     def test_flattening_an_or_warns(self):
         rule = _via_authoring(_or())
         with pytest.warns(Warning, match="cannot be represented"):
-            _ = rule.conditions
+            _ = rule.condition_nodes
 
     def test_flattening_an_and_does_not_warn(self):
         rule = _via_authoring(_and())
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            assert len(rule.conditions) == 2
+            assert len(rule.condition_nodes) == 2
 
     def test_conditions_are_never_silently_dropped(self):
         """The original defect: `and`/`or` nodes yielded an empty tuple."""
         for make_dsl in (_and, _or, _group_and, _nested):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                conditions = _via_authoring(make_dsl()).conditions
-            assert conditions, f"{make_dsl.__name__} lost all of its conditions"
+                nodes = _via_authoring(make_dsl()).condition_nodes
+            assert nodes, f"{make_dsl.__name__} lost all of its conditions"
 
 
 class TestEmptinessNeverMatches:
@@ -300,10 +300,10 @@ class TestEmptinessNeverMatches:
         assert result.actions == []
 
     def test_empty_group_does_not_match_by_vacuous_truth(self):
-        from fluxrules.domain.dsl.evaluator import evaluate_dsl
+        from fluxrules.domain.conditions.evaluator import evaluate_conditions
 
-        assert evaluate_dsl({"type": "and", "children": []}, {"a": 1}) is False
-        assert evaluate_dsl({"type": "or", "children": []}, {"a": 1}) is False
+        assert evaluate_conditions({"type": "and", "children": []}, {"a": 1}) is False
+        assert evaluate_conditions({"type": "or", "children": []}, {"a": 1}) is False
 
 
 class TestEmptyRulesCannotBeCreatedOrStored:
@@ -330,13 +330,13 @@ class TestEmptyRulesCannotBeCreatedOrStored:
         from pydantic import ValidationError
 
         with pytest.raises(ValidationError, match="could never fire"):
-            Rule(name="empty", condition_dsl=dsl, action="flag", persist=False)
+            Rule(name="empty", conditions=dsl, action="flag", persist=False)
 
     @pytest.mark.parametrize("shape", SHAPES, ids=SHAPE_IDS)
     def test_real_rules_are_still_accepted(self, shape):
         """The guard must not reject rules that carry genuine logic."""
         _, make_dsl, _, _ = shape
-        assert _via_authoring(make_dsl()).condition_dsl == make_dsl()
+        assert _via_authoring(make_dsl()).conditions == make_dsl()
 
     def test_persisting_a_conditionless_rule_is_refused(self):
         """The write boundary is the last point where the loss is preventable."""
@@ -348,7 +348,7 @@ class TestEmptyRulesCannotBeCreatedOrStored:
             domain_rule_to_orm(engine_rule, group="matrix")
 
     def test_the_historical_damage_can_no_longer_be_written(self):
-        """Reproduces exactly how `condition_dsl=[]` rows came to exist.
+        """Reproduces exactly how `conditions=[]` rows came to exist.
 
         A valid AND rule was flattened through the lossy `.conditions` view on
         its way to the database, arriving with no logic at all. Both halves are
@@ -358,8 +358,8 @@ class TestEmptyRulesCannotBeCreatedOrStored:
         rule = _via_authoring(_and())
         orm = domain_rule_to_orm(rule, group="matrix")
 
-        assert orm.condition_dsl == _and()
-        assert orm.condition_dsl != []
+        assert orm.conditions == _and()
+        assert orm.conditions != []
 
     def test_error_names_the_rule_and_suggests_a_fix(self):
         """An error nobody can act on just moves the problem."""
@@ -378,7 +378,7 @@ class TestEmptyRulesCannotBeCreatedOrStored:
 
 
 class TestOneStoredShape:
-    """``condition_dsl`` is always written as a DSL dict, never a list.
+    """``conditions`` is always written as a DSL dict, never a list.
 
     The column used to accept two shapes - a DSL tree, or a flat list of
     ``{fact, operator, value}`` dicts - depending on which writer produced it.
@@ -390,7 +390,7 @@ class TestOneStoredShape:
     def _engine_rule(self, *conditions):
         from fluxrules.domain.models import EngineRule
 
-        return EngineRule(id=1, name="stored", conditions=tuple(conditions), actions=("flag",))
+        return EngineRule(id=1, name="stored", condition_nodes=tuple(conditions), actions=("flag",))
 
     def _condition(self, fact="amount", operator="gt", value=100):
         from fluxrules.domain.models import RuleCondition
@@ -400,8 +400,8 @@ class TestOneStoredShape:
     def test_engine_rule_with_one_condition_stores_a_leaf(self):
         orm = domain_rule_to_orm(self._engine_rule(self._condition()), group="g")
 
-        assert isinstance(orm.condition_dsl, dict)
-        assert orm.condition_dsl == {
+        assert isinstance(orm.conditions, dict)
+        assert orm.conditions == {
             "type": "condition",
             "field": "amount",
             "op": "gt",
@@ -417,9 +417,9 @@ class TestOneStoredShape:
             group="g",
         )
 
-        assert isinstance(orm.condition_dsl, dict)
-        assert orm.condition_dsl["type"] == "and"
-        assert [c["field"] for c in orm.condition_dsl["children"]] == [
+        assert isinstance(orm.conditions, dict)
+        assert orm.conditions["type"] == "and"
+        assert [c["field"] for c in orm.conditions["children"]] == [
             "amount",
             "country",
         ]
@@ -432,11 +432,11 @@ class TestOneStoredShape:
         rule = ingest(make_dsl())
         orm = domain_rule_to_orm(rule, group="g")
 
-        assert isinstance(orm.condition_dsl, dict), (
-            f"{ingest_name} stored a {type(orm.condition_dsl).__name__}, "
+        assert isinstance(orm.conditions, dict), (
+            f"{ingest_name} stored a {type(orm.conditions).__name__}, "
             "reintroducing the two-shape ambiguity"
         )
-        assert "type" in orm.condition_dsl
+        assert "type" in orm.conditions
 
     def test_legacy_list_rows_are_rejected(self):
         """A list-shaped column is corrupt, not old, and must not load quietly.
@@ -448,7 +448,7 @@ class TestOneStoredShape:
         import pytest
 
         from fluxrules.domain.errors import CorruptStoredRuleError
-        from fluxrules.persistence.mappers import normalize_stored_dsl
+        from fluxrules.persistence.mappers import normalize_stored_conditions
 
         legacy = [
             {"fact": "amount", "operator": "gt", "value": 100},
@@ -456,7 +456,7 @@ class TestOneStoredShape:
         ]
 
         with pytest.raises(CorruptStoredRuleError):
-            normalize_stored_dsl(legacy)
+            normalize_stored_conditions(legacy)
 
     def test_json_string_rows_are_rejected(self):
         """The API path no longer double-encodes, so a str column is corrupt."""
@@ -465,18 +465,18 @@ class TestOneStoredShape:
         import pytest
 
         from fluxrules.domain.errors import CorruptStoredRuleError
-        from fluxrules.persistence.mappers import normalize_stored_dsl
+        from fluxrules.persistence.mappers import normalize_stored_conditions
 
         with pytest.raises(CorruptStoredRuleError):
-            normalize_stored_dsl(json.dumps(_leaf()))
+            normalize_stored_conditions(json.dumps(_leaf()))
 
     def test_absent_logic_is_not_corruption(self):
         """``None``/``{}`` mean "no logic yet", which is legitimate."""
-        from fluxrules.persistence.mappers import normalize_stored_dsl
+        from fluxrules.persistence.mappers import normalize_stored_conditions
 
         empty = {"type": "and", "children": []}
-        assert normalize_stored_dsl(None) == empty
-        assert normalize_stored_dsl({}) == empty
+        assert normalize_stored_conditions(None) == empty
+        assert normalize_stored_conditions({}) == empty
 
     def test_round_trip_through_storage_is_stable(self):
         """Storing an already-stored rule must not change its shape again."""
@@ -490,7 +490,7 @@ class TestOneStoredShape:
         reloaded = orm_rule_to_canonical(first)
         second = domain_rule_to_orm(reloaded, group="g")
 
-        assert second.condition_dsl == first.condition_dsl == _nested()
+        assert second.conditions == first.conditions == _nested()
 
 
 class TestLossyViewCannotBeRebuilt:
@@ -537,27 +537,27 @@ class TestLossyViewCannotBeRebuilt:
         assert self._view(and_over_or).lossy is True
 
     def test_rebuilding_from_a_lossy_view_is_refused(self):
-        from fluxrules.domain.dsl.evaluator import (
+        from fluxrules.domain.conditions.evaluator import (
             LossyConditionRebuildError,
-            conditions_to_dsl,
+            conditions_to_tree,
         )
 
         with pytest.raises(LossyConditionRebuildError):
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
 
     def test_rebuilding_from_a_faithful_view_still_works(self):
         """The guard must not block the legitimate conjunction case."""
-        from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+        from fluxrules.domain.conditions.evaluator import conditions_to_tree
 
-        assert conditions_to_dsl(self._view(_and()))["type"] == "and"
+        assert conditions_to_tree(self._view(_and()))["type"] == "and"
 
     def test_a_plain_tuple_is_still_accepted(self):
         """Callers that build conditions by hand are unaffected."""
-        from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+        from fluxrules.domain.conditions.evaluator import conditions_to_tree
         from fluxrules.domain.models import RuleCondition
 
         conditions = (RuleCondition(fact="amount", operator="gt", value=100),)
-        assert conditions_to_dsl(conditions)["type"] == "condition"
+        assert conditions_to_tree(conditions)["type"] == "condition"
 
     def test_the_view_is_still_an_ordinary_tuple(self):
         """Every existing consumer iterates/len()s this; it must not break."""
@@ -597,34 +597,34 @@ class TestLossyRebuildIsACompatibleChange:
 
     def test_error_is_catchable_as_the_package_base_error(self):
         """Existing `except FluxRulesError` handlers must keep working."""
-        from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+        from fluxrules.domain.conditions.evaluator import conditions_to_tree
         from fluxrules.domain.errors import FluxRulesError, InvalidRuleError
 
         with pytest.raises(FluxRulesError):
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
         with pytest.raises(InvalidRuleError):
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
 
     def test_error_carries_a_stable_code(self):
-        from fluxrules.domain.dsl.evaluator import (
+        from fluxrules.domain.conditions.evaluator import (
             LossyConditionRebuildError,
-            conditions_to_dsl,
+            conditions_to_tree,
         )
 
         with pytest.raises(LossyConditionRebuildError) as excinfo:
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
         assert excinfo.value.code == "LOSSY_CONDITION_REBUILD"
 
     def test_error_message_names_the_remedy(self):
         """A raise that does not say what to do instead is a support ticket."""
-        from fluxrules.domain.dsl.evaluator import (
+        from fluxrules.domain.conditions.evaluator import (
             LossyConditionRebuildError,
-            conditions_to_dsl,
+            conditions_to_tree,
         )
 
         with pytest.raises(LossyConditionRebuildError) as excinfo:
-            conditions_to_dsl(self._view(_or()))
-        assert "condition_dsl" in str(excinfo.value)
+            conditions_to_tree(self._view(_or()))
+        assert "conditions" in str(excinfo.value)
 
     def test_normal_authoring_never_reaches_the_error(self):
         """The documented escape hatch: authored rules carry their DSL.
@@ -635,5 +635,5 @@ class TestLossyRebuildIsACompatibleChange:
         rule = _via_authoring(_or())
         engine_rule = rule.to_engine_rule()
 
-        assert engine_rule.condition_dsl == _or()
-        assert domain_rule_to_orm(engine_rule, group="g").condition_dsl == _or()
+        assert engine_rule.conditions == _or()
+        assert domain_rule_to_orm(engine_rule, group="g").conditions == _or()

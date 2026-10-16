@@ -11,7 +11,7 @@ def test_public_evaluate_and_explain() -> None:
             EngineRule(
                 id=1,
                 name="adult",
-                conditions=(RuleCondition("age", "gte", 18),),
+                condition_nodes=(RuleCondition("age", "gte", 18),),
                 actions=("allow",),
             ),
         ),
@@ -23,7 +23,7 @@ def test_public_evaluate_and_explain() -> None:
 
 def test_evaluate_accepts_a_single_rule() -> None:
     """The documented one-liner: no Ruleset, no to_engine_rule() hop."""
-    rule = Rule(id=1, name="adult", condition_dsl=_ADULT_DSL, action="allow")
+    rule = Rule(id=1, name="adult", conditions=_ADULT_DSL, action="allow")
 
     result = evaluate(rule, {"age": 30})
 
@@ -33,11 +33,11 @@ def test_evaluate_accepts_a_single_rule() -> None:
 
 def test_evaluate_accepts_a_list_of_rules() -> None:
     rules = [
-        Rule(id=1, name="adult", condition_dsl=_ADULT_DSL, action="allow"),
+        Rule(id=1, name="adult", conditions=_ADULT_DSL, action="allow"),
         Rule(
             id=2,
             name="vip",
-            condition_dsl={"type": "condition", "field": "vip", "op": "==", "value": True},
+            conditions={"type": "condition", "field": "vip", "op": "==", "value": True},
             action="fast_track",
         ),
     ]
@@ -61,13 +61,13 @@ def test_evaluate_accepts_a_built_rule() -> None:
 
 
 def test_evaluate_accepts_a_generator_of_rules() -> None:
-    rules = (Rule(id=i, name=f"r{i}", condition_dsl=_ADULT_DSL, action="allow") for i in (1, 2))
+    rules = (Rule(id=i, name=f"r{i}", conditions=_ADULT_DSL, action="allow") for i in (1, 2))
 
     assert sorted(evaluate(rules, {"age": 30}).fired_rules) == [1, 2]
 
 
 def test_validate_accepts_the_same_shapes() -> None:
-    rule = Rule(id=1, name="adult", condition_dsl=_ADULT_DSL, action="allow")
+    rule = Rule(id=1, name="adult", conditions=_ADULT_DSL, action="allow")
 
     assert validate(rule) == []
     assert validate([rule]) == []

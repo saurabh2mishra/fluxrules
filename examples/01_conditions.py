@@ -14,7 +14,7 @@ def build_operator_rich_rule() -> Rule:
     return Rule(
         id=101,
         name="operator_rich_triage",
-        condition_dsl={
+        conditions={
             "type": "group",
             "op": "AND",
             "children": [

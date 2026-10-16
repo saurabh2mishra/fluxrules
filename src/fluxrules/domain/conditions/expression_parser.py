@@ -6,7 +6,7 @@ can compile and evaluate.
 
 Example::
 
-    >>> parser = DSLParser()
+    >>> parser = ConditionParser()
     >>> parser.parse({"type": "condition", "field": "age", "op": ">", "value": 18})
     'm.age > 18'
 """
@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Any
 
 
-class DSLParser:
+class ConditionParser:
     """Parse DSL node trees into evaluable expression strings."""
 
     def parse(self, dsl: dict[str, Any]) -> str:

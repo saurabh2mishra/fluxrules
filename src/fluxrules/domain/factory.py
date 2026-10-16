@@ -16,11 +16,11 @@ def rule_from_dict(data: dict[str, Any]) -> EngineRule:
 
     **DSL format** (used by ``RuleEngine``)::
 
-        {"id": 1, "name": "...", "condition_dsl": {...}, "action": "...", ...}
+        {"id": 1, "name": "...", "conditions": {...}, "action": "...", ...}
 
     **Native format** (used by the reference evaluator)::
 
-        {"id": 1, "name": "...", "conditions": [...], "actions": [...], ...}
+        {"id": 1, "name": "...", "condition_nodes": [...], "actions": [...], ...}
 
     Raises:
         ValueError: If the dict is missing required fields or is malformed.
@@ -34,14 +34,14 @@ def rule_from_dict(data: dict[str, Any]) -> EngineRule:
         raise ValueError(f"Rule dict must contain 'id' and 'name'. Got keys: {sorted(data.keys())}")
 
     # Parse conditions from either format
-    conditions: tuple[RuleCondition, ...] = ()
+    condition_nodes: tuple[RuleCondition, ...] = ()
 
-    if "conditions" in data:
+    if "condition_nodes" in data:
         # Native format: list of condition dicts
-        raw_conditions = data["conditions"]
+        raw_conditions = data["condition_nodes"]
         if not isinstance(raw_conditions, (list, tuple)):
-            raise ValueError("'conditions' must be a list of condition dicts")
-        conditions = tuple(
+            raise ValueError("'condition_nodes' must be a list of condition dicts")
+        condition_nodes = tuple(
             RuleCondition(
                 fact=c["fact"],
                 operator=c["operator"],
@@ -68,14 +68,14 @@ def rule_from_dict(data: dict[str, Any]) -> EngineRule:
     return EngineRule(
         id=int(rule_id),
         name=str(name),
-        conditions=conditions,
+        condition_nodes=condition_nodes,
         actions=actions,
         priority=int(data.get("priority", 0)),
         group=str(data.get("group", "")),
         description=str(data.get("description", "")),
         enabled=bool(data.get("enabled", True)),
-        condition_dsl=data.get("condition_dsl")
-        if isinstance(data.get("condition_dsl"), dict)
+        conditions=data.get("conditions")
+        if isinstance(data.get("conditions"), dict)
         else None,
     )
 
@@ -120,7 +120,7 @@ def _extract_conditions_from_dsl(
     ``lossy`` so callers that rebuild a tree cannot mistake it for a genuine
     conjunction. ``()`` is returned only for genuinely empty input.
 
-    The canonical representation of rule logic is always ``condition_dsl``;
+    The canonical representation of rule logic is always ``conditions``;
     this view exists for the reference evaluator and simple validators only.
     """
     if not isinstance(dsl, dict):
@@ -162,7 +162,7 @@ def _extract_conditions_from_dsl(
         warnings.warn(
             f"DSL node of type {ctype!r} cannot be represented by the flat "
             "condition view; its boolean structure is lost. Use "
-            "'condition_dsl' for rule logic.",
+            "'conditions' for rule logic.",
             LossyConditionViewWarning,
             stacklevel=2,
         )

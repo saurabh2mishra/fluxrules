@@ -60,7 +60,7 @@ def _generate_rules_dicts(n: int, rng: random.Random) -> list[dict]:
                 "priority": rng.randint(1, 100),
                 "action": f"action_{i + 1}",
                 "enabled": True,
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": field,
                     "op": op,
@@ -83,7 +83,7 @@ def _generate_rules_domain(n: int, rng: random.Random) -> tuple[DomainRule, ...]
             DomainRule(
                 id=str(i + 1),
                 name=f"rule_{i + 1}",
-                conditions=(RuleCondition(fact=field, operator=op_map[op], value=value),),
+                condition_nodes=(RuleCondition(fact=field, operator=op_map[op], value=value),),
                 actions=(f"action_{i + 1}",),
                 priority=rng.randint(1, 100),
             )
@@ -167,7 +167,7 @@ def test_benchmark_phreak(scenario: Scenario) -> None:
             EngineRule(
                 id=rd["id"],
                 name=rd["name"],
-                condition_dsl=rd["condition_dsl"],
+                conditions=rd["conditions"],
                 action=rd.get("action", ""),
                 priority=rd.get("priority", 0),
             )

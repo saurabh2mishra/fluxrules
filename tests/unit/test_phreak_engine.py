@@ -22,7 +22,7 @@ def _rule(
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": field, "op": op, "value": value},
+        conditions={"type": "condition", "field": field, "op": op, "value": value},
         action=action,
         priority=priority,
         domain=domain,
@@ -43,7 +43,7 @@ def _composite_rule(
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={
+        conditions={
             "type": "composite",
             "logic": logic,
             "conditions": [
@@ -234,7 +234,7 @@ class TestUnifiedEngineEvaluation:
         rule = Rule(
             id=1,
             name="not_rule",
-            condition_dsl={
+            conditions={
                 "type": "not",
                 "condition": {
                     "type": "condition",
@@ -256,7 +256,7 @@ class TestUnifiedEngineEvaluation:
         rule = Rule(
             id=1,
             name="exists_rule",
-            condition_dsl={"type": "exists", "field": "email"},
+            conditions={"type": "exists", "field": "email"},
             domain="test",
             persist=False,
         )

@@ -23,7 +23,7 @@ class StructuralValidator(Validator):
     - Field types are correct
     """
 
-    REQUIRED_FIELDS = {"name", "condition_dsl", "action"}
+    REQUIRED_FIELDS = {"name", "conditions", "action"}
 
     def validate(self, rule_data: dict[str, Any]) -> ValidationResult:
         """Validate rule structure."""
@@ -60,18 +60,18 @@ class StructuralValidator(Validator):
                     field="name",
                 )
 
-        # Check condition_dsl structure
-        if rule_data.get("condition_dsl"):
-            condition = rule_data["condition_dsl"]
+        # Check conditions structure
+        if rule_data.get("conditions"):
+            condition = rule_data["conditions"]
             if not isinstance(condition, dict):
                 result.add_error(
-                    "condition_dsl_not_dict",
-                    f"condition_dsl must be dict, got {type(condition).__name__}",
-                    field="condition_dsl",
+                    "conditions_not_dict",
+                    f"conditions must be dict, got {type(condition).__name__}",
+                    field="conditions",
                 )
             else:
                 # Validate DSL structure
-                self._validate_dsl_structure(condition, result)
+                self._validate_conditions_structure(condition, result)
 
         # Check priority constraints
         if "priority" in rule_data and rule_data["priority"] is not None:
@@ -101,13 +101,13 @@ class StructuralValidator(Validator):
 
         return result
 
-    def _validate_dsl_structure(self, condition: dict[str, Any], result: ValidationResult) -> None:
+    def _validate_conditions_structure(self, condition: dict[str, Any], result: ValidationResult) -> None:
         """Validate DSL structure recursively."""
         if "type" not in condition:
             result.add_error(
                 "dsl_missing_type",
                 "DSL condition must have 'type' field",
-                field="condition_dsl",
+                field="conditions",
             )
             return
 
@@ -121,7 +121,7 @@ class StructuralValidator(Validator):
                     result.add_error(
                         f"dsl_missing_{field}",
                         f"Condition DSL must have '{field}' for type 'condition'",
-                        field="condition_dsl",
+                        field="conditions",
                     )
 
             # Validate operator
@@ -138,7 +138,7 @@ class StructuralValidator(Validator):
                         "invalid_operator",
                         f"Invalid operator: {condition['op']}. "
                         f"Must be one of: {sorted(VALID_OPERATORS)}",
-                        field="condition_dsl",
+                        field="conditions",
                     )
 
         elif condition_type in _BOOLEAN_NODE_TYPES:
@@ -155,7 +155,7 @@ class StructuralValidator(Validator):
                     "dsl_missing_children",
                     f"Group DSL (type '{condition_type}') must have non-empty "
                     "'children' (or 'conditions')",
-                    field="condition_dsl",
+                    field="conditions",
                 )
                 return
 
@@ -165,10 +165,10 @@ class StructuralValidator(Validator):
                     result.add_error(
                         "dsl_child_not_dict",
                         f"Child {idx} in group is not a dict",
-                        field="condition_dsl",
+                        field="conditions",
                     )
                 else:
-                    self._validate_dsl_structure(child, result)
+                    self._validate_conditions_structure(child, result)
 
         elif condition_type == "not":
             # ``not`` holds a single child, spelled "condition" by the strict
@@ -179,18 +179,18 @@ class StructuralValidator(Validator):
                 result.add_error(
                     "dsl_missing_children",
                     "NOT DSL must have a 'condition' (or 'children')",
-                    field="condition_dsl",
+                    field="conditions",
                 )
                 return
             for child_node in children:
                 if isinstance(child_node, dict):
-                    self._validate_dsl_structure(child_node, result)
+                    self._validate_conditions_structure(child_node, result)
 
         else:
             result.add_warning(
                 "unknown_dsl_type",
                 f"Unknown DSL type: {condition_type}",
-                field="condition_dsl",
+                field="conditions",
             )
 
     @property

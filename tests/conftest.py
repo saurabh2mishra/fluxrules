@@ -162,7 +162,7 @@ def sample_rules() -> list[dict[str, Any]]:
             "name": "high_transaction",
             "priority": 1,
             "action": "flag_for_review",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "amount",
                 "op": ">",
@@ -174,7 +174,7 @@ def sample_rules() -> list[dict[str, Any]]:
             "name": "vip_status",
             "priority": 2,
             "action": "grant_access",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "status",
                 "op": "==",
@@ -186,7 +186,7 @@ def sample_rules() -> list[dict[str, Any]]:
             "name": "combined_check",
             "priority": 3,
             "action": "notify_team",
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "AND",
                 "children": [

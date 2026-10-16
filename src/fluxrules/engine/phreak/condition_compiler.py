@@ -1,6 +1,6 @@
 """Condition tree compilation.
 
-Compiles a rule's ``condition_dsl`` into a single Python closure
+Compiles a rule's ``conditions`` into a single Python closure
 ``fn(facts) -> bool``, replacing the per-fact recursive dict-walk in
 ``PhreakEngine._evaluate_condition_inner`` with structurally-inlined boolean
 logic. This is the per-rule speedup that complements the alpha pre-filter:
@@ -48,7 +48,7 @@ def compile_condition(
     fallback_factory: Callable[[dict[str, Any]], Callable[[dict[str, Any]], bool]] | None = None,
     leaf_compiler: Callable[[dict[str, Any], _Flags], CompiledCondition] | None = None,
 ) -> CompiledCondition:
-    """Compile a ``condition_dsl`` tree into a ``fn(facts) -> bool`` closure.
+    """Compile a ``conditions`` tree into a ``fn(facts) -> bool`` closure.
 
     Args:
         condition: the rule's condition tree (same shape the interpreter walks).

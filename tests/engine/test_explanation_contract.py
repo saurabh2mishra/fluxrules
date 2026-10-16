@@ -19,7 +19,7 @@ def _rules():
         Rule(
             id=1,
             name="high_value",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "amount",
                 "op": ">",

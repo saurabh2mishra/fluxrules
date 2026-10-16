@@ -9,7 +9,7 @@ the internal `EngineRule` representation. Condition syntax belongs to
 
 ## Public `Rule`
 
-`Rule` is the public type for authoring and serialization. Its `condition_dsl`
+`Rule` is the public type for authoring and serialization. Its `conditions`
 tree is the source of truth for boolean logic. Set `persist=False` in examples
 and tests to avoid writing to the configured database.
 
@@ -18,7 +18,7 @@ from fluxrules import Rule
 
 rule = Rule(
     name="adult",
-    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
     actions=("allow", "audit"),
     persist=False,
 )
@@ -50,13 +50,13 @@ rule = (
     .build()
 )
 
-assert rule.condition_dsl["type"] == "condition"
+assert rule.conditions["type"] == "condition"
 assert rule.domain == "fraud_detection"
 
 engine_rule = RuleBuilder(rule_id=2).name("internal").condition(
     {"type": "condition", "field": "amount", "op": ">", "value": 1}
 ).action("flag").build_engine_rule()
-assert engine_rule.condition_dsl["type"] == "condition"
+assert engine_rule.conditions["type"] == "condition"
 ```
 
 Implementation: `src/fluxrules/domain/rule_builder.py`.
@@ -65,7 +65,7 @@ Implementation: `src/fluxrules/domain/rule_builder.py`.
 
 `EngineRule` is immutable and is used by the reference evaluator, persistence
 adapters, and internal services. Its authoritative logic is always the full
-`condition_dsl` tree. Its `.conditions` member is a derived flat leaf view for
+`conditions` tree. Its `.conditions` member is a derived flat leaf view for
 compatibility; it cannot preserve `OR`, `NOT`, or nesting and must not be used
 to rebuild rule logic.
 
@@ -76,7 +76,7 @@ from fluxrules import Rule
 
 rule = Rule(
     name="adult",
-    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
     action="allow",
     persist=False,
 )
@@ -84,7 +84,7 @@ rule = Rule(
 engine_rule = rule.to_engine_rule()
 round_tripped = Rule.from_engine_rule(engine_rule, persist=False)
 
-assert round_tripped.condition_dsl == rule.condition_dsl
+assert round_tripped.conditions == rule.conditions
 ```
 
 Implementation: `src/fluxrules/domain/models.py`; conversion methods:

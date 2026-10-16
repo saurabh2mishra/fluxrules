@@ -12,7 +12,7 @@ Every evaluation path returns the one :class:`EvaluationResult` type, whose
 
     rule = Rule(
         name="adult",
-        condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
+        conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
         action="allow",
     )
     evaluate(rule, {"age": 30}).fired_rules
@@ -33,9 +33,9 @@ from fluxrules.config.deployment import (
     DeploymentType,
 )
 from fluxrules.domain.errors import (
+    ConditionValidationError,
     CorruptStoredRuleError,
     CyclicDependencyError,
-    DSLValidationError,
     EmptyRuleLogicError,
     FluxRulesError,
     InvalidRuleError,
@@ -126,7 +126,7 @@ def evaluate(rules: Rules, facts: object) -> EvaluationResult:
     *rules* may be a single :class:`Rule`, any iterable of them, or a
     :class:`Ruleset`::
 
-        rule = Rule(name="adult", condition_dsl={...}, action="allow")
+        rule = Rule(name="adult", conditions={...}, action="allow")
         result = evaluate(rule, {"age": 30})
         result.fired_rules  # the rules that matched
 
@@ -169,7 +169,7 @@ __all__ = [
     # Error taxonomy (see fluxrules.domain.errors). Every one derives from
     # FluxRulesError, so `except FluxRulesError` catches the whole family.
     "CyclicDependencyError",
-    "DSLValidationError",
+    "ConditionValidationError",
     "DeploymentConfig",
     "DeploymentType",
     "EmptyRuleLogicError",

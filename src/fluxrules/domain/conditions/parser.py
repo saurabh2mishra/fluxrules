@@ -8,50 +8,50 @@ from __future__ import annotations
 
 from typing import Any
 
-from fluxrules.domain.dsl import (
+from fluxrules.domain.conditions import (
     AccumulateNode,
     ConditionNode,
+    ConditionTreeNode,
     CrossFactJoinNode,
-    DSLNode,
     ExistsNode,
     GroupNode,
     NotNode,
     SequenceNode,
 )
-from fluxrules.exceptions import DSLParseError
+from fluxrules.exceptions import ConditionParseError
 
 
-class DSLParser:
+class ConditionParser:
     """Parse dict-based DSL into typed AST.
 
     Usage:
-        parser = DSLParser()
+        parser = ConditionParser()
         ast = parser.parse({"type": "condition", "field": "age", "op": ">", "value": 18})
-        # ast is now a ConditionNode; can be visited by any DSLVisitor
+        # ast is now a ConditionNode; can be visited by any ConditionTreeVisitor
     """
 
-    def parse(self, dsl_dict: dict[str, Any]) -> DSLNode:
+    def parse(self, dsl_dict: dict[str, Any]) -> ConditionTreeNode:
         """Parse a DSL dict into an AST node.
 
         Args:
             dsl_dict: Raw condition DSL dictionary.
 
         Returns:
-            Typed DSLNode representing the condition tree.
+            Typed ConditionTreeNode representing the condition tree.
 
         Raises:
-            DSLParseError: If the DSL is malformed.
+            ConditionParseError: If the DSL is malformed.
         """
         if not dsl_dict:
-            raise DSLParseError("Empty DSL dict", detail="None or empty dict provided")
+            raise ConditionParseError("Empty DSL dict", detail="None or empty dict provided")
         try:
             return self._parse_node(dsl_dict)
-        except DSLParseError:
+        except ConditionParseError:
             raise
         except (KeyError, TypeError, ValueError) as e:
-            raise DSLParseError(f"Invalid DSL: {e}", detail=str(dsl_dict)) from e
+            raise ConditionParseError(f"Invalid DSL: {e}", detail=str(dsl_dict)) from e
 
-    def _parse_node(self, node_dict: dict[str, Any]) -> DSLNode:
+    def _parse_node(self, node_dict: dict[str, Any]) -> ConditionTreeNode:
         """Dispatch to appropriate parser based on node type."""
         node_type = node_dict.get("type")
 
@@ -70,7 +70,7 @@ class DSLParser:
         elif node_type == "cross_fact_join":
             return self._parse_cross_fact_join(node_dict)
         else:
-            raise DSLParseError(
+            raise ConditionParseError(
                 f"Unknown DSL node type: {node_type}",
                 detail=str(node_dict),
             )
@@ -79,7 +79,7 @@ class DSLParser:
         field = d.get("field")
         op = d.get("op")
         if not field or not op:
-            raise DSLParseError(
+            raise ConditionParseError(
                 "Condition node requires 'field' and 'op'",
                 detail=str(d),
             )
@@ -106,7 +106,7 @@ class DSLParser:
             children = tuple(self._parse_node(c) for c in inner_list)
             return NotNode(children=children)
         else:
-            raise DSLParseError(
+            raise ConditionParseError(
                 "NOT node requires 'condition' or 'conditions' field",
                 detail=str(d),
             )
@@ -140,7 +140,7 @@ class DSLParser:
     def _parse_cross_fact_join(self, d: dict[str, Any]) -> CrossFactJoinNode:
         correlate_field = d.get("correlate_field")
         if not correlate_field:
-            raise DSLParseError(
+            raise ConditionParseError(
                 "cross_fact_join requires 'correlate_field'",
                 detail=str(d),
             )

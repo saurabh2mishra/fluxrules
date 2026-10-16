@@ -27,7 +27,7 @@ def _rule(rid: int, priority: int) -> Rule:
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 0},
+        conditions={"type": "condition", "field": "x", "op": ">", "value": 0},
         action=f"action_{rid}",
         priority=priority,
         persist=False,

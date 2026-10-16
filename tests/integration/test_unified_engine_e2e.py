@@ -12,7 +12,7 @@ def _rule(rid, field, op, value, domain="default", tags=None, priority=0, action
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": field, "op": op, "value": value},
+        conditions={"type": "condition", "field": field, "op": op, "value": value},
         action=action,
         priority=priority,
         domain=domain,
@@ -25,7 +25,7 @@ def _composite(rid, conditions, logic="AND", domain="default", tags=None, priori
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={
+        conditions={
             "type": "composite",
             "logic": logic,
             "conditions": [

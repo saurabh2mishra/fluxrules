@@ -15,7 +15,7 @@ def _rule(rid, field="amount", op=">", value=100, domain="default", priority=0):
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": field, "op": op, "value": value},
+        conditions={"type": "condition", "field": field, "op": op, "value": value},
         priority=priority,
         domain=domain,
         tags=frozenset(),
@@ -30,7 +30,7 @@ def _composite_rule(rid, n_fields=3, domain="default"):
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "composite", "logic": "AND", "conditions": conditions},
+        conditions={"type": "composite", "logic": "AND", "conditions": conditions},
         domain=domain,
         tags=frozenset(),
         persist=False,
@@ -313,7 +313,7 @@ class TestPerformance:
             Rule(
                 id=i,
                 name=f"r{i}",
-                condition_dsl={
+                conditions={
                     "type": "not",
                     "condition": {
                         "type": "condition",

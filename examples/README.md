@@ -17,7 +17,7 @@ from fluxrules.engine.phreak import PhreakEngine
 # Create rules with auto-generated IDs
 rule = Rule(
     name="High Value Transaction",
-    condition_dsl={
+    conditions={
         "type": "condition",
         "field": "amount",
         "op": ">",

@@ -59,7 +59,7 @@ def _streaming_rules(n: int = 50) -> list[Rule]:
         Rule(
             id=i + 1,
             name=f"stream_rule_{i}",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": f"metric_{i % 10}",
                 "op": ">",
@@ -273,7 +273,7 @@ def measure_nesting_cost(
                 Rule(
                     id=1,
                     name="deep",
-                    condition_dsl={
+                    conditions={
                         "type": "condition",
                         "field": field,
                         "op": ">=",

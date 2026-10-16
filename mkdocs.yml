@@ -43,7 +43,7 @@ nav:
     - Overview: usage/index.md
     - Python API: usage/python-api.md
     - HTTP API: usage/http-api.md
-    - Engine Selection: usage/engines.md
+    - Engine: usage/engines.md
     - Configuration: usage/configuration.md
     - Examples: usage/examples.md
     - Advanced Capabilities: usage/advanced-capabilities.md

@@ -19,7 +19,7 @@ from fluxrules import Rule, PhreakEngine
 rule = Rule(
     name="high_value_transaction",
     domain="fraud_detection",
-    condition_dsl={
+    conditions={
         "type": "condition",
         "field": "amount",
         "op": ">",
@@ -57,7 +57,7 @@ Rules can have nested boolean logic:
 rule = Rule(
     name="risky_payment",
     domain="fraud_detection",
-    condition_dsl={
+    conditions={
         "type": "group",
         "op": "AND",  # All children must be true
         "children": [
@@ -99,13 +99,13 @@ Load multiple rules at once:
 rules = [
     Rule(
         name="high_value",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
         action="manual_review",
         priority=100,
     ),
     Rule(
         name="high_risk_country",
-        condition_dsl={"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
+        conditions={"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
         action="block_payment",
         priority=110,
     ),

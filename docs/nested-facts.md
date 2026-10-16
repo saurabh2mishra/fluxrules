@@ -51,7 +51,7 @@ from fluxrules.engine.phreak import PhreakEngine
 
 rule = Rule(
     name="premium_users_high_value",
-    condition_dsl={
+    conditions={
         "type": "group",
         "op": "AND",
         "children": [

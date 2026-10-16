@@ -479,7 +479,7 @@ class TestE2EWithHardening:
             "group": "test",
             "priority": 50,
             "enabled": True,
-            "condition_dsl": {"field": "age", "operator": ">", "value": 18},
+            "conditions": {"field": "age", "operator": ">", "value": 18},
             "action": "approve",
         }
         resp = client.post("/api/v1/rules/", json=rule_data, headers=headers)
@@ -512,7 +512,7 @@ class TestE2EWithHardening:
             "group": "test",
             "priority": 1,
             "enabled": True,
-            "condition_dsl": {"field": "x", "operator": "==", "value": 1},
+            "conditions": {"field": "x", "operator": "==", "value": 1},
             "action": "log",
         }
         client.post("/api/v1/rules/", json=rule_data, headers=headers)

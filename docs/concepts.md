@@ -3,7 +3,6 @@
 This page introduces the fundamental concepts you need to work with FluxRules. All code references are to `src/fluxrules/`.
 
 ---
-
 ## Rule
 
 A **Rule** is the core abstraction. It combines a condition, an action, and metadata for organization.
@@ -15,7 +14,7 @@ from fluxrules import Rule
 
 rule = Rule(
     name="payment_risk_high",
-    condition_dsl={
+    conditions={
         "type": "condition",
         "field": "amount",
         "op": ">",
@@ -29,12 +28,19 @@ rule = Rule(
 ```
 
 **Key Attributes:**
+
 - `id` - Auto-generated unique identifier (or manual override)
+
 - `name` - Human-readable rule name
+
 - `domain` - Logical grouping (e.g., "fraud_detection", "compliance")
+
 - `tags` - String set for filtering and categorization
-- `condition_dsl` - Nested tree defining when the rule fires
+
+- `conditions` - Nested tree defining when the rule fires
+
 - `action` - What to do when the rule matches
+
 - `priority` - Execution order (higher = runs first)
 
 **See:** [examples/18_unified_rule.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py)
@@ -91,11 +97,14 @@ fact = {
 
 ---
 
-## Condition DSL
+## Conditions
 
-A **Condition DSL** (Domain-Specific Language) is a nested tree that defines when a rule fires. It combines:
+A **condition tree** is a nested tree that defines when a rule fires. It combines:
+
 - Simple conditions (field comparisons)
+
 - Logical operators (AND, OR, NOT)
+
 - Nested groups
 
 **Basic condition:**
@@ -133,7 +142,7 @@ A **Condition DSL** (Domain-Specific Language) is a nested tree that defines whe
 }
 ```
 
-**Validation:** Use `from fluxrules.domain.dsl.validation import validate_dsl`
+**Validation:** Use `from fluxrules.domain.conditions.validation import validate_conditions`
 
 **See:** [examples/02_complex_conditions.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py), [examples/13_complex_rules.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/13_complex_rules.py)
 
@@ -164,21 +173,19 @@ print(f"Time: {result.latency_ms}ms")     # 1.2ms
 
 ## Domain
 
-A **Domain** is a logical grouping of rules. Rules with the same domain typically handle a specific problem area.
+A **Domain** is a logical grouping of rules. Rules with the same domain typically handle a specific problem area. 
 
-**Common domains in payment risk:**
-- `fraud_detection` - Anti-fraud rules
-- `compliance` - Regulatory rules
-- `risk_ops` - Risk assessment rules
+For example depending on how your rules are grouped you can give a name e.g. `compliance` or `fraud_detections` etc.
+
 
 **Filtering by domain:**
 ```python
 from fluxrules import Rule, PhreakEngine
 
 # Define rules with domains
-rule1 = Rule(name="rule1", domain="fraud_detection", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
-rule2 = Rule(name="rule2", domain="compliance", condition_dsl={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review")
-rule3 = Rule(name="rule3", domain="fraud_detection", condition_dsl={"type": "condition", "field": "type", "op": "==", "value": "transaction"}, action="process")
+rule1 = Rule(name="rule1", domain="fraud_detection", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule2 = Rule(name="rule2", domain="compliance", conditions={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review")
+rule3 = Rule(name="rule3", domain="fraud_detection", conditions={"type": "condition", "field": "type", "op": "==", "value": "transaction"}, action="process")
 
 all_rules = [rule1, rule2, rule3]
 
@@ -196,12 +203,6 @@ engine.load_rules(fraud_rules)
 ## Tag
 
 A **Tag** is a string label for categorization and filtering.
-
-**Typical tags:**
-- `tier_0`, `tier_1`, `tier_2` - Rule priority tiers
-- `cross_border` - Rules for cross-border scenarios
-- `manual_review` - Rules requiring human review
-- `auto_approve` - Rules for automatic approval
 
 **Filtering by tag:**
 ```python
@@ -228,7 +229,7 @@ for fact in SHARED_FACTS:
 # 3 payment-risk rules
 rules = build_shared_rules()
 
-# 8-condition nested DSL
+# 8-condition nested tree
 dsl = complex_risk_condition()
 ```
 

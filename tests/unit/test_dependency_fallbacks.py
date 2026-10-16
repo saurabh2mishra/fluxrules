@@ -47,7 +47,7 @@ def test_submit_event_sync_fallback_without_redis(monkeypatch):
             group="g1",
             priority=1,
             enabled=True,
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "amount",
                 "op": ">",

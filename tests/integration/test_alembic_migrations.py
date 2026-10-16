@@ -113,7 +113,7 @@ class TestAlembicMigrations:
         with engine.connect() as conn:
             row = conn.execute(text("SELECT version_num FROM alembic_version")).first()
         assert row is not None
-        assert row[0] == "001_initial"
+        assert row[0] == "002_rename_conditions"
 
 
 class TestInitDbFallback:

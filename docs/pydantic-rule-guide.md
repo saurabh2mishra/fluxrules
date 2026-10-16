@@ -1,6 +1,6 @@
 # Pydantic Rule Guide
 
-**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (DSL).
+**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (condition tree).
 
 ---
 
@@ -14,7 +14,7 @@ from fluxrules import Rule
 rule = Rule(
     # Core (required)
     name="high_value_transaction",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     
     # Core (optional)
     domain="fraud_detection",                     # Logical grouping (default: "default")
@@ -31,16 +31,16 @@ rule = Rule(
 | Field | Type | Required | Default | Notes |
 |-------|------|----------|---------|-------|
 | `name` | `str` | Yes | - | Human-readable rule name |
-| `condition_dsl` | `dict` | Yes | - | Rule logic (DSL format) |
+| `conditions` | `dict` | Yes | - | Rule logic (condition tree format) |
 | `domain` | `str` | No | `"default"` | Organizational grouping |
 | `tags` | `frozenset[str]` | No | `frozenset()` | Search/filter keywords |
 | `action` | `str \| tuple[str, ...]` | No | `None` | Action(s) when rule fires |
 | `priority` | `int` | No | `0` | Evaluation order |
 | `persist` | `bool` | No | `False` | Store in the database during construction; see `Rule.save()` |
 
-## DSL (Condition) format
+## Condition tree format
 
-The `condition_dsl` field defines rule logic:
+The `conditions` field defines rule logic:
 
 ```python
 # Simple condition
@@ -74,19 +74,19 @@ from pydantic import ValidationError
 
 # Missing required field
 try:
-    Rule(condition_dsl={...})  # Missing `name`
+    Rule(conditions={...})  # Missing `name`
 except ValidationError as e:
     print(f"Validation error: {e}")
 
-# Invalid DSL
+# Invalid conditions
 try:
     Rule(
         name="test",
-        condition_dsl={"type": "invalid", "field": "x"},  # Invalid type
+        conditions={"type": "invalid", "field": "x"},  # Invalid type
         persist=False
     )
 except ValidationError as e:
-    print(f"DSL validation error: {e}")
+    print(f"condition validation error: {e}")
 ```
 
 ## Working with fields
@@ -97,7 +97,7 @@ except ValidationError as e:
 # python skip
 rule = Rule(
     name="check",
-    condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "pending"},
+    conditions={"type": "condition", "field": "status", "op": "==", "value": "pending"},
     tags=frozenset(["tier_1", "fraud", "manual_review"]),
     persist=False,
 )
@@ -114,7 +114,7 @@ from fluxrules import Rule
 # Action is a single string
 rule = Rule(
     name="suspicious",
-    condition_dsl={"type": "condition", "field": "risk_score", "op": ">", "value": 75},
+    conditions={"type": "condition", "field": "risk_score", "op": ">", "value": 75},
     action="block",  # Single action
     persist=False,
 )
@@ -128,9 +128,9 @@ print(rule.action)  # "block"
 from fluxrules import Rule
 
 rules = [
-    Rule(name="urgent", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "critical"}, priority=100, persist=False),
-    Rule(name="normal", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "warning"}, priority=10, persist=False),
-    Rule(name="low", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "info"}, priority=1, persist=False),
+    Rule(name="urgent", conditions={"type": "condition", "field": "status", "op": "==", "value": "critical"}, priority=100, persist=False),
+    Rule(name="normal", conditions={"type": "condition", "field": "status", "op": "==", "value": "warning"}, priority=10, persist=False),
+    Rule(name="low", conditions={"type": "condition", "field": "status", "op": "==", "value": "info"}, priority=1, persist=False),
 ]
 
 # Higher priority evaluated first
@@ -156,6 +156,6 @@ restored = Rule(**json.loads(rule_json))
 
 ## Next Steps
 
-- **Conditions** - See [Conditions](conditions.md) for DSL operators
-- **Validation** - See [Validation Framework](validation-framework.md) for DSL validation
+- **Conditions** - See [Conditions](conditions.md) for condition operators
+- **Validation** - See [Validation Framework](validation-framework.md) for condition validation
 - **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations

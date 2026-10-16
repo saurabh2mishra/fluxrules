@@ -209,7 +209,7 @@ def test_optimized_detect_matches_brute_force_reference():
                 "name": f"rule_{i}",
                 "priority": i % 10,
                 "group": f"g{i % 3}",
-                "condition_dsl": dsl,
+                "conditions": dsl,
             }
         )
 

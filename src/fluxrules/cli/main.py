@@ -17,7 +17,7 @@ def _load_rules(path: str) -> list:
     """Load rules from a JSON file into canonical Rule objects.
 
     The file holds a single rule mapping or a list of rule mappings using the
-    documented rule schema (id, name, priority, condition_dsl, action, enabled).
+    documented rule schema (id, name, priority, conditions, action, enabled).
     """
     from fluxrules.domain import Rule
 
@@ -151,7 +151,7 @@ def init(
                         "id": "1",
                         "name": "high_value_order",
                         "priority": 10,
-                        "condition_dsl": {
+                        "conditions": {
                             "type": "condition",
                             "field": "amount",
                             "op": ">",

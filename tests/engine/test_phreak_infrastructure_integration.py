@@ -23,7 +23,7 @@ class TestPhreakSegmentNetwork:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -38,7 +38,7 @@ class TestPhreakSegmentNetwork:
             Rule(
                 id=2,
                 name="rule_country",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "country",
                     "op": "==",
@@ -53,7 +53,7 @@ class TestPhreakSegmentNetwork:
             Rule(
                 id=3,
                 name="rule_age_country",
-                condition_dsl={
+                conditions={
                     "type": "composite",
                     "logic": "AND",
                     "conditions": [
@@ -90,7 +90,7 @@ class TestPhreakSegmentNetwork:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -105,7 +105,7 @@ class TestPhreakSegmentNetwork:
             Rule(
                 id=2,
                 name="rule_country",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "country",
                     "op": "==",
@@ -143,7 +143,7 @@ class TestPhreakFieldIndex:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -168,7 +168,7 @@ class TestPhreakFieldIndex:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -183,7 +183,7 @@ class TestPhreakFieldIndex:
             Rule(
                 id=2,
                 name="rule_salary",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "salary",
                     "op": ">",
@@ -218,7 +218,7 @@ class TestPhreakLazyEvaluation:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -253,7 +253,7 @@ class TestPhreakLazyEvaluation:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -291,7 +291,7 @@ class TestPhreakLazyEvaluation:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -306,7 +306,7 @@ class TestPhreakLazyEvaluation:
             Rule(
                 id=2,
                 name="rule_country",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "country",
                     "op": "==",
@@ -346,7 +346,7 @@ class TestPhreakLazyEvaluation:
             Rule(
                 id=1,
                 name="composite_rule",
-                condition_dsl={
+                conditions={
                     "type": "composite",
                     "logic": "AND",
                     "conditions": [
@@ -386,7 +386,7 @@ class TestPhreakLazyEvaluation:
             Rule(
                 id=1,
                 name="negation_rule",
-                condition_dsl={
+                conditions={
                     "type": "not",
                     "condition": {
                         "type": "condition",
@@ -425,7 +425,7 @@ class TestPhreakTokenPropagator:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -456,7 +456,7 @@ class TestPhreakTokenPropagator:
             Rule(
                 id=1,
                 name="rule_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -471,7 +471,7 @@ class TestPhreakTokenPropagator:
             Rule(
                 id=2,
                 name="rule_premium",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "premium",
                     "op": "==",
@@ -506,7 +506,7 @@ class TestPhreakExplanations:
             Rule(
                 id=1,
                 name="test_rule",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">",

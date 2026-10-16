@@ -38,13 +38,13 @@ All facts are validated before evaluation:
 
 ```python
 # python skip
-from fluxrules.domain.dsl.validation import validate_dsl, DSLValidationError
+from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 from fastapi import HTTPException
 
-# Validate rule DSL before accepting from API
+# Validate rule conditions before accepting from API
 try:
-    validate_dsl(rule.condition_dsl)
-except DSLValidationError as e:
+    validate_conditions(rule.conditions)
+except ConditionValidationError as e:
     raise HTTPException(status_code=400, detail=str(e))
 ```
 
@@ -120,7 +120,7 @@ apply.
 | Threat | Mitigation in FluxRules | Operator responsibility |
 |--------|-------------------------|-------------------------|
 | Arbitrary code via custom operators/actions/engines | Extension registration is explicit; entry-point discovery is opt-in (never an import side effect) | Only load trusted plugins; review `load_plugins()` sources |
-| Malicious rule DSL | `validate_dsl` / `ValidationService` reject malformed logic; the engine evaluates data, not `eval` | Validate rules at the API boundary before persisting |
+| Malicious rule conditions | `validate_conditions` / `ValidationService` reject malformed logic; the engine evaluates data, not `eval` | Validate rules at the API boundary before persisting |
 | SQL injection | ORM + parameterized queries; internal DDL uses constant table names (bandit/ruff-gated) | Use least-privilege DB accounts |
 | Unauthenticated API access | Auth primitives shipped (`bcrypt`, `PyJWT`) | Enforce auth + network restrictions (no auth by default) |
 | Tampered stored rules | Audit trail with integrity hashing | Restrict who can write to the rule store |

@@ -75,7 +75,7 @@ def _rule(rid: int, field: str, op: str, value: Any, action: str = "", **kw) -> 
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": field, "op": op, "value": value},
+        conditions={"type": "condition", "field": field, "op": op, "value": value},
         action=action or f"action_{rid}",
         **kw,
         persist=False,

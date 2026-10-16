@@ -1,6 +1,6 @@
-# Engine Selection
+# Engine
 
-## Available Engine
+## Phreak Engine
 
 - `fluxrules.engine.phreak.PhreakEngine` (the single production engine)
 
@@ -26,7 +26,7 @@ engine.load_rules([
     Rule(
         id=1,
         name="high_value",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
         action="review",
     )
 ])

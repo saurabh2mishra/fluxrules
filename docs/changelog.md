@@ -31,7 +31,7 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 ### Stability
 
 - **Core API**: Stable (Rule, Engine, evaluate())
-- **DSL format**: Stable
+- **condition tree format**: Stable
 - **Endpoints**: Stable under `/api/v1`
 
 ### Upgrade path

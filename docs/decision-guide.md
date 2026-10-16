@@ -30,7 +30,7 @@ from fluxrules.engine.phreak import PhreakEngine
 engine = PhreakEngine()
 rule = Rule(
     name="adult",
-    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
     action="allow",
     persist=False,
 )

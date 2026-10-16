@@ -1,15 +1,27 @@
 # Conditions & Operators
-FluxRules uses a `condition_dsl` to define a condition or a group of conditions. It is not just a flat dictionary; it behaves like a small decision tree.
+FluxRules uses a `conditions` to define a condition or a group of conditions. It is not just a flat dictionary; it behaves like a small decision tree.
 
-**Source:** `src/fluxrules/domain/dsl/` (DSL validation and execution)
+**Source:** `src/fluxrules/domain/conditions/` (condition tree validation and evaluation)
 
 ---
 
-## `condition_dsl`
+## `conditions`
 
-`condition_dsl` is a small tree with a contract enforced by the validation logic.
+`conditions` is a small tree with a contract enforced by the validation logic.
 
 A leaf is a single check, and a grouped node combines children.
+
+### Node types
+
+| Type | What it does |
+|---|---|
+| `condition` | Leaf — evaluates one field with an operator (`>`, `in`, `contains`, etc.) |
+| `group` | Boolean combinator — `"op": "AND"` or `"op": "OR"` over a list of children |
+| `not` | Negates its single child condition |
+| `exists` | Checks whether a field key is present in the facts dict |
+| `sequence` / `accumulate` | Advanced temporal / aggregation nodes |
+
+### Node keys
 
 - **`type`**: node kind.
 
@@ -39,7 +51,7 @@ The validator also accepts `"and"`, `"or"`, `"not"`, `"exists"`, `"sequence"`, a
 - **`field`**: fact field name as a string. Required for `condition` and `exists`.
 - **`op`**: comparison operator such as `>`, `==`, `in`, `contains`. Required for `condition`.
 - **`value`**: literal or list compared against the field.
-- **`children`**: list of child DSL nodes for a grouped condition.
+- **`children`**: list of child condition nodes for a grouped condition.
 - **`condition`**: child node used by `not`.
 - **`conditions`**: alternate spelling accepted for `children` in some parser/engine paths.
 - **`logic`**: optional alias for the group logic in some builders/parsers; typically `AND` or `OR`.
@@ -154,19 +166,19 @@ from fluxrules.engine.phreak import PhreakEngine
 
 rule1 = Rule(
     name="high_amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 2000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 2000},
     action="manual_review",
 )
 
 rule2 = Rule(
     name="high_risk_country",
-    condition_dsl={"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
+    conditions={"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
     action="block_payment",
 )
 
 rule3 = Rule(
     name="new_account",
-    condition_dsl={"type": "condition", "field": "account_age_days", "op": "<", "value": 7},
+    conditions={"type": "condition", "field": "account_age_days", "op": "<", "value": 7},
     action="step_up_auth",
 )
 
@@ -236,5 +248,5 @@ A numeric field should compare with a number, a string field with a string, and 
 ## Next Steps
 
 - **[Complex Conditions](complex-conditions.md)** - Learn how to combine simple conditions with AND/OR/NOT logic
-- **[Validation Framework](validation-framework.md)** - Validate DSL structures
+- **[Validation Framework](validation-framework.md)** - Validate condition tree structures
 - **[Concepts](concepts.md)** - Understand rules, engines, and facts

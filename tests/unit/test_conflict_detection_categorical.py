@@ -33,7 +33,7 @@ def _rule(
     return {
         "id": rule_id,
         "name": name,
-        "condition_dsl": condition,
+        "conditions": condition,
         "action": action,
         "priority": priority,
     }

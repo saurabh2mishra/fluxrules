@@ -13,7 +13,7 @@ FluxRules provides everything needed for production rule engines.
 - **Rule Organization**: [Domains and Tags](domains-and-tags.md) for categorization and filtering
 - **Priority-Based Execution**: Higher priority rules fire first when multiple match
 - **Multiple Actions**: Each rule can trigger one or more actions in sequence
-- **Validation**: [DSL validation](validation-framework.md) catches syntax errors before rules run
+- **Validation**: [condition validation](validation-framework.md) catches syntax errors before rules run
 - **Explicit IDs**: Auto-generate or provide your own (sequential integers)
 
 ---
@@ -31,7 +31,7 @@ from fluxrules.engine.phreak import PhreakEngine
 engine = PhreakEngine()
 rule = Rule(
     name="Check Amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="flag_for_review",
     persist=False,
 )
@@ -59,7 +59,7 @@ print(f"Latency: {result.latency_ms}ms")  # [execution time]
 
 ```
 fluxrules/
-├── domain/       # Rule class, DSL, validation
+├── domain/       # Rule class, conditions, validation
 ├── engine/       # PhreakEngine
 └── services/     # Evaluators, utilities
 ```
@@ -120,7 +120,7 @@ def my_action(fact_id, amount):
 
 rule = Rule(
     name="process_transaction",
-    condition_dsl={"type": "condition", "field": "type", "op": "==", "value": "transaction"},
+    conditions={"type": "condition", "field": "type", "op": "==", "value": "transaction"},
     action=my_action,  # Any callable
     persist=False,
 )

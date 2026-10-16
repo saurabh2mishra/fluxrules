@@ -274,7 +274,7 @@ class TestBulkImportEndpoint:
                 "group": "e2e",
                 "priority": 50,
                 "enabled": True,
-                "condition_dsl": {
+                "conditions": {
                     "type": "group",
                     "op": "AND",
                     "children": [
@@ -323,7 +323,7 @@ class TestExistingFeaturesRegression:
             "group": "regression",
             "priority": 1,
             "enabled": True,
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "AND",
                 "children": [{"type": "condition", "field": "x", "op": "==", "value": 1}],
@@ -374,7 +374,7 @@ class TestExistingFeaturesRegression:
                 "group": "regression",
                 "priority": 10,
                 "enabled": True,
-                "condition_dsl": condition,
+                "conditions": condition,
                 "action": "log",
                 "evaluation_mode": "stateless",
             },
@@ -389,7 +389,7 @@ class TestExistingFeaturesRegression:
                 "group": "regression_stateful",
                 "priority": 9,
                 "enabled": True,
-                "condition_dsl": {
+                "conditions": {
                     "type": "group",
                     "op": "AND",
                     "children": [{"type": "condition", "field": "score", "op": ">=", "value": 50}],

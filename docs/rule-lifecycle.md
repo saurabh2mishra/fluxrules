@@ -16,7 +16,7 @@ rule = Rule(
     name="high_value_transaction",
     domain="fraud_detection",
     tags=frozenset(["tier_1", "manual_review"]),
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="require_approval",
     priority=10,
     persist=True,  # Enable database persistence
@@ -32,7 +32,7 @@ print(f"Rule created: {rule.name} (ID: {rule.id})")
 | `name` | `str` | Yes | Descriptive rule name |
 | `domain` | `str` | No | Logical grouping (default: "default") |
 | `tags` | `frozenset[str]` | No | Searchable keywords |
-| `condition_dsl` | `dict` | Yes | Rule logic (DSL format) |
+| `conditions` | `dict` | Yes | Rule logic (condition tree format) |
 | `action` | `str \| tuple[str, ...]` | No | Action when rule fires |
 | `priority` | `int` | No | Evaluation priority (higher first) |
 | `persist` | `bool` | No | Store in database (default: False) |
@@ -47,13 +47,13 @@ from fluxrules import Rule
 rules = [
     Rule(
         name="rule1",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
         action="act1",
         persist=False,
     ),
     Rule(
         name="rule2",
-        condition_dsl={"type": "condition", "field": "country", "op": "==", "value": "US"},
+        conditions={"type": "condition", "field": "country", "op": "==", "value": "US"},
         action="act2",
         persist=False,
     ),
@@ -86,19 +86,19 @@ rules = [Rule(**r) for r in rules_dicts]
 ## Validate a rule
 
 ```python
-from fluxrules.domain.dsl.validation import validate_dsl, DSLValidationError
+from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 
-# Validate DSL syntax before creating a rule
+# Validate condition tree syntax before creating a rule
 dsl = {"type": "condition", "field": "amount", "op": ">", "value": 5000}
 
 try:
-    validate_dsl(dsl)
-    print("✅ DSL is valid")
-except DSLValidationError as e:
-    print(f"❌ Invalid DSL: {e}")
+    validate_conditions(dsl)
+    print("✅ Conditions are valid")
+except ConditionValidationError as e:
+    print(f"❌ Invalid conditions: {e}")
 ```
 
-Invalid DSLs raise `DSLValidationError`. See [Validation Framework](validation-framework.md) for details.
+Invalid DSLs raise `ConditionValidationError`. See [Validation Framework](validation-framework.md) for details.
 
 ## Evaluate rules
 
@@ -156,7 +156,7 @@ Rules are **immutable** once created. To change a rule, create a new Rule with t
 # Original rule
 old_rule = Rule(
     name="check_amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
     action="flag",
     persist=True,
 )
@@ -164,7 +164,7 @@ old_rule = Rule(
 # Updated rule (new instance)
 new_rule = Rule(
     name="check_amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="flag",
     persist=True,
 )
@@ -178,7 +178,7 @@ service.persist(Ruleset(group="default", rules=(new_rule.to_engine_rule(),)))
 
 ## Next Steps
 
-- **Validation** - See [Validation Framework](validation-framework.md) for DSL validation
+- **Validation** - See [Validation Framework](validation-framework.md) for condition validation
 - **Complex Conditions** - See [Complex Conditions](complex-conditions.md) for AND/OR/NOT logic
 - **Persistence** - See [Persistence](persistence.md) for database management
 - **Custom Actions** - See [Custom Actions](custom-actions.md) for action handlers

@@ -18,7 +18,7 @@ def test_evaluate_and_explain_endpoints() -> None:
                 EngineRule(
                     id=1,
                     name="r1",
-                    conditions=(RuleCondition("amount", "gt", 100),),
+                    condition_nodes=(RuleCondition("amount", "gt", 100),),
                     actions=("review",),
                 ),
             ),
@@ -46,7 +46,7 @@ def test_simulate_endpoint() -> None:
                 EngineRule(
                     id=1,
                     name="r1",
-                    conditions=(RuleCondition("amount", "gt", 100),),
+                    condition_nodes=(RuleCondition("amount", "gt", 100),),
                     actions=("review",),
                 ),
             ),

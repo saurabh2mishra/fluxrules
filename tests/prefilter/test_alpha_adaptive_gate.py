@@ -41,7 +41,7 @@ def test_high_sharing_set_engages_and_prunes() -> None:
     thresholds = [10, 20, 30, 40, 50]
     for i in range(500):
         t = thresholds[i % len(thresholds)]
-        rules.append(Rule(id=i, name=f"r{i}", condition_dsl=_leaf("score", ">", t), persist=False))
+        rules.append(Rule(id=i, name=f"r{i}", conditions=_leaf("score", ">", t), persist=False))
 
     engine = PhreakEngine(alpha_prefilter=True)
     engine.load_rules(rules)
@@ -65,7 +65,7 @@ def test_all_unfilterable_set_bypasses_alpha() -> None:
         Rule(
             id=i,
             name=f"r{i}",
-            condition_dsl={"type": "not", "condition": _leaf("f", "==", i)},
+            conditions={"type": "not", "condition": _leaf("f", "==", i)},
             persist=False,
         )
         for i in range(50)
@@ -91,7 +91,7 @@ def test_all_unfilterable_set_bypasses_alpha() -> None:
 def test_alpha_disabled_flag_never_engages() -> None:
     """``alpha_prefilter=False`` keeps the A/B switch fully off (P1.1 step 5)."""
     rules = [
-        Rule(id=i, name=f"r{i}", condition_dsl=_leaf("x", ">", i), persist=False)
+        Rule(id=i, name=f"r{i}", conditions=_leaf("x", ">", i), persist=False)
         for i in range(100)
     ]
     engine = PhreakEngine(alpha_prefilter=False)
@@ -113,7 +113,7 @@ def test_engage_decision_recomputed_on_reload() -> None:
     # First: filterable ⇒ engages.
     engine.load_rules(
         [
-            Rule(id=i, name=f"r{i}", condition_dsl=_leaf("a", ">", i), persist=False)
+            Rule(id=i, name=f"r{i}", conditions=_leaf("a", ">", i), persist=False)
             for i in range(20)
         ]
     )
@@ -127,7 +127,7 @@ def test_engage_decision_recomputed_on_reload() -> None:
             Rule(
                 id=i,
                 name=f"n{i}",
-                condition_dsl={"type": "not", "condition": _leaf("a", "==", i)},
+                conditions={"type": "not", "condition": _leaf("a", "==", i)},
                 persist=False,
             )
             for i in range(20)

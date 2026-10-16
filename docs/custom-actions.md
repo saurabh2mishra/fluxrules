@@ -18,14 +18,14 @@ from fluxrules.engine.phreak import PhreakEngine
 
 rule1 = Rule(
     name="check_high_value",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="require_approval",  # Single action (string)
     persist=False,
 )
 
 rule2 = Rule(
     name="check_fraud",
-    condition_dsl={"type": "condition", "field": "ip_risk_score", "op": ">", "value": 80},
+    conditions={"type": "condition", "field": "ip_risk_score", "op": ">", "value": 80},
     actions=("block", "notify_security"),  # Multiple actions (tuple)
     persist=False,
 )
@@ -137,7 +137,7 @@ for action_name in result.actions:
 ```python
 Rule(
     name="suspicious_transaction",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 50000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 50000},
     actions=("block", "notify_fraud_team", "log_to_database"),
     persist=False,
 )

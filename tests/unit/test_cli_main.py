@@ -22,7 +22,7 @@ runner = CliRunner()
 _RULE = {
     "name": "high_value",
     "priority": 10,
-    "condition_dsl": {"type": "condition", "field": "amount", "op": ">", "value": 1000},
+    "conditions": {"type": "condition", "field": "amount", "op": ">", "value": 1000},
     "action": "flag_for_review",
     "enabled": True,
 }

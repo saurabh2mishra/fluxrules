@@ -12,7 +12,7 @@ Example YAML::
       priority: 10
       action: flag_for_review
       enabled: true
-      condition_dsl:
+      conditions:
         type: condition
         field: amount
         op: ">"

@@ -48,7 +48,7 @@ def _rand_rule(rng: random.Random, rid: int) -> Rule:
     else:
         conds = [_leaf(rng.choice(_FIELDS), rng.choice(_OPS), rng.randint(0, 50)) for _ in range(2)]
         dsl = {"type": kind, "conditions": conds}
-    return Rule(id=rid, name=f"r{rid}", condition_dsl=dsl, priority=rid % 5, persist=False)
+    return Rule(id=rid, name=f"r{rid}", conditions=dsl, priority=rid % 5, persist=False)
 
 
 def _rand_fact(rng: random.Random) -> dict:
@@ -135,7 +135,7 @@ def test_no_field_rule_excluded_like_propagator() -> None:
         Rule(
             id=1,
             name="empty",
-            condition_dsl={"type": "and", "conditions": []},
+            conditions={"type": "and", "conditions": []},
             persist=False,
         )
 
@@ -143,7 +143,7 @@ def test_no_field_rule_excluded_like_propagator() -> None:
     empty = Rule.model_construct(
         id=1,
         name="empty",
-        condition_dsl={"type": "and", "conditions": []},
+        conditions={"type": "and", "conditions": []},
         actions=(),
         action="",
         priority=0,
@@ -160,7 +160,7 @@ def test_no_field_rule_excluded_like_propagator() -> None:
     )
     rules = [
         empty,
-        Rule(id=2, name="normal", condition_dsl=_leaf("amount", ">", 10), persist=False),
+        Rule(id=2, name="normal", conditions=_leaf("amount", ">", 10), persist=False),
     ]
     engine = PhreakEngine(alpha_prefilter=True)
     engine.load_rules(rules)

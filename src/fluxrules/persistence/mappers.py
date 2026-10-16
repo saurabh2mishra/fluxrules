@@ -15,7 +15,7 @@ def domain_rule_to_orm(
 
     Accepts either:
     - The canonical Pydantic :class:`~fluxrules.domain.unified_rule.Rule`
-      (``.condition_dsl`` + ``.action``), or
+      (``.conditions`` + ``.action``), or
     - The internal engine :class:`~fluxrules.domain.models.Rule`
       (``.conditions`` + ``.actions``).
 
@@ -28,26 +28,26 @@ def domain_rule_to_orm(
             so it is refused here rather than stored.
     """
     from fluxrules.api.models.rule import Rule as OrmRule
-    from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+    from fluxrules.domain.conditions.evaluator import conditions_to_tree
     from fluxrules.domain.unified_rule import Rule as CanonicalRule
 
-    condition_dsl: dict
+    conditions: dict
     if isinstance(rule, CanonicalRule):
-        condition_dsl = rule.condition_dsl
+        conditions = rule.conditions
         # Use the full action list, not just `action`. Persisting only the
         # singular field would silently truncate multi-action rules.
         action_str = "\n".join(rule.actions) if rule.actions else (rule.action or "")
         group_name = group or rule.domain or ""
     else:
-        # An EngineRule always carries its authoritative ``condition_dsl``
+        # An EngineRule always carries its authoritative ``conditions``
         # tree; fall back to building one from parsed conditions only for
         # foreign objects that predate that guarantee. Either way the column
         # receives a DSL dict, never a list of condition dicts.
-        condition_dsl = getattr(rule, "condition_dsl", None) or conditions_to_dsl(rule.conditions)
+        conditions = getattr(rule, "conditions", None) or conditions_to_tree(rule.condition_nodes)
         action_str = "\n".join(rule.actions) if rule.actions else ""
         group_name = group or rule.group or ""
 
-    _reject_empty_logic(rule, condition_dsl)
+    _reject_empty_logic(rule, conditions)
 
     orm_rule = OrmRule(
         name=rule.name or str(rule.id),
@@ -55,30 +55,30 @@ def domain_rule_to_orm(
         group=group_name,
         priority=rule.priority,
         enabled=rule.enabled,
-        condition_dsl=condition_dsl,
+        conditions=conditions,
         action=action_str,
         created_by=created_by,
     )
     return orm_rule
 
 
-def _reject_empty_logic(rule, condition_dsl: dict | list) -> None:
+def _reject_empty_logic(rule, conditions: dict | list) -> None:
     """Refuse to persist a rule that has no logic to match on.
 
     Nothing downstream can recover from this: the row loads cleanly, reports
     no error, and silently never fires. Failing at the write is the only point
     where the caller still holds the information that was about to be lost.
     """
-    from fluxrules.domain.dsl.evaluator import has_logic
+    from fluxrules.domain.conditions.evaluator import has_logic
     from fluxrules.domain.errors import EmptyRuleLogicError
 
-    if has_logic(condition_dsl):
+    if has_logic(conditions):
         return
 
     raise EmptyRuleLogicError(
         f"Refusing to persist rule {rule.name!r}: it has no conditions, so it "
         "could never fire. This usually means the condition logic was lost in "
-        "conversion - check that the rule was built from 'condition_dsl' "
+        "conversion - check that the rule was built from 'conditions' "
         "rather than a flattened condition list. To store a rule that "
         "deliberately always applies, give it an explicit always-true "
         "condition."
@@ -89,7 +89,7 @@ def orm_rule_to_canonical(orm_rule):
     """Convert an ORM row to the canonical :class:`fluxrules.Rule`.
 
     This is the **preferred loader** for anything that will evaluate the rule.
-    ``condition_dsl`` is read straight from the column with no flattening, so
+    ``conditions`` is read straight from the column with no flattening, so
     ``OR``/``NOT``/nested logic survives the round trip. Compare
     :func:`orm_rule_to_domain`, which produces the lossy flat
     :class:`EngineRule` view used by the reference evaluator.
@@ -101,7 +101,7 @@ def orm_rule_to_canonical(orm_rule):
     return CanonicalRule(
         id=orm_rule.id,
         name=orm_rule.name or str(orm_rule.id),
-        condition_dsl=_normalize_stored_dsl(orm_rule.condition_dsl),
+        conditions=_normalize_stored_conditions(orm_rule.conditions),
         actions=actions,
         priority=orm_rule.priority or 0,
         domain=orm_rule.group or "default",
@@ -113,12 +113,12 @@ def orm_rule_to_canonical(orm_rule):
     )
 
 
-def normalize_stored_dsl(raw) -> dict:
-    """Return the stored ``condition_dsl`` column as a DSL dict.
+def normalize_stored_conditions(raw) -> dict:
+    """Return the stored ``conditions`` column as a DSL dict.
 
-    ``rules.condition_dsl`` is a JSON column and holds exactly one shape: a
+    ``rules.conditions`` is a JSON column and holds exactly one shape: a
     DSL object. Every writer now produces that shape - the domain path through
-    :func:`conditions_to_dsl`, and the API path since it stopped pre-encoding
+    :func:`conditions_to_tree`, and the API path since it stopped pre-encoding
     with ``json.dumps``.
 
     Anything else is a corrupt row rather than an old one, and raises. The
@@ -136,14 +136,14 @@ def normalize_stored_dsl(raw) -> dict:
         return raw
 
     raise CorruptStoredRuleError(
-        f"condition_dsl must be a JSON object, got {type(raw).__name__}. "
+        f"conditions must be a JSON object, got {type(raw).__name__}. "
         "This row was not written by this version of FluxRules and cannot be "
         "interpreted; loading it as an empty rule would silently match nothing."
     )
 
 
 # Backwards-compatible private alias for existing internal callers.
-_normalize_stored_dsl = normalize_stored_dsl
+_normalize_stored_conditions = normalize_stored_conditions
 
 
 def orm_rule_to_domain(orm_rule) -> EngineRule:
@@ -158,7 +158,7 @@ def orm_rule_to_domain(orm_rule) -> EngineRule:
     # One shape in: whatever the column holds becomes a DSL dict first, and
     # the flat view is derived from that. Handling list and dict separately
     # was how the two branches drifted apart in the first place.
-    dsl = normalize_stored_dsl(orm_rule.condition_dsl)
+    dsl = normalize_stored_conditions(orm_rule.conditions)
     conditions = _extract_conditions_from_dsl(dsl)
 
     actions = tuple(a.strip() for a in (orm_rule.action or "").split("\n") if a.strip())
@@ -166,7 +166,7 @@ def orm_rule_to_domain(orm_rule) -> EngineRule:
     return EngineRule(
         id=orm_rule.id,
         name=orm_rule.name or "",
-        conditions=conditions,
+        condition_nodes=conditions,
         actions=actions,
         priority=orm_rule.priority or 0,
         group=orm_rule.group or "",
@@ -174,5 +174,5 @@ def orm_rule_to_domain(orm_rule) -> EngineRule:
         enabled=orm_rule.enabled if orm_rule.enabled is not None else True,
         created_at=orm_rule.created_at.isoformat() if orm_rule.created_at else None,
         updated_at=orm_rule.updated_at.isoformat() if orm_rule.updated_at else None,
-        condition_dsl=dsl,
+        conditions=dsl,
     )

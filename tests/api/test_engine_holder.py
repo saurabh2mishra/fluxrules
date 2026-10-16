@@ -19,7 +19,7 @@ def _rule(rid: int, field: str = "amount", op: str = ">", value: int = 100) -> d
     return {
         "id": rid,
         "name": f"rule_{rid}",
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": field,
             "op": op,
@@ -43,7 +43,7 @@ class TestRulesSignature:
     def test_changes_on_condition_change(self):
         a = _rules(5)
         b = _rules(5)
-        b[2]["condition_dsl"]["value"] = 999_999
+        b[2]["conditions"]["value"] = 999_999
         assert rules_signature(a) != rules_signature(b)
 
     def test_changes_on_rule_added(self):
@@ -69,7 +69,7 @@ class TestRuleEnginePoolBuildOnce:
         pool = RuleEnginePool(engine_type="PHREAK")
         rules_v1 = _rules(50)
         rules_v2 = _rules(50)
-        rules_v2[0]["condition_dsl"]["value"] = 123456  # change → new signature
+        rules_v2[0]["conditions"]["value"] = 123456  # change → new signature
 
         e1 = pool.get(rules_v1)
         e2 = pool.get(rules_v2)
@@ -85,7 +85,7 @@ class TestRuleEnginePoolBuildOnce:
         # Three distinct rule sets, cap of 2 → at most 2 warm engines.
         for v in range(3):
             rules = _rules(10)
-            rules[0]["condition_dsl"]["value"] = v
+            rules[0]["conditions"]["value"] = v
             pool.get(rules)
         assert pool.stats["warm_engines"] == 2
 

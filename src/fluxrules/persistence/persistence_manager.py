@@ -90,7 +90,7 @@ class PersistenceManager:
                     enabled=rule.enabled,
                     created_at=rule.created_at,
                     updated_at=rule.updated_at,
-                    condition_dsl=rule.condition_dsl,
+                    conditions=rule.conditions,
                 )
                 logger.debug(
                     f"Persistence disabled - assigned local ID {rule.id} to rule: {rule.name}"
@@ -119,7 +119,7 @@ class PersistenceManager:
                     enabled=rule.enabled,
                     created_at=rule.created_at,
                     updated_at=rule.updated_at,
-                    condition_dsl=rule.condition_dsl,
+                    conditions=rule.conditions,
                 )
                 logger.info(
                     "Rule persisted via ServiceFactory adapter: %s (ID: %d)",
@@ -146,7 +146,7 @@ class PersistenceManager:
                 created_at=rule.created_at,
                 updated_at=rule.updated_at,
                 # The authoritative condition tree carries through untouched.
-                condition_dsl=rule.condition_dsl,
+                conditions=rule.conditions,
             )
 
             logger.info(f"Rule persisted successfully: {persisted_rule.name} (ID: {db_id})")
@@ -173,7 +173,7 @@ class PersistenceManager:
                     enabled=rule.enabled,
                     created_at=rule.created_at,
                     updated_at=rule.updated_at,
-                    condition_dsl=rule.condition_dsl,
+                    conditions=rule.conditions,
                 )
 
             logger.info(

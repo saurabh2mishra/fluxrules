@@ -31,7 +31,7 @@ class RuleCompiler:
     """
 
     def compile_rule(self, rule_payload: dict[str, Any]) -> CompiledRule:
-        condition = rule_payload.get("condition_dsl") or {}
+        condition = rule_payload.get("conditions") or {}
         constraints = self._extract_constraints(condition)
         actions = self._normalize_actions(rule_payload.get("action"))
         group = rule_payload.get("group") or "default"

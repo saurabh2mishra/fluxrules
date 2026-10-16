@@ -7,8 +7,8 @@ import pytest
 from fluxrules.domain.errors import FluxRulesError
 from fluxrules.exceptions import (
     ActionExecutionError,
+    ConditionParseError,
     ConfigurationError,
-    DSLParseError,
     EngineError,
     FluxRulesException,
     RepositoryError,
@@ -29,7 +29,7 @@ class TestExceptionHierarchy:
         [
             RuleValidationError,
             RuleEvaluationError,
-            DSLParseError,
+            ConditionParseError,
             RepositoryError,
             ConfigurationError,
             EngineError,
@@ -53,8 +53,8 @@ class TestExceptionHierarchy:
         assert exc.rule_id == "r2"
 
     def test_dsl_parse_error_attributes(self) -> None:
-        """DSLParseError stores rule_id and detail."""
-        exc = DSLParseError("parse fail", rule_id="r3", detail="missing op")
+        """ConditionParseError stores rule_id and detail."""
+        exc = ConditionParseError("parse fail", rule_id="r3", detail="missing op")
         assert exc.rule_id == "r3"
         assert exc.detail == "missing op"
 

@@ -212,7 +212,7 @@ class RuleValidationService:
                 "group": candidate_group,
                 "priority": rule_payload.get("priority", 0),
                 "enabled": rule_payload.get("enabled", True),
-                "condition_dsl": rule_payload.get("condition_dsl") or {},
+                "conditions": rule_payload.get("conditions") or {},
                 "action": rule_payload.get("action") or "",
             }
 
@@ -236,154 +236,13 @@ class RuleValidationService:
             "group": rule.group,
             "priority": rule.priority,
             "enabled": rule.enabled,
-            "condition_dsl": (
-                json.loads(rule.condition_dsl)
-                if isinstance(rule.condition_dsl, str)
-                else rule.condition_dsl
+            "conditions": (
+                json.loads(rule.conditions)
+                if isinstance(rule.conditions, str)
+                else rule.conditions
             ),
             "action": rule.action,
         }
-
-    def _validate_stateful_dsl(self, condition_dsl: dict[str, Any]) -> list[dict[str, Any]]:
-        """Validate stateful DSL nodes (sequence, cross_fact_join, count_threshold).
-
-        These are API-specific validations not handled by library validators.
-        """
-        errors: list[dict[str, Any]] = []
-        warnings: list[dict[str, Any]] = []
-
-        if not isinstance(condition_dsl, dict) or not condition_dsl:
-            return errors
-
-        self._validate_top_level_stateful_exclusivity(condition_dsl, errors)
-        self._walk_stateful_nodes(condition_dsl, errors, warnings, path="$")
-
-        # Convert errors to conflict format
-        conflicts = [
-            {
-                "type": e.get("type", "dsl_validation_error"),
-                "description": e.get("description", ""),
-                "path": e.get("path", ""),
-            }
-            for e in errors
-        ]
-
-        return conflicts
-
-    def _validate_top_level_stateful_exclusivity(
-        self, condition_dsl: dict[str, Any], errors: list[dict[str, Any]]
-    ) -> None:
-        """Validate that top-level stateful nodes don't mix families."""
-        stateful_families = {"sequence", "cross_fact_join", "count_threshold"}
-        top_level_families: set = set()
-
-        root_type = condition_dsl.get("type")
-        if root_type == "group":
-            for child in condition_dsl.get("children", []) or []:
-                if isinstance(child, dict) and child.get("type") in stateful_families:
-                    top_level_families.add(child["type"])
-        elif root_type in stateful_families:
-            top_level_families.add(root_type)
-
-        if len(top_level_families) > 1:
-            families = ", ".join(sorted(top_level_families))
-            errors.append(
-                {
-                    "type": "dsl_validation_error",
-                    "description": f"Top-level stateful node families are mutually exclusive; found: {families}.",
-                    "path": "$",
-                }
-            )
-
-    def _walk_stateful_nodes(
-        self,
-        node: Any,
-        errors: list[dict[str, Any]],
-        warnings: list[dict[str, Any]],
-        path: str,
-    ) -> None:
-        """Recursively validate stateful DSL nodes."""
-        if isinstance(node, list):
-            for idx, child in enumerate(node):
-                self._walk_stateful_nodes(child, errors, warnings, f"{path}[{idx}]")
-            return
-        if not isinstance(node, dict):
-            return
-
-        node_type = node.get("type")
-
-        if node_type == "sequence":
-            steps = node.get("steps")
-            if steps is None:
-                errors.append(
-                    {
-                        "type": "dsl_validation_error",
-                        "description": "sequence requires 'steps' field.",
-                        "path": f"{path}.steps",
-                    }
-                )
-            elif not isinstance(steps, list):
-                errors.append(
-                    {
-                        "type": "dsl_validation_error",
-                        "description": "sequence.steps must be an array.",
-                        "path": f"{path}.steps",
-                    }
-                )
-            else:
-                if len(steps) < 2:
-                    errors.append(
-                        {
-                            "type": "dsl_validation_error",
-                            "description": "sequence.steps >= 2 (minimum 2 steps required).",
-                            "path": f"{path}.steps",
-                        }
-                    )
-                # Warn if all steps are identical
-                if len(steps) >= 2:
-                    normalized_steps = [
-                        json.dumps(step, sort_keys=True) for step in steps if isinstance(step, dict)
-                    ]
-                    if len(set(normalized_steps)) == 1:
-                        warnings.append(
-                            {
-                                "type": "dsl_validation_warning",
-                                "description": "sequence pattern is equivalent to count-threshold intent; consider using count_threshold.",
-                                "path": path,
-                            }
-                        )
-
-        if node_type == "cross_fact_join":
-            facts = node.get("facts")
-            if facts is None:
-                errors.append(
-                    {
-                        "type": "dsl_validation_error",
-                        "description": "cross_fact_join requires 'facts' field.",
-                        "path": f"{path}.facts",
-                    }
-                )
-            elif not isinstance(facts, list):
-                errors.append(
-                    {
-                        "type": "dsl_validation_error",
-                        "description": "cross_fact_join.facts must be an array.",
-                        "path": f"{path}.facts",
-                    }
-                )
-            elif len(facts) < 2:
-                errors.append(
-                    {
-                        "type": "dsl_validation_error",
-                        "description": "cross_fact_join.facts >= 2 (minimum 2 facts required).",
-                        "path": f"{path}.facts",
-                    }
-                )
-
-        for key, value in node.items():
-            if isinstance(value, (dict, list)):
-                child_path = f"{path}.{key}" if path != "$" else f"$.{key}"
-                self._walk_stateful_nodes(value, errors, warnings, child_path)
 
     def _check_cross_group_duplicates(
         self, rule_payload: dict[str, Any], rule_id: int | None = None
@@ -394,21 +253,21 @@ class RuleValidationService:
         """
         conflicts: list[dict[str, Any]] = []
 
-        condition_dsl = rule_payload.get("condition_dsl")
+        conditions = rule_payload.get("conditions")
         action = rule_payload.get("action")
 
-        if not condition_dsl or not action:
+        if not conditions or not action:
             logger.debug(
-                f"Skipping cross-group duplicate check: condition_dsl={bool(condition_dsl)}, action={bool(action)}"
+                f"Skipping cross-group duplicate check: conditions={bool(conditions)}, action={bool(action)}"
             )
             return conflicts
 
         try:
             # Normalize condition for comparison
-            if isinstance(condition_dsl, dict):
-                condition_str = json.dumps(condition_dsl, sort_keys=True)
+            if isinstance(conditions, dict):
+                condition_str = json.dumps(conditions, sort_keys=True)
             else:
-                condition_str = condition_dsl
+                condition_str = conditions
 
             logger.debug(f"Checking cross-group duplicates for condition: {condition_str[:100]}...")
 
@@ -422,12 +281,12 @@ class RuleValidationService:
 
             for rule in existing_rules:
                 try:
-                    # Parse condition_dsl whether it's stored as dict or string
-                    if isinstance(rule.condition_dsl, dict):
-                        rule_condition_obj = rule.condition_dsl
-                    elif isinstance(rule.condition_dsl, str):
+                    # Parse conditions whether it's stored as dict or string
+                    if isinstance(rule.conditions, dict):
+                        rule_condition_obj = rule.conditions
+                    elif isinstance(rule.conditions, str):
                         try:
-                            rule_condition_obj = json.loads(rule.condition_dsl)
+                            rule_condition_obj = json.loads(rule.conditions)
                         except (json.JSONDecodeError, TypeError):
                             rule_condition_obj = None
                     else:

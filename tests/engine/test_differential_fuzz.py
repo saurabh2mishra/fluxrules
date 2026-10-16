@@ -64,7 +64,7 @@ def _rule(rid: int, rng: random.Random) -> Rule:
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl=_dsl(rng),
+        conditions=_dsl(rng),
         action=f"action_{rid}",
         priority=rng.randint(0, 4),
         domain=f"d{rid % 3}",
@@ -79,7 +79,7 @@ def _always_false_rule(rid: int) -> Rule:
     return Rule(
         id=rid,
         name=f"never_{rid}",
-        condition_dsl={"type": "condition", "field": "f0", "op": ">", "value": _VALUE_SPACE + 5},
+        conditions={"type": "condition", "field": "f0", "op": ">", "value": _VALUE_SPACE + 5},
         action=f"never_{rid}",
         priority=0,
         persist=False,
@@ -229,7 +229,7 @@ def test_negation_over_absent_field_fires() -> None:
     rule = Rule(
         id=1,
         name="not_absent",
-        condition_dsl={
+        conditions={
             "type": "not",
             "conditions": [{"type": "condition", "field": "missing", "op": "==", "value": 1}],
         },
@@ -285,7 +285,7 @@ def test_hypothesis_differential_when_available() -> None:
                 Rule(
                     id=i + 1,
                     name=f"r{i + 1}",
-                    condition_dsl=dsl,
+                    conditions=dsl,
                     action=f"a{i + 1}",
                     priority=draw(st.integers(min_value=0, max_value=4)),
                     persist=False,

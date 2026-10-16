@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-16
+
+### Breaking Changes
+
+- **Renamed `condition_dsl` → `conditions`** on `Rule`, `EngineRule`, all API schemas, YAML rule files, and the database column. The old name implied a formal DSL that does not exist; `conditions` is the plain, accurate name. Migrate: replace every `condition_dsl=` kwarg and `"condition_dsl"` dict key with `conditions`. A database migration (`002_rename_condition_dsl_to_conditions`) renames the column; run `alembic upgrade head` after upgrading.
+- **Renamed `EngineRule.conditions` (flat tuple) → `condition_nodes`** and `Rule.conditions` property → `condition_nodes`. These were internal derived views; `conditions` now refers to the canonical tree. This only affects code that directly accessed the flat-tuple view.
+- **Renamed `domain/dsl/` module → `domain/conditions/`** and all public identifiers within it: `DSLValidationError` → `ConditionValidationError`, `DSLParser` → `ConditionParser`, `DSLNode` → `ConditionTreeNode`, `evaluate_dsl()` → `evaluate_conditions()`, `validate_dsl()` → `validate_conditions()`, and so on. Update any direct imports from `fluxrules.domain.dsl`.
+
+### Changed
+
+- **`Rule(conditions=...)` now validates the full condition tree at construction time.** Previously only a shallow structural check was performed (presence of `"type"` key, non-empty dict). Now `validate_conditions()` runs recursively, catching invalid operators, unknown keys, missing required fields, and empty group children immediately at the authoring point with clear path-scoped error messages. Rules that were silently invalid will now raise `ValidationError` at construction. Three latent bugs in the codebase were found and fixed by this change.
+- **`ConditionBuilder.and_group()` / `or_group()` now emit `"op"` instead of `"logic"`.** The `"logic"` key was never a valid condition tree key; it happened to be tolerated by the engine parsers but would fail validation and serialisation. `"op": "AND"/"OR"` is the canonical form. The validator also accepts `"logic"` as a read alias for backward compatibility with any stored data.
+
+
 ## [0.1.2] - 2026-10-15
 
 ### Fixed
@@ -95,7 +109,7 @@ rejected precisely because the name's meaning was the defect.
   together failed with "Ruleset has duplicate rule ids". The builder now defers
   to the same shared generator `Rule` uses.
 - `docs/rule-builder.md` documented a `RuleBuilder` API that did not exist
-  (`.domain()`, `.tags()`, `.condition_dsl()`, and a snippet that was not valid
+  (`.domain()`, `.tags()`, `.conditions()`, and a snippet that was not valid
   Python) while never demonstrating the real builder. Every block on the page
   is now executable and covered by the documentation harness.
 

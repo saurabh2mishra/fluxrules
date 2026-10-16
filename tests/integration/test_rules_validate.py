@@ -75,7 +75,7 @@ def test_validate_rule_duplicate_name(auth_token):
         "group": "g1",
         "priority": 1,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "amount",
             "op": ">",
@@ -102,7 +102,7 @@ def test_validate_rule_priority_collision(auth_token):
         "group": "g2",
         "priority": 5,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "score",
             "op": ">",
@@ -112,7 +112,7 @@ def test_validate_rule_priority_collision(auth_token):
     }
     rule2 = dict(rule1)
     rule2["name"] = "PriorityTest2"
-    rule2["condition_dsl"] = {
+    rule2["conditions"] = {
         "type": "condition",
         "field": "score",
         "op": ">",
@@ -138,7 +138,7 @@ def test_validate_rule_edit_self_no_conflict(auth_token):
         "group": "g3",
         "priority": 7,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "temperature",
             "op": ">",
@@ -171,7 +171,7 @@ def test_duplicate_condition_and_action_blocked(auth_token):
         "group": "dup_group_a",
         "priority": 10,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "group",
             "op": "AND",
             "children": [{"type": "condition", "field": "age", "op": ">", "value": 18}],
@@ -188,7 +188,7 @@ def test_duplicate_condition_and_action_blocked(auth_token):
         "group": "dup_group_b",
         "priority": 20,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "group",
             "op": "AND",
             "children": [{"type": "condition", "field": "age", "op": ">", "value": 18}],
@@ -214,7 +214,7 @@ def test_same_condition_different_action_not_blocked(auth_token):
         "group": "diff_action_group",
         "priority": 30,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "group",
             "op": "AND",
             "children": [{"type": "condition", "field": "age", "op": ">", "value": 18}],
@@ -237,7 +237,7 @@ def test_bulk_conflicting_rule_is_parked_not_listed(auth_token):
         "group": "bulk_conflict",
         "priority": 42,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "amount",
             "op": ">",
@@ -255,7 +255,7 @@ def test_bulk_conflicting_rule_is_parked_not_listed(auth_token):
             "group": "bulk_conflict",
             "priority": 100,
             "enabled": True,
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "score",
                 "op": ">",
@@ -269,7 +269,7 @@ def test_bulk_conflicting_rule_is_parked_not_listed(auth_token):
             "group": "bulk_other",
             "priority": 101,
             "enabled": True,
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "amount",
                 "op": ">",
@@ -311,7 +311,7 @@ def test_brms_overlap_blocks_second_rule(auth_token):
         "group": "overlap_group",
         "priority": 50,
         "enabled": True,
-        "condition_dsl": {"type": "condition", "field": "age", "op": ">=", "value": 18},
+        "conditions": {"type": "condition", "field": "age", "op": ">=", "value": 18},
         "action": "segment=adult",
     }
     resp1 = client.post("/api/v1/rules", json=rule1, headers=headers)
@@ -324,7 +324,7 @@ def test_brms_overlap_blocks_second_rule(auth_token):
         "group": "overlap_group",
         "priority": 51,
         "enabled": True,
-        "condition_dsl": {"type": "condition", "field": "age", "op": ">=", "value": 25},
+        "conditions": {"type": "condition", "field": "age", "op": ">=", "value": 25},
         "action": "segment=young_adult",
     }
     resp2 = client.post("/api/v1/rules", json=rule2, headers=headers)
@@ -344,7 +344,7 @@ def test_validate_rejects_sequence_with_too_few_steps(auth_token):
         "group": "dsl_stateful_validations",
         "priority": 801,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "sequence",
             "steps": [{"type": "condition", "field": "amount", "op": ">", "value": 100}],
         },
@@ -376,7 +376,7 @@ def test_validate_rejects_cross_fact_join_with_too_few_facts(auth_token):
         "group": "dsl_stateful_validations",
         "priority": 802,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "cross_fact_join",
             "facts": [
                 {"source": "transactions", "alias": "t1"},
@@ -404,7 +404,7 @@ def test_validate_rejects_top_level_stateful_family_mixing(auth_token):
         "group": "dsl_stateful_validations",
         "priority": 803,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "group",
             "op": "AND",
             "children": [
@@ -459,7 +459,7 @@ def test_validate_warns_for_sequence_equivalent_to_count_threshold(auth_token):
         "group": "dsl_stateful_validations",
         "priority": 804,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "sequence",
             "steps": [repeated_step, repeated_step],
         },
@@ -488,7 +488,7 @@ def test_update_with_brms_overlap_is_blocked(auth_token):
         "group": "update_overlap_grp",
         "priority": 60,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "score",
             "op": ">",
@@ -502,7 +502,7 @@ def test_update_with_brms_overlap_is_blocked(auth_token):
         "group": "update_overlap_grp",
         "priority": 61,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "score",
             "op": "<",
@@ -523,7 +523,7 @@ def test_update_with_brms_overlap_is_blocked(auth_token):
         "group": "update_overlap_grp",
         "priority": 61,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "score",
             "op": ">",
@@ -552,7 +552,7 @@ def test_update_and_create_use_same_blocking_types(auth_token):
         "group": "overlap_group",  # reuse group with existing overlapping rule
         "priority": 99,
         "enabled": True,
-        "condition_dsl": {"type": "condition", "field": "age", "op": ">=", "value": 30},
+        "conditions": {"type": "condition", "field": "age", "op": ">=", "value": 30},
         "action": "notify_admin",
     }
     resp = client.post("/api/v1/rules/validate", json=rule, headers=headers)
@@ -581,7 +581,7 @@ def test_resolve_parked_still_checks_brms_overlap(auth_token):
         "group": "resolve_grp",
         "priority": 70,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "resolve_metric",
             "op": ">=",
@@ -599,7 +599,7 @@ def test_resolve_parked_still_checks_brms_overlap(auth_token):
         "group": "resolve_grp",
         "priority": 71,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "resolve_metric",
             "op": ">=",
@@ -625,7 +625,7 @@ def test_resolve_parked_still_checks_brms_overlap(auth_token):
         "group": "resolve_grp",
         "priority": 72,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "resolve_metric",
             "op": ">=",
@@ -651,7 +651,7 @@ def test_resolve_parked_still_checks_brms_overlap(auth_token):
         "group": "resolve_grp",
         "priority": 72,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "condition",
             "field": "resolve_country",
             "op": "==",

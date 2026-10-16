@@ -15,7 +15,7 @@ class ConflictedRule(Base):
     group: Mapped[str | None] = mapped_column(String)
     priority: Mapped[int] = mapped_column(Integer, default=0)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
-    condition_dsl: Mapped[str] = mapped_column(Text, nullable=False)
+    conditions: Mapped[str] = mapped_column(Text, nullable=False)
     action: Mapped[str] = mapped_column(Text, nullable=False)
     rule_metadata: Mapped[str | None] = mapped_column(Text)
 

@@ -26,7 +26,7 @@ def _leaf(rid: int) -> Rule:
     return Rule(
         id=rid,
         name=f"r{rid}",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5},
         tags=frozenset(),
         persist=False,
     )

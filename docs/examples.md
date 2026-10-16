@@ -249,7 +249,7 @@ python examples/13_complex_rules.py
 Use the fluent rule builder API. Learn:
 - The Rule Builder pattern
 - Fluent API for rule construction
-- DSL-like rule definitions
+- Declarative rule definitions
 - Type safety and IDE support
 
 **Key Concepts:** Builder Pattern, Fluent API, DSLs
@@ -578,7 +578,7 @@ for fact in SHARED_FACTS:
 # Shared rules (3 risk-triage rules)
 rules = build_shared_rules()
 
-# Shared DSL (8-condition nested payment-risk rule)
+# Shared condition tree (8-condition nested payment-risk rule)
 dsl = complex_risk_condition()
 ```
 

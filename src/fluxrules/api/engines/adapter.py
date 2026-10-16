@@ -147,7 +147,7 @@ class RuleCache:
                     "id": r.id,
                     "name": r.name,
                     "priority": getattr(r, "priority", 0),
-                    "condition_dsl": r.condition_dsl,
+                    "conditions": r.conditions,
                     "action": getattr(r, "action", None),
                     "group": getattr(r, "group", None),
                     "tags": getattr(r, "tags", []),
