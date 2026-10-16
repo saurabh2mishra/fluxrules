@@ -380,9 +380,9 @@ class Rule(BaseModel):
         if conditions is None:
             # Reconstructing from the flat tuple silently turns an OR into an
             # AND, so this is reached only when no tree exists at all.
-            conditions = tuple(engine_rule.condition_nodes)
-            if len(conditions) == 1:
-                c = conditions[0]
+            nodes = tuple(engine_rule.condition_nodes)
+            if len(nodes) == 1:
+                c = nodes[0]
                 conditions = {
                     "type": "condition",
                     "field": c.fact,
@@ -400,7 +400,7 @@ class Rule(BaseModel):
                             "op": c.operator,
                             "value": c.value,
                         }
-                        for c in conditions
+                        for c in nodes
                     ],
                 }
 
