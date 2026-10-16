@@ -130,7 +130,9 @@ def _validate_group(dsl: dict[str, Any], path: str) -> None:
     if not isinstance(children, list):
         raise ConditionValidationError(f"Group '{key}' at '{path}' must be a list")
     if len(children) == 0:
-        raise ConditionValidationError(f"Group at '{path}' has empty '{key}' list")
+        raise ConditionValidationError(
+            f"Group at '{path}' has empty '{key}' list: a rule with empty conditions could never fire"
+        )
 
     for i, child in enumerate(children):
         validate_conditions(child, path=f"{path}.{key}[{i}]")

@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 
 import pytest
+from pydantic import ValidationError
 
 from fluxrules import Rule
 from fluxrules.engine.infrastructure.scope_guard import (
@@ -282,17 +283,20 @@ class TestTrackAStrictIntegration:
         ids=[c[0] for c in _TRACK_A_CASES if c[2] is not None],
     )
     def test_strict_raises_per_shape(self, cond):
-        rule = Rule(
-            id=1,
-            name="bad",
-            conditions=cond,
-            priority=0,
-            domain="d",
-            tags=frozenset(),
-            persist=False,
-        )
-        engine = PhreakEngine(strict_scope=True)
-        with pytest.raises(UnsupportedRuleShapeError):
+        # Unsupported shapes must be refused somewhere in the authoring pipeline:
+        # the deep validator catches unknown types/keys at Rule construction;
+        # the scope guard catches valid-but-cross-fact shapes at engine load.
+        with pytest.raises((ValidationError, UnsupportedRuleShapeError)):
+            rule = Rule(
+                id=1,
+                name="bad",
+                conditions=cond,
+                priority=0,
+                domain="d",
+                tags=frozenset(),
+                persist=False,
+            )
+            engine = PhreakEngine(strict_scope=True)
             engine.load_rules([rule])
 
 
@@ -323,12 +327,21 @@ class TestEnforce:
         assert enforce_single_fact_boundary(rules, strict=True) == []
 
 
+_CROSS_ENTITY_COND = {
+    "type": "and",
+    "children": [
+        {"type": "condition", "field": "order.amount", "op": ">", "value": 1},
+        {"type": "condition", "field": "customer.tier", "op": "==", "value": "gold"},
+    ],
+}
+
+
 class TestEngineIntegration:
     def test_engine_warns_but_loads_by_default(self, caplog):
         rule = Rule(
             id=1,
             name="bad",
-            conditions={"type": "join", "conditions": [_leaf("a"), _leaf("b")]},
+            conditions=_CROSS_ENTITY_COND,
             priority=0,
             domain="d",
             tags=frozenset(),
@@ -343,7 +356,7 @@ class TestEngineIntegration:
         rule = Rule(
             id=1,
             name="bad",
-            conditions={"type": "join", "conditions": [_leaf("a"), _leaf("b")]},
+            conditions=_CROSS_ENTITY_COND,
             priority=0,
             domain="d",
             tags=frozenset(),

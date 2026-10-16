@@ -21,7 +21,7 @@ def _and_rule(rid: int, fields: list[str]) -> Rule:
         conditions={
             "type": "and",
             "conditions": [
-                {"type": "condition", "field": f, "operator": ">", "value": 1} for f in fields
+                {"type": "condition", "field": f, "op": ">", "value": 1} for f in fields
             ],
         },
         action="log",
