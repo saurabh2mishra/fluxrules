@@ -1,6 +1,6 @@
-# Engine Selection
+# Engine
 
-## Available Engine
+## Phreak Engine
 
 - `fluxrules.engine.phreak.PhreakEngine` (the single production engine)
 

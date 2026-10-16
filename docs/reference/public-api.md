@@ -39,7 +39,8 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 
 From `fluxrules`:
 
-- `evaluate(rules, facts) → EvaluationResult` - Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. `facts` may be a plain `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
+- `evaluate(rules, facts) → EvaluationResult` - Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. 
+- `facts` may be a plain python `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
 - `validate(rules) → list[str]` - Validate rules and return issues; accepts the same shapes as `evaluate`
 - `explain(execution_id: str) → dict[str, object]` - Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
@@ -63,8 +64,8 @@ From `fluxrules`:
   `fired_rules`), `ruleset_group`, `trace`, `execution_id`, `latency_ms`,
   `engine_type`, `explanations`, `rules_by_domain`, `rules_by_tag`,
   `fired_segments`.
-  `fluxrules.engine.infrastructure.EvaluationResult` is a re-export of this
-  same class, not a second type.
+
+  `fluxrules.engine.infrastructure.EvaluationResult` is a re-export of this same class, not a second type.
 
 ## Service Layer
 

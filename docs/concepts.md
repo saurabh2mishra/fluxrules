@@ -3,7 +3,6 @@
 This page introduces the fundamental concepts you need to work with FluxRules. All code references are to `src/fluxrules/`.
 
 ---
-
 ## Rule
 
 A **Rule** is the core abstraction. It combines a condition, an action, and metadata for organization.
@@ -29,12 +28,19 @@ rule = Rule(
 ```
 
 **Key Attributes:**
+
 - `id` - Auto-generated unique identifier (or manual override)
+
 - `name` - Human-readable rule name
+
 - `domain` - Logical grouping (e.g., "fraud_detection", "compliance")
+
 - `tags` - String set for filtering and categorization
+
 - `conditions` - Nested tree defining when the rule fires
+
 - `action` - What to do when the rule matches
+
 - `priority` - Execution order (higher = runs first)
 
 **See:** [examples/18_unified_rule.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py)
@@ -94,8 +100,11 @@ fact = {
 ## Conditions
 
 A **condition tree** is a nested tree that defines when a rule fires. It combines:
+
 - Simple conditions (field comparisons)
+
 - Logical operators (AND, OR, NOT)
+
 - Nested groups
 
 **Basic condition:**
@@ -164,12 +173,10 @@ print(f"Time: {result.latency_ms}ms")     # 1.2ms
 
 ## Domain
 
-A **Domain** is a logical grouping of rules. Rules with the same domain typically handle a specific problem area.
+A **Domain** is a logical grouping of rules. Rules with the same domain typically handle a specific problem area. 
 
-**Common domains in payment risk:**
-- `fraud_detection` - Anti-fraud rules
-- `compliance` - Regulatory rules
-- `risk_ops` - Risk assessment rules
+For example depending on how your rules are grouped you can give a name e.g. `compliance` or `fraud_detections` etc.
+
 
 **Filtering by domain:**
 ```python
@@ -196,12 +203,6 @@ engine.load_rules(fraud_rules)
 ## Tag
 
 A **Tag** is a string label for categorization and filtering.
-
-**Typical tags:**
-- `tier_0`, `tier_1`, `tier_2` - Rule priority tiers
-- `cross_border` - Rules for cross-border scenarios
-- `manual_review` - Rules requiring human review
-- `auto_approve` - Rules for automatic approval
 
 **Filtering by tag:**
 ```python
