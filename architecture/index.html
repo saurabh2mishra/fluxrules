@@ -537,10 +537,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-processing-pipeline" class="md-nav__link">
+  <a href="#condition-processing-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL Processing Pipeline
+        Condition Processing Pipeline
       
     </span>
   </a>
@@ -822,7 +822,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2762,10 +2762,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-processing-pipeline" class="md-nav__link">
+  <a href="#condition-processing-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL Processing Pipeline
+        Condition Processing Pipeline
       
     </span>
   </a>
@@ -2917,7 +2917,7 @@
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
 <p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a>.</p>
 <hr />
-<p>FluxRules is a lightweight rule evaluation engine with a clean layered architecture. This page describes the system design from the DSL down to engine execution.</p>
+<p>FluxRules is a lightweight rule evaluation engine with a clean layered architecture. This page describes the system design from the condition tree down to engine execution.</p>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <p><img alt="FluxRules System Architecture" src="../images/system_architecture.png" /></p>
 <hr />
@@ -2931,7 +2931,7 @@
   │    (via the PHREAK network)
   │
   ├─→ [3. For each rule:
-  │       - Evaluate condition_dsl against fact
+  │       - Evaluate conditions against fact
   │       - If matched: add to fired_rules list
   │       - If matched &amp; action exists: execute action
   │
@@ -2973,11 +2973,21 @@ Fact input → [Linear iteration over rules]
           ↓
           [Discard working memory for next fact]
 </code></pre></div></p>
-<p><strong>Stateless mode (default):</strong>
-- Most HTTP/stateless workloads
-- Rules added/removed frequently
-- Low memory footprint required
-- Single-fact evaluation (typical)</p>
+<p><strong>Stateless mode (default):</strong></p>
+<ul>
+<li>
+<p>Most HTTP/stateless workloads</p>
+</li>
+<li>
+<p>Rules added/removed frequently</p>
+</li>
+<li>
+<p>Low memory footprint required</p>
+</li>
+<li>
+<p>Single-fact evaluation (typical)</p>
+</li>
+</ul>
 <hr />
 <h3 id="streaming-mode-opt-in">Streaming mode (opt-in)<a class="headerlink" href="#streaming-mode-opt-in" title="Permanent link">&para;</a></h3>
 <p><strong>Data flow:</strong>
@@ -2991,14 +3001,22 @@ Fact input → [Assert into working memory]
           ↓
           [Working memory persists across calls]
 </code></pre></div></p>
-<p><strong>When to use:</strong>
-- Many facts over same rule set within a session
-- Event streams where only changes matter
-- Incremental fact updates (assert/retract)</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>
+<p>Many facts over same rule set within a session</p>
+</li>
+<li>
+<p>Event streams where only changes matter</p>
+</li>
+<li>
+<p>Incremental fact updates (assert/retract)</p>
+</li>
+</ul>
 <hr />
-<h2 id="dsl-processing-pipeline">DSL Processing Pipeline<a class="headerlink" href="#dsl-processing-pipeline" title="Permanent link">&para;</a></h2>
-<p>The condition_dsl is a recursive JSON structure that's validated, compiled, and executed:</p>
-<div class="highlight"><pre><span></span><code>Input DSL:
+<h2 id="condition-processing-pipeline">Condition Processing Pipeline<a class="headerlink" href="#condition-processing-pipeline" title="Permanent link">&para;</a></h2>
+<p>The conditions is a recursive JSON structure that's validated, compiled, and executed:</p>
+<div class="highlight"><pre><span></span><code>Input condition tree:
 {
   "type": "group",
   "op": "AND",
@@ -3031,16 +3049,26 @@ Fact input → [Assert into working memory]
     <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span>             <span class="c1"># Grouping</span>
     <span class="n">tags</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">"tier_1"</span><span class="p">,</span> <span class="s2">"urgent"</span><span class="p">]),</span> <span class="c1"># Cross-cutting labels</span>
     <span class="n">priority</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>                          <span class="c1"># Execution order (higher first)</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>                  <span class="c1"># The DSL above</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>                  <span class="c1"># The condition tree above</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"flag_for_review"</span><span class="p">,</span>             <span class="c1"># Or callable</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span>                         <span class="c1"># Optional: store in database</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Key design:</strong>
-- Rule is immutable once created (frozen Pydantic model)
-- Conditions are pure predicates (no side effects)
-- Actions are simple strings or callables
-- Domain/tags allow flexible rule organization</p>
+<p><strong>Key design:</strong></p>
+<ul>
+<li>
+<p>Rule is immutable once created (frozen Pydantic model)</p>
+</li>
+<li>
+<p>Conditions are pure predicates (no side effects)</p>
+</li>
+<li>
+<p>Actions are simple strings or callables</p>
+</li>
+<li>
+<p>Domain/tags allow flexible rule organization</p>
+</li>
+</ul>
 <hr />
 <h2 id="pluggability-points">Pluggability Points<a class="headerlink" href="#pluggability-points" title="Permanent link">&para;</a></h2>
 <p>FluxRules allows extension at three key layers:</p>

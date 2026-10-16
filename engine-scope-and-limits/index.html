@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2664,7 +2664,7 @@ at startup instead of logging a warning, enable the strict guardrail:</p>
     <span class="p">[</span>
         <span class="n">Rule</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="s2">"amount_check"</span><span class="p">,</span>
-            <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+            <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
             <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
             <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
@@ -2674,7 +2674,7 @@ at startup instead of logging a warning, enable the strict guardrail:</p>
 <p>Use the separate <a href="../cross-fact-rules/">Cross-Fact Rules</a> engine when the rule
 semantics genuinely require joins, windows, or truth maintenance.</p>
 <h2 id="rule-complexity">Rule complexity<a class="headerlink" href="#rule-complexity" title="Permanent link">&para;</a></h2>
-<p><strong>Scope:</strong> DSL supports arbitrary nesting of AND/OR/NOT operators.</p>
+<p><strong>Scope:</strong> Conditions support arbitrary nesting of AND/OR/NOT operators.</p>
 <p><strong>Limits enforced by the code:</strong>
 - Rules: default cap of <strong>50,000</strong> per engine (<code>GlobalRuleRepository</code>); configurable via <code>PhreakEngine(max_rules=...)</code>. Exceeding the cap raises <code>ValueError("Repository full")</code>.
 - Conditions per rule and nesting depth: no fixed cap in the engine; arbitrary AND/OR/NOT nesting is supported (deep nesting is exercised in the test suite). Depth is ultimately bounded by Python's recursion limit.</p>
@@ -2695,7 +2695,7 @@ choosing a worker count:</p>
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"amount_check"</span><span class="p">,</span>
-        <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
         <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>

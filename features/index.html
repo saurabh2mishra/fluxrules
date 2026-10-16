@@ -750,7 +750,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2781,7 +2781,7 @@
 <li><strong>Rule Organization</strong>: <a href="../domains-and-tags/">Domains and Tags</a> for categorization and filtering</li>
 <li><strong>Priority-Based Execution</strong>: Higher priority rules fire first when multiple match</li>
 <li><strong>Multiple Actions</strong>: Each rule can trigger one or more actions in sequence</li>
-<li><strong>Validation</strong>: <a href="../validation-framework/">DSL validation</a> catches syntax errors before rules run</li>
+<li><strong>Validation</strong>: <a href="../validation-framework/">condition validation</a> catches syntax errors before rules run</li>
 <li><strong>Explicit IDs</strong>: Auto-generate or provide your own (sequential integers)</li>
 </ul>
 <hr />
@@ -2794,7 +2794,7 @@
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Check Amount"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"flag_for_review"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2815,7 +2815,7 @@
 <h2 id="what-you-get">What You Get<a class="headerlink" href="#what-you-get" title="Permanent link">&para;</a></h2>
 <h3 id="core-library-no-dependencies">Core Library (No Dependencies)<a class="headerlink" href="#core-library-no-dependencies" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>fluxrules/
-├── domain/       # Rule class, DSL, validation
+├── domain/       # Rule class, conditions, validation
 ├── engine/       # PhreakEngine
 └── services/     # Evaluators, utilities
 </code></pre></div>
@@ -2861,7 +2861,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">".[al
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"process_transaction"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"type"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"transaction"</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"type"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"transaction"</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="n">my_action</span><span class="p">,</span>  <span class="c1"># Any callable</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>

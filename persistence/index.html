@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2699,7 +2699,7 @@
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"high_value_transaction"</span><span class="p">,</span>
-        <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"require_approval"</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">]</span>
@@ -2723,7 +2723,7 @@ defines rules never opens a database connection. To store a rule you built
 in memory, call <code>Rule.save()</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"production_rule"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"act"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">rule</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># now in the database, rule.id is the stored ID</span>
@@ -2734,7 +2734,7 @@ you need update semantics.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Persisted rule (stored in database)</span>
 <span class="n">rule1</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"production_rule"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"act"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Database storage</span>
 <span class="p">)</span>
@@ -2742,7 +2742,7 @@ you need update semantics.</p>
 <span class="c1"># Temporary rule (in-memory only)</span>
 <span class="n">rule2</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"test_rule"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"test"</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"test"</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"test_act"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># No database storage</span>
 <span class="p">)</span>
@@ -2771,7 +2771,7 @@ you need update semantics.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
 
 <span class="c1"># Setup engine and rules</span>
-<span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"test"</span><span class="p">,</span> <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">)</span>
+<span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"test"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">)</span>
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
 <span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">([</span><span class="n">rule</span><span class="p">])</span>
 
@@ -2798,7 +2798,7 @@ you need update semantics.</p>
 <ul>
 <li><strong>SQLite</strong> (default, development, single-file)</li>
 <li><strong>PostgreSQL</strong> (production, scales to 100K+ rules)</li>
-<li><strong>SQL Server, MySQL, and any SQLAlchemy-supported dialect</strong> — via the ServiceFactory path below</li>
+<li><strong>MySQL, SQL Server, and any other SQLAlchemy-supported dialect</strong> — via the ServiceFactory path below; see the note on <code>backend</code> in that section</li>
 </ul>
 <hr />
 <h2 id="using-a-different-sql-provider-postgres-sql-server-etc">Using a different SQL provider (Postgres, SQL Server, etc.)<a class="headerlink" href="#using-a-different-sql-provider-postgres-sql-server-etc" title="Permanent link">&para;</a></h2>
@@ -2840,23 +2840,36 @@ SQLite path — no other changes needed.</p>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"kyc_verified"</span><span class="p">,</span>
     <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"proceed"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>The same pattern works for SQL Server, MySQL, or any dialect SQLAlchemy supports —
-just change the <code>DATABASE_URL</code> scheme (e.g. <code>mssql+pyodbc://...</code>).</p>
+<p><code>SQLAlchemyPersistenceAdapter</code> is dialect-agnostic — it works with any database
+SQLAlchemy supports (PostgreSQL, MySQL, SQL Server, SQLite). The key thing to know:
+<code>backend="postgres"</code> is the configuration value that activates the SQLAlchemy path
+in <code>ServiceFactory</code>, regardless of the actual database dialect. Change the
+<code>DATABASE_URL</code> scheme for your target database but keep <code>backend="postgres"</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># MySQL</span>
+<span class="n">DATABASE_URL</span> <span class="o">=</span> <span class="s2">"mysql+pymysql://user:pass@db.example.com/fluxrules"</span>
+
+<span class="c1"># SQL Server</span>
+<span class="n">DATABASE_URL</span> <span class="o">=</span> <span class="s2">"mssql+pyodbc://user:pass@db.example.com/fluxrules?driver=ODBC+Driver+17+for+SQL+Server"</span>
+</code></pre></div>
+<p>The rest of the setup — <code>session_provider</code>, <code>ServiceFactory.create_persistence_adapter()</code> —
+is identical.</p>
 <h3 id="priority-order">Priority order<a class="headerlink" href="#priority-order" title="Permanent link">&para;</a></h3>
 <p>When <code>persist=True</code> is used, fluxrules checks in this order:</p>
 <ol>
 <li><strong>ServiceFactory adapter</strong> — if one is registered and it is not the in-memory
-   fallback, it is used. This covers Postgres, SQL Server, and any custom adapter.</li>
+   fallback, it is used. This covers any SQLAlchemy-backed dialect (Postgres, MySQL,
+   SQL Server) as long as <code>backend="postgres"</code> was set at registration time.</li>
 <li><strong>DBConnectionManager</strong> — the <code>initialize_persistence()</code> / env-var path. Used
    when no ServiceFactory adapter is registered (the common case for standalone
    scripts and simple deployments).</li>
 <li><strong>Fallback</strong> — if neither is reachable, a locally generated ID is assigned and
-   a <code>DEBUG</code>-level log entry is emitted. The rule is still usable in-memory.</li>
+   an <code>INFO</code>-level log entry is emitted (<code>"No database configured; using in-memory mode"</code>).
+   The rule is still usable in-memory.</li>
 </ol>
 <blockquote>
 <p><strong>Note — table creation:</strong> <code>ServiceFactory</code> does not create database tables.

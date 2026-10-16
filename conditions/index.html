@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -1052,13 +1052,41 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#condition_dsl" class="md-nav__link">
+  <a href="#conditions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        condition_dsl
+        conditions
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="conditions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#node-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2636,13 +2664,41 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#condition_dsl" class="md-nav__link">
+  <a href="#conditions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        condition_dsl
+        conditions
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="conditions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#node-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2839,12 +2895,44 @@
 
 
 <h1 id="conditions-operators">Conditions &amp; Operators<a class="headerlink" href="#conditions-operators" title="Permanent link">&para;</a></h1>
-<p>FluxRules uses a <code>condition_dsl</code> to define a condition or a group of conditions. It is not just a flat dictionary; it behaves like a small decision tree.</p>
-<p><strong>Source:</strong> <code>src/fluxrules/domain/dsl/</code> (DSL validation and execution)</p>
+<p>FluxRules uses a <code>conditions</code> to define a condition or a group of conditions. It is not just a flat dictionary; it behaves like a small decision tree.</p>
+<p><strong>Source:</strong> <code>src/fluxrules/domain/conditions/</code> (condition tree validation and evaluation)</p>
 <hr />
-<h2 id="condition_dsl"><code>condition_dsl</code><a class="headerlink" href="#condition_dsl" title="Permanent link">&para;</a></h2>
-<p><code>condition_dsl</code> is a small tree with a contract enforced by the validation logic.</p>
+<h2 id="conditions"><code>conditions</code><a class="headerlink" href="#conditions" title="Permanent link">&para;</a></h2>
+<p><code>conditions</code> is a small tree with a contract enforced by the validation logic.</p>
 <p>A leaf is a single check, and a grouped node combines children.</p>
+<h3 id="node-types">Node types<a class="headerlink" href="#node-types" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>condition</code></td>
+<td>Leaf — evaluates one field with an operator (<code>&gt;</code>, <code>in</code>, <code>contains</code>, etc.)</td>
+</tr>
+<tr>
+<td><code>group</code></td>
+<td>Boolean combinator — <code>"op": "AND"</code> or <code>"op": "OR"</code> over a list of children</td>
+</tr>
+<tr>
+<td><code>not</code></td>
+<td>Negates its single child condition</td>
+</tr>
+<tr>
+<td><code>exists</code></td>
+<td>Checks whether a field key is present in the facts dict</td>
+</tr>
+<tr>
+<td><code>sequence</code> / <code>accumulate</code></td>
+<td>Advanced temporal / aggregation nodes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="node-keys">Node keys<a class="headerlink" href="#node-keys" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
 <p><strong><code>type</code></strong>: node kind.</p>
@@ -2872,7 +2960,7 @@
 <li><strong><code>field</code></strong>: fact field name as a string. Required for <code>condition</code> and <code>exists</code>.</li>
 <li><strong><code>op</code></strong>: comparison operator such as <code>&gt;</code>, <code>==</code>, <code>in</code>, <code>contains</code>. Required for <code>condition</code>.</li>
 <li><strong><code>value</code></strong>: literal or list compared against the field.</li>
-<li><strong><code>children</code></strong>: list of child DSL nodes for a grouped condition.</li>
+<li><strong><code>children</code></strong>: list of child condition nodes for a grouped condition.</li>
 <li><strong><code>condition</code></strong>: child node used by <code>not</code>.</li>
 <li><strong><code>conditions</code></strong>: alternate spelling accepted for <code>children</code> in some parser/engine paths.</li>
 <li><strong><code>logic</code></strong>: optional alias for the group logic in some builders/parsers; typically <code>AND</code> or <code>OR</code>.</li>
@@ -2948,19 +3036,19 @@ to their symbols before evaluation: <code>eq</code> (<code>==</code>), <code>ne<
 
 <span class="n">rule1</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_amount"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">2000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">2000</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"manual_review"</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">rule2</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_risk_country"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"NG"</span><span class="p">,</span> <span class="s2">"SN"</span><span class="p">]},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"NG"</span><span class="p">,</span> <span class="s2">"SN"</span><span class="p">]},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"block_payment"</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">rule3</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"new_account"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"account_age_days"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">7</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"account_age_days"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">7</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"step_up_auth"</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -3087,7 +3175,7 @@ to their symbols before evaluation: <code>eq</code> (<code>==</code>), <code>ne<
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><a href="../complex-conditions/">Complex Conditions</a></strong> - Learn how to combine simple conditions with AND/OR/NOT logic</li>
-<li><strong><a href="../validation-framework/">Validation Framework</a></strong> - Validate DSL structures</li>
+<li><strong><a href="../validation-framework/">Validation Framework</a></strong> - Validate condition tree structures</li>
 <li><strong><a href="../concepts/">Concepts</a></strong> - Understand rules, engines, and facts</li>
 </ul>
 

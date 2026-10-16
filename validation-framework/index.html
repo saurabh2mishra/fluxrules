@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -1465,10 +1465,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#validate-a-single-rules-dsl" class="md-nav__link">
+  <a href="#validate-a-single-rules-conditions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validate a Single Rule's DSL
+        Validate a Single Rule's Conditions
       
     </span>
   </a>
@@ -1492,15 +1492,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-node-types-and-validation-rules" class="md-nav__link">
+  <a href="#condition-node-types-and-validation-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL Node Types and Validation Rules
+        Condition Node Types and Validation Rules
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="DSL Node Types and Validation Rules">
+    <nav class="md-nav" aria-label="Condition Node Types and Validation Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1592,10 +1592,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-validation-errors" class="md-nav__link">
+  <a href="#condition-validation-errors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL Validation Errors
+        Condition Validation Errors
       
     </span>
   </a>
@@ -2681,10 +2681,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#validate-a-single-rules-dsl" class="md-nav__link">
+  <a href="#validate-a-single-rules-conditions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validate a Single Rule's DSL
+        Validate a Single Rule's Conditions
       
     </span>
   </a>
@@ -2708,15 +2708,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-node-types-and-validation-rules" class="md-nav__link">
+  <a href="#condition-node-types-and-validation-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL Node Types and Validation Rules
+        Condition Node Types and Validation Rules
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="DSL Node Types and Validation Rules">
+    <nav class="md-nav" aria-label="Condition Node Types and Validation Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2808,10 +2808,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-validation-errors" class="md-nav__link">
+  <a href="#condition-validation-errors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL Validation Errors
+        Condition Validation Errors
       
     </span>
   </a>
@@ -2884,27 +2884,27 @@
 
 <h1 id="validation-framework">Validation Framework<a class="headerlink" href="#validation-framework" title="Permanent link">&para;</a></h1>
 <p>Validation in FluxRules catches errors in condition logic before rules are deployed.</p>
-<p><strong>Prerequisites:</strong> Familiarity with <a href="../conditions/">Conditions</a> and condition DSL structure (see <a href="../complex-conditions/">Complex Conditions</a>).</p>
+<p><strong>Prerequisites:</strong> Familiarity with <a href="../conditions/">Conditions</a> and condition condition tree structure (see <a href="../complex-conditions/">Complex Conditions</a>).</p>
 <hr />
 <h2 id="what-gets-validated">What Gets Validated<a class="headerlink" href="#what-gets-validated" title="Permanent link">&para;</a></h2>
-<p>When you create or load rules, FluxRules validates the condition DSL:</p>
+<p>When you create or load rules, FluxRules validates the condition tree:</p>
 <ul>
 <li><strong>Syntax</strong>: Structure, types, required fields</li>
 <li><strong>Semantics</strong>: Valid operators, valid values</li>
 <li><strong>Logic</strong>: No impossible conditions (e.g., <code>age &gt; 18 AND age &lt; 18</code>)</li>
 </ul>
 <p>The validation system catches errors early with clear error messages.</p>
-<p><strong>Source:</strong> <code>src/fluxrules/domain/dsl/validation.py</code></p>
+<p><strong>Source:</strong> <code>src/fluxrules/domain/conditions/validation.py</code></p>
 <hr />
 <h2 id="how-to-validate">How to Validate<a class="headerlink" href="#how-to-validate" title="Permanent link">&para;</a></h2>
-<h3 id="validate-a-single-rules-dsl">Validate a Single Rule's DSL<a class="headerlink" href="#validate-a-single-rules-dsl" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.dsl.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_dsl</span><span class="p">,</span> <span class="n">DSLValidationError</span>
+<h3 id="validate-a-single-rules-conditions">Validate a Single Rule's Conditions<a class="headerlink" href="#validate-a-single-rules-conditions" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_conditions</span><span class="p">,</span> <span class="n">ConditionValidationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
 
-<span class="c1"># Define a rule with condition DSL</span>
+<span class="c1"># Define a rule with a condition tree</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_amount_check"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
         <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
         <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
@@ -2915,11 +2915,11 @@
     <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span>
 <span class="p">)</span>
 
-<span class="c1"># Validate the DSL</span>
+<span class="c1"># Validate the condition tree</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">validate_dsl</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">condition_dsl</span><span class="p">)</span>
+    <span class="n">validate_conditions</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">conditions</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"✅ Rule is valid"</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">DSLValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">ConditionValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"❌ Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="common-validation-errors">Common Validation Errors<a class="headerlink" href="#common-validation-errors" title="Permanent link">&para;</a></h3>
@@ -2930,7 +2930,7 @@
     <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"__unknown__"</span><span class="p">,</span>  <span class="c1"># ❌ Not in VALID_OPERATORS</span>
     <span class="s2">"value"</span><span class="p">:</span> <span class="mi">100</span>
 <span class="p">}</span>
-<span class="c1"># Raises: DSLValidationError: '__unknown__' is not a valid operator</span>
+<span class="c1"># Raises: ConditionValidationError: '__unknown__' is not a valid operator</span>
 </code></pre></div></p>
 <p><strong>Impossible logic:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">impossible_dsl</span> <span class="o">=</span> <span class="p">{</span>
@@ -2941,7 +2941,7 @@
         <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">18</span><span class="p">}</span>  <span class="c1"># ❌ Impossible</span>
     <span class="p">]</span>
 <span class="p">}</span>
-<span class="c1"># Note: validate_dsl validates structure; dead-rule detection is on the roadmap</span>
+<span class="c1"># Note: validate_conditions validates structure; dead-rule detection is on the roadmap</span>
 </code></pre></div></p>
 <p><strong>Missing required fields:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">invalid_condition</span> <span class="o">=</span> <span class="p">{</span>
@@ -2949,10 +2949,10 @@
     <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span>
     <span class="c1"># ❌ Missing 'op' and 'value'</span>
 <span class="p">}</span>
-<span class="c1"># Raises: DSLValidationError: missing required 'op' key</span>
+<span class="c1"># Raises: ConditionValidationError: missing required 'op' key</span>
 </code></pre></div></p>
 <hr />
-<h2 id="dsl-node-types-and-validation-rules">DSL Node Types and Validation Rules<a class="headerlink" href="#dsl-node-types-and-validation-rules" title="Permanent link">&para;</a></h2>
+<h2 id="condition-node-types-and-validation-rules">Condition Node Types and Validation Rules<a class="headerlink" href="#condition-node-types-and-validation-rules" title="Permanent link">&para;</a></h2>
 <h3 id="condition">condition<a class="headerlink" href="#condition" title="Permanent link">&para;</a></h3>
 <p>Tests a single field against a value using an operator.</p>
 <p><strong>Required fields:</strong> <code>type</code>, <code>field</code>, <code>op</code>, <code>value</code></p>
@@ -2995,7 +2995,7 @@
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <h3 id="using-the-shared-dataset">Using the Shared Dataset<a class="headerlink" href="#using-the-shared-dataset" title="Permanent link">&para;</a></h3>
 <p>The shared payment-risk dataset includes a validation example in <a href="../examples/">Example 04</a>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.dsl.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">DSLValidationError</span><span class="p">,</span> <span class="n">validate_dsl</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionValidationError</span><span class="p">,</span> <span class="n">validate_conditions</span>
 
 <span class="c1"># Validate a nested condition tree</span>
 <span class="n">nested_condition</span> <span class="o">=</span> <span class="p">{</span>
@@ -3010,34 +3010,34 @@
     <span class="p">]</span>
 <span class="p">}</span>
 
-<span class="n">validate_dsl</span><span class="p">(</span><span class="n">nested_condition</span><span class="p">)</span>  <span class="c1"># ✅ Passes</span>
+<span class="n">validate_conditions</span><span class="p">(</span><span class="n">nested_condition</span><span class="p">)</span>  <span class="c1"># ✅ Passes</span>
 </code></pre></div>
 <p>See <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py">Example 04: Validation</a> for complete working code.</p>
 <p>For error handling with validation, see <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/14_error_handling.py">Example 14: Error Handling</a>.</p>
 <hr />
-<h2 id="dsl-validation-errors">DSL Validation Errors<a class="headerlink" href="#dsl-validation-errors" title="Permanent link">&para;</a></h2>
-<p>When validation fails, you get a <code>DSLValidationError</code> with context about what went wrong.</p>
+<h2 id="condition-validation-errors">Condition Validation Errors<a class="headerlink" href="#condition-validation-errors" title="Permanent link">&para;</a></h2>
+<p>When validation fails, you get a <code>ConditionValidationError</code> with context about what went wrong.</p>
 <p><strong>Example: Invalid operator</strong></p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.dsl.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_dsl</span><span class="p">,</span> <span class="n">DSLValidationError</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_conditions</span><span class="p">,</span> <span class="n">ConditionValidationError</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">validate_dsl</span><span class="p">({</span>
+    <span class="n">validate_conditions</span><span class="p">({</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
         <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span>
         <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"is_greater_than"</span><span class="p">,</span>  <span class="c1"># ❌ Not a valid operator</span>
         <span class="s2">"value"</span><span class="p">:</span> <span class="mi">100</span>
     <span class="p">})</span>
-<span class="k">except</span> <span class="n">DSLValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">ConditionValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># "is_greater_than is not a valid operator..."</span>
 </code></pre></div>
 <p><strong>Example: Missing required field</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">try</span><span class="p">:</span>
-    <span class="n">validate_dsl</span><span class="p">({</span>
+    <span class="n">validate_conditions</span><span class="p">({</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
         <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span>
         <span class="c1"># ❌ Missing 'op' and 'value'</span>
     <span class="p">})</span>
-<span class="k">except</span> <span class="n">DSLValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">ConditionValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># "Condition missing required 'op' key"</span>
 </code></pre></div>
 <hr />
@@ -3119,7 +3119,7 @@
 <hr />
 <h2 id="when-validation-happens">When Validation Happens<a class="headerlink" href="#when-validation-happens" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Explicit call</strong>: <code>validate_dsl(dsl)</code> - synchronous, raises on error</li>
+<li><strong>Explicit call</strong>: <code>validate_conditions(dsl)</code> - synchronous, raises on error</li>
 <li><strong>Rule creation</strong>: Rules are structurally validated on instantiation</li>
 <li><strong>Engine load</strong>: No automatic validation (<code>engine.load_rules()</code> assumes pre-validated rules)</li>
 <li><strong>REST API</strong> (if enabled): Automatic validation before saving</li>
@@ -3128,7 +3128,7 @@
 <hr />
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
 <p><strong>What validation covers:</strong>
-- ✅ DSL syntax and structure
+- ✅ condition tree syntax and structure
 - ✅ Operator validity
 - ✅ Required fields
 - ✅ Type checking (values match operator expectations)</p>

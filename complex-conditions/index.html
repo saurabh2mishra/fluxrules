@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -3129,7 +3129,7 @@
 <h1 id="complex-conditions">Complex Conditions<a class="headerlink" href="#complex-conditions" title="Permanent link">&para;</a></h1>
 <p>Combine multiple simple conditions using AND/OR/NOT logic.</p>
 <p><strong>Prerequisites:</strong> <a href="../conditions/">Conditions &amp; Operators</a> (condition syntax and operators).</p>
-<p><strong>Source:</strong> <code>src/fluxrules/domain/dsl/</code> (DSL structure and validation)</p>
+<p><strong>Source:</strong> <code>src/fluxrules/domain/conditions/</code> (condition tree structure and validation)</p>
 <hr />
 <h2 id="what-is-a-complex-condition">What is a Complex Condition?<a class="headerlink" href="#what-is-a-complex-condition" title="Permanent link">&para;</a></h2>
 <p>A complex condition combines two or more simple conditions using logical operators. They answer multi-part questions:</p>
@@ -3156,7 +3156,7 @@
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_value_international"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
         <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
         <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
@@ -3194,7 +3194,7 @@
 <p><strong>Example Rule:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"risky_pattern"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
         <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"OR"</span><span class="p">,</span>
         <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
@@ -3238,7 +3238,7 @@
 <p><strong>Example Rule:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"unverified_high_value"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
         <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
         <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
@@ -3273,7 +3273,7 @@
 <p>Combine AND, OR, and NOT for sophisticated logic:</p>
 <div class="highlight"><pre><span></span><code><span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"payment_risk_triage"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
         <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
         <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
@@ -3339,8 +3339,8 @@ python<span class="w"> </span>02_complex_conditions.py
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><a href="../conditions/">Conditions</a></strong> - Simple operator reference</li>
-<li><strong><a href="../validation-framework/">Validation Framework</a></strong> - Validate DSL structures</li>
-<li><strong><a href="../concepts/">Concepts</a></strong> - Understanding the DSL</li>
+<li><strong><a href="../validation-framework/">Validation Framework</a></strong> - Validate condition tree structures</li>
+<li><strong><a href="../concepts/">Concepts</a></strong> - Understanding the condition tree</li>
 </ul>
 <p>When combining conditions, precedence works like mathematical expressions:</p>
 <div class="highlight"><pre><span></span><code>AND has higher precedence than OR
@@ -3355,7 +3355,7 @@ A OR (B AND C)  means:  Either A is true, or (B and C are both true)
 <span class="c1"># Scenario: "Gold members OR (new customers with high purchase intent)"</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Special Retention Offer"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'OR'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
             <span class="c1"># Group 1: Existing loyal customers</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'membership_level'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'=='</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="s1">'gold'</span><span class="p">},</span>
@@ -3377,7 +3377,7 @@ A OR (B AND C)  means:  Either A is true, or (B and C are both true)
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Fast Track Loan Approval"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'AND'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'credit_score'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'&gt;='</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">750</span><span class="p">},</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'debt_to_income_ratio'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'&lt;='</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">},</span>
@@ -3396,7 +3396,7 @@ A OR (B AND C)  means:  Either A is true, or (B and C are both true)
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Send Summer Sale Email"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'AND'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
             <span class="c1"># Must be active and opted-in</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'account_status'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'=='</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="s1">'active'</span><span class="p">},</span>
@@ -3419,7 +3419,7 @@ A OR (B AND C)  means:  Either A is true, or (B and C are both true)
 
 <span class="n">reorder_rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Reorder Low Stock Items"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'AND'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'stock_quantity'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'&lt;'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">50</span><span class="p">},</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'OR'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
@@ -3434,7 +3434,7 @@ A OR (B AND C)  means:  Either A is true, or (B and C are both true)
 
 <span class="n">discontinue_rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Discontinue Slow-Moving Items"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'AND'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'stock_quantity'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'&gt;'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">200</span><span class="p">},</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'units_sold_annual'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'&lt;'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
@@ -3453,7 +3453,7 @@ A OR (B AND C)  means:  Either A is true, or (B and C are both true)
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Grant Advanced Analytics Access"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'AND'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
             <span class="c1"># Must have active subscription</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'condition'</span><span class="p">,</span> <span class="s1">'field'</span><span class="p">:</span> <span class="s1">'subscription_status'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'=='</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="s1">'active'</span><span class="p">},</span>
@@ -3508,7 +3508,7 @@ NOT (A OR B)   ≡  (NOT A) AND (NOT B)
 <span class="c1"># Combine them into a Rule</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Credit Card Approval"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'AND'</span><span class="p">,</span>
         <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span><span class="n">credit_check</span><span class="p">,</span> <span class="n">income_check</span><span class="p">,</span> <span class="n">employment_check</span><span class="p">],</span>
     <span class="p">},</span>
@@ -3604,7 +3604,7 @@ NOT (A OR B)   ≡  (NOT A) AND (NOT B)
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Apply Special Pricing"</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">"Grant special pricing if (new customer OR loyal customer) AND (high order value)"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'AND'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>
             <span class="c1"># New OR loyal customers</span>
             <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'group'</span><span class="p">,</span> <span class="s1">'op'</span><span class="p">:</span> <span class="s1">'OR'</span><span class="p">,</span> <span class="s1">'children'</span><span class="p">:</span> <span class="p">[</span>

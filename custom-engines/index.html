@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2617,7 +2617,7 @@
 <h2 id="custom-engine-structure">Custom engine structure<a class="headerlink" href="#custom-engine-structure" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEngine</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.dsl.evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_dsl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_conditions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 
@@ -2633,7 +2633,7 @@
         <span class="n">explanations</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">rule_id</span> <span class="ow">in</span> <span class="n">rule_ids</span><span class="p">:</span>
             <span class="n">rule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rule_repository</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rule_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">rule</span> <span class="ow">and</span> <span class="n">evaluate_dsl</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">condition_dsl</span><span class="p">,</span> <span class="n">facts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">rule</span> <span class="ow">and</span> <span class="n">evaluate_conditions</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">conditions</span><span class="p">,</span> <span class="n">facts</span><span class="p">):</span>
                 <span class="n">fired_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rule_id</span><span class="p">)</span>
                 <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
                 <span class="n">explanations</span><span class="p">[</span><span class="n">rule_id</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Rule </span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> matched"</span>
@@ -2642,7 +2642,7 @@
 <h2 id="using-a-custom-engine">Using a custom engine<a class="headerlink" href="#using-a-custom-engine" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_value"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>

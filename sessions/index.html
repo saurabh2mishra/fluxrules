@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2595,35 +2595,42 @@
 <p>Create a session via <code>RuleService</code>, then accumulate facts and evaluate:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
 
-<span class="c1"># Create service and add rules (demonstration - requires service layer setup)</span>
 <span class="n">service</span> <span class="o">=</span> <span class="n">RuleService</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+<span class="c1"># Build rules and register them as a named ruleset</span>
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"verify_kyc"</span><span class="p">,</span>
-        <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">},</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"proceed_to_payment"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"check_amount"</span><span class="p">,</span>
-        <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10000</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10000</span><span class="p">},</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"require_approval"</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">]</span>
+<span class="n">ruleset</span> <span class="o">=</span> <span class="n">Ruleset</span><span class="p">(</span>
+    <span class="n">group</span><span class="o">=</span><span class="s2">"order_rules"</span><span class="p">,</span>
+    <span class="n">rules</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">to_engine_rule</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">"order_rules"</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">service</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span><span class="n">ruleset</span><span class="p">)</span>
 
-<span class="c1"># For stateful workflows, use sessions:</span>
-<span class="c1"># session = service.create_session()</span>
-<span class="c1"># session.add_fact("kyc_status", "verified")</span>
-<span class="c1"># session.add_fact("amount", 15000)</span>
-<span class="c1"># result = session.evaluate()</span>
-<span class="c1"># print(f"Actions: {result.actions}")  # ["proceed_to_payment", "require_approval"]</span>
+<span class="c1"># Create a session bound to that ruleset and accumulate facts</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"order_rules"</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"verified"</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">15000</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Actions: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">actions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># actions whose rules matched</span>
 </code></pre></div>
 <p><strong>Key point:</strong> Sessions accumulate facts. You evaluate once against all accumulated facts, not after each <code>add_fact()</code>.</p>
 <h2 id="session-lifecycle">Session lifecycle<a class="headerlink" href="#session-lifecycle" title="Permanent link">&para;</a></h2>
 <p>A session has these phases:</p>
 <ol>
-<li><strong>Create</strong> - <code>service.create_session()</code> initializes an empty session</li>
+<li><strong>Create</strong> - <code>service.create_session(ruleset_id)</code> initializes an empty session bound to that ruleset</li>
 <li><strong>Accumulate</strong> - <code>add_fact()</code>, <code>add_facts()</code>, <code>remove_fact()</code>, <code>clear_facts()</code></li>
 <li><strong>Evaluate</strong> - <code>evaluate()</code> matches rules against accumulated facts</li>
 <li><strong>Save</strong> - <code>save()</code> exports to JSON snapshot</li>
@@ -2631,24 +2638,24 @@
 </ol>
 <p>Evaluations are <strong>independent</strong> - each <code>evaluate()</code> is stateless. The session remembers facts but not evaluation history.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="c1"># Multiple evaluations with different facts (demonstration)</span>
-<span class="c1"># session.add_fact("risk_score", 50)</span>
-<span class="c1"># result1 = session.evaluate()</span>
-<span class="c1">#</span>
-<span class="c1"># session.remove_fact("risk_score")</span>
-<span class="c1"># session.add_fact("risk_score", 80)</span>
-<span class="c1"># result2 = session.evaluate()  # Different result due to updated fact</span>
+<span class="c1"># Multiple evaluations with different facts</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"risk_score"</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">result1</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+
+<span class="n">session</span><span class="o">.</span><span class="n">remove_fact</span><span class="p">(</span><span class="s2">"risk_score"</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"risk_score"</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Different result due to updated fact</span>
 </code></pre></div>
 <h2 id="snapshot-save-and-restore">Snapshot: save and restore<a class="headerlink" href="#snapshot-save-and-restore" title="Permanent link">&para;</a></h2>
 <p>Serialize a session to JSON for checkpointing or recovery:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="c1"># Checkpoint current state (demonstration - requires session object)</span>
-<span class="c1"># snapshot = session.save()  # Returns JSON string</span>
-<span class="c1">#</span>
+<span class="c1"># Checkpoint current state</span>
+<span class="n">snapshot</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># Returns JSON string</span>
+
 <span class="c1"># Later: restore in a new process/thread</span>
-<span class="c1"># restored = type(session).restore(snapshot, service)</span>
-<span class="c1"># result = restored.evaluate()</span>
-<span class="c1">#</span>
+<span class="n">restored</span> <span class="o">=</span> <span class="n">EvaluationSession</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">snapshot</span><span class="p">,</span> <span class="n">service</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">restored</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+
 <span class="c1"># The restored session has the same facts and metadata</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">restored</span><span class="o">.</span><span class="n">facts</span><span class="p">)</span>  <span class="c1"># Same as original session</span>
 </code></pre></div>
@@ -2664,16 +2671,16 @@
 <h2 id="isolation">Isolation<a class="headerlink" href="#isolation" title="Permanent link">&para;</a></h2>
 <p>Each session is isolated. Facts in one session do not affect another:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="c1"># Session isolation demonstration (requires service setup)</span>
-<span class="c1"># session1 = service.create_session()</span>
-<span class="c1"># session1.add_fact("user_type", "premium")</span>
-<span class="c1">#</span>
-<span class="c1"># session2 = service.create_session()</span>
-<span class="c1"># session2.add_fact("user_type", "basic")</span>
-<span class="c1">#</span>
-<span class="c1"># result1 = session1.evaluate()  # Evaluates with "premium"</span>
-<span class="c1"># result2 = session2.evaluate()  # Evaluates with "basic"</span>
-<span class="c1"># # No cross-contamination</span>
+<span class="c1"># Each session is independent — same ruleset, different fact sets</span>
+<span class="n">session1</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"order_rules"</span><span class="p">)</span>
+<span class="n">session1</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"user_type"</span><span class="p">,</span> <span class="s2">"premium"</span><span class="p">)</span>
+
+<span class="n">session2</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"order_rules"</span><span class="p">)</span>
+<span class="n">session2</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"user_type"</span><span class="p">,</span> <span class="s2">"basic"</span><span class="p">)</span>
+
+<span class="n">result1</span> <span class="o">=</span> <span class="n">session1</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Evaluates with "premium"</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">session2</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Evaluates with "basic"</span>
+<span class="c1"># No cross-contamination</span>
 </code></pre></div>
 <p>Use sessions to evaluate the same ruleset independently for different users, transactions, or workflows.</p>
 <hr />

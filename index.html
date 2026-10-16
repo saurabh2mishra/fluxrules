@@ -642,7 +642,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2557,14 +2557,14 @@
 
 
 <h1 id="fluxrules">FluxRules<a class="headerlink" href="#fluxrules" title="Permanent link">&para;</a></h1>
-<p>FluxRules is a Python toolkit for authoring rules and evaluating them against facts. It is loosely based on the concepts from Drools’ Phreak engine and provides optional FastAPI endpoints.</p>
-<p>Use FluxRules to keep decision logic separate from application control flow and evaluate rules consistently across tests, services, and APIs.</p>
+<p>FluxRules is a Python toolkit for defining rules and evaluating them against facts. It is inspired by Drools’ Phreak engine and uses forward chaining to determine which rules should execute.</p>
 <h2 id="core-capabilities">Core Capabilities<a class="headerlink" href="#core-capabilities" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Create Rules </li>
+<li>Validate the rules</li>
 <li>Evaluate a ruleset against facts using the top-level Python API.</li>
 <li>Run rule evaluation through FluxRules’ Phreak engine in stateless or streaming mode.</li>
-<li>Validate rulesets before evaluation.</li>
-<li>Retrieve evaluation explanations by execution ID.</li>
+<li>Retrieve evaluation explanations.</li>
 <li>Use optional HTTP endpoints for evaluation, validation, explanations, and health checks.</li>
 </ul>
 <h2 id="advanced-capabilities">Advanced Capabilities<a class="headerlink" href="#advanced-capabilities" title="Permanent link">&para;</a></h2>

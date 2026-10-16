@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2789,13 +2789,14 @@ be interchangeable.</p>
 </tbody>
 </table>
 <p>The compatibility guarantee is per row. For example, PHREAK and the reference
-evaluator are parity-tested for the supported single-fact DSL subset, while a
+evaluator are parity-tested for the supported single-fact condition subset, while a
 Cross-Fact activation delta is intentionally not comparable to a stateless
 <code>EvaluationResult</code>.</p>
 <h2 id="top-level-functions">Top-Level Functions<a class="headerlink" href="#top-level-functions" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules</code>:</p>
 <ul>
-<li><code>evaluate(rules, facts) → EvaluationResult</code> - Evaluate facts against rules. <code>rules</code> may be a single <code>Rule</code>, any iterable of <code>Rule</code>, or a <code>Ruleset</code>. <code>facts</code> may be a plain <code>dict</code>, a Pydantic v2/v1 model, or any object with <code>model_dump()</code> / <code>dict()</code>.</li>
+<li><code>evaluate(rules, facts) → EvaluationResult</code> - Evaluate facts against rules. <code>rules</code> may be a single <code>Rule</code>, any iterable of <code>Rule</code>, or a <code>Ruleset</code>. </li>
+<li><code>facts</code> may be a plain python <code>dict</code>, a Pydantic v2/v1 model, or any object with <code>model_dump()</code> / <code>dict()</code>.</li>
 <li><code>validate(rules) → list[str]</code> - Validate rules and return issues; accepts the same shapes as <code>evaluate</code></li>
 <li><code>explain(execution_id: str) → dict[str, object]</code> - Get an explanation payload for a past execution; keys: <code>execution_id</code>, <code>fired_rules</code>, <code>actions</code>, <code>trace</code></li>
 </ul>
@@ -2808,7 +2809,7 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 <h2 id="domain-models">Domain Models<a class="headerlink" href="#domain-models" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules</code>:</p>
 <ul>
-<li><code>Rule</code> - Pydantic v2 model: <code>id</code>, <code>name</code>, <code>domain</code>, <code>tags</code>, <code>condition_dsl</code>, <code>action</code>, <code>actions</code>, <code>priority</code>, <code>enabled</code>, <code>persist</code></li>
+<li><code>Rule</code> - Pydantic v2 model: <code>id</code>, <code>name</code>, <code>domain</code>, <code>tags</code>, <code>conditions</code>, <code>action</code>, <code>actions</code>, <code>priority</code>, <code>enabled</code>, <code>persist</code></li>
 <li><code>RuleBuilder</code> / <code>ConditionBuilder</code> - Fluent authoring; <code>RuleBuilder.build()</code> returns a <code>Rule</code></li>
 <li><code>Ruleset</code> - Optional named collection of rules (<code>group: str</code>, <code>rules: tuple[...]</code>). <code>evaluate()</code> accepts bare rules, so you only need this to name a group.</li>
 <li><code>EvaluationResult</code> - The single result type for every evaluation path.
@@ -2816,10 +2817,9 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
   carries <code>candidate_rule_ids</code> (what discovery considered, always a superset of
   <code>fired_rules</code>), <code>ruleset_group</code>, <code>trace</code>, <code>execution_id</code>, <code>latency_ms</code>,
   <code>engine_type</code>, <code>explanations</code>, <code>rules_by_domain</code>, <code>rules_by_tag</code>,
-  <code>fired_segments</code>.
-  <code>fluxrules.engine.infrastructure.EvaluationResult</code> is a re-export of this
-  same class, not a second type.</li>
+  <code>fired_segments</code>.</li>
 </ul>
+<p><code>fluxrules.engine.infrastructure.EvaluationResult</code> is a re-export of this same class, not a second type.</p>
 <h2 id="service-layer">Service Layer<a class="headerlink" href="#service-layer" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules.services</code>:</p>
 <ul>
@@ -2873,10 +2873,10 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 <td>Rule dependencies form a cycle</td>
 </tr>
 <tr>
-<td><code>DSLValidationError</code></td>
+<td><code>ConditionValidationError</code></td>
 <td><code>InvalidRuleError</code></td>
 <td><code>DSL_VALIDATION_ERROR</code></td>
-<td>A <code>condition_dsl</code> tree fails strict validation</td>
+<td>A <code>conditions</code> tree fails strict validation</td>
 </tr>
 <tr>
 <td><code>EmptyRuleLogicError</code></td>
@@ -2888,7 +2888,7 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 <td><code>LossyConditionRebuildError</code></td>
 <td><code>InvalidRuleError</code></td>
 <td><code>LOSSY_CONDITION_REBUILD</code></td>
-<td>A DSL tree would be rebuilt from a lossy <code>.conditions</code> view</td>
+<td>A condition tree would be rebuilt from a lossy <code>.conditions</code> view</td>
 </tr>
 </tbody>
 </table>

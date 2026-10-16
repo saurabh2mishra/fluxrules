@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2772,7 +2772,7 @@
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_value_transaction"</span><span class="p">,</span>
     <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">"tier_1"</span><span class="p">,</span> <span class="s2">"manual_review"</span><span class="p">]),</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"require_approval"</span><span class="p">,</span>
     <span class="n">priority</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Enable database persistence</span>
@@ -2810,10 +2810,10 @@
 <td>Searchable keywords</td>
 </tr>
 <tr>
-<td><code>condition_dsl</code></td>
+<td><code>conditions</code></td>
 <td><code>dict</code></td>
 <td>Yes</td>
-<td>Rule logic (DSL format)</td>
+<td>Rule logic (condition tree format)</td>
 </tr>
 <tr>
 <td><code>action</code></td>
@@ -2842,13 +2842,13 @@
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"rule1"</span><span class="p">,</span>
-        <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"act1"</span><span class="p">,</span>
         <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"rule2"</span><span class="p">,</span>
-        <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"US"</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"US"</span><span class="p">},</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"act2"</span><span class="p">,</span>
         <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">),</span>
@@ -2872,18 +2872,18 @@
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">Rule</span><span class="p">(</span><span class="o">**</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rules_dicts</span><span class="p">]</span>
 </code></pre></div>
 <h2 id="validate-a-rule">Validate a rule<a class="headerlink" href="#validate-a-rule" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.dsl.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_dsl</span><span class="p">,</span> <span class="n">DSLValidationError</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_conditions</span><span class="p">,</span> <span class="n">ConditionValidationError</span>
 
-<span class="c1"># Validate DSL syntax before creating a rule</span>
+<span class="c1"># Validate condition tree syntax before creating a rule</span>
 <span class="n">dsl</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">}</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">validate_dsl</span><span class="p">(</span><span class="n">dsl</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"✅ DSL is valid"</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">DSLValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"❌ Invalid DSL: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">validate_conditions</span><span class="p">(</span><span class="n">dsl</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"✅ Conditions are valid"</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ConditionValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"❌ Invalid conditions: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
-<p>Invalid DSLs raise <code>DSLValidationError</code>. See <a href="../validation-framework/">Validation Framework</a> for details.</p>
+<p>Invalid DSLs raise <code>ConditionValidationError</code>. See <a href="../validation-framework/">Validation Framework</a> for details.</p>
 <h2 id="evaluate-rules">Evaluate rules<a class="headerlink" href="#evaluate-rules" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
 
@@ -2925,7 +2925,7 @@
 <span class="c1"># Original rule</span>
 <span class="n">old_rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"check_amount"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2933,7 +2933,7 @@
 <span class="c1"># Updated rule (new instance)</span>
 <span class="n">new_rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"check_amount"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2945,7 +2945,7 @@
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Validation</strong> - See <a href="../validation-framework/">Validation Framework</a> for DSL validation</li>
+<li><strong>Validation</strong> - See <a href="../validation-framework/">Validation Framework</a> for condition validation</li>
 <li><strong>Complex Conditions</strong> - See <a href="../complex-conditions/">Complex Conditions</a> for AND/OR/NOT logic</li>
 <li><strong>Persistence</strong> - See <a href="../persistence/">Persistence</a> for database management</li>
 <li><strong>Custom Actions</strong> - See <a href="../custom-actions/">Custom Actions</a> for action handlers</li>

@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2832,10 +2832,12 @@
 <p>Comprehensive reference for all REST API endpoints.</p>
 <h2 id="requestresponse-format">Request/Response Format<a class="headerlink" href="#requestresponse-format" title="Permanent link">&para;</a></h2>
 <p>All requests use <code>Content-Type: application/json</code>.</p>
-<p>All responses include:
-- <code>fired_rules</code> - List of matched rule IDs
-- <code>actions</code> - List of triggered actions
-- <code>latency_ms</code> - Evaluation time in milliseconds</p>
+<p>All responses include:</p>
+<ul>
+<li><code>fired_rules</code> - List of matched rule IDs</li>
+<li><code>actions</code> - List of triggered actions</li>
+<li><code>latency_ms</code> - Evaluation time in milliseconds</li>
+</ul>
 <h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
 <h3 id="post-apiv1evaluate">POST /api/v1/evaluate<a class="headerlink" href="#post-apiv1evaluate" title="Permanent link">&para;</a></h3>
 <p>Evaluate facts against rules.</p>
@@ -2887,7 +2889,7 @@
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"rule_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"rule_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"high_value_transaction"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"condition_dsl"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
 <span class="w">  </span><span class="nt">"matched"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"matching_conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"amount &gt; 5000"</span><span class="p">],</span>
 <span class="w">  </span><span class="nt">"explanation"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Amount exceeds threshold"</span>
@@ -2900,7 +2902,7 @@
 <span class="w">  </span><span class="nt">"rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"test_rule"</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">"condition_dsl"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"flag"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">],</span>
@@ -2915,10 +2917,10 @@
 <span class="p">}</span>
 </code></pre></div></p>
 <h3 id="post-apiv1validate">POST /api/v1/validate<a class="headerlink" href="#post-apiv1validate" title="Permanent link">&para;</a></h3>
-<p>Validate DSL syntax.</p>
+<p>Validate condition tree syntax.</p>
 <p><strong>Request:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"condition_dsl"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"condition"</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"amount"</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&gt;"</span><span class="p">,</span>
@@ -2947,7 +2949,7 @@
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"new_rule"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fraud_detection"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"condition_dsl"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
 <span class="w">  </span><span class="nt">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"flag"</span>
 <span class="p">}</span>
 </code></pre></div></p>
@@ -2975,11 +2977,13 @@
 <span class="w">  </span><span class="nt">"error_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VALIDATION_ERROR"</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Common error codes:
-- <code>VALIDATION_ERROR</code> - Invalid request format
-- <code>DSL_ERROR</code> - Invalid DSL syntax
-- <code>RULE_NOT_FOUND</code> - Rule ID does not exist
-- <code>INTERNAL_ERROR</code> - Server error</p>
+<p>Common error codes:</p>
+<ul>
+<li><code>VALIDATION_ERROR</code> - Invalid request format</li>
+<li><code>DSL_ERROR</code> - Invalid condition tree syntax</li>
+<li><code>RULE_NOT_FOUND</code> - Rule ID does not exist</li>
+<li><code>INTERNAL_ERROR</code> - Server error</li>
+</ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>

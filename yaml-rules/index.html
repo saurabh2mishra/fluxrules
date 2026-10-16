@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2567,11 +2567,11 @@
 <code>PhreakEngine</code>.</p>
 <h2 id="yaml">YAML<a class="headerlink" href="#yaml" title="Permanent link">&para;</a></h2>
 <p>YAML files contain either one mapping or a list of mappings using the canonical
-<code>Rule</code> fields. <code>condition_dsl</code> is the full condition tree.</p>
+<code>Rule</code> fields. <code>conditions</code> is the full condition tree.</p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7</span>
 <span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">high_value</span>
 <span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">review</span>
-<span class="w">  </span><span class="nt">condition_dsl</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">conditions</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">condition</span>
 <span class="w">    </span><span class="nt">field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">amount</span>
 <span class="w">    </span><span class="nt">op</span><span class="p">:</span><span class="w"> </span><span class="s">"&gt;"</span>
@@ -2603,7 +2603,7 @@ canonical validator before loading it:</p>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="o">.</span><span class="n">model_validate_yaml</span><span class="p">(</span>
     <span class="p">{</span>
         <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"country_check"</span><span class="p">,</span>
-        <span class="s2">"condition_dsl"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"conditions"</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
             <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span>
             <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span>
@@ -2614,7 +2614,7 @@ canonical validator before loading it:</p>
     <span class="p">}</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>This rejects empty logic, unknown operators, malformed DSL structure, and
+<p>This rejects empty logic, unknown operators, malformed condition tree structure, and
 conflicting action fields at the authoring boundary.</p>
 <h2 id="operational-guidance">Operational guidance<a class="headerlink" href="#operational-guidance" title="Permanent link">&para;</a></h2>
 <p>Store YAML rule files in version control, validate them in CI, and record the

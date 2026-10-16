@@ -427,10 +427,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#condition-dsl" class="md-nav__link">
+  <a href="#conditions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Condition DSL
+        Conditions
       
     </span>
   </a>
@@ -699,7 +699,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2583,10 +2583,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#condition-dsl" class="md-nav__link">
+  <a href="#conditions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Condition DSL
+        Conditions
       
     </span>
   </a>
@@ -2678,7 +2678,7 @@
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"payment_risk_high"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
         <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span>
         <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span>
@@ -2690,14 +2690,30 @@
     <span class="n">priority</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Key Attributes:</strong>
-- <code>id</code> - Auto-generated unique identifier (or manual override)
-- <code>name</code> - Human-readable rule name
-- <code>domain</code> - Logical grouping (e.g., "fraud_detection", "compliance")
-- <code>tags</code> - String set for filtering and categorization
-- <code>condition_dsl</code> - Nested tree defining when the rule fires
-- <code>action</code> - What to do when the rule matches
-- <code>priority</code> - Execution order (higher = runs first)</p>
+<p><strong>Key Attributes:</strong></p>
+<ul>
+<li>
+<p><code>id</code> - Auto-generated unique identifier (or manual override)</p>
+</li>
+<li>
+<p><code>name</code> - Human-readable rule name</p>
+</li>
+<li>
+<p><code>domain</code> - Logical grouping (e.g., "fraud_detection", "compliance")</p>
+</li>
+<li>
+<p><code>tags</code> - String set for filtering and categorization</p>
+</li>
+<li>
+<p><code>conditions</code> - Nested tree defining when the rule fires</p>
+</li>
+<li>
+<p><code>action</code> - What to do when the rule matches</p>
+</li>
+<li>
+<p><code>priority</code> - Execution order (higher = runs first)</p>
+</li>
+</ul>
 <p><strong>See:</strong> <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py">examples/18_unified_rule.py</a></p>
 <hr />
 <h2 id="engine">Engine<a class="headerlink" href="#engine" title="Permanent link">&para;</a></h2>
@@ -2736,11 +2752,19 @@
 <p><strong>Important:</strong> A fact is <strong>stateless</strong> by default. Each <code>engine.evaluate(fact)</code> call is independent.</p>
 <p><strong>See:</strong> <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/06_working_memory.py">examples/06_working_memory.py</a> (state management patterns)</p>
 <hr />
-<h2 id="condition-dsl">Condition DSL<a class="headerlink" href="#condition-dsl" title="Permanent link">&para;</a></h2>
-<p>A <strong>Condition DSL</strong> (Domain-Specific Language) is a nested tree that defines when a rule fires. It combines:
-- Simple conditions (field comparisons)
-- Logical operators (AND, OR, NOT)
-- Nested groups</p>
+<h2 id="conditions">Conditions<a class="headerlink" href="#conditions" title="Permanent link">&para;</a></h2>
+<p>A <strong>condition tree</strong> is a nested tree that defines when a rule fires. It combines:</p>
+<ul>
+<li>
+<p>Simple conditions (field comparisons)</p>
+</li>
+<li>
+<p>Logical operators (AND, OR, NOT)</p>
+</li>
+<li>
+<p>Nested groups</p>
+</li>
+</ul>
 <p><strong>Basic condition:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
@@ -2770,7 +2794,7 @@
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></p>
-<p><strong>Validation:</strong> Use <code>from fluxrules.domain.dsl.validation import validate_dsl</code></p>
+<p><strong>Validation:</strong> Use <code>from fluxrules.domain.conditions.validation import validate_conditions</code></p>
 <p><strong>See:</strong> <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py">examples/02_complex_conditions.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/13_complex_rules.py">examples/13_complex_rules.py</a></p>
 <hr />
 <h2 id="evaluation-result">Evaluation Result<a class="headerlink" href="#evaluation-result" title="Permanent link">&para;</a></h2>
@@ -2789,18 +2813,15 @@
 <p><strong>See:</strong> <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py">examples/15_action_system.py</a></p>
 <hr />
 <h2 id="domain">Domain<a class="headerlink" href="#domain" title="Permanent link">&para;</a></h2>
-<p>A <strong>Domain</strong> is a logical grouping of rules. Rules with the same domain typically handle a specific problem area.</p>
-<p><strong>Common domains in payment risk:</strong>
-- <code>fraud_detection</code> - Anti-fraud rules
-- <code>compliance</code> - Regulatory rules
-- <code>risk_ops</code> - Risk assessment rules</p>
+<p>A <strong>Domain</strong> is a logical grouping of rules. Rules with the same domain typically handle a specific problem area. </p>
+<p>For example depending on how your rules are grouped you can give a name e.g. <code>compliance</code> or <code>fraud_detections</code> etc.</p>
 <p><strong>Filtering by domain:</strong>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span><span class="p">,</span> <span class="n">PhreakEngine</span>
 
 <span class="c1"># Define rules with domains</span>
-<span class="n">rule1</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule1"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">)</span>
-<span class="n">rule2</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule2"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span> <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"NG"</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)</span>
-<span class="n">rule3</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule3"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"type"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"transaction"</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"process"</span><span class="p">)</span>
+<span class="n">rule1</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule1"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">)</span>
+<span class="n">rule2</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule2"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"NG"</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)</span>
+<span class="n">rule3</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule3"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"type"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"transaction"</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"process"</span><span class="p">)</span>
 
 <span class="n">all_rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">rule1</span><span class="p">,</span> <span class="n">rule2</span><span class="p">,</span> <span class="n">rule3</span><span class="p">]</span>
 
@@ -2814,11 +2835,6 @@
 <hr />
 <h2 id="tag">Tag<a class="headerlink" href="#tag" title="Permanent link">&para;</a></h2>
 <p>A <strong>Tag</strong> is a string label for categorization and filtering.</p>
-<p><strong>Typical tags:</strong>
-- <code>tier_0</code>, <code>tier_1</code>, <code>tier_2</code> - Rule priority tiers
-- <code>cross_border</code> - Rules for cross-border scenarios
-- <code>manual_review</code> - Rules requiring human review
-- <code>auto_approve</code> - Rules for automatic approval</p>
 <p><strong>Filtering by tag:</strong>
 <div class="highlight"><pre><span></span><code><span class="c1"># Get all tier_0 rules</span>
 <span class="n">tier0_rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">all_rules</span> <span class="k">if</span> <span class="s2">"tier_0"</span> <span class="ow">in</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">tags</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">())]</span>
@@ -2837,7 +2853,7 @@
 <span class="c1"># 3 payment-risk rules</span>
 <span class="n">rules</span> <span class="o">=</span> <span class="n">build_shared_rules</span><span class="p">()</span>
 
-<span class="c1"># 8-condition nested DSL</span>
+<span class="c1"># 8-condition nested tree</span>
 <span class="n">dsl</span> <span class="o">=</span> <span class="n">complex_risk_condition</span><span class="p">()</span>
 </code></pre></div>
 <p>This shared context lets you focus on learning features without context-switching between problem domains.</p>

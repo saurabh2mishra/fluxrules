@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -1052,10 +1052,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-condition-format" class="md-nav__link">
+  <a href="#condition-tree-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL (Condition) format
+        Condition tree format
       
     </span>
   </a>
@@ -2603,10 +2603,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dsl-condition-format" class="md-nav__link">
+  <a href="#condition-tree-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DSL (Condition) format
+        Condition tree format
       
     </span>
   </a>
@@ -2717,7 +2717,7 @@
 
 
 <h1 id="pydantic-rule-guide">Pydantic Rule Guide<a class="headerlink" href="#pydantic-rule-guide" title="Permanent link">&para;</a></h1>
-<p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (Rule) and <a href="../conditions/">Conditions</a> (DSL).</p>
+<p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (Rule) and <a href="../conditions/">Conditions</a> (condition tree).</p>
 <hr />
 <p>The <code>Rule</code> class is a Pydantic v2 model. This guide covers all fields and validation.</p>
 <h2 id="rule-fields">Rule fields<a class="headerlink" href="#rule-fields" title="Permanent link">&para;</a></h2>
@@ -2726,7 +2726,7 @@
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="c1"># Core (required)</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_value_transaction"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
 
     <span class="c1"># Core (optional)</span>
     <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span>                     <span class="c1"># Logical grouping (default: "default")</span>
@@ -2757,11 +2757,11 @@
 <td>Human-readable rule name</td>
 </tr>
 <tr>
-<td><code>condition_dsl</code></td>
+<td><code>conditions</code></td>
 <td><code>dict</code></td>
 <td>Yes</td>
 <td>-</td>
-<td>Rule logic (DSL format)</td>
+<td>Rule logic (condition tree format)</td>
 </tr>
 <tr>
 <td><code>domain</code></td>
@@ -2800,8 +2800,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="dsl-condition-format">DSL (Condition) format<a class="headerlink" href="#dsl-condition-format" title="Permanent link">&para;</a></h2>
-<p>The <code>condition_dsl</code> field defines rule logic:</p>
+<h2 id="condition-tree-format">Condition tree format<a class="headerlink" href="#condition-tree-format" title="Permanent link">&para;</a></h2>
+<p>The <code>conditions</code> field defines rule logic:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Simple condition</span>
 <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">}</span>
 
@@ -2828,26 +2828,26 @@
 
 <span class="c1"># Missing required field</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">})</span>  <span class="c1"># Missing `name`</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">})</span>  <span class="c1"># Missing `name`</span>
 <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="c1"># Invalid DSL</span>
+<span class="c1"># Invalid conditions</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"test"</span><span class="p">,</span>
-        <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"invalid"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">},</span>  <span class="c1"># Invalid type</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"invalid"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">},</span>  <span class="c1"># Invalid type</span>
         <span class="n">persist</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
 <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DSL validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"condition validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="working-with-fields">Working with fields<a class="headerlink" href="#working-with-fields" title="Permanent link">&para;</a></h2>
 <h3 id="add-tags">Add tags<a class="headerlink" href="#add-tags" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"check"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"pending"</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"pending"</span><span class="p">},</span>
     <span class="n">tags</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">"tier_1"</span><span class="p">,</span> <span class="s2">"fraud"</span><span class="p">,</span> <span class="s2">"manual_review"</span><span class="p">]),</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2861,7 +2861,7 @@
 <span class="c1"># Action is a single string</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"suspicious"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"risk_score"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">75</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"risk_score"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">75</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"block"</span><span class="p">,</span>  <span class="c1"># Single action</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2872,9 +2872,9 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
 
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"urgent"</span><span class="p">,</span> <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"critical"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"normal"</span><span class="p">,</span> <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"warning"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"low"</span><span class="p">,</span> <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"info"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"urgent"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"critical"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"normal"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"warning"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"low"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"info"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
 <span class="p">]</span>
 
 <span class="c1"># Higher priority evaluated first</span>
@@ -2894,8 +2894,8 @@
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Conditions</strong> - See <a href="../conditions/">Conditions</a> for DSL operators</li>
-<li><strong>Validation</strong> - See <a href="../validation-framework/">Validation Framework</a> for DSL validation</li>
+<li><strong>Conditions</strong> - See <a href="../conditions/">Conditions</a> for condition operators</li>
+<li><strong>Validation</strong> - See <a href="../validation-framework/">Validation Framework</a> for condition validation</li>
 <li><strong>Rule Lifecycle</strong> - See <a href="../rule-lifecycle/">Rule Lifecycle</a> for CRUD operations</li>
 </ul>
 

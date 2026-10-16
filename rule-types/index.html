@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2589,14 +2589,14 @@ the internal <code>EngineRule</code> representation. Condition syntax belongs to
 <a href="../conditions/">Conditions</a>, and engine-mode selection belongs to
 <a href="../choosing-an-engine/">Choosing an Engine</a>.</p>
 <h2 id="public-rule">Public <code>Rule</code><a class="headerlink" href="#public-rule" title="Permanent link">&para;</a></h2>
-<p><code>Rule</code> is the public type for authoring and serialization. Its <code>condition_dsl</code>
+<p><code>Rule</code> is the public type for authoring and serialization. Its <code>conditions</code>
 tree is the source of truth for boolean logic. Set <code>persist=False</code> in examples
 and tests to avoid writing to the configured database.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"adult"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">18</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">18</span><span class="p">},</span>
     <span class="n">actions</span><span class="o">=</span><span class="p">(</span><span class="s2">"allow"</span><span class="p">,</span> <span class="s2">"audit"</span><span class="p">),</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2623,19 +2623,19 @@ internal boundary needs the <code>EngineRule</code> shape instead.</p>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">rule</span><span class="o">.</span><span class="n">condition_dsl</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"condition"</span>
+<span class="k">assert</span> <span class="n">rule</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"condition"</span>
 <span class="k">assert</span> <span class="n">rule</span><span class="o">.</span><span class="n">domain</span> <span class="o">==</span> <span class="s2">"fraud_detection"</span>
 
 <span class="n">engine_rule</span> <span class="o">=</span> <span class="n">RuleBuilder</span><span class="p">(</span><span class="n">rule_id</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">"internal"</span><span class="p">)</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span>
     <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
 <span class="p">)</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s2">"flag"</span><span class="p">)</span><span class="o">.</span><span class="n">build_engine_rule</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">engine_rule</span><span class="o">.</span><span class="n">condition_dsl</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"condition"</span>
+<span class="k">assert</span> <span class="n">engine_rule</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"condition"</span>
 </code></pre></div>
 <p>Implementation: <code>src/fluxrules/domain/rule_builder.py</code>.</p>
 <h2 id="internal-enginerule">Internal <code>EngineRule</code><a class="headerlink" href="#internal-enginerule" title="Permanent link">&para;</a></h2>
 <p><code>EngineRule</code> is immutable and is used by the reference evaluator, persistence
 adapters, and internal services. Its authoritative logic is always the full
-<code>condition_dsl</code> tree. Its <code>.conditions</code> member is a derived flat leaf view for
+<code>conditions</code> tree. Its <code>.conditions</code> member is a derived flat leaf view for
 compatibility; it cannot preserve <code>OR</code>, <code>NOT</code>, or nesting and must not be used
 to rebuild rule logic.</p>
 <p>Convert explicitly at an internal integration boundary:</p>
@@ -2643,7 +2643,7 @@ to rebuild rule logic.</p>
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"adult"</span><span class="p">,</span>
-    <span class="n">condition_dsl</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">18</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">18</span><span class="p">},</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"allow"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2651,7 +2651,7 @@ to rebuild rule logic.</p>
 <span class="n">engine_rule</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">to_engine_rule</span><span class="p">()</span>
 <span class="n">round_tripped</span> <span class="o">=</span> <span class="n">Rule</span><span class="o">.</span><span class="n">from_engine_rule</span><span class="p">(</span><span class="n">engine_rule</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">round_tripped</span><span class="o">.</span><span class="n">condition_dsl</span> <span class="o">==</span> <span class="n">rule</span><span class="o">.</span><span class="n">condition_dsl</span>
+<span class="k">assert</span> <span class="n">round_tripped</span><span class="o">.</span><span class="n">conditions</span> <span class="o">==</span> <span class="n">rule</span><span class="o">.</span><span class="n">conditions</span>
 </code></pre></div>
 <p>Implementation: <code>src/fluxrules/domain/models.py</code>; conversion methods:
 <code>src/fluxrules/domain/unified_rule.py</code>.</p>

@@ -553,7 +553,7 @@
   <span class="md-ellipsis">
     
   
-    Engine Selection
+    Engine
   
 
     
@@ -2627,7 +2627,7 @@
 
 
 <h1 id="rule-builder">Rule Builder<a class="headerlink" href="#rule-builder" title="Permanent link">&para;</a></h1>
-<p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (Rule) and <a href="../conditions/">Conditions</a> (DSL).</p>
+<p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (Rule) and <a href="../conditions/">Conditions</a> (condition tree).</p>
 <hr />
 <p><code>RuleBuilder</code> is a fluent API for constructing rules step by step. It validates
 as you go and <code>build()</code> returns the same canonical <code>Rule</code> every other authoring
@@ -2681,7 +2681,7 @@ path produces, so the result goes straight into an engine with no conversion.</p
 </tr>
 <tr>
 <td><code>.condition(dict)</code></td>
-<td>Set condition DSL, parsed and validated now (required)</td>
+<td>Set condition tree, parsed and validated now (required)</td>
 <td>Builder</td>
 </tr>
 <tr>
@@ -2765,7 +2765,7 @@ path produces, so the result goes straight into an engine with no conversion.</p
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="building-complex-conditions">Building complex conditions<a class="headerlink" href="#building-complex-conditions" title="Permanent link">&para;</a></h2>
-<p><code>ConditionBuilder</code> assembles nested boolean logic without writing DSL dicts by
+<p><code>ConditionBuilder</code> assembles nested boolean logic without writing condition tree dicts by
 hand.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionBuilder</span><span class="p">,</span> <span class="n">PhreakEngine</span><span class="p">,</span> <span class="n">RuleBuilder</span>
 
@@ -2785,7 +2785,7 @@ hand.</p>
 returns to build deeper trees.</p>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <p>The builder fails at the point of the mistake rather than at evaluation time.
-<code>.condition()</code> parses the DSL immediately, and <code>.build()</code> enforces that the
+<code>.condition()</code> parses the condition tree immediately, and <code>.build()</code> enforces that the
 required fields are present.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleValidationError</span>
@@ -2811,7 +2811,7 @@ built, or call <code>Rule.save()</code> later:</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Rule Lifecycle</strong> - See <a href="../rule-lifecycle/">Rule Lifecycle</a> for CRUD operations</li>
-<li><strong>Conditions</strong> - See <a href="../conditions/">Conditions</a> for DSL operators</li>
+<li><strong>Conditions</strong> - See <a href="../conditions/">Conditions</a> for condition operators</li>
 <li><strong>Example</strong> - See <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py">Example 18: Unified Rule</a> for working code</li>
 </ul>
 
