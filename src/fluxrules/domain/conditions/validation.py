@@ -16,7 +16,7 @@ __all__ = ["ConditionValidationError", "validate_conditions"]
 # Valid keys for each DSL node type
 _CONDITION_KEYS = {"type", "field", "op", "value"}
 _GROUP_KEYS = {"type", "op", "logic", "children", "conditions"}
-_NOT_KEYS = {"type", "condition", "children"}
+_NOT_KEYS = {"type", "condition", "child", "conditions", "children"}
 _EXISTS_KEYS = {"type", "field"}
 _SEQUENCE_KEYS = {"type", "steps", "within_seconds"}
 _ACCUMULATE_KEYS = {"type", "field", "function", "source", "condition"}
@@ -139,15 +139,19 @@ def _validate_group(dsl: dict[str, Any], path: str) -> None:
 def _validate_not(dsl: dict[str, Any], path: str) -> None:
     _check_extra_keys(dsl, _NOT_KEYS, "not", path)
 
-    # The strict authoring shape spells the child "condition"; the engine shape
-    # uses "children". Accepting only the former rejected engine-produced trees.
-    if "condition" in dsl:
-        validate_conditions(dsl["condition"], path=f"{path}.condition")
+    # Accept every key shape the engine parsers accept:
+    #   singular: "condition" or "child"  (single dict child)
+    #   plural:   "conditions" or "children"  (list of children)
+    singular = dsl.get("condition") or dsl.get("child")
+    if isinstance(singular, dict):
+        validate_conditions(singular, path=f"{path}.condition")
         return
 
-    children = dsl.get("children")
+    children = dsl.get("children") or dsl.get("conditions")
     if not children:
-        raise ConditionValidationError(f"NOT node at '{path}' missing required 'condition' key")
+        raise ConditionValidationError(
+            f"NOT node at '{path}' missing child — use 'condition' (dict) or 'children'/'conditions' (list)"
+        )
     for i, child in enumerate(children):
         validate_conditions(child, path=f"{path}.children[{i}]")
 

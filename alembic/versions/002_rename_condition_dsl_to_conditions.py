@@ -26,8 +26,14 @@ def upgrade() -> None:
     with op.batch_alter_table("rule_versions") as batch_op:
         batch_op.alter_column("condition_dsl", new_column_name="conditions")
 
+    with op.batch_alter_table("conflicted_rules") as batch_op:
+        batch_op.alter_column("condition_dsl", new_column_name="conditions")
+
 
 def downgrade() -> None:
+    with op.batch_alter_table("conflicted_rules") as batch_op:
+        batch_op.alter_column("conditions", new_column_name="condition_dsl")
+
     with op.batch_alter_table("rule_versions") as batch_op:
         batch_op.alter_column("conditions", new_column_name="condition_dsl")
 
