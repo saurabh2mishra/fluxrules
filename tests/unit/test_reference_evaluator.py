@@ -1,7 +1,5 @@
 import logging
 
-import pytest
-
 from fluxrules.domain.models import EngineRule, RuleCondition, Ruleset
 from fluxrules.domain.unified_rule import Rule as CanonicalRule
 from fluxrules.services.reference_evaluator import ReferenceEvaluator
