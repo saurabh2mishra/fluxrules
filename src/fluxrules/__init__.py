@@ -33,9 +33,9 @@ from fluxrules.config.deployment import (
     DeploymentType,
 )
 from fluxrules.domain.errors import (
+    ConditionValidationError,
     CorruptStoredRuleError,
     CyclicDependencyError,
-    ConditionValidationError,
     EmptyRuleLogicError,
     FluxRulesError,
     InvalidRuleError,

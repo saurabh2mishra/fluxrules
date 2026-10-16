@@ -7,8 +7,8 @@ import pytest
 from fluxrules.domain.errors import FluxRulesError
 from fluxrules.exceptions import (
     ActionExecutionError,
-    ConfigurationError,
     ConditionParseError,
+    ConfigurationError,
     EngineError,
     FluxRulesException,
     RepositoryError,

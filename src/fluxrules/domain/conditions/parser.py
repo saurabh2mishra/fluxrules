@@ -11,8 +11,8 @@ from typing import Any
 from fluxrules.domain.conditions import (
     AccumulateNode,
     ConditionNode,
-    CrossFactJoinNode,
     ConditionTreeNode,
+    CrossFactJoinNode,
     ExistsNode,
     GroupNode,
     NotNode,

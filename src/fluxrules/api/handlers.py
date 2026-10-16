@@ -12,8 +12,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from fluxrules.exceptions import (
-    ConfigurationError,
     ConditionParseError,
+    ConfigurationError,
     EngineError,
     FluxRulesException,
     RepositoryError,

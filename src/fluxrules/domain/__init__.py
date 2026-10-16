@@ -1,8 +1,8 @@
 from fluxrules.domain import schemas
 from fluxrules.domain.errors import (
+    ConditionValidationError,
     CorruptStoredRuleError,
     CyclicDependencyError,
-    ConditionValidationError,
     EmptyRuleLogicError,
     FluxRulesError,
     InvalidRuleError,
