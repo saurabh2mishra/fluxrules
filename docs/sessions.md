@@ -65,13 +65,13 @@ Evaluations are **independent** - each `evaluate()` is stateless. The session re
 
 ```python
 # python skip
-# Multiple evaluations with different facts (demonstration)
-# session.add_fact("risk_score", 50)
-# result1 = session.evaluate()
-#
-# session.remove_fact("risk_score")
-# session.add_fact("risk_score", 80)
-# result2 = session.evaluate()  # Different result due to updated fact
+# Multiple evaluations with different facts
+session.add_fact("risk_score", 50)
+result1 = session.evaluate()
+
+session.remove_fact("risk_score")
+session.add_fact("risk_score", 80)
+result2 = session.evaluate()  # Different result due to updated fact
 ```
 
 ## Snapshot: save and restore
