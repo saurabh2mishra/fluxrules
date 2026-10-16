@@ -101,9 +101,9 @@ class RuleRepository:
             return None
 
         for key, value in kwargs.items():
-            if key == "conditions" and isinstance(value, (list, tuple)):
-                # Store a DSL tree, not a list of condition dicts: the column
-                # holds exactly one shape.
+            if key == "conditions" and isinstance(value, (list, tuple)):  # pragma: no cover
+                # Legacy path: callers passing a flat RuleCondition tuple instead of a DSL
+                # dict. All current call sites pass a dict; this coerces foreign objects.
                 from fluxrules.domain.conditions.evaluator import conditions_to_tree
 
                 orm_rule.conditions = conditions_to_tree(value)

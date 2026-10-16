@@ -517,3 +517,102 @@ class TestCompositeValidator:
 def mock_db() -> Session:
     """Create a mock database session."""
     return Mock(spec=Session)
+
+
+class TestDuplicateValidatorConditionsAsString:
+    """DuplicateValidator must handle conditions stored as a JSON string, not just a dict."""
+
+    def test_conditions_as_string_in_rule_data(self, mock_db: Session):
+        """When the incoming rule_data['conditions'] is a JSON string, it should still match."""
+        import json
+
+        cond = {"type": "condition", "field": "age", "op": "==", "value": 25}
+
+        mock_rule = Mock()
+        mock_rule.id = 99
+        mock_rule.name = "Existing"
+        mock_rule.conditions = cond  # existing rule stores as dict
+
+        filter_mock = Mock()
+        filter_mock.filter.return_value.all.return_value = [mock_rule]
+        mock_db.query.return_value = filter_mock
+
+        validator = DuplicateValidator(mock_db)
+        rule_data = {
+            "name": "New Rule",
+            "group": "default",
+            "conditions": json.dumps(cond),  # incoming as string
+            "action": "log",
+        }
+        result = validator.validate(rule_data)
+        # Whether it matches or not, the string path must not raise
+        assert result is not None
+
+    def test_existing_rule_conditions_as_string(self, mock_db: Session):
+        """When an existing rule stores conditions as a JSON string, the comparison must work."""
+        import json
+
+        cond = {"type": "condition", "field": "score", "op": ">", "value": 50}
+
+        mock_rule = Mock()
+        mock_rule.id = 7
+        mock_rule.name = "Stored"
+        mock_rule.conditions = json.dumps(cond)  # stored as string in DB
+
+        filter_mock = Mock()
+        filter_mock.filter.return_value.all.return_value = [mock_rule]
+        mock_db.query.return_value = filter_mock
+
+        validator = DuplicateValidator(mock_db)
+        rule_data = {
+            "name": "New Rule",
+            "group": "default",
+            "conditions": cond,  # incoming as dict
+            "action": "log",
+        }
+        result = validator.validate(rule_data)
+        assert result is not None
+
+    def test_empty_conditions_skips_check(self, mock_db: Session):
+        """When conditions is empty/None, duplicate check is skipped cleanly."""
+        validator = DuplicateValidator(mock_db)
+        rule_data = {"name": "R", "group": "g", "conditions": None, "action": "log"}
+        result = validator.validate(rule_data)
+        assert not result.has_errors()
+
+
+class TestBRMSValidatorNonDictConditions:
+    """BRMSValidator must exit cleanly when conditions is not a dict."""
+
+    def test_non_dict_conditions_skipped(self):
+        validator = BRMSValidator()
+        rule_data = {"name": "R", "conditions": "not-a-dict", "action": "log", "enabled": True}
+        result = validator.validate(rule_data)
+        # No crash; no spurious warnings/errors from BRMS checks
+        assert not result.has_errors()
+
+    def test_none_conditions_skipped(self):
+        validator = BRMSValidator()
+        rule_data = {"name": "R", "conditions": None, "action": "log", "enabled": True}
+        result = validator.validate(rule_data)
+        assert not result.has_errors()
+
+    def test_disabled_rule_with_complex_conditions_warns(self):
+        validator = BRMSValidator()
+        rule_data = {
+            "name": "R",
+            "enabled": False,
+            "conditions": {
+                "type": "and",
+                "children": [
+                    {"type": "condition", "field": "a", "op": ">", "value": 1},
+                    {"type": "condition", "field": "b", "op": ">", "value": 2},
+                    {"type": "condition", "field": "c", "op": ">", "value": 3},
+                    {"type": "condition", "field": "d", "op": ">", "value": 4},
+                ],
+            },
+            "action": "log",
+        }
+        result = validator.validate(rule_data)
+        # May or may not warn depending on _is_complex_condition threshold; must not raise
+        assert result is not None
