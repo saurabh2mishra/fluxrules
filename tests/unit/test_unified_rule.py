@@ -7,6 +7,9 @@ from fluxrules.config.deployment import DeploymentConfig, DeploymentType
 from fluxrules.domain.unified_rule import Rule
 from fluxrules.utils.id_generators import RuleIDGenerator
 
+# Minimal valid condition used as a stub where the test is not about conditions.
+_STUB = {"type": "condition", "field": "x", "op": ">", "value": 0}
+
 
 class TestRuleBasicCreation:
     """Test basic rule creation."""
@@ -77,13 +80,13 @@ class TestRuleValidation:
     def test_name_required(self):
         """Name is required."""
         with pytest.raises(ValidationError) as exc_info:
-            Rule(conditions={"type": "condition"})
+            Rule(conditions=_STUB)
         assert "name" in str(exc_info.value).lower()
 
     def test_name_not_empty(self):
         """Name cannot be empty."""
         with pytest.raises(ValidationError):
-            Rule(name="", conditions={"type": "condition"})
+            Rule(name="", conditions=_STUB)
 
     def test_conditions_required(self):
         """conditions is required."""
@@ -111,7 +114,7 @@ class TestRuleValidation:
         with pytest.raises(ValidationError):
             Rule(
                 name="Test",
-                conditions={"type": "condition"},
+                conditions=_STUB,
                 priority=-1,
             )
 
@@ -120,7 +123,7 @@ class TestRuleValidation:
         with pytest.raises(ValidationError):
             Rule(
                 name="Test",
-                conditions={"type": "condition"},
+                conditions=_STUB,
                 sla_latency_ms=-100,
             )
 
@@ -129,7 +132,7 @@ class TestRuleValidation:
         with pytest.raises(ValidationError) as exc_info:
             Rule(
                 name="Test",
-                conditions={"type": "condition"},
+                conditions=_STUB,
                 unknown_field="value",
             )
         assert "unknown_field" in str(exc_info.value).lower()
@@ -139,7 +142,7 @@ class TestRuleValidation:
         with pytest.raises(ValidationError):
             Rule(
                 name="x" * 256,
-                conditions={"type": "condition"},
+                conditions=_STUB,
             )
 
 
@@ -150,7 +153,7 @@ class TestTagsHandling:
         """Tags can be passed as frozenset."""
         rule = Rule(
             name="Test",
-            conditions={"type": "condition"},
+            conditions=_STUB,
             tags=frozenset(["high_priority", "fraud"]),
         )
         assert rule.tags == frozenset(["high_priority", "fraud"])
@@ -159,7 +162,7 @@ class TestTagsHandling:
         """Tags as list converted to frozenset."""
         rule = Rule(
             name="Test",
-            conditions={"type": "condition"},
+            conditions=_STUB,
             tags=["tag1", "tag2"],
         )
         assert rule.tags == frozenset(["tag1", "tag2"])
@@ -169,7 +172,7 @@ class TestTagsHandling:
         """Tags as tuple converted to frozenset."""
         rule = Rule(
             name="Test",
-            conditions={"type": "condition"},
+            conditions=_STUB,
             tags=("tag1", "tag2"),
         )
         assert rule.tags == frozenset(["tag1", "tag2"])
@@ -178,7 +181,7 @@ class TestTagsHandling:
         """Tags as set converted to frozenset."""
         rule = Rule(
             name="Test",
-            conditions={"type": "condition"},
+            conditions=_STUB,
             tags={"tag1", "tag2"},
         )
         assert rule.tags == frozenset(["tag1", "tag2"])
@@ -187,7 +190,7 @@ class TestTagsHandling:
         """Tags as comma-separated string parsed."""
         rule = Rule(
             name="Test",
-            conditions={"type": "condition"},
+            conditions=_STUB,
             tags="tag1, tag2, tag3",
         )
         assert rule.tags == frozenset(["tag1", "tag2", "tag3"])
@@ -196,7 +199,7 @@ class TestTagsHandling:
         """Tags None becomes empty frozenset."""
         rule = Rule(
             name="Test",
-            conditions={"type": "condition"},
+            conditions=_STUB,
             tags=None,
         )
         assert rule.tags == frozenset()
@@ -225,7 +228,7 @@ class TestSerializationDeserialization:
         """Rule can be serialized to JSON."""
         rule = Rule(
             name="Test",
-            conditions={"type": "condition"},
+            conditions=_STUB,
         )
         json_str = rule.model_dump_json()
         assert isinstance(json_str, str)
@@ -235,7 +238,7 @@ class TestSerializationDeserialization:
         """Rule can be created from dict (validation)."""
         data = {
             "name": "Test",
-            "conditions": {"type": "condition"},
+            "conditions": _STUB,
             "action": "flag",
             "priority": 10,
         }
@@ -293,16 +296,16 @@ class TestIDGeneration:
 
     def test_sequential_ids(self):
         """Auto-generated IDs are sequential."""
-        rule1 = Rule(name="Rule1", conditions={"type": "condition"})
-        rule2 = Rule(name="Rule2", conditions={"type": "condition"})
-        rule3 = Rule(name="Rule3", conditions={"type": "condition"})
+        rule1 = Rule(name="Rule1", conditions=_STUB)
+        rule2 = Rule(name="Rule2", conditions=_STUB)
+        rule3 = Rule(name="Rule3", conditions=_STUB)
         assert rule2.id == rule1.id + 1
         assert rule3.id == rule2.id + 1
 
     def test_manual_ids_not_incremented(self):
         """Manually set IDs are not incremented."""
-        rule1 = Rule(id=100, name="Rule1", conditions={"type": "condition"})
-        rule2 = Rule(name="Rule2", conditions={"type": "condition"})
+        rule1 = Rule(id=100, name="Rule1", conditions=_STUB)
+        rule2 = Rule(name="Rule2", conditions=_STUB)
         # A manually assigned ID is preserved as-is...
         assert rule1.id == 100
         # ...and rule2 still receives an auto-generated ID.
@@ -314,7 +317,7 @@ class TestIDGeneration:
         uuid_gen = RuleIDGenerator(strategy="uuid")
         Rule.set_id_generator(uuid_gen)
 
-        rule = Rule(name="UUID Rule", conditions={"type": "condition"})
+        rule = Rule(name="UUID Rule", conditions=_STUB)
         # UUID should be string
         assert isinstance(rule.id, str) or isinstance(rule.id, int)
 
@@ -331,7 +334,7 @@ class TestIDGeneration:
         gen = RuleIDGenerator.from_config(config)
         Rule.set_id_generator(gen)
 
-        rule = Rule(name="Rule", conditions={"type": "condition"})
+        rule = Rule(name="Rule", conditions=_STUB)
         assert rule.id is not None
 
         # Reset
@@ -346,7 +349,7 @@ class TestStringRepresentations:
         rule = Rule(
             id=1,
             name="Test Rule",
-            conditions={"type": "condition"},
+            conditions=_STUB,
             action="flag",
         )
         repr_str = repr(rule)
@@ -360,7 +363,7 @@ class TestStringRepresentations:
         rule = Rule(
             id=42,
             name="My Rule",
-            conditions={"type": "condition"},
+            conditions=_STUB,
         )
         str_val = str(rule)
         assert "My Rule" in str_val
@@ -439,7 +442,7 @@ class TestConditionsProperty:
             name="Composite",
             conditions={
                 "type": "group",
-                "operator": "and",
+                "op": "AND",
                 "children": [
                     {"type": "condition", "field": "age", "op": ">=", "value": 18},
                     {
@@ -457,7 +460,7 @@ class TestConditionsProperty:
 
     def test_conditions_is_read_only(self):
         """The condition_nodes property has no setter."""
-        rule = Rule(name="RO", conditions={"type": "condition"})
+        rule = Rule(name="RO", conditions=_STUB)
         with pytest.raises(AttributeError):
             rule.condition_nodes = ()
 

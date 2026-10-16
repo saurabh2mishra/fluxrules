@@ -163,26 +163,15 @@ class Rule(BaseModel):
     @classmethod
     def validate_conditions(cls, v: dict[str, Any]) -> dict[str, Any]:
         """Validate conditions tree structure."""
-        if not isinstance(v, dict):
-            raise ValueError("conditions must be a dictionary")
-        if not v:
-            raise ValueError("conditions cannot be empty")
-        # Basic structure validation
-        if "type" not in v:
-            raise ValueError("conditions must have 'type' field")
+        from fluxrules.domain.conditions.validation import (
+            validate_conditions as _deep_validate,
+        )
+        from fluxrules.domain.errors import ConditionValidationError
 
-        # A structurally well-formed but *logically* empty tree - say
-        # {"type": "and", "children": []} - passes every check above while
-        # being unable to match anything. Caught here so authoring fails
-        # immediately, at the point the author can still fix it.
-        from fluxrules.domain.conditions.evaluator import has_logic
-
-        if not has_logic(v):
-            raise ValueError(
-                "conditions contains no conditions, so this rule could "
-                "never fire. Add at least one condition, or give the rule an "
-                "explicit always-true condition if it is meant to always apply."
-            )
+        try:
+            _deep_validate(v)
+        except ConditionValidationError as e:
+            raise ValueError(str(e)) from e
         return v
 
     @field_validator("actions", mode="before")

@@ -103,13 +103,13 @@ _BATTERY = [
     ),
     (
         "not_present_true",
-        [_tree(1, {"type": "not", "conditions": [_cond("x", "==", 1)]})],
+        [_tree(1, {"type": "not", "condition": _cond("x", "==", 1)})],
         {"x": 2},
         {1},
     ),
     (
         "not_present_false",
-        [_tree(1, {"type": "not", "conditions": [_cond("x", "==", 1)]})],
+        [_tree(1, {"type": "not", "condition": _cond("x", "==", 1)})],
         {"x": 1},
         set(),
     ),

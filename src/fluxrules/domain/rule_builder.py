@@ -99,7 +99,7 @@ class ConditionBuilder:
         self._nodes.append(
             {
                 "type": "group",
-                "logic": "AND",
+                "op": "AND",
                 "children": list(conditions),
             }
         )
@@ -117,7 +117,7 @@ class ConditionBuilder:
         self._nodes.append(
             {
                 "type": "group",
-                "logic": "OR",
+                "op": "OR",
                 "children": list(conditions),
             }
         )
