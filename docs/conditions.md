@@ -11,6 +11,18 @@ FluxRules uses a `conditions` to define a condition or a group of conditions. It
 
 A leaf is a single check, and a grouped node combines children.
 
+### Node types
+
+| Type | What it does |
+|---|---|
+| `condition` | Leaf — evaluates one field with an operator (`>`, `in`, `contains`, etc.) |
+| `group` | Boolean combinator — `"op": "AND"` or `"op": "OR"` over a list of children |
+| `not` | Negates its single child condition |
+| `exists` | Checks whether a field key is present in the facts dict |
+| `sequence` / `accumulate` | Advanced temporal / aggregation nodes |
+
+### Node keys
+
 - **`type`**: node kind.
 
     - *`"condition"`* = one field test; a condition node needs type, field, op, and value.

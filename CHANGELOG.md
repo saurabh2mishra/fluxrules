@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Rule(conditions=...)` now validates the full condition tree at construction time.** Previously only a shallow structural check was performed (presence of `"type"` key, non-empty dict). Now `validate_conditions()` runs recursively, catching invalid operators, unknown keys, missing required fields, and empty group children immediately at the authoring point with clear path-scoped error messages. Rules that were silently invalid will now raise `ValidationError` at construction. Three latent bugs in the codebase were found and fixed by this change.
 - **`ConditionBuilder.and_group()` / `or_group()` now emit `"op"` instead of `"logic"`.** The `"logic"` key was never a valid condition tree key; it happened to be tolerated by the engine parsers but would fail validation and serialisation. `"op": "AND"/"OR"` is the canonical form. The validator also accepts `"logic"` as a read alias for backward compatibility with any stored data.
 
+
 ## [0.1.2] - 2026-10-15
 
 ### Fixed
