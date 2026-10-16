@@ -1,6 +1,6 @@
 """Batch 3 example: validation and error handling over shared use case."""
 
-from fluxrules.domain.dsl.validation import DSLValidationError, validate_dsl
+from fluxrules.domain.conditions.validation import ConditionValidationError, validate_conditions
 from fluxrules.engine.phreak import PhreakEngine
 
 from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
@@ -21,9 +21,9 @@ def main() -> None:
     # Validate all rules
     for rule in rules:
         try:
-            validate_dsl(rule.conditions)
+            validate_conditions(rule.conditions)
             print(f"✅ Rule {rule.id}: valid DSL")
-        except DSLValidationError as e:
+        except ConditionValidationError as e:
             print(f"❌ Rule {rule.id}: {e}")
 
     print()

@@ -120,7 +120,7 @@ Simulate rule changes without persisting.
 
 ### POST /api/v1/validate
 
-Validate DSL syntax.
+Validate condition tree syntax.
 
 **Request:**
 ```json
@@ -210,7 +210,7 @@ All errors follow this format:
 
 Common error codes:
 - `VALIDATION_ERROR` - Invalid request format
-- `DSL_ERROR` - Invalid DSL syntax
+- `DSL_ERROR` - Invalid condition tree syntax
 - `RULE_NOT_FOUND` - Rule ID does not exist
 - `INTERNAL_ERROR` - Server error
 

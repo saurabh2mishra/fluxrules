@@ -24,16 +24,16 @@ from fluxrules.domain.predicates import evaluate_operator
 
 __all__ = [
     "LossyConditionRebuildError",
-    "UnsupportedDSLNodeError",
-    "conditions_to_dsl",
-    "evaluate_dsl",
+    "UnsupportedConditionTreeNodeError",
+    "conditions_to_tree",
+    "evaluate_conditions",
     "has_logic",
 ]
 
 _STATEFUL_NODES = frozenset({"accumulate", "sequence", "join", "cross_fact_join"})
 
 
-def conditions_to_dsl(conditions) -> dict:
+def conditions_to_tree(conditions) -> dict:
     """Build a DSL tree from a flat sequence of ``RuleCondition``.
 
     The single place that converts parsed conditions into the canonical DSL
@@ -118,15 +118,15 @@ def has_logic(conditions: dict | list) -> bool:
     return any(has_logic(child) for child in children)
 
 
-class UnsupportedDSLNodeError(ValueError):
+class UnsupportedConditionTreeNodeError(ValueError):
     """A DSL node needs engine state this evaluator does not have."""
 
 
-def evaluate_dsl(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
+def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
     """Evaluate a ``conditions`` tree against a flat fact dict.
 
     Raises:
-        UnsupportedDSLNodeError: For nodes requiring working memory.
+        UnsupportedConditionTreeNodeError: For nodes requiring working memory.
     """
     if not isinstance(dsl, dict) or not dsl:
         return False
@@ -152,16 +152,16 @@ def evaluate_dsl(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
             # match everything by vacuous truth - the failure this whole path
             # exists to avoid.
             return False
-        results = [evaluate_dsl(child, facts) for child in children]
+        results = [evaluate_conditions(child, facts) for child in children]
         return all(results) if logic == "AND" else any(results)
 
     if ctype == "not":
         inner = dsl.get("condition") or dsl.get("child")
         if inner:
-            return not evaluate_dsl(inner, facts)
+            return not evaluate_conditions(inner, facts)
         inner_list = dsl.get("conditions") or dsl.get("children") or []
         if inner_list:
-            return not any(evaluate_dsl(child, facts) for child in inner_list)
+            return not any(evaluate_conditions(child, facts) for child in inner_list)
         return False
 
     if ctype == "exists":
@@ -169,12 +169,12 @@ def evaluate_dsl(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
         if field:
             return field in facts and facts[field] is not None
         inner = dsl.get("condition")
-        return evaluate_dsl(inner, facts) if inner else False
+        return evaluate_conditions(inner, facts) if inner else False
 
     if ctype in _STATEFUL_NODES:
-        raise UnsupportedDSLNodeError(
+        raise UnsupportedConditionTreeNodeError(
             f"DSL node type {ctype!r} requires working memory; evaluate this "
             "rule with PhreakEngine."
         )
 
-    raise UnsupportedDSLNodeError(f"Unknown DSL node type {ctype!r}")
+    raise UnsupportedConditionTreeNodeError(f"Unknown DSL node type {ctype!r}")

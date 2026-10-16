@@ -35,7 +35,7 @@ from fluxrules.config.deployment import (
 from fluxrules.domain.errors import (
     CorruptStoredRuleError,
     CyclicDependencyError,
-    DSLValidationError,
+    ConditionValidationError,
     EmptyRuleLogicError,
     FluxRulesError,
     InvalidRuleError,
@@ -169,7 +169,7 @@ __all__ = [
     # Error taxonomy (see fluxrules.domain.errors). Every one derives from
     # FluxRulesError, so `except FluxRulesError` catches the whole family.
     "CyclicDependencyError",
-    "DSLValidationError",
+    "ConditionValidationError",
     "DeploymentConfig",
     "DeploymentType",
     "EmptyRuleLogicError",

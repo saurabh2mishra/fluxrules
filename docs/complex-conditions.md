@@ -4,7 +4,7 @@ Combine multiple simple conditions using AND/OR/NOT logic.
 
 **Prerequisites:** [Conditions & Operators](conditions.md) (condition syntax and operators).
 
-**Source:** `src/fluxrules/domain/dsl/` (DSL structure and validation)
+**Source:** `src/fluxrules/domain/conditions/` (condition tree structure and validation)
 
 ---
 
@@ -253,8 +253,8 @@ When in doubt, use explicit nesting with `type: "group"`.
 ## Next Steps
 
 - **[Conditions](conditions.md)** - Simple operator reference
-- **[Validation Framework](validation-framework.md)** - Validate DSL structures
-- **[Concepts](concepts.md)** - Understanding the DSL
+- **[Validation Framework](validation-framework.md)** - Validate condition tree structures
+- **[Concepts](concepts.md)** - Understanding the condition tree
 
 
 When combining conditions, precedence works like mathematical expressions:

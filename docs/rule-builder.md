@@ -1,6 +1,6 @@
 # Rule Builder
 
-**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (DSL).
+**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (condition tree).
 
 ---
 
@@ -51,7 +51,7 @@ print(evaluate(rule, {"age": 30}).fired_rules)
 | Method | Purpose | Returns |
 |--------|---------|---------|
 | `.name(str)` | Set rule name (required) | Builder |
-| `.condition(dict)` | Set condition DSL, parsed and validated now (required) | Builder |
+| `.condition(dict)` | Set condition tree, parsed and validated now (required) | Builder |
 | `.action(str)` | Append an action; call repeatedly for several | Builder |
 | `.priority(int)` | Set priority, higher evaluates first | Builder |
 | `.group(str)` | Set the group/domain | Builder |
@@ -90,7 +90,7 @@ print(result.actions)
 
 ## Building complex conditions
 
-`ConditionBuilder` assembles nested boolean logic without writing DSL dicts by
+`ConditionBuilder` assembles nested boolean logic without writing condition tree dicts by
 hand.
 
 ```python
@@ -115,7 +115,7 @@ returns to build deeper trees.
 ## Validation
 
 The builder fails at the point of the mistake rather than at evaluation time.
-`.condition()` parses the DSL immediately, and `.build()` enforces that the
+`.condition()` parses the condition tree immediately, and `.build()` enforces that the
 required fields are present.
 
 ```python
@@ -149,5 +149,5 @@ rule.save()
 ## Next Steps
 
 - **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations
-- **Conditions** - See [Conditions](conditions.md) for DSL operators
+- **Conditions** - See [Conditions](conditions.md) for condition operators
 - **Example** - See [Example 18: Unified Rule](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py) for working code

@@ -127,9 +127,9 @@ class EngineRule:
             # No tree given: synthesise the authoritative one from the flat
             # conjunction so every EngineRule always carries a complete,
             # evaluable tree - never a bare, lossy tuple.
-            from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+            from fluxrules.domain.conditions.evaluator import conditions_to_tree
 
-            object.__setattr__(self, "conditions", conditions_to_dsl(self.condition_nodes))
+            object.__setattr__(self, "conditions", conditions_to_tree(self.condition_nodes))
         else:
             # The tree is authoritative; re-derive the flat view from it so the
             # two never diverge. Extraction is silent here - the loud

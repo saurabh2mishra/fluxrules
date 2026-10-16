@@ -11,7 +11,7 @@ These names are part of the public API and are re-exported from
 __all__ = [
     "CorruptStoredRuleError",
     "CyclicDependencyError",
-    "DSLValidationError",
+    "ConditionValidationError",
     "EmptyRuleLogicError",
     "FluxRulesError",
     "InvalidRuleError",
@@ -39,7 +39,7 @@ class CyclicDependencyError(FluxRulesError):
     code = "CYCLIC_DEPENDENCY"
 
 
-class DSLValidationError(InvalidRuleError):
+class ConditionValidationError(InvalidRuleError):
     """Raised when DSL validation fails."""
 
     code = "DSL_VALIDATION_ERROR"

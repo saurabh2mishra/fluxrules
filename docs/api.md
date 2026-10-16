@@ -69,7 +69,7 @@ Content-Type: application/json
 
 Returns potential matches if rules are changed.
 
-### Validate DSL
+### Validate Conditions
 
 ```bash
 POST /api/v1/validate

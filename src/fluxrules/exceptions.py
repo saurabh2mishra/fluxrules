@@ -63,7 +63,7 @@ class RuleEvaluationError(FluxRulesException):
         self.rule_id = rule_id
 
 
-class DSLParseError(FluxRulesException):
+class ConditionParseError(FluxRulesException):
     """Raised when DSL syntax or parsing fails.
 
     Attributes:

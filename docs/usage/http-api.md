@@ -26,7 +26,7 @@ The API includes these core routes:
 
 - `GET /health` - Health check
 - `POST /api/v1/evaluate` - Evaluate facts against rules
-- `POST /api/v1/validate` - Validate DSL or ruleset
+- `POST /api/v1/validate` - Validate conditions or ruleset
 - `GET /api/v1/executions/{id}` - Get execution details
 - `POST /api/v1/simulate` - Simulate rule with custom facts
 

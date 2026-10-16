@@ -1,15 +1,14 @@
 # FluxRules
 
-FluxRules is a Python toolkit for authoring rules and evaluating them against facts. It is loosely based on the concepts from Drools’ Phreak engine and provides optional FastAPI endpoints.
-
-Use FluxRules to keep decision logic separate from application control flow and evaluate rules consistently across tests, services, and APIs.
+FluxRules is a Python toolkit for defining rules and evaluating them against facts. It is inspired by Drools’ Phreak engine and uses forward chaining to determine which rules should execute.
 
 ## Core Capabilities
 
+- Create Rules 
+- Validate the rules
 - Evaluate a ruleset against facts using the top-level Python API.
 - Run rule evaluation through FluxRules’ Phreak engine in stateless or streaming mode.
-- Validate rulesets before evaluation.
-- Retrieve evaluation explanations by execution ID.
+- Retrieve evaluation explanations.
 - Use optional HTTP endpoints for evaluation, validation, explanations, and health checks.
 
 ## Advanced Capabilities

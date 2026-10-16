@@ -2,7 +2,7 @@
 
 from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
 
-from fluxrules.domain.dsl.validation import DSLValidationError, validate_dsl
+from fluxrules.domain.conditions.validation import ConditionValidationError, validate_conditions
 from fluxrules.engine.phreak import PhreakEngine
 
 
@@ -16,7 +16,7 @@ def main() -> None:
 
     print("validating nested condition trees")
     for rule in rules:
-        validate_dsl(rule.conditions)
+        validate_conditions(rule.conditions)
         print(f"  validated rule={rule.name} id={rule.id}")
 
     invalid = {
@@ -27,8 +27,8 @@ def main() -> None:
         ],
     }
     try:
-        validate_dsl(invalid)
-    except DSLValidationError as exc:
+        validate_conditions(invalid)
+    except ConditionValidationError as exc:
         print(f"  expected validation error: {exc}")
 
     engine = PhreakEngine()

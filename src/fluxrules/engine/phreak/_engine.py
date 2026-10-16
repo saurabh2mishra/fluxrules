@@ -144,7 +144,7 @@ def _hashable(value: Any) -> Any:
     return _UNHASHABLE
 
 
-def _dsl_linker_safe(dsl: Any) -> bool:
+def _linker_safe(dsl: Any) -> bool:
     """Whether the presence linker may narrow candidacy by this rule's fields.
 
     The presence linker assumes a rule needs *all* its referenced fields present
@@ -167,13 +167,13 @@ def _dsl_linker_safe(dsl: Any) -> bool:
         return True
     if ctype == "and":
         children = dsl.get("children") or dsl.get("conditions") or []
-        return bool(children) and all(_dsl_linker_safe(child) for child in children)
+        return bool(children) and all(_linker_safe(child) for child in children)
     if ctype in ("group", "composite"):
         logic = str(dsl.get("logic") or dsl.get("op") or "AND").upper()
         if logic != "AND":
             return False
         children = dsl.get("children") or dsl.get("conditions") or []
-        return bool(children) and all(_dsl_linker_safe(child) for child in children)
+        return bool(children) and all(_linker_safe(child) for child in children)
     # or / not / exists / accumulate / cross-fact: presence is not necessary.
     return False
 
@@ -512,7 +512,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         self._linker_unsafe_rule_ids = frozenset(
             rid
             for rid, rule in self.rule_repository.rules.items()
-            if not _dsl_linker_safe(getattr(rule, "conditions", None))
+            if not _linker_safe(getattr(rule, "conditions", None))
         )
 
         # (Re)build the in-memory alpha pre-filter from the current

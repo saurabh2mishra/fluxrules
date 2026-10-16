@@ -91,9 +91,9 @@ fact = {
 
 ---
 
-## Condition DSL
+## Conditions
 
-A **Condition DSL** (Domain-Specific Language) is a nested tree that defines when a rule fires. It combines:
+A **condition tree** is a nested tree that defines when a rule fires. It combines:
 - Simple conditions (field comparisons)
 - Logical operators (AND, OR, NOT)
 - Nested groups
@@ -133,7 +133,7 @@ A **Condition DSL** (Domain-Specific Language) is a nested tree that defines whe
 }
 ```
 
-**Validation:** Use `from fluxrules.domain.dsl.validation import validate_dsl`
+**Validation:** Use `from fluxrules.domain.conditions.validation import validate_conditions`
 
 **See:** [examples/02_complex_conditions.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py), [examples/13_complex_rules.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/13_complex_rules.py)
 
@@ -228,7 +228,7 @@ for fact in SHARED_FACTS:
 # 3 payment-risk rules
 rules = build_shared_rules()
 
-# 8-condition nested DSL
+# 8-condition nested tree
 dsl = complex_risk_condition()
 ```
 

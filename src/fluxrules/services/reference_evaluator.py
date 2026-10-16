@@ -89,14 +89,14 @@ class ReferenceEvaluator(EnginePort):
         # answer the wrong question.
         dsl = getattr(rule, "conditions", None)
         if dsl:
-            from fluxrules.domain.dsl.evaluator import (
-                UnsupportedDSLNodeError,
-                evaluate_dsl,
+            from fluxrules.domain.conditions.evaluator import (
+                UnsupportedConditionTreeNodeError,
+                evaluate_conditions,
             )
 
             try:
-                return evaluate_dsl(dsl, dict(facts))
-            except UnsupportedDSLNodeError:
+                return evaluate_conditions(dsl, dict(facts))
+            except UnsupportedConditionTreeNodeError:
                 logger.warning(
                     "Rule %r uses a DSL node the reference evaluator cannot "
                     "represent; declining to match. Use PhreakEngine "

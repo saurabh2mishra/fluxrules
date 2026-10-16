@@ -1,17 +1,17 @@
 """DSL parser tests """
 
-from fluxrules.domain.dsl.expression_parser import DSLParser
+from fluxrules.domain.conditions.expression_parser import ConditionParser
 
 
 def test_parse_simple_condition():
-    parser = DSLParser()
+    parser = ConditionParser()
     result = parser.parse({"type": "condition", "field": "amount", "op": ">", "value": 100})
     assert "amount" in result
     assert "100" in result
 
 
 def test_parse_and_group():
-    parser = DSLParser()
+    parser = ConditionParser()
     result = parser.parse(
         {
             "type": "group",
@@ -27,7 +27,7 @@ def test_parse_and_group():
 
 
 def test_parse_nested_groups():
-    parser = DSLParser()
+    parser = ConditionParser()
     result = parser.parse(
         {
             "type": "group",

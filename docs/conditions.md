@@ -1,7 +1,7 @@
 # Conditions & Operators
 FluxRules uses a `conditions` to define a condition or a group of conditions. It is not just a flat dictionary; it behaves like a small decision tree.
 
-**Source:** `src/fluxrules/domain/dsl/` (DSL validation and execution)
+**Source:** `src/fluxrules/domain/conditions/` (condition tree validation and evaluation)
 
 ---
 
@@ -39,7 +39,7 @@ The validator also accepts `"and"`, `"or"`, `"not"`, `"exists"`, `"sequence"`, a
 - **`field`**: fact field name as a string. Required for `condition` and `exists`.
 - **`op`**: comparison operator such as `>`, `==`, `in`, `contains`. Required for `condition`.
 - **`value`**: literal or list compared against the field.
-- **`children`**: list of child DSL nodes for a grouped condition.
+- **`children`**: list of child condition nodes for a grouped condition.
 - **`condition`**: child node used by `not`.
 - **`conditions`**: alternate spelling accepted for `children` in some parser/engine paths.
 - **`logic`**: optional alias for the group logic in some builders/parsers; typically `AND` or `OR`.
@@ -236,5 +236,5 @@ A numeric field should compare with a number, a string field with a string, and 
 ## Next Steps
 
 - **[Complex Conditions](complex-conditions.md)** - Learn how to combine simple conditions with AND/OR/NOT logic
-- **[Validation Framework](validation-framework.md)** - Validate DSL structures
+- **[Validation Framework](validation-framework.md)** - Validate condition tree structures
 - **[Concepts](concepts.md)** - Understand rules, engines, and facts

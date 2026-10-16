@@ -31,7 +31,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from fluxrules.domain.dsl.parser import DSLParser
+from fluxrules.domain.conditions.parser import ConditionParser
 from fluxrules.domain.models import (
     ChangeReason,
     EngineRule,
@@ -136,7 +136,7 @@ class ConditionBuilder:
             raise RuleValidationError("No conditions defined")
 
         # Parse to validate
-        parser = DSLParser()
+        parser = ConditionParser()
         for node in self._nodes:
             parser.parse(node)
 
@@ -309,10 +309,10 @@ class RuleBuilder:
             Self for chaining.
 
         Raises:
-            DSLParseError: If condition DSL is invalid.
+            ConditionParseError: If condition DSL is invalid.
         """
         # Validate by parsing
-        parser = DSLParser()
+        parser = ConditionParser()
         parser.parse(conditions)
         self._conditions = conditions
         return self

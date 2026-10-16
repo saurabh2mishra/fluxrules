@@ -17,7 +17,7 @@ FluxRules provides one standard engine: `PhreakEngine` (lazy, agenda-driven). Yo
 ```python
 from fluxrules.engine import BaseEngine
 from fluxrules.domain import Rule
-from fluxrules.domain.dsl.evaluator import evaluate_dsl
+from fluxrules.domain.conditions.evaluator import evaluate_conditions
 from typing import Any
 
 
@@ -33,7 +33,7 @@ class MyCustomEngine(BaseEngine):
         explanations = {}
         for rule_id in rule_ids:
             rule = self.rule_repository.get(rule_id)
-            if rule and evaluate_dsl(rule.conditions, facts):
+            if rule and evaluate_conditions(rule.conditions, facts):
                 fired_ids.append(rule_id)
                 actions.extend(rule.actions)
                 explanations[rule_id] = f"Rule {rule.name} matched"

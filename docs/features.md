@@ -13,7 +13,7 @@ FluxRules provides everything needed for production rule engines.
 - **Rule Organization**: [Domains and Tags](domains-and-tags.md) for categorization and filtering
 - **Priority-Based Execution**: Higher priority rules fire first when multiple match
 - **Multiple Actions**: Each rule can trigger one or more actions in sequence
-- **Validation**: [DSL validation](validation-framework.md) catches syntax errors before rules run
+- **Validation**: [condition validation](validation-framework.md) catches syntax errors before rules run
 - **Explicit IDs**: Auto-generate or provide your own (sequential integers)
 
 ---
@@ -59,7 +59,7 @@ print(f"Latency: {result.latency_ms}ms")  # [execution time]
 
 ```
 fluxrules/
-├── domain/       # Rule class, DSL, validation
+├── domain/       # Rule class, conditions, validation
 ├── engine/       # PhreakEngine
 └── services/     # Evaluators, utilities
 ```

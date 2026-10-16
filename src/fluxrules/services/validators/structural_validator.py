@@ -71,7 +71,7 @@ class StructuralValidator(Validator):
                 )
             else:
                 # Validate DSL structure
-                self._validate_dsl_structure(condition, result)
+                self._validate_conditions_structure(condition, result)
 
         # Check priority constraints
         if "priority" in rule_data and rule_data["priority"] is not None:
@@ -101,7 +101,7 @@ class StructuralValidator(Validator):
 
         return result
 
-    def _validate_dsl_structure(self, condition: dict[str, Any], result: ValidationResult) -> None:
+    def _validate_conditions_structure(self, condition: dict[str, Any], result: ValidationResult) -> None:
         """Validate DSL structure recursively."""
         if "type" not in condition:
             result.add_error(
@@ -168,7 +168,7 @@ class StructuralValidator(Validator):
                         field="conditions",
                     )
                 else:
-                    self._validate_dsl_structure(child, result)
+                    self._validate_conditions_structure(child, result)
 
         elif condition_type == "not":
             # ``not`` holds a single child, spelled "condition" by the strict
@@ -184,7 +184,7 @@ class StructuralValidator(Validator):
                 return
             for child_node in children:
                 if isinstance(child_node, dict):
-                    self._validate_dsl_structure(child_node, result)
+                    self._validate_conditions_structure(child_node, result)
 
         else:
             result.add_warning(

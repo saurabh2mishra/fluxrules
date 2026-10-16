@@ -28,7 +28,7 @@ def domain_rule_to_orm(
             so it is refused here rather than stored.
     """
     from fluxrules.api.models.rule import Rule as OrmRule
-    from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+    from fluxrules.domain.conditions.evaluator import conditions_to_tree
     from fluxrules.domain.unified_rule import Rule as CanonicalRule
 
     conditions: dict
@@ -43,7 +43,7 @@ def domain_rule_to_orm(
         # tree; fall back to building one from parsed conditions only for
         # foreign objects that predate that guarantee. Either way the column
         # receives a DSL dict, never a list of condition dicts.
-        conditions = getattr(rule, "conditions", None) or conditions_to_dsl(rule.condition_nodes)
+        conditions = getattr(rule, "conditions", None) or conditions_to_tree(rule.condition_nodes)
         action_str = "\n".join(rule.actions) if rule.actions else ""
         group_name = group or rule.group or ""
 
@@ -69,7 +69,7 @@ def _reject_empty_logic(rule, conditions: dict | list) -> None:
     no error, and silently never fires. Failing at the write is the only point
     where the caller still holds the information that was about to be lost.
     """
-    from fluxrules.domain.dsl.evaluator import has_logic
+    from fluxrules.domain.conditions.evaluator import has_logic
     from fluxrules.domain.errors import EmptyRuleLogicError
 
     if has_logic(conditions):
@@ -101,7 +101,7 @@ def orm_rule_to_canonical(orm_rule):
     return CanonicalRule(
         id=orm_rule.id,
         name=orm_rule.name or str(orm_rule.id),
-        conditions=_normalize_stored_dsl(orm_rule.conditions),
+        conditions=_normalize_stored_conditions(orm_rule.conditions),
         actions=actions,
         priority=orm_rule.priority or 0,
         domain=orm_rule.group or "default",
@@ -113,12 +113,12 @@ def orm_rule_to_canonical(orm_rule):
     )
 
 
-def normalize_stored_dsl(raw) -> dict:
+def normalize_stored_conditions(raw) -> dict:
     """Return the stored ``conditions`` column as a DSL dict.
 
     ``rules.conditions`` is a JSON column and holds exactly one shape: a
     DSL object. Every writer now produces that shape - the domain path through
-    :func:`conditions_to_dsl`, and the API path since it stopped pre-encoding
+    :func:`conditions_to_tree`, and the API path since it stopped pre-encoding
     with ``json.dumps``.
 
     Anything else is a corrupt row rather than an old one, and raises. The
@@ -143,7 +143,7 @@ def normalize_stored_dsl(raw) -> dict:
 
 
 # Backwards-compatible private alias for existing internal callers.
-_normalize_stored_dsl = normalize_stored_dsl
+_normalize_stored_conditions = normalize_stored_conditions
 
 
 def orm_rule_to_domain(orm_rule) -> EngineRule:
@@ -158,7 +158,7 @@ def orm_rule_to_domain(orm_rule) -> EngineRule:
     # One shape in: whatever the column holds becomes a DSL dict first, and
     # the flat view is derived from that. Handling list and dict separately
     # was how the two branches drifted apart in the first place.
-    dsl = normalize_stored_dsl(orm_rule.conditions)
+    dsl = normalize_stored_conditions(orm_rule.conditions)
     conditions = _extract_conditions_from_dsl(dsl)
 
     actions = tuple(a.strip() for a in (orm_rule.action or "").split("\n") if a.strip())

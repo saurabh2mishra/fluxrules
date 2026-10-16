@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 from fluxrules.exceptions import (
     ConfigurationError,
-    DSLParseError,
+    ConditionParseError,
     EngineError,
     FluxRulesException,
     RepositoryError,
@@ -57,8 +57,8 @@ def register_exception_handlers(app: FastAPI) -> None:
             },
         )
 
-    @app.exception_handler(DSLParseError)
-    async def _dsl_parse(request: Request, exc: DSLParseError) -> JSONResponse:
+    @app.exception_handler(ConditionParseError)
+    async def _dsl_parse(request: Request, exc: ConditionParseError) -> JSONResponse:
         """Return 400 for DSL parse failures."""
         return JSONResponse(
             status_code=400,

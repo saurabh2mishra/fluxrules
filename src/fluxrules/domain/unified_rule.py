@@ -175,7 +175,7 @@ class Rule(BaseModel):
         # {"type": "and", "children": []} - passes every check above while
         # being unable to match anything. Caught here so authoring fails
         # immediately, at the point the author can still fix it.
-        from fluxrules.domain.dsl.evaluator import has_logic
+        from fluxrules.domain.conditions.evaluator import has_logic
 
         if not has_logic(v):
             raise ValueError(

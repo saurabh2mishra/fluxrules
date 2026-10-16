@@ -1,6 +1,6 @@
 # Pydantic Rule Guide
 
-**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (DSL).
+**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (condition tree).
 
 ---
 
@@ -31,14 +31,14 @@ rule = Rule(
 | Field | Type | Required | Default | Notes |
 |-------|------|----------|---------|-------|
 | `name` | `str` | Yes | - | Human-readable rule name |
-| `conditions` | `dict` | Yes | - | Rule logic (DSL format) |
+| `conditions` | `dict` | Yes | - | Rule logic (condition tree format) |
 | `domain` | `str` | No | `"default"` | Organizational grouping |
 | `tags` | `frozenset[str]` | No | `frozenset()` | Search/filter keywords |
 | `action` | `str \| tuple[str, ...]` | No | `None` | Action(s) when rule fires |
 | `priority` | `int` | No | `0` | Evaluation order |
 | `persist` | `bool` | No | `False` | Store in the database during construction; see `Rule.save()` |
 
-## DSL (Condition) format
+## Condition tree format
 
 The `conditions` field defines rule logic:
 
@@ -78,7 +78,7 @@ try:
 except ValidationError as e:
     print(f"Validation error: {e}")
 
-# Invalid DSL
+# Invalid conditions
 try:
     Rule(
         name="test",
@@ -86,7 +86,7 @@ try:
         persist=False
     )
 except ValidationError as e:
-    print(f"DSL validation error: {e}")
+    print(f"condition validation error: {e}")
 ```
 
 ## Working with fields
@@ -156,6 +156,6 @@ restored = Rule(**json.loads(rule_json))
 
 ## Next Steps
 
-- **Conditions** - See [Conditions](conditions.md) for DSL operators
-- **Validation** - See [Validation Framework](validation-framework.md) for DSL validation
+- **Conditions** - See [Conditions](conditions.md) for condition operators
+- **Validation** - See [Validation Framework](validation-framework.md) for condition validation
 - **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations

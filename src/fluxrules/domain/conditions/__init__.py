@@ -1,7 +1,7 @@
 """Domain-specific language abstract syntax tree.
 
-Defines the AST nodes for FluxRules DSL conditions and the Visitor
-interface for processing them. This decouples DSL interpretation from
+Defines the AST nodes for FluxRules condition trees and the Visitor
+interface for processing them. This decouples condition tree interpretation from
 network building, allowing multiple visitors (compilation, validation,
 optimization) to process the same tree.
 """
@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from typing import Any
 
 
-class DSLNode(ABC):
-    """Base class for all DSL nodes."""
+class ConditionTreeNode(ABC):
+    """Base class for all condition tree nodes."""
 
     @property
     @abstractmethod
@@ -23,13 +23,13 @@ class DSLNode(ABC):
         ...
 
     @abstractmethod
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         """Accept a visitor (double-dispatch)."""
         ...
 
 
-class DSLVisitor(ABC):
-    """Visitor pattern for DSL tree traversal."""
+class ConditionTreeVisitor(ABC):
+    """Visitor pattern for condition tree traversal."""
 
     @abstractmethod
     def visit_condition(self, node: ConditionNode) -> Any:
@@ -71,7 +71,7 @@ class DSLVisitor(ABC):
 
 
 @dataclass(frozen=True)
-class ConditionNode(DSLNode):
+class ConditionNode(ConditionTreeNode):
     """Leaf condition: field operator value."""
 
     field: str
@@ -82,57 +82,57 @@ class ConditionNode(DSLNode):
     def node_type(self) -> str:
         return "condition"
 
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         return visitor.visit_condition(self)
 
 
 @dataclass(frozen=True)
-class GroupNode(DSLNode):
+class GroupNode(ConditionTreeNode):
     """Group of conditions with AND/OR logic."""
 
     logic: str  # "AND" or "OR"
-    children: tuple[DSLNode, ...]
+    children: tuple[ConditionTreeNode, ...]
 
     @property
     def node_type(self) -> str:
         return "group"
 
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         return visitor.visit_group(self)
 
 
 @dataclass(frozen=True)
-class NotNode(DSLNode):
+class NotNode(ConditionTreeNode):
     """Negation of a condition or group."""
 
-    inner: DSLNode | None = None
-    children: tuple[DSLNode, ...] = ()
+    inner: ConditionTreeNode | None = None
+    children: tuple[ConditionTreeNode, ...] = ()
 
     @property
     def node_type(self) -> str:
         return "not"
 
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         return visitor.visit_not(self)
 
 
 @dataclass(frozen=True)
-class ExistsNode(DSLNode):
+class ExistsNode(ConditionTreeNode):
     """Test for field existence or inner condition existence."""
 
     field: str | None = None
-    inner: DSLNode | None = None
+    inner: ConditionTreeNode | None = None
 
     @property
     def node_type(self) -> str:
         return "exists"
 
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         return visitor.visit_exists(self)
 
 
 @dataclass(frozen=True)
-class AccumulateNode(DSLNode):
+class AccumulateNode(ConditionTreeNode):
     """Accumulate results from matching facts."""
 
     source: str | None = None
@@ -140,33 +140,33 @@ class AccumulateNode(DSLNode):
     aggregate: str = "count"
     operator: str = "=="
     value: Any = None
-    where: DSLNode | None = None
+    where: ConditionTreeNode | None = None
 
     @property
     def node_type(self) -> str:
         return "accumulate"
 
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         return visitor.visit_accumulate(self)
 
 
 @dataclass(frozen=True)
-class SequenceNode(DSLNode):
+class SequenceNode(ConditionTreeNode):
     """Sequence of facts in temporal order."""
 
     source: str | None = None
-    steps: tuple[DSLNode, ...] = ()
+    steps: tuple[ConditionTreeNode, ...] = ()
 
     @property
     def node_type(self) -> str:
         return "sequence"
 
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         return visitor.visit_sequence(self)
 
 
 @dataclass(frozen=True)
-class CrossFactJoinNode(DSLNode):
+class CrossFactJoinNode(ConditionTreeNode):
     """Join facts from different sources via correlation field."""
 
     correlate_field: str
@@ -175,5 +175,5 @@ class CrossFactJoinNode(DSLNode):
     def node_type(self) -> str:
         return "cross_fact_join"
 
-    def accept(self, visitor: DSLVisitor) -> Any:
+    def accept(self, visitor: ConditionTreeVisitor) -> Any:
         return visitor.visit_cross_fact_join(self)

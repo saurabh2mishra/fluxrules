@@ -265,7 +265,7 @@ class TestMultiAction:
         rule = Rule.from_engine_rule(engine_rule)
         # An EngineRule built from a flat conjunction now carries the
         # authoritative ``and`` tree (the canonical conjunctive shape produced
-        # by ``conditions_to_dsl``); ``from_engine_rule`` passes it through.
+        # by ``conditions_to_tree``); ``from_engine_rule`` passes it through.
         assert rule.conditions["type"] == "and"
         assert len(rule.conditions["children"]) == 2
 

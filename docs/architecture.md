@@ -4,7 +4,7 @@
 
 ---
 
-FluxRules is a lightweight rule evaluation engine with a clean layered architecture. This page describes the system design from the DSL down to engine execution.
+FluxRules is a lightweight rule evaluation engine with a clean layered architecture. This page describes the system design from the condition tree down to engine execution.
 
 ## System Architecture
 
@@ -107,12 +107,12 @@ Fact input → [Assert into working memory]
 
 ---
 
-## DSL Processing Pipeline
+## Condition Processing Pipeline
 
 The conditions is a recursive JSON structure that's validated, compiled, and executed:
 
 ```
-Input DSL:
+Input condition tree:
 {
   "type": "group",
   "op": "AND",
@@ -149,7 +149,7 @@ Rule(
     domain="fraud_detection",             # Grouping
     tags=frozenset(["tier_1", "urgent"]), # Cross-cutting labels
     priority=10,                          # Execution order (higher first)
-    conditions={...},                  # The DSL above
+    conditions={...},                  # The condition tree above
     action="flag_for_review",             # Or callable
     persist=False                         # Optional: store in database
 )

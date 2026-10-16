@@ -32,7 +32,7 @@ print(f"Rule created: {rule.name} (ID: {rule.id})")
 | `name` | `str` | Yes | Descriptive rule name |
 | `domain` | `str` | No | Logical grouping (default: "default") |
 | `tags` | `frozenset[str]` | No | Searchable keywords |
-| `conditions` | `dict` | Yes | Rule logic (DSL format) |
+| `conditions` | `dict` | Yes | Rule logic (condition tree format) |
 | `action` | `str \| tuple[str, ...]` | No | Action when rule fires |
 | `priority` | `int` | No | Evaluation priority (higher first) |
 | `persist` | `bool` | No | Store in database (default: False) |
@@ -86,19 +86,19 @@ rules = [Rule(**r) for r in rules_dicts]
 ## Validate a rule
 
 ```python
-from fluxrules.domain.dsl.validation import validate_dsl, DSLValidationError
+from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 
-# Validate DSL syntax before creating a rule
+# Validate condition tree syntax before creating a rule
 dsl = {"type": "condition", "field": "amount", "op": ">", "value": 5000}
 
 try:
-    validate_dsl(dsl)
-    print("✅ DSL is valid")
-except DSLValidationError as e:
-    print(f"❌ Invalid DSL: {e}")
+    validate_conditions(dsl)
+    print("✅ Conditions are valid")
+except ConditionValidationError as e:
+    print(f"❌ Invalid conditions: {e}")
 ```
 
-Invalid DSLs raise `DSLValidationError`. See [Validation Framework](validation-framework.md) for details.
+Invalid DSLs raise `ConditionValidationError`. See [Validation Framework](validation-framework.md) for details.
 
 ## Evaluate rules
 
@@ -178,7 +178,7 @@ service.persist(Ruleset(group="default", rules=(new_rule.to_engine_rule(),)))
 
 ## Next Steps
 
-- **Validation** - See [Validation Framework](validation-framework.md) for DSL validation
+- **Validation** - See [Validation Framework](validation-framework.md) for condition validation
 - **Complex Conditions** - See [Complex Conditions](complex-conditions.md) for AND/OR/NOT logic
 - **Persistence** - See [Persistence](persistence.md) for database management
 - **Custom Actions** - See [Custom Actions](custom-actions.md) for action handlers

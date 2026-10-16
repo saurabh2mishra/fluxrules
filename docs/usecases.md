@@ -12,7 +12,7 @@ Real-world scenarios where FluxRules excels.
 - Unusual velocity (5+ transactions in 1 hour)
 - Cross-border with high-risk IP
 
-**FluxRules advantage:** Simple DSL for complex business logic, millisecond latency.
+**FluxRules advantage:** Simple condition trees for complex business logic, millisecond latency.
 
 **Example:** [Example 22: Real-World Workflow](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/22_real_world_workflow.py)
 

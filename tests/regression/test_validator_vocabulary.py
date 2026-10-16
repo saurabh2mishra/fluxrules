@@ -107,7 +107,7 @@ class TestStructuralValidatorTracksTheEngine:
 
 
 class TestStrictValidateDslTracksTheEngine:
-    """`validate_dsl` - stricter, opt-in, and not currently on a write path.
+    """`validate_conditions` - stricter, opt-in, and not currently on a write path.
 
     It is kept aligned regardless: it is exported, tested, and the obvious
     thing to reach for when adding validation to an ingestion path. A strict
@@ -116,9 +116,9 @@ class TestStrictValidateDslTracksTheEngine:
     """
 
     def _validate(self, dsl):
-        from fluxrules.domain.dsl.validation import validate_dsl
+        from fluxrules.domain.conditions.validation import validate_conditions
 
-        return validate_dsl(dsl)
+        return validate_conditions(dsl)
 
     @pytest.mark.parametrize("name", sorted(BOOLEAN_SHAPES))
     def test_every_boolean_shape_is_accepted(self, name: str) -> None:
@@ -148,20 +148,20 @@ class TestStrictValidateDslTracksTheEngine:
         ],
     )
     def test_invalid_dsl_is_still_rejected(self, dsl) -> None:
-        from fluxrules.domain.dsl.validation import DSLValidationError
+        from fluxrules.domain.conditions.validation import ConditionValidationError
 
-        with pytest.raises(DSLValidationError):
+        with pytest.raises(ConditionValidationError):
             self._validate(dsl)
 
 
 def test_the_two_validators_agree_on_the_shapes_they_both_see() -> None:
     """Disagreement is how a rule passes one gate and fails another.
 
-    They differ in strictness by design - `validate_dsl` also checks for
+    They differ in strictness by design - `validate_conditions` also checks for
     unknown keys - but they must not disagree about whether a *well-formed*
     rule is valid.
     """
-    from fluxrules.domain.dsl.validation import validate_dsl
+    from fluxrules.domain.conditions.validation import validate_conditions
     from fluxrules.services.validators.structural_validator import StructuralValidator
 
     for name, dsl in BOOLEAN_SHAPES.items():
@@ -169,4 +169,4 @@ def test_the_two_validators_agree_on_the_shapes_they_both_see() -> None:
             {"name": "r", "conditions": dsl, "action": "flag"}
         )
         assert not structural.has_errors(), name
-        validate_dsl(dsl)  # must not raise
+        validate_conditions(dsl)  # must not raise

@@ -69,7 +69,7 @@ rule = Rule.model_validate_yaml(
 )
 ```
 
-This rejects empty logic, unknown operators, malformed DSL structure, and
+This rejects empty logic, unknown operators, malformed condition tree structure, and
 conflicting action fields at the authoring boundary.
 
 ## Operational guidance

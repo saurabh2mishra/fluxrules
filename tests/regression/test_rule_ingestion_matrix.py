@@ -300,10 +300,10 @@ class TestEmptinessNeverMatches:
         assert result.actions == []
 
     def test_empty_group_does_not_match_by_vacuous_truth(self):
-        from fluxrules.domain.dsl.evaluator import evaluate_dsl
+        from fluxrules.domain.conditions.evaluator import evaluate_conditions
 
-        assert evaluate_dsl({"type": "and", "children": []}, {"a": 1}) is False
-        assert evaluate_dsl({"type": "or", "children": []}, {"a": 1}) is False
+        assert evaluate_conditions({"type": "and", "children": []}, {"a": 1}) is False
+        assert evaluate_conditions({"type": "or", "children": []}, {"a": 1}) is False
 
 
 class TestEmptyRulesCannotBeCreatedOrStored:
@@ -448,7 +448,7 @@ class TestOneStoredShape:
         import pytest
 
         from fluxrules.domain.errors import CorruptStoredRuleError
-        from fluxrules.persistence.mappers import normalize_stored_dsl
+        from fluxrules.persistence.mappers import normalize_stored_conditions
 
         legacy = [
             {"fact": "amount", "operator": "gt", "value": 100},
@@ -456,7 +456,7 @@ class TestOneStoredShape:
         ]
 
         with pytest.raises(CorruptStoredRuleError):
-            normalize_stored_dsl(legacy)
+            normalize_stored_conditions(legacy)
 
     def test_json_string_rows_are_rejected(self):
         """The API path no longer double-encodes, so a str column is corrupt."""
@@ -465,18 +465,18 @@ class TestOneStoredShape:
         import pytest
 
         from fluxrules.domain.errors import CorruptStoredRuleError
-        from fluxrules.persistence.mappers import normalize_stored_dsl
+        from fluxrules.persistence.mappers import normalize_stored_conditions
 
         with pytest.raises(CorruptStoredRuleError):
-            normalize_stored_dsl(json.dumps(_leaf()))
+            normalize_stored_conditions(json.dumps(_leaf()))
 
     def test_absent_logic_is_not_corruption(self):
         """``None``/``{}`` mean "no logic yet", which is legitimate."""
-        from fluxrules.persistence.mappers import normalize_stored_dsl
+        from fluxrules.persistence.mappers import normalize_stored_conditions
 
         empty = {"type": "and", "children": []}
-        assert normalize_stored_dsl(None) == empty
-        assert normalize_stored_dsl({}) == empty
+        assert normalize_stored_conditions(None) == empty
+        assert normalize_stored_conditions({}) == empty
 
     def test_round_trip_through_storage_is_stable(self):
         """Storing an already-stored rule must not change its shape again."""
@@ -537,27 +537,27 @@ class TestLossyViewCannotBeRebuilt:
         assert self._view(and_over_or).lossy is True
 
     def test_rebuilding_from_a_lossy_view_is_refused(self):
-        from fluxrules.domain.dsl.evaluator import (
+        from fluxrules.domain.conditions.evaluator import (
             LossyConditionRebuildError,
-            conditions_to_dsl,
+            conditions_to_tree,
         )
 
         with pytest.raises(LossyConditionRebuildError):
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
 
     def test_rebuilding_from_a_faithful_view_still_works(self):
         """The guard must not block the legitimate conjunction case."""
-        from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+        from fluxrules.domain.conditions.evaluator import conditions_to_tree
 
-        assert conditions_to_dsl(self._view(_and()))["type"] == "and"
+        assert conditions_to_tree(self._view(_and()))["type"] == "and"
 
     def test_a_plain_tuple_is_still_accepted(self):
         """Callers that build conditions by hand are unaffected."""
-        from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+        from fluxrules.domain.conditions.evaluator import conditions_to_tree
         from fluxrules.domain.models import RuleCondition
 
         conditions = (RuleCondition(fact="amount", operator="gt", value=100),)
-        assert conditions_to_dsl(conditions)["type"] == "condition"
+        assert conditions_to_tree(conditions)["type"] == "condition"
 
     def test_the_view_is_still_an_ordinary_tuple(self):
         """Every existing consumer iterates/len()s this; it must not break."""
@@ -597,33 +597,33 @@ class TestLossyRebuildIsACompatibleChange:
 
     def test_error_is_catchable_as_the_package_base_error(self):
         """Existing `except FluxRulesError` handlers must keep working."""
-        from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+        from fluxrules.domain.conditions.evaluator import conditions_to_tree
         from fluxrules.domain.errors import FluxRulesError, InvalidRuleError
 
         with pytest.raises(FluxRulesError):
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
         with pytest.raises(InvalidRuleError):
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
 
     def test_error_carries_a_stable_code(self):
-        from fluxrules.domain.dsl.evaluator import (
+        from fluxrules.domain.conditions.evaluator import (
             LossyConditionRebuildError,
-            conditions_to_dsl,
+            conditions_to_tree,
         )
 
         with pytest.raises(LossyConditionRebuildError) as excinfo:
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
         assert excinfo.value.code == "LOSSY_CONDITION_REBUILD"
 
     def test_error_message_names_the_remedy(self):
         """A raise that does not say what to do instead is a support ticket."""
-        from fluxrules.domain.dsl.evaluator import (
+        from fluxrules.domain.conditions.evaluator import (
             LossyConditionRebuildError,
-            conditions_to_dsl,
+            conditions_to_tree,
         )
 
         with pytest.raises(LossyConditionRebuildError) as excinfo:
-            conditions_to_dsl(self._view(_or()))
+            conditions_to_tree(self._view(_or()))
         assert "conditions" in str(excinfo.value)
 
     def test_normal_authoring_never_reaches_the_error(self):

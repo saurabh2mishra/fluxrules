@@ -49,7 +49,7 @@ semantics genuinely require joins, windows, or truth maintenance.
 
 ## Rule complexity
 
-**Scope:** DSL supports arbitrary nesting of AND/OR/NOT operators.
+**Scope:** Conditions support arbitrary nesting of AND/OR/NOT operators.
 
 **Limits enforced by the code:**
 - Rules: default cap of **50,000** per engine (`GlobalRuleRepository`); configurable via `PhreakEngine(max_rules=...)`. Exceeding the cap raises `ValueError("Repository full")`.

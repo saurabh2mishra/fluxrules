@@ -24,7 +24,7 @@ python -m fluxrules.api.app --port 8001
 **Problem:** Expected rule matches, but `fired_rules` is empty.
 
 **Solutions:**
-1. **Validate DSL syntax:**
+1. **Validate condition tree syntax:**
    ```bash
    curl -X POST http://localhost:8000/api/v1/validate \
      -H "Content-Type: application/json" \

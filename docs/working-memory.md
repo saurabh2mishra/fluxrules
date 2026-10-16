@@ -1,6 +1,6 @@
 # Working Memory and State
 
-**Prerequisites:** [Concepts](concepts.md) (Rule, Engine, Fact) and [Conditions](conditions.md) (DSL format).
+**Prerequisites:** [Concepts](concepts.md) (Rule, Engine, Fact) and [Conditions](conditions.md) (condition tree format).
 
 ---
 

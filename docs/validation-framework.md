@@ -2,13 +2,13 @@
 
 Validation in FluxRules catches errors in condition logic before rules are deployed.
 
-**Prerequisites:** Familiarity with [Conditions](conditions.md) and condition DSL structure (see [Complex Conditions](complex-conditions.md)).
+**Prerequisites:** Familiarity with [Conditions](conditions.md) and condition condition tree structure (see [Complex Conditions](complex-conditions.md)).
 
 ---
 
 ## What Gets Validated
 
-When you create or load rules, FluxRules validates the condition DSL:
+When you create or load rules, FluxRules validates the condition tree:
 
 - **Syntax**: Structure, types, required fields
 - **Semantics**: Valid operators, valid values
@@ -16,19 +16,19 @@ When you create or load rules, FluxRules validates the condition DSL:
 
 The validation system catches errors early with clear error messages.
 
-**Source:** `src/fluxrules/domain/dsl/validation.py`
+**Source:** `src/fluxrules/domain/conditions/validation.py`
 
 ---
 
 ## How to Validate
 
-### Validate a Single Rule's DSL
+### Validate a Single Rule's Conditions
 
 ```python
-from fluxrules.domain.dsl.validation import validate_dsl, DSLValidationError
+from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 from fluxrules.domain import Rule
 
-# Define a rule with condition DSL
+# Define a rule with a condition tree
 rule = Rule(
     name="high_amount_check",
     conditions={
@@ -42,11 +42,11 @@ rule = Rule(
     action="review"
 )
 
-# Validate the DSL
+# Validate the condition tree
 try:
-    validate_dsl(rule.conditions)
+    validate_conditions(rule.conditions)
     print("✅ Rule is valid")
-except DSLValidationError as e:
+except ConditionValidationError as e:
     print(f"❌ Validation error: {e}")
 ```
 
@@ -60,7 +60,7 @@ invalid_dsl = {
     "op": "__unknown__",  # ❌ Not in VALID_OPERATORS
     "value": 100
 }
-# Raises: DSLValidationError: '__unknown__' is not a valid operator
+# Raises: ConditionValidationError: '__unknown__' is not a valid operator
 ```
 
 **Impossible logic:**
@@ -73,7 +73,7 @@ impossible_dsl = {
         {"type": "condition", "field": "age", "op": "<", "value": 18}  # ❌ Impossible
     ]
 }
-# Note: validate_dsl validates structure; dead-rule detection is on the roadmap
+# Note: validate_conditions validates structure; dead-rule detection is on the roadmap
 ```
 
 **Missing required fields:**
@@ -83,12 +83,12 @@ invalid_condition = {
     "field": "amount"
     # ❌ Missing 'op' and 'value'
 }
-# Raises: DSLValidationError: missing required 'op' key
+# Raises: ConditionValidationError: missing required 'op' key
 ```
 
 ---
 
-## DSL Node Types and Validation Rules
+## Condition Node Types and Validation Rules
 
 ### condition
 
@@ -158,7 +158,7 @@ The validation happens automatically at rule creation. If validation fails, beha
 The shared payment-risk dataset includes a validation example in [Example 04](examples.md):
 
 ```python
-from fluxrules.domain.dsl.validation import DSLValidationError, validate_dsl
+from fluxrules.domain.conditions.validation import ConditionValidationError, validate_conditions
 
 # Validate a nested condition tree
 nested_condition = {
@@ -173,7 +173,7 @@ nested_condition = {
     ]
 }
 
-validate_dsl(nested_condition)  # ✅ Passes
+validate_conditions(nested_condition)  # ✅ Passes
 ```
 
 See [Example 04: Validation](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py) for complete working code.
@@ -182,23 +182,23 @@ For error handling with validation, see [Example 14: Error Handling](https://git
 
 ---
 
-## DSL Validation Errors
+## Condition Validation Errors
 
-When validation fails, you get a `DSLValidationError` with context about what went wrong.
+When validation fails, you get a `ConditionValidationError` with context about what went wrong.
 
 **Example: Invalid operator**
 
 ```python
-from fluxrules.domain.dsl.validation import validate_dsl, DSLValidationError
+from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 
 try:
-    validate_dsl({
+    validate_conditions({
         "type": "condition",
         "field": "amount",
         "op": "is_greater_than",  # ❌ Not a valid operator
         "value": 100
     })
-except DSLValidationError as e:
+except ConditionValidationError as e:
     print(e)  # "is_greater_than is not a valid operator..."
 ```
 
@@ -206,12 +206,12 @@ except DSLValidationError as e:
 
 ```python
 try:
-    validate_dsl({
+    validate_conditions({
         "type": "condition",
         "field": "amount"
         # ❌ Missing 'op' and 'value'
     })
-except DSLValidationError as e:
+except ConditionValidationError as e:
     print(e)  # "Condition missing required 'op' key"
 ```
 
@@ -240,7 +240,7 @@ The 10 valid operators are:
 
 ## When Validation Happens
 
-- **Explicit call**: `validate_dsl(dsl)` - synchronous, raises on error
+- **Explicit call**: `validate_conditions(dsl)` - synchronous, raises on error
 - **Rule creation**: Rules are structurally validated on instantiation
 - **Engine load**: No automatic validation (`engine.load_rules()` assumes pre-validated rules)
 - **REST API** (if enabled): Automatic validation before saving
@@ -251,7 +251,7 @@ The 10 valid operators are:
 ## Limitations
 
 **What validation covers:**
-- ✅ DSL syntax and structure
+- ✅ condition tree syntax and structure
 - ✅ Operator validity
 - ✅ Required fields
 - ✅ Type checking (values match operator expectations)

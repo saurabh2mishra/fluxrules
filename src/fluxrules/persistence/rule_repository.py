@@ -104,9 +104,9 @@ class RuleRepository:
             if key == "conditions" and isinstance(value, (list, tuple)):
                 # Store a DSL tree, not a list of condition dicts: the column
                 # holds exactly one shape.
-                from fluxrules.domain.dsl.evaluator import conditions_to_dsl
+                from fluxrules.domain.conditions.evaluator import conditions_to_tree
 
-                orm_rule.conditions = conditions_to_dsl(value)
+                orm_rule.conditions = conditions_to_tree(value)
             elif key == "conditions":
                 orm_rule.conditions = value
             elif key == "actions" and isinstance(value, (list, tuple)):
