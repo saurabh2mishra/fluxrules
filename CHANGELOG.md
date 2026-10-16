@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-16
+
+### Breaking Changes
+
+- **Renamed `condition_dsl` → `conditions`** on `Rule`, `EngineRule`, all API schemas, YAML rule files, and the database column. The old name implied a formal DSL that does not exist; `conditions` is the plain, accurate name. Migrate: replace every `condition_dsl=` kwarg and `"condition_dsl"` dict key with `conditions`. A database migration (`002_rename_condition_dsl_to_conditions`) renames the column; run `alembic upgrade head` after upgrading.
+- **Renamed `EngineRule.conditions` (flat tuple) → `condition_nodes`** and `Rule.conditions` property → `condition_nodes`. These were internal derived views; `conditions` now refers to the canonical tree. This only affects code that directly accessed the flat-tuple view.
+
 ## [0.1.2] - 2026-10-15
 
 ### Fixed
@@ -95,7 +102,7 @@ rejected precisely because the name's meaning was the defect.
   together failed with "Ruleset has duplicate rule ids". The builder now defers
   to the same shared generator `Rule` uses.
 - `docs/rule-builder.md` documented a `RuleBuilder` API that did not exist
-  (`.domain()`, `.tags()`, `.condition_dsl()`, and a snippet that was not valid
+  (`.domain()`, `.tags()`, `.conditions()`, and a snippet that was not valid
   Python) while never demonstrating the real builder. Every block on the page
   is now executable and covered by the documentation harness.
 

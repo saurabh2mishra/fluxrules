@@ -43,7 +43,7 @@ def _selective_rule(rid: int, n_fields_total: int = 50) -> Rule:
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "and", "conditions": conditions},
+        conditions={"type": "and", "conditions": conditions},
         priority=rid % 10,
         domain=f"d{rid % 5}",
         tags=frozenset([f"tag_{rid % 3}"]),

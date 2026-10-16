@@ -22,7 +22,7 @@ def service() -> RuleService:
                 name="High value",
                 priority=10,
                 group="test_rules",
-                conditions=(RuleCondition(fact="amount", operator="gt", value=100),),
+                condition_nodes=(RuleCondition(fact="amount", operator="gt", value=100),),
                 actions=("flag:review",),
             ),
         ),

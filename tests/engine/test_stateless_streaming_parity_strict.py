@@ -29,7 +29,7 @@ def _leaf(rid, field, op, value, priority=0):
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": field, "op": op, "value": value},
+        conditions={"type": "condition", "field": field, "op": op, "value": value},
         priority=priority,
         persist=False,
     )

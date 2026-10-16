@@ -35,7 +35,7 @@ class TestDomainRuleToOrm:
         rule = EngineRule(
             id=0,
             name="TestRule",
-            conditions=(RuleCondition(fact="age", operator="gt", value=18),),
+            condition_nodes=(RuleCondition(fact="age", operator="gt", value=18),),
             actions=("allow",),
             priority=5,
             group="access",
@@ -50,7 +50,7 @@ class TestDomainRuleToOrm:
         assert orm.action == "allow"
         # The column holds a DSL dict, never a list of condition dicts: one
         # stored shape means readers never have to guess which they have.
-        assert orm.condition_dsl == {
+        assert orm.conditions == {
             "type": "condition",
             "field": "age",
             "op": "gt",
@@ -63,7 +63,7 @@ class TestDomainRuleToOrm:
         rule = EngineRule(
             id=0,
             name="Multi",
-            conditions=(RuleCondition(fact="x", operator="eq", value=1),),
+            condition_nodes=(RuleCondition(fact="x", operator="eq", value=1),),
             actions=("a1", "a2", "a3"),
         )
         orm = domain_rule_to_orm(rule)
@@ -75,20 +75,20 @@ class TestDomainRuleToOrm:
         rule = EngineRule(
             id=0,
             name="NoAction",
-            conditions=(RuleCondition(fact="x", operator="eq", value=1),),
+            condition_nodes=(RuleCondition(fact="x", operator="eq", value=1),),
         )
         orm = domain_rule_to_orm(rule)
         assert orm.action == ""
 
-    def test_canonical_rule_stores_condition_dsl(self):
-        """A canonical Pydantic Rule is stored via its condition_dsl, not conditions."""
+    def test_canonical_rule_stores_conditions(self):
+        """A canonical Pydantic Rule is stored via its conditions, not conditions."""
         from fluxrules.domain.unified_rule import Rule as CanonicalRule
         from fluxrules.persistence.mappers import domain_rule_to_orm
 
         rule = CanonicalRule(
             id=1,
             name="Canonical",
-            condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 0},
+            conditions={"type": "condition", "field": "x", "op": ">", "value": 0},
             action="flag",
             domain="fraud",
         )
@@ -96,7 +96,7 @@ class TestDomainRuleToOrm:
         assert orm.name == "Canonical"
         assert orm.action == "flag"
         assert orm.group == "fraud"
-        assert orm.condition_dsl == {
+        assert orm.conditions == {
             "type": "condition",
             "field": "x",
             "op": ">",
@@ -115,7 +115,7 @@ class TestOrmRuleToDomain:
             group="grp",
             priority=10,
             enabled=True,
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "children": [
                     {"type": "condition", "field": "age", "op": "gte", "value": 21},
@@ -141,7 +141,7 @@ class TestOrmRuleToDomain:
         assert domain.group == "grp"
         assert domain.priority == 10
         assert len(domain.conditions) == 2
-        assert domain.conditions[0].fact == "age"
+        assert domain.condition_nodes[0].fact == "age"
         assert domain.actions == ("grant", "notify")
         assert domain.created_at == "2026-01-01T12:00:00"
         assert domain.updated_at == "2026-01-02T12:00:00"
@@ -152,7 +152,7 @@ class TestOrmRuleToDomain:
 
         orm = OrmRule(
             name="IntId",
-            condition_dsl={"type": "and", "children": []},
+            conditions={"type": "and", "children": []},
             action="",
         )
         db_session.add(orm)
@@ -168,7 +168,7 @@ class TestOrmRuleToDomain:
 
         orm = OrmRule(
             name="MyRuleName",
-            condition_dsl={"type": "and", "children": []},
+            conditions={"type": "and", "children": []},
             action="",
         )
         db_session.add(orm)
@@ -185,7 +185,7 @@ class TestOrmRuleToDomain:
 
         orm = OrmRule(
             name="Ts",
-            condition_dsl={"type": "and", "children": []},
+            conditions={"type": "and", "children": []},
             action="",
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
@@ -217,9 +217,9 @@ class TestOrmRuleToDomain:
             rule = EngineRule(
                 id=0,
                 name=f"op_{op}",
-                conditions=(RuleCondition(fact="x", operator=op, value=1),),
+                condition_nodes=(RuleCondition(fact="x", operator=op, value=1),),
             )
             orm = domain_rule_to_orm(rule)
-            assert orm.condition_dsl["op"] == op
+            assert orm.conditions["op"] == op
             # And it survives the trip back, which is the point of storing it.
-            assert orm_rule_to_domain(orm).conditions[0].operator == op
+            assert orm_rule_to_domain(orm).condition_nodes[0].operator == op

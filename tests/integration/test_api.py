@@ -98,7 +98,7 @@ def test_rule_validate_brms():
         "group": "eligibility",
         "priority": 10,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "group",
             "op": "AND",
             "children": [{"type": "condition", "field": "age", "op": ">", "value": 60}],
@@ -114,7 +114,7 @@ def test_rule_validate_brms():
         "group": "eligibility",
         "priority": 11,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "group",
             "op": "AND",
             "children": [{"type": "condition", "field": "age", "op": ">", "value": 65}],
@@ -140,7 +140,7 @@ def test_rule_validate_detects_dead_rule():
         "group": "eligibility",
         "priority": 5,
         "enabled": True,
-        "condition_dsl": {
+        "conditions": {
             "type": "group",
             "op": "AND",
             "children": [

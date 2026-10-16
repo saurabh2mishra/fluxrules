@@ -80,7 +80,7 @@ class TestStructuralValidator:
         assert result.has_errors()
         errors = result.get_errors()
         assert any("name" in e.message for e in errors)
-        assert any("condition_dsl" in e.message for e in errors)
+        assert any("conditions" in e.message for e in errors)
         assert any("action" in e.message for e in errors)
 
     def test_valid_rule(self):
@@ -89,7 +89,7 @@ class TestStructuralValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -108,7 +108,7 @@ class TestStructuralValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": "not a dict",
+            "conditions": "not a dict",
             "action": "log_action",
         }
 
@@ -122,7 +122,7 @@ class TestStructuralValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {"field": "age", "op": "==", "value": 25},
+            "conditions": {"field": "age", "op": "==", "value": 25},
             "action": "log_action",
         }
 
@@ -137,7 +137,7 @@ class TestStructuralValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "invalid_op",
@@ -157,7 +157,7 @@ class TestStructuralValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "AND",
                 "children": [
                     {"type": "condition", "field": "age", "op": ">=", "value": 18},
@@ -182,7 +182,7 @@ class TestStructuralValidator:
 
         rule_data = {
             "name": "a" * 256,
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -216,7 +216,7 @@ class TestDuplicateValidator:
         rule_data = {
             "name": "Test Rule",
             "group": "default",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -241,7 +241,7 @@ class TestDuplicateValidator:
         rule_data = {
             "name": "Unique Rule",
             "group": "default",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -278,7 +278,7 @@ class TestPriorityValidator:
             "name": "Test Rule",
             "priority": 10,
             "group": "default",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -304,7 +304,7 @@ class TestPriorityValidator:
             "name": "Test Rule",
             "priority": 10,
             "group": "default",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -327,7 +327,7 @@ class TestBRMSValidator:
 
         rule_data = {
             "name": "Bad Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "AND",
                 "children": [
                     {
@@ -358,7 +358,7 @@ class TestBRMSValidator:
 
         rule_data = {
             "name": "Good Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "AND",
                 "children": [
                     {"type": "condition", "field": "age", "op": ">=", "value": 18},
@@ -388,7 +388,7 @@ class TestActionValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -408,7 +408,7 @@ class TestActionValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -429,7 +429,7 @@ class TestActionValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -454,7 +454,7 @@ class TestReferentialValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "unknown_field",
                 "op": "==",
@@ -475,7 +475,7 @@ class TestReferentialValidator:
 
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",

@@ -14,8 +14,8 @@ Check which rules are actually firing:
 from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
-rule1 = Rule(name="rule1", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="allow")
-rule2 = Rule(name="rule2", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule1 = Rule(name="rule1", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="allow")
+rule2 = Rule(name="rule2", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
 rules = [rule1, rule2]
 
 engine = PhreakEngine()
@@ -58,8 +58,8 @@ from fluxrules.engine.phreak import PhreakEngine
 
 # Setup rules and engine
 rules = [
-    Rule(name="rule1", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="allow"),
-    Rule(name="rule2", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag"),
+    Rule(name="rule1", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="allow"),
+    Rule(name="rule2", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag"),
 ]
 engine = PhreakEngine()
 engine.load_rules(rules)

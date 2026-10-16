@@ -17,7 +17,7 @@ def _and(rid, name, conds, priority=100, action=None):
     return {
         "id": rid,
         "name": name,
-        "condition_dsl": {"type": "and", "conditions": conds},
+        "conditions": {"type": "and", "conditions": conds},
         "action": action or f"log: {name}",
         "priority": priority,
     }
@@ -129,14 +129,14 @@ class TestFlatEvaluationPreservesResults:
             {
                 "id": 1,
                 "name": "r1",
-                "condition_dsl": _c("age", ">", 18),
+                "conditions": _c("age", ">", 18),
                 "action": "log: r1",
                 "priority": 100,
             },
             {
                 "id": 2,
                 "name": "r2",
-                "condition_dsl": _c("status", "==", "active"),
+                "conditions": _c("status", "==", "active"),
                 "action": "log: r2",
                 "priority": 90,
             },

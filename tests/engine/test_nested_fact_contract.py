@@ -24,7 +24,7 @@ def _engine(cls, field: str):
             Rule(
                 id=1,
                 name="deep_age",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": field,
                     "op": ">",

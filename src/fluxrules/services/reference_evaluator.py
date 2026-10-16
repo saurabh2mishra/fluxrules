@@ -83,11 +83,11 @@ class ReferenceEvaluator(EnginePort):
         )
 
     def _evaluate_rule(self, rule: EngineRule, facts: dict[str, object]) -> bool:
-        # ``condition_dsl`` is the canonical representation of rule logic and
+        # ``conditions`` is the canonical representation of rule logic and
         # is preferred whenever it is present. The ``conditions`` tuple is a
         # flat conjunction: evaluating an OR rule from it would silently
         # answer the wrong question.
-        dsl = getattr(rule, "condition_dsl", None)
+        dsl = getattr(rule, "conditions", None)
         if dsl:
             from fluxrules.domain.dsl.evaluator import (
                 UnsupportedDSLNodeError,
@@ -105,7 +105,7 @@ class ReferenceEvaluator(EnginePort):
                 )
                 return False
 
-        if not rule.conditions:
+        if not rule.condition_nodes:
             # A rule with no conditions used to match *every* fact set by
             # vacuous truth: `all()` of nothing is True. That turned a rule
             # whose conditions were lost in translation into one that fired
@@ -115,11 +115,11 @@ class ReferenceEvaluator(EnginePort):
             logger.warning(
                 "Rule %r has no conditions in the flat view; declining to "
                 "match. If it was authored with OR/NOT or nested logic, "
-                "evaluate it via condition_dsl on PhreakEngine.",
+                "evaluate it via conditions on PhreakEngine.",
                 rule.id,
             )
             return False
-        for condition in rule.conditions:
+        for condition in rule.condition_nodes:
             if condition.fact not in facts:
                 return False
             if not evaluate_operator(condition.operator, facts[condition.fact], condition.value):

@@ -14,7 +14,7 @@ from fluxrules import Rule
 rule = Rule(
     # Core (required)
     name="high_value_transaction",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     
     # Core (optional)
     domain="fraud_detection",                     # Logical grouping (default: "default")
@@ -31,7 +31,7 @@ rule = Rule(
 | Field | Type | Required | Default | Notes |
 |-------|------|----------|---------|-------|
 | `name` | `str` | Yes | - | Human-readable rule name |
-| `condition_dsl` | `dict` | Yes | - | Rule logic (DSL format) |
+| `conditions` | `dict` | Yes | - | Rule logic (DSL format) |
 | `domain` | `str` | No | `"default"` | Organizational grouping |
 | `tags` | `frozenset[str]` | No | `frozenset()` | Search/filter keywords |
 | `action` | `str \| tuple[str, ...]` | No | `None` | Action(s) when rule fires |
@@ -40,7 +40,7 @@ rule = Rule(
 
 ## DSL (Condition) format
 
-The `condition_dsl` field defines rule logic:
+The `conditions` field defines rule logic:
 
 ```python
 # Simple condition
@@ -74,7 +74,7 @@ from pydantic import ValidationError
 
 # Missing required field
 try:
-    Rule(condition_dsl={...})  # Missing `name`
+    Rule(conditions={...})  # Missing `name`
 except ValidationError as e:
     print(f"Validation error: {e}")
 
@@ -82,7 +82,7 @@ except ValidationError as e:
 try:
     Rule(
         name="test",
-        condition_dsl={"type": "invalid", "field": "x"},  # Invalid type
+        conditions={"type": "invalid", "field": "x"},  # Invalid type
         persist=False
     )
 except ValidationError as e:
@@ -97,7 +97,7 @@ except ValidationError as e:
 # python skip
 rule = Rule(
     name="check",
-    condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "pending"},
+    conditions={"type": "condition", "field": "status", "op": "==", "value": "pending"},
     tags=frozenset(["tier_1", "fraud", "manual_review"]),
     persist=False,
 )
@@ -114,7 +114,7 @@ from fluxrules import Rule
 # Action is a single string
 rule = Rule(
     name="suspicious",
-    condition_dsl={"type": "condition", "field": "risk_score", "op": ">", "value": 75},
+    conditions={"type": "condition", "field": "risk_score", "op": ">", "value": 75},
     action="block",  # Single action
     persist=False,
 )
@@ -128,9 +128,9 @@ print(rule.action)  # "block"
 from fluxrules import Rule
 
 rules = [
-    Rule(name="urgent", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "critical"}, priority=100, persist=False),
-    Rule(name="normal", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "warning"}, priority=10, persist=False),
-    Rule(name="low", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "info"}, priority=1, persist=False),
+    Rule(name="urgent", conditions={"type": "condition", "field": "status", "op": "==", "value": "critical"}, priority=100, persist=False),
+    Rule(name="normal", conditions={"type": "condition", "field": "status", "op": "==", "value": "warning"}, priority=10, persist=False),
+    Rule(name="low", conditions={"type": "condition", "field": "status", "op": "==", "value": "info"}, priority=1, persist=False),
 ]
 
 # Higher priority evaluated first

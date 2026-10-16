@@ -355,7 +355,7 @@ class TestRuleEvaluationE2E:
                 group="security_test",
                 priority=10,
                 enabled=True,
-                condition_dsl={
+                conditions={
                     "type": "group",
                     "op": "AND",
                     "children": [
@@ -398,7 +398,7 @@ class TestRuleEvaluationE2E:
                 group="security_test",
                 priority=11,
                 enabled=True,
-                condition_dsl={
+                conditions={
                     "type": "group",
                     "op": "AND",
                     "children": [
@@ -508,7 +508,7 @@ class TestSecurityPerformance:
                 "group": "perf",
                 "priority": 1,
                 "enabled": True,
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "x",
                     "op": ">",

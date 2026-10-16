@@ -30,7 +30,7 @@ def _shared_leaf_rules(n: int) -> list[Rule]:
         Rule(
             id=i,
             name=f"r{i}",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "amount",
                 "op": ">",
@@ -49,7 +49,7 @@ def _selective_rules(n: int) -> list[Rule]:
         Rule(
             id=i,
             name=f"r{i}",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "amount",
                 "op": ">",

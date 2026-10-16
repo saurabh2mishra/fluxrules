@@ -151,7 +151,7 @@ class TestPersistenceManager:
         rule = EngineRule(
             id=None,
             name="Test Rule",
-            conditions=(
+            condition_nodes=(
                 RuleCondition(
                     fact="amount",
                     operator=">",
@@ -174,7 +174,7 @@ class TestPersistenceManager:
 
         rule = CanonicalRule(
             name="Canonical Rule",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "amount",
                 "op": ">",
@@ -191,7 +191,7 @@ class TestPersistenceManager:
         assert persisted.name == "Canonical Rule"
         assert persisted.priority == 7
         assert persisted.actions == ("flag",)
-        assert persisted.conditions[0].fact == "amount"
+        assert persisted.condition_nodes[0].fact == "amount"
 
     def test_persist_disabled_generates_local_id(self):
         """With persistence disabled, should generate local ID."""
@@ -200,7 +200,7 @@ class TestPersistenceManager:
         rule = EngineRule(
             id=None,
             name="Test Rule",
-            conditions=(RuleCondition(fact="age", operator=">", value=18),),
+            condition_nodes=(RuleCondition(fact="age", operator=">", value=18),),
             actions=("allow",),
         )
 
@@ -229,7 +229,7 @@ class TestPersistenceManager:
             EngineRule(
                 id=None,
                 name=f"Rule {i}",
-                conditions=(RuleCondition(fact="test", operator="==", value=i),),
+                condition_nodes=(RuleCondition(fact="test", operator="==", value=i),),
                 actions=(f"action{i}",),
             )
             for i in range(3)
@@ -301,7 +301,7 @@ class TestPersistenceIntegration:
         """
         from fluxrules.domain.unified_rule import Rule as UnifiedRule
 
-        rule = UnifiedRule(name="Not Stored", condition_dsl=self._DSL, action="allow")
+        rule = UnifiedRule(name="Not Stored", conditions=self._DSL, action="allow")
 
         assert isinstance(rule.id, int)
         assert "Not Stored" not in self._stored_names()
@@ -311,7 +311,7 @@ class TestPersistenceIntegration:
 
         rule = UnifiedRule(
             name="Stored At Init",
-            condition_dsl=self._DSL,
+            conditions=self._DSL,
             action="allow",
             persist=True,
         )
@@ -323,7 +323,7 @@ class TestPersistenceIntegration:
         """``save()`` is the explicit path the default now steers people to."""
         from fluxrules.domain.unified_rule import Rule as UnifiedRule
 
-        rule = UnifiedRule(name="Stored By Save", condition_dsl=self._DSL, action="allow")
+        rule = UnifiedRule(name="Stored By Save", conditions=self._DSL, action="allow")
         assert "Stored By Save" not in self._stored_names()
 
         returned = rule.save()
@@ -342,7 +342,7 @@ class TestPersistenceIntegration:
         """
         from fluxrules.domain.unified_rule import Rule as UnifiedRule
 
-        rule = UnifiedRule(name="Saved Twice", condition_dsl=self._DSL, action="allow")
+        rule = UnifiedRule(name="Saved Twice", conditions=self._DSL, action="allow")
         rule.save()
         first_id = rule.id
         rule.save()
@@ -395,9 +395,9 @@ class TestPersistenceManagerServiceFactoryDelegation:
         return EngineRule(
             id=None,
             name=name,
-            conditions=(RuleCondition(fact="amount", operator=">", value=0),),
+            condition_nodes=(RuleCondition(fact="amount", operator=">", value=0),),
             actions=("act",),
-            condition_dsl=self._DSL,
+            conditions=self._DSL,
         )
 
     def test_delegates_to_registered_adapter(self):

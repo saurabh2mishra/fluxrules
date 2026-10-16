@@ -20,7 +20,7 @@ def test_yaml_loader_returns_canonical_rule_data_and_phreak_evaluates(tmp_path) 
         """- id: 7
   name: high_value
   action: review
-  condition_dsl:
+  conditions:
     type: condition
     field: amount
     op: ">"
@@ -30,7 +30,7 @@ def test_yaml_loader_returns_canonical_rule_data_and_phreak_evaluates(tmp_path) 
 
     rows = load_rules_from_yaml(str(path))
 
-    assert rows[0]["condition_dsl"]["field"] == "amount"
+    assert rows[0]["conditions"]["field"] == "amount"
     assert _evaluate(rows[0], {"amount": 150}) == [7]
     assert _evaluate(rows[0], {"amount": 50}) == []
 
@@ -41,7 +41,7 @@ def test_yaml_loader_accepts_single_mapping(tmp_path) -> None:
         """id: 8
 name: country_check
 action: review
-condition_dsl:
+conditions:
   type: condition
   field: country
   op: ==

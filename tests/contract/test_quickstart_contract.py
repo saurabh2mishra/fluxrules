@@ -28,7 +28,7 @@ QUICKSTART = dedent(
 
     rule = Rule(
         name="high_value_transaction",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
         action="manual_review",
     )
 
@@ -82,7 +82,7 @@ def test_quickstart_needs_no_warnings_to_be_silenced() -> None:
         warnings.simplefilter("error")
         rule = Rule(
             name="high_value_transaction",
-            condition_dsl={
+            conditions={
                 "type": "condition",
                 "field": "amount",
                 "op": ">",
@@ -101,7 +101,7 @@ def test_the_answer_is_always_called_fired_rules() -> None:
     from fluxrules import PhreakEngine, Rule, RuleBuilder, evaluate
 
     dsl = {"type": "condition", "field": "amount", "op": ">", "value": 5000}
-    rule = Rule(name="r", condition_dsl=dsl, action="manual_review")
+    rule = Rule(name="r", conditions=dsl, action="manual_review")
     built = RuleBuilder().name("b").condition(dsl).action("manual_review").build()
 
     engine = PhreakEngine()
@@ -132,7 +132,7 @@ def test_built_and_constructed_rules_get_distinct_ids() -> None:
     from fluxrules import Rule, RuleBuilder, evaluate
 
     dsl = {"type": "condition", "field": "age", "op": ">=", "value": 18}
-    constructed = Rule(name="constructed", condition_dsl=dsl, action="allow")
+    constructed = Rule(name="constructed", conditions=dsl, action="allow")
     built = RuleBuilder().name("built").condition(dsl).action("allow").build()
 
     assert constructed.id != built.id

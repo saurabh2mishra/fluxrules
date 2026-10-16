@@ -7,7 +7,7 @@ def test_reference_evaluator_satisfies_engine_contract() -> None:
     engine: EngineContract = ReferenceEvaluator()
     ruleset = Ruleset(
         group="contract",
-        rules=(EngineRule(id=1, name="r", conditions=(RuleCondition("x", "eq", 1),)),),
+        rules=(EngineRule(id=1, name="r", condition_nodes=(RuleCondition("x", "eq", 1),)),),
     )
     result = engine.evaluate(ruleset, {"x": 1})
     assert result.fired_rules == [1]

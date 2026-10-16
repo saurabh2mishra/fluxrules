@@ -8,7 +8,7 @@ def _make_rule(id: int, group: str = "test") -> EngineRule:
     return EngineRule(
         id=id,
         name=f"rule_{id}",
-        conditions=(RuleCondition(fact="x", operator="==", value=1),),
+        condition_nodes=(RuleCondition(fact="x", operator="==", value=1),),
         actions=("action_1",),
         priority=1,
         group=group,

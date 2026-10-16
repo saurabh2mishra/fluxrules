@@ -39,7 +39,7 @@ def _and_rule(rid: int, n_conditions: int = 20, field_space: int = 100) -> Rule:
         field_space: Total number of possible fields (for diversity)
 
     Returns:
-        Rule with condition_dsl containing N AND-ed leaf conditions
+        Rule with conditions containing N AND-ed leaf conditions
     """
     # Select n_conditions distinct fields to avoid redundancy
     fields = random.sample(range(field_space), min(n_conditions, field_space))
@@ -57,7 +57,7 @@ def _and_rule(rid: int, n_conditions: int = 20, field_space: int = 100) -> Rule:
     return Rule(
         id=rid,
         name=f"rule_{rid}_and{n_conditions}",
-        condition_dsl={"type": "and", "conditions": conditions},
+        conditions={"type": "and", "conditions": conditions},
         priority=rid % 10,
         domain=f"d{rid % 5}",
         tags=frozenset([f"tag_{rid % 3}"]),
@@ -136,7 +136,7 @@ print_result("Time to generate rules", f"{gen_time:.1f}", "ms")
 # Analyze rule characteristics
 sample_rule = rules[0]
 print_result("Sample rule ID", f"{sample_rule.id}")
-print_result("Sample rule conditions", f"{len(sample_rule.condition_dsl['conditions'])}")
+print_result("Sample rule conditions", f"{len(sample_rule.conditions['conditions'])}")
 print()
 
 # TEST 1: Single Machine - Stateless Mode

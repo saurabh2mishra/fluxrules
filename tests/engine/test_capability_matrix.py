@@ -58,7 +58,7 @@ def _build_engine(cls, op, rule_value):
             Rule(
                 id=1,
                 name=f"op_{op}",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "value",
                     "op": op,

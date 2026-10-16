@@ -54,7 +54,7 @@ From `fluxrules.engine`:
 
 From `fluxrules`:
 
-- `Rule` - Pydantic v2 model: `id`, `name`, `domain`, `tags`, `condition_dsl`, `action`, `actions`, `priority`, `enabled`, `persist`
+- `Rule` - Pydantic v2 model: `id`, `name`, `domain`, `tags`, `conditions`, `action`, `actions`, `priority`, `enabled`, `persist`
 - `RuleBuilder` / `ConditionBuilder` - Fluent authoring; `RuleBuilder.build()` returns a `Rule`
 - `Ruleset` - Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
 - `EvaluationResult` - The single result type for every evaluation path.
@@ -95,7 +95,7 @@ except FluxRulesError as exc:
 | `InvalidRuleError` | `FluxRulesError` | `INVALID_RULE` | A rule is structurally unusable |
 | `UnknownOperatorError` | `FluxRulesError` | `UNKNOWN_OPERATOR` | A condition names an operator that does not exist |
 | `CyclicDependencyError` | `FluxRulesError` | `CYCLIC_DEPENDENCY` | Rule dependencies form a cycle |
-| `DSLValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `condition_dsl` tree fails strict validation |
+| `DSLValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `conditions` tree fails strict validation |
 | `EmptyRuleLogicError` | `InvalidRuleError` | `EMPTY_RULE_LOGIC` | A rule with no condition logic would be stored |
 | `LossyConditionRebuildError` | `InvalidRuleError` | `LOSSY_CONDITION_REBUILD` | A DSL tree would be rebuilt from a lossy `.conditions` view |
 

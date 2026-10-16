@@ -24,7 +24,7 @@ def _rules():
             "id": "r1",
             "name": "adult",
             "priority": 10,
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": ">=",
@@ -36,7 +36,7 @@ def _rules():
             "id": "r2",
             "name": "senior",
             "priority": 20,
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": ">=",
@@ -48,7 +48,7 @@ def _rules():
             "id": "r3",
             "name": "impossible",
             "priority": 5,
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "AND",
                 "children": [
@@ -101,7 +101,7 @@ def test_sat_validation_handles_or_groups():
     rules = [
         {
             "id": "or_rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "OR",
                 "children": [
@@ -125,7 +125,7 @@ def test_conflict_detector_respects_exclusive_inclusive_boundaries():
         [
             {
                 "id": "r_gt_10",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "score",
                     "op": ">",
@@ -135,7 +135,7 @@ def test_conflict_detector_respects_exclusive_inclusive_boundaries():
             },
             {
                 "id": "r_lte_10",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "score",
                     "op": "<=",
@@ -154,7 +154,7 @@ def test_dead_rule_detector_flags_equality_violating_exclusive_bound():
         [
             {
                 "id": "dead_eq_bound",
-                "condition_dsl": {
+                "conditions": {
                     "type": "group",
                     "op": "AND",
                     "children": [
@@ -176,7 +176,7 @@ def test_sat_validator_fallback_excludes_or_rules(monkeypatch):
     rules = [
         {
             "id": "or_contradictory_if_flattened",
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "OR",
                 "children": [
@@ -200,7 +200,7 @@ def test_gap_detector_has_no_finite_internal_gap_for_complete_split_ranges():
         [
             {
                 "id": "lte_zero",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "score",
                     "op": "<=",
@@ -210,7 +210,7 @@ def test_gap_detector_has_no_finite_internal_gap_for_complete_split_ranges():
             },
             {
                 "id": "gt_zero",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "score",
                     "op": ">",
@@ -231,7 +231,7 @@ def test_duplicate_detector_reports_identical_conditions():
             {
                 "id": "r1",
                 "name": "rule_one",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "score",
                     "op": ">",
@@ -242,7 +242,7 @@ def test_duplicate_detector_reports_identical_conditions():
             {
                 "id": "r2",
                 "name": "rule_two",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "score",
                     "op": ">",
@@ -263,7 +263,7 @@ def test_redundancy_detector_does_not_subsume_when_parent_missing_child_field():
         [
             {
                 "id": "parent",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "age",
                     "op": ">=",
@@ -273,7 +273,7 @@ def test_redundancy_detector_does_not_subsume_when_parent_missing_child_field():
             },
             {
                 "id": "child",
-                "condition_dsl": {
+                "conditions": {
                     "type": "group",
                     "op": "AND",
                     "children": [

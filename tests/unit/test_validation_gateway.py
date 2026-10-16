@@ -33,7 +33,7 @@ class TestValidationGateway:
         """Test validating a valid rule."""
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -50,7 +50,7 @@ class TestValidationGateway:
     def test_validate_missing_required_field(self, gateway: ValidationGateway):
         """Test validation fails with missing required field."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -99,7 +99,7 @@ class TestValidationGateway:
         mock_model.model_dump.return_value = {
             "name": "Test",
             "action": "log",
-            "condition_dsl": '{"type": "condition"}',
+            "conditions": '{"type": "condition"}',
         }
 
         normalized = gateway._normalize_rule_data(mock_model)
@@ -123,7 +123,7 @@ class TestValidationGateway:
         """Test validate_and_log method."""
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -143,13 +143,13 @@ class TestValidationGateway:
         mock_model.model_dump.return_value = {
             "name": "Test",
             "action": "log",
-            "condition_dsl": '{"type": "condition", "field": "age", "op": "==", "value": 25}',
+            "conditions": '{"type": "condition", "field": "age", "op": "==", "value": 25}',
         }
 
         normalized = gateway._normalize_rule_data(mock_model)
 
-        assert isinstance(normalized["condition_dsl"], dict)
-        assert normalized["condition_dsl"]["type"] == "condition"
+        assert isinstance(normalized["conditions"], dict)
+        assert normalized["conditions"]["type"] == "condition"
 
 
 class TestValidationException:

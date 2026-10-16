@@ -76,7 +76,7 @@ POST /api/v1/validate
 Content-Type: application/json
 
 {
-  "condition_dsl": {
+  "conditions": {
     "type": "condition",
     "field": "amount",
     "op": ">",

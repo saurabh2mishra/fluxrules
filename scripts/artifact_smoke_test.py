@@ -10,7 +10,7 @@ from fluxrules import PhreakEngine, Rule, RuleBuilder, __version__, evaluate
 
 rule = Rule(
     name="adult",
-    condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
     action="allow",
 )
 result = evaluate(rule, {"age": 30})

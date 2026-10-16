@@ -130,7 +130,7 @@ def generate_rules(n_rules: int, cfg: WorkloadConfig, rng: random.Random) -> lis
             Rule(
                 id=rid,
                 name=f"r{rid}",
-                condition_dsl=dsl,
+                conditions=dsl,
                 priority=rid % 10,
                 domain=f"d{rid % 8}",
                 tags=frozenset({f"t{rid % 4}"}),
@@ -158,7 +158,7 @@ def generate_adversarial_rules(n_rules: int, cfg: WorkloadConfig, rng: random.Ra
             Rule(
                 id=rid,
                 name=f"r{rid}",
-                condition_dsl=dsl,
+                conditions=dsl,
                 priority=rid % 10,
                 domain="d0",
                 tags=frozenset(),

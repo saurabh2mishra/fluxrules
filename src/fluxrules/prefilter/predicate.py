@@ -1,4 +1,4 @@
-"""Predicate extraction: turn rule ``condition_dsl`` into sound pre-filters.
+"""Predicate extraction: turn rule ``conditions`` into sound pre-filters.
 
 A rule fires only if *all* required leaf conditions are satisfied. The engine's
 operator semantics (see ``fluxrules.engine.operators.evaluate_operator``) give us
@@ -171,7 +171,7 @@ class PredicateExtractor:
 
     def _extract_rule(self, rule: Any) -> RuleClause:
         clause = RuleClause(rule_id=getattr(rule, "id", 0))
-        dsl = getattr(rule, "condition_dsl", None)
+        dsl = getattr(rule, "conditions", None)
         if not isinstance(dsl, dict):
             clause.always_candidate = True
             return clause

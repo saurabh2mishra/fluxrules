@@ -59,7 +59,7 @@ def _rand_rule(rng: random.Random, rid: int) -> Rule:
                 _rand_leaf(rng),
             ],
         }
-    return Rule(id=rid, name=f"r{rid}", condition_dsl=dsl, priority=rid % 7, persist=False)
+    return Rule(id=rid, name=f"r{rid}", conditions=dsl, priority=rid % 7, persist=False)
 
 
 def _rand_fact(rng: random.Random) -> dict:
@@ -95,7 +95,7 @@ def test_alpha_primary_runs_before_linker_and_prunes() -> None:
     """
     # 200 rules all keyed on the same hot field with distinct thresholds.
     rules = [
-        Rule(id=i, name=f"r{i}", condition_dsl=_leaf("amount", ">", i * 5), persist=False)
+        Rule(id=i, name=f"r{i}", conditions=_leaf("amount", ">", i * 5), persist=False)
         for i in range(200)
     ]
     engine = PhreakEngine(alpha_prefilter=True)
@@ -122,15 +122,15 @@ def test_alpha_parity_with_unfilterable_mixed_set() -> None:
         Rule(
             id=1,
             name="not_r",
-            condition_dsl={"type": "not", "condition": _leaf("f0", "==", 1)},
+            conditions={"type": "not", "condition": _leaf("f0", "==", 1)},
             persist=False,
         ),
-        Rule(id=2, name="r2", condition_dsl=_leaf("f1", ">", 40), persist=False),
-        Rule(id=3, name="r3", condition_dsl=_leaf("f2", "<", 5), persist=False),
+        Rule(id=2, name="r2", conditions=_leaf("f1", ">", 40), persist=False),
+        Rule(id=3, name="r3", conditions=_leaf("f2", "<", 5), persist=False),
         Rule(
             id=4,
             name="r4",
-            condition_dsl={
+            conditions={
                 "type": "and",
                 "conditions": [_leaf("f1", ">", 10), _leaf("f3", "<", 30)],
             },

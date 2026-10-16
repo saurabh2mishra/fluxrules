@@ -68,7 +68,7 @@ class FieldIndex:
                 raise ValueError("Rule must have an id before field indexing")
             rule_id = rule.id
 
-            fields = _extract_fields(rule.condition_dsl)
+            fields = _extract_fields(rule.conditions)
             if fields:
                 segment_id = f"seg_{'_'.join(sorted(fields))}"
             else:

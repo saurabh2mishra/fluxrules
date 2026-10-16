@@ -24,12 +24,12 @@ service = RuleService.create()
 rules = [
     Rule(
         name="verify_kyc",
-        condition_dsl={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+        conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
         action="proceed_to_payment",
     ),
     Rule(
         name="check_amount",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 10000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 10000},
         action="require_approval",
     ),
 ]

@@ -21,7 +21,7 @@ def main() -> None:
     # Validate all rules
     for rule in rules:
         try:
-            validate_dsl(rule.condition_dsl)
+            validate_dsl(rule.conditions)
             print(f"✅ Rule {rule.id}: valid DSL")
         except DSLValidationError as e:
             print(f"❌ Rule {rule.id}: {e}")

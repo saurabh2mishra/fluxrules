@@ -47,7 +47,7 @@ def _single_leaf_rule(rid: int, n_fields: int) -> Rule:
     return Rule(
         id=rid,
         name=f"leaf_{rid}",
-        condition_dsl=_leaf(f"field_{rid % n_fields}", ">", 500),
+        conditions=_leaf(f"field_{rid % n_fields}", ">", 500),
         priority=rid % 10,
         persist=False,
     )
@@ -60,7 +60,7 @@ def _deep_and_rule(rid: int, n_fields: int, n_conditions: int = 6) -> Rule:
     return Rule(
         id=rid,
         name=f"and_{rid}",
-        condition_dsl={"type": "and", "conditions": conditions},
+        conditions={"type": "and", "conditions": conditions},
         priority=rid % 10,
         persist=False,
     )
@@ -83,7 +83,7 @@ def _nested_bool_rule(rid: int, n_fields: int) -> Rule:
     return Rule(
         id=rid,
         name=f"nested_{rid}",
-        condition_dsl=dsl,
+        conditions=dsl,
         priority=rid % 10,
         persist=False,
     )

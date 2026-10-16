@@ -3,7 +3,7 @@
   priority: 20
   action: requires_review
   enabled: true
-  condition_dsl:
+  conditions:
     type: group
     op: AND
     children:
@@ -21,7 +21,7 @@
   priority: 10
   action: block_transaction
   enabled: true
-  condition_dsl:
+  conditions:
     type: group
     op: AND
     children:
@@ -39,7 +39,7 @@
   priority: 30
   action: expedite_processing
   enabled: true
-  condition_dsl:
+  conditions:
     type: group
     op: AND
     children:
@@ -57,7 +57,7 @@
   priority: 40
   action: require_verification
   enabled: true
-  condition_dsl:
+  conditions:
     type: group
     op: AND
     children:

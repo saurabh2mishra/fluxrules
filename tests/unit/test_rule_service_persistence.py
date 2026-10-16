@@ -35,7 +35,7 @@ def _make_ruleset(group="test"):
             EngineRule(
                 id=1,
                 name="r1",
-                conditions=(RuleCondition(fact="age", operator="gt", value=18),),
+                condition_nodes=(RuleCondition(fact="age", operator="gt", value=18),),
                 actions=("allow",),
                 priority=1,
                 group=group,
@@ -43,7 +43,7 @@ def _make_ruleset(group="test"):
             EngineRule(
                 id=2,
                 name="r2",
-                conditions=(RuleCondition(fact="status", operator="eq", value="active"),),
+                condition_nodes=(RuleCondition(fact="status", operator="eq", value="active"),),
                 actions=("notify",),
                 priority=2,
                 group=group,

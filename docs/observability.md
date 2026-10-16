@@ -19,7 +19,7 @@ from fluxrules.engine.phreak import PhreakEngine
 
 rule = Rule(
     name="amount_check",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 100},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 100},
     action="review",
     persist=False,
 )

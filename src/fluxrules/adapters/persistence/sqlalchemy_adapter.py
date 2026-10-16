@@ -113,9 +113,9 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
                 # holds exactly one shape.
                 from fluxrules.domain.dsl.evaluator import conditions_to_dsl
 
-                orm_rule.condition_dsl = conditions_to_dsl(value)
-            elif key == "condition_dsl":
-                orm_rule.condition_dsl = value
+                orm_rule.conditions = conditions_to_dsl(value)
+            elif key == "conditions":
+                orm_rule.conditions = value
             elif key == "actions" and isinstance(value, (list, tuple)):
                 orm_rule.action = "\n".join(value)
             elif hasattr(orm_rule, key):

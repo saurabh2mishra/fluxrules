@@ -34,7 +34,7 @@ def _and_rule(rid: int, n_conditions: int, n_fields: int) -> Rule:
     fields = random.sample(range(n_fields), min(n_conditions, n_fields))
     conditions = [_leaf(f"field_{f}", random.choice(OPS), random.randint(0, 1000)) for f in fields]
     dsl = conditions[0] if len(conditions) == 1 else {"type": "and", "conditions": conditions}
-    return Rule(id=rid, name=f"r{rid}", condition_dsl=dsl, priority=rid % 5, persist=False)
+    return Rule(id=rid, name=f"r{rid}", conditions=dsl, priority=rid % 5, persist=False)
 
 
 def _or_rule(rid: int, n_fields: int) -> Rule:
@@ -49,7 +49,7 @@ def _or_rule(rid: int, n_fields: int) -> Rule:
     return Rule(
         id=rid,
         name=f"r{rid}",
-        condition_dsl={"type": "or", "conditions": branches},
+        conditions={"type": "or", "conditions": branches},
         persist=False,
     )
 
@@ -130,7 +130,7 @@ def test_prefilter_actually_reduces(tmp_path):
             Rule(
                 id=i,
                 name=f"r{i}",
-                condition_dsl={"type": "and", "conditions": conds},
+                conditions={"type": "and", "conditions": conds},
                 persist=False,
             )
         )
@@ -157,10 +157,10 @@ def test_unfilterable_rule_falls_back_to_passthrough(tmp_path):
         Rule(
             id=1,
             name="not_rule",
-            condition_dsl={"type": "not", "condition": _leaf("field_0", ">", 500)},
+            conditions={"type": "not", "condition": _leaf("field_0", ">", 500)},
             persist=False,
         ),
-        Rule(id=2, name="ok", condition_dsl=_leaf("field_1", ">", 900), persist=False),
+        Rule(id=2, name="ok", conditions=_leaf("field_1", ">", 900), persist=False),
     ]
     facts = [_random_fact(n_fields, density=0.9) for _ in range(500)]
 

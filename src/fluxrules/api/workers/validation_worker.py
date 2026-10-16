@@ -152,7 +152,7 @@ def _run_bulk_validation(
                                 group=payload.get("group"),
                                 priority=payload.get("priority"),
                                 enabled=payload.get("enabled", True),
-                                condition_dsl=json.dumps(payload.get("condition_dsl", {})),
+                                conditions=json.dumps(payload.get("conditions", {})),
                                 action=payload.get("action", ""),
                                 rule_metadata=json.dumps(payload.get("rule_metadata"))
                                 if payload.get("rule_metadata")

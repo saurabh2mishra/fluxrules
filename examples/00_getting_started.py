@@ -19,7 +19,7 @@ def main() -> None:
     rule = Rule(
         id=1,
         name="manual_review_gate",
-        condition_dsl=complex_risk_condition(),
+        conditions=complex_risk_condition(),
         action="manual_review",
         priority=20,
         domain="fraud_detection",

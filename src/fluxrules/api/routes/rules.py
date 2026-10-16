@@ -39,7 +39,7 @@ def _detect_all_conflicts(db: Session) -> dict:
     conflicts = []
     condition_map: dict = {}
     for rule in rules:
-        condition_str = json.dumps(rule["condition_dsl"], sort_keys=True)
+        condition_str = json.dumps(rule["conditions"], sort_keys=True)
         if condition_str in condition_map:
             prev = condition_map[condition_str]
             conflicts.append(
@@ -86,9 +86,9 @@ def _check_new_rule_conflicts(db: Session, new_rule) -> list:
 
     conflicts: list = []
     event = (
-        new_rule.condition_dsl
-        if isinstance(new_rule.condition_dsl, dict)
-        else json.loads(new_rule.condition_dsl)
+        new_rule.conditions
+        if isinstance(new_rule.conditions, dict)
+        else json.loads(new_rule.conditions)
     )
     result = adapter.evaluate(event)
     matched_rules = result.get("matched_rules", [])
@@ -97,7 +97,7 @@ def _check_new_rule_conflicts(db: Session, new_rule) -> list:
     for rule in matched_rules:
         existing = next((r for r in rules if r["id"] == rule["id"]), None)
         if existing:
-            if json.dumps(existing["condition_dsl"], sort_keys=True) == new_condition:
+            if json.dumps(existing["conditions"], sort_keys=True) == new_condition:
                 conflicts.append(
                     {
                         "type": "duplicate_condition",
@@ -151,9 +151,9 @@ def serialize_rule(rule: RuleORM) -> dict:
         "group": rule.group,
         "priority": rule.priority,
         "enabled": rule.enabled,
-        "condition_dsl": json.loads(rule.condition_dsl)
-        if isinstance(rule.condition_dsl, str)
-        else rule.condition_dsl,
+        "conditions": json.loads(rule.conditions)
+        if isinstance(rule.conditions, str)
+        else rule.conditions,
         "action": rule.action,
         "rule_metadata": json.loads(rule.rule_metadata)
         if rule.rule_metadata and isinstance(rule.rule_metadata, str)
@@ -238,11 +238,11 @@ def validate_rule(
                 similarity_score += 20
                 reasons.append("Similar name")
         try:
-            new_fields = extract_fields(rule.condition_dsl)
+            new_fields = extract_fields(rule.conditions)
             existing_dsl = (
-                json.loads(existing.condition_dsl)
-                if isinstance(existing.condition_dsl, str)
-                else existing.condition_dsl
+                json.loads(existing.conditions)
+                if isinstance(existing.conditions, str)
+                else existing.conditions
             )
             existing_fields = extract_fields(existing_dsl)
             common_fields = new_fields & existing_fields
@@ -278,14 +278,14 @@ def validate_rule(
     return response
 
 
-def extract_fields(condition_dsl: dict) -> set:
+def extract_fields(conditions: dict) -> set:
     fields: set[str] = set()
-    if not condition_dsl:
+    if not conditions:
         return fields
-    if condition_dsl.get("type") == "condition" and condition_dsl.get("field"):
-        fields.add(condition_dsl["field"])
-    if condition_dsl.get("children"):
-        for child in condition_dsl["children"]:
+    if conditions.get("type") == "condition" and conditions.get("field"):
+        fields.add(conditions["field"])
+    if conditions.get("children"):
+        for child in conditions["children"]:
             fields.update(extract_fields(child))
     return fields
 
@@ -328,9 +328,9 @@ def create_rule(
                     group=rule.group,
                     priority=rule.priority,
                     enabled=rule.enabled,
-                    condition_dsl=json.dumps(rule.condition_dsl)
-                    if not isinstance(rule.condition_dsl, str)
-                    else rule.condition_dsl,
+                    conditions=json.dumps(rule.conditions)
+                    if not isinstance(rule.conditions, str)
+                    else rule.conditions,
                     action=rule.action,
                     rule_metadata=json.dumps(rule.rule_metadata) if rule.rule_metadata else None,
                     conflict_type=conflict.get("type", "unknown"),
@@ -399,9 +399,9 @@ def bulk_create_rules(
                             group=rule.group,
                             priority=rule.priority,
                             enabled=rule.enabled,
-                            condition_dsl=json.dumps(rule.condition_dsl)
-                            if not isinstance(rule.condition_dsl, str)
-                            else rule.condition_dsl,
+                            conditions=json.dumps(rule.conditions)
+                            if not isinstance(rule.conditions, str)
+                            else rule.conditions,
                             action=rule.action,
                             rule_metadata=json.dumps(rule.rule_metadata)
                             if rule.rule_metadata
@@ -515,9 +515,9 @@ def list_rule_versions(
     return [
         {
             **version.__dict__,
-            "condition_dsl": json.loads(version.condition_dsl)
-            if isinstance(version.condition_dsl, str)
-            else version.condition_dsl,
+            "conditions": json.loads(version.conditions)
+            if isinstance(version.conditions, str)
+            else version.conditions,
             "rule_metadata": json.loads(version.rule_metadata)
             if version.rule_metadata and isinstance(version.rule_metadata, str)
             else version.rule_metadata,
@@ -539,9 +539,9 @@ def get_rule_version(
         raise HTTPException(status_code=404, detail="Rule version not found")
     return {
         **rule_version.__dict__,
-        "condition_dsl": json.loads(rule_version.condition_dsl)
-        if isinstance(rule_version.condition_dsl, str)
-        else rule_version.condition_dsl,
+        "conditions": json.loads(rule_version.conditions)
+        if isinstance(rule_version.conditions, str)
+        else rule_version.conditions,
         "rule_metadata": json.loads(rule_version.rule_metadata)
         if rule_version.rule_metadata and isinstance(rule_version.rule_metadata, str)
         else rule_version.rule_metadata,
@@ -632,7 +632,7 @@ def detect_conflicts(db: Session = Depends(get_db), current_user: User = Depends
                         group=None,
                         priority=None,
                         enabled=True,
-                        condition_dsl="{}",
+                        conditions="{}",
                         action="",
                         rule_metadata=None,
                         conflict_type=conflict["type"],
@@ -651,7 +651,7 @@ def detect_conflicts(db: Session = Depends(get_db), current_user: User = Depends
                             group=conflict["group"],
                             priority=conflict["priority"],
                             enabled=rule.get("enabled", True),
-                            condition_dsl=json.dumps(rule["condition_dsl"]),
+                            conditions=json.dumps(rule["conditions"]),
                             action=rule.get("action", ""),
                             rule_metadata=None,
                             conflict_type=conflict["type"],
@@ -693,7 +693,7 @@ def list_parked_conflicts(
                 "group": p.group,
                 "priority": p.priority,
                 "enabled": p.enabled,
-                "condition_dsl": json.loads(p.condition_dsl) if p.condition_dsl else None,
+                "conditions": json.loads(p.conditions) if p.conditions else None,
                 "action": p.action,
                 "conflict_type": p.conflict_type,
                 "conflict_description": p.conflict_description,
@@ -763,14 +763,14 @@ def resolve_parked_conflict(
         )
 
     original_condition = (
-        json.loads(parked.condition_dsl)
-        if isinstance(parked.condition_dsl, str)
-        else parked.condition_dsl
+        json.loads(parked.conditions)
+        if isinstance(parked.conditions, str)
+        else parked.conditions
     )
     modified_condition = (
-        modified_rule.condition_dsl
-        if isinstance(modified_rule.condition_dsl, dict)
-        else json.loads(modified_rule.condition_dsl)
+        modified_rule.conditions
+        if isinstance(modified_rule.conditions, dict)
+        else json.loads(modified_rule.conditions)
     )
 
     original_hash = hashlib.md5(  # noqa: S324 - content fingerprint, not security
@@ -779,7 +779,7 @@ def resolve_parked_conflict(
                 "name": parked.name,
                 "group": parked.group,
                 "priority": parked.priority,
-                "condition_dsl": json.dumps(original_condition, sort_keys=True),
+                "conditions": json.dumps(original_condition, sort_keys=True),
                 "action": parked.action,
             },
             sort_keys=True,
@@ -792,7 +792,7 @@ def resolve_parked_conflict(
                 "name": modified_rule.name,
                 "group": modified_rule.group,
                 "priority": modified_rule.priority,
-                "condition_dsl": json.dumps(modified_condition, sort_keys=True),
+                "conditions": json.dumps(modified_condition, sort_keys=True),
                 "action": modified_rule.action,
             },
             sort_keys=True,
@@ -827,7 +827,7 @@ def resolve_parked_conflict(
         parked.group = modified_rule.group
         parked.priority = modified_rule.priority
         parked.enabled = modified_rule.enabled
-        parked.condition_dsl = json.dumps(modified_condition)
+        parked.conditions = json.dumps(modified_condition)
         parked.action = modified_rule.action
         parked.rule_metadata = (
             json.dumps(modified_rule.rule_metadata) if modified_rule.rule_metadata else None
@@ -932,7 +932,7 @@ def _parse_xlsx_rules(content: bytes) -> list[dict]:
         raise ValueError("XLSX file must have a header row and at least one data row")
 
     headers = [str(h).strip().lower() if h else "" for h in rows[0]]
-    required = {"name", "action", "condition_dsl"}
+    required = {"name", "action", "conditions"}
     if not required.issubset(set(headers)):
         missing = required - set(headers)
         raise ValueError(f"Missing required columns: {', '.join(sorted(missing))}")
@@ -953,10 +953,10 @@ def _parse_xlsx_rules(content: bytes) -> list[dict]:
             rule["action"] = str(cell.get("action") or "").strip()
             if not rule["action"]:
                 raise ValueError(f"Row {i + 1}: 'action' is required")
-            dsl_raw = str(cell.get("condition_dsl") or "").strip()
+            dsl_raw = str(cell.get("conditions") or "").strip()
             if not dsl_raw:
-                raise ValueError(f"Row {i + 1}: 'condition_dsl' is required (JSON string)")
-            rule["condition_dsl"] = json.loads(dsl_raw)
+                raise ValueError(f"Row {i + 1}: 'conditions' is required (JSON string)")
+            rule["conditions"] = json.loads(dsl_raw)
             meta_raw = str(cell.get("rule_metadata") or "").strip()
             rule["rule_metadata"] = (
                 json.loads(meta_raw) if meta_raw and meta_raw.lower() != "none" else None
@@ -1043,9 +1043,9 @@ def bulk_upload_rules(
                             group=rule.group,
                             priority=rule.priority,
                             enabled=rule.enabled,
-                            condition_dsl=json.dumps(rule.condition_dsl)
-                            if not isinstance(rule.condition_dsl, str)
-                            else rule.condition_dsl,
+                            conditions=json.dumps(rule.conditions)
+                            if not isinstance(rule.conditions, str)
+                            else rule.conditions,
                             action=rule.action,
                             rule_metadata=json.dumps(rule.rule_metadata)
                             if rule.rule_metadata

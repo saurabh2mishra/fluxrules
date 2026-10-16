@@ -90,8 +90,8 @@ class TestSingleAuthoringGate:
         from fluxrules.engine.infrastructure import GlobalRuleRepository
 
         repo = GlobalRuleRepository()
-        repo.add_rule(Rule(id=1, name="a", condition_dsl=_leaf(), persist=False))
-        repo.add_rule({"id": 2, "name": "b", "condition_dsl": _leaf()})
+        repo.add_rule(Rule(id=1, name="a", conditions=_leaf(), persist=False))
+        repo.add_rule({"id": 2, "name": "b", "conditions": _leaf()})
 
         stored = {type(r) for r in repo.rules.values()}
         assert stored == {Rule}
@@ -100,7 +100,7 @@ class TestSingleAuthoringGate:
         """Normalisation must not trigger ``Rule``'s persistence hook."""
         from fluxrules.engine.infrastructure import normalize_rule
 
-        rule = normalize_rule({"id": 3, "name": "c", "condition_dsl": _leaf()})
+        rule = normalize_rule({"id": 3, "name": "c", "conditions": _leaf()})
         assert rule.persist is False
 
     def test_persisted_condition_lists_become_a_real_dsl_tree(self):
@@ -118,12 +118,12 @@ class TestSingleAuthoringGate:
             {
                 "id": 4,
                 "name": "orm-shaped",
-                "condition_dsl": [{"fact": "a", "operator": "gt", "value": 1}],
+                "conditions": [{"fact": "a", "operator": "gt", "value": 1}],
             }
         )
 
         assert rule.id == 4
-        assert rule.condition_dsl == {
+        assert rule.conditions == {
             "type": "condition",
             "field": "a",
             "op": "gt",
@@ -137,15 +137,15 @@ class TestSingleAuthoringGate:
             {
                 "id": 5,
                 "name": "two-conditions",
-                "condition_dsl": [
+                "conditions": [
                     {"fact": "a", "operator": "gt", "value": 1},
                     {"fact": "b", "operator": "eq", "value": "x"},
                 ],
             }
         )
 
-        assert rule.condition_dsl["type"] == "and"
-        assert [child["field"] for child in rule.condition_dsl["children"]] == [
+        assert rule.conditions["type"] == "and"
+        assert [child["field"] for child in rule.conditions["children"]] == [
             "a",
             "b",
         ]
@@ -158,7 +158,7 @@ class TestSingleAuthoringGate:
         engine_rule = EngineRule(
             id=9,
             name="from-db",
-            conditions=(RuleCondition("a", "gt", 1),),
+            condition_nodes=(RuleCondition("a", "gt", 1),),
             actions=("flag",),
         )
         engine = cls()
@@ -173,9 +173,9 @@ class TestSingleAuthoringGate:
         from fluxrules.engine.infrastructure import normalize_rule
 
         authored = _leaf()
-        rule = normalize_rule({"id": 6, "name": "authored", "condition_dsl": authored})
+        rule = normalize_rule({"id": 6, "name": "authored", "conditions": authored})
 
-        assert rule.condition_dsl == authored
+        assert rule.conditions == authored
 
     @pytest.mark.parametrize("cls", [PhreakEngine], ids=["PHREAK"])
     def test_string_ids_still_work(self, cls):
@@ -192,7 +192,7 @@ class TestSingleAuthoringGate:
                 {
                     "id": "rule_1",
                     "name": "string-keyed",
-                    "condition_dsl": _leaf(),
+                    "conditions": _leaf(),
                     "action": "flag",
                 }
             ]
@@ -208,13 +208,13 @@ class TestMultiAction:
     def test_actions_defaults_from_singular_action(self):
         from fluxrules import Rule
 
-        rule = Rule(name="r", condition_dsl=_leaf(), action="go", persist=False)
+        rule = Rule(name="r", conditions=_leaf(), action="go", persist=False)
         assert rule.actions == ("go",)
 
     def test_singular_action_mirrors_first_of_actions(self):
         from fluxrules import Rule
 
-        rule = Rule(name="r", condition_dsl=_leaf(), actions=("a", "b"), persist=False)
+        rule = Rule(name="r", conditions=_leaf(), actions=("a", "b"), persist=False)
         assert rule.action == "a"
         assert rule.actions == ("a", "b")
 
@@ -227,7 +227,7 @@ class TestMultiAction:
         with pytest.raises(ValidationError, match="Conflicting actions"):
             Rule(
                 name="r",
-                condition_dsl=_leaf(),
+                conditions=_leaf(),
                 action="x",
                 actions=("y", "z"),
                 persist=False,
@@ -239,7 +239,7 @@ class TestMultiAction:
 
         rule = Rule(
             name="r",
-            condition_dsl=_leaf(),
+            conditions=_leaf(),
             actions=("escalate", "notify"),
             persist=False,
         )
@@ -256,7 +256,7 @@ class TestMultiAction:
         engine_rule = EngineRule(
             id=1,
             name="r",
-            conditions=(
+            condition_nodes=(
                 RuleCondition(fact="a", operator=">", value=1),
                 RuleCondition(fact="b", operator="<", value=2),
             ),
@@ -266,8 +266,8 @@ class TestMultiAction:
         # An EngineRule built from a flat conjunction now carries the
         # authoritative ``and`` tree (the canonical conjunctive shape produced
         # by ``conditions_to_dsl``); ``from_engine_rule`` passes it through.
-        assert rule.condition_dsl["type"] == "and"
-        assert len(rule.condition_dsl["children"]) == 2
+        assert rule.conditions["type"] == "and"
+        assert len(rule.conditions["children"]) == 2
 
     def test_from_engine_rule_does_not_persist_by_default(self):
         """It converts something already in storage; re-persisting duplicates."""
@@ -277,7 +277,7 @@ class TestMultiAction:
         engine_rule = EngineRule(
             id=9,
             name="r",
-            conditions=(RuleCondition(fact="a", operator=">", value=1),),
+            condition_nodes=(RuleCondition(fact="a", operator=">", value=1),),
         )
         assert Rule.from_engine_rule(engine_rule).persist is False
 
@@ -293,7 +293,7 @@ class TestMultiAction:
                 Rule(
                     id=1,
                     name="adult",
-                    condition_dsl=_leaf("age", ">=", 18),
+                    conditions=_leaf("age", ">=", 18),
                     actions=("allow", "audit"),
                     persist=False,
                 )
@@ -310,7 +310,7 @@ class TestMultiAction:
 
         rule = Rule(
             name="r",
-            condition_dsl=_leaf(),
+            conditions=_leaf(),
             actions=("escalate", "notify"),
             persist=False,
         )
@@ -337,7 +337,7 @@ class TestRuntimeRuleRemoval:
         import fluxrules.engine.infrastructure as infra
 
         with pytest.warns(DeprecationWarning, match=_DEPRECATION_MATCH):
-            infra.RuntimeRule(id=1, name="x", condition_dsl=_leaf())
+            infra.RuntimeRule(id=1, name="x", conditions=_leaf())
 
     def test_runtime_rule_constructs_a_canonical_rule(self):
         from fluxrules import Rule
@@ -346,7 +346,7 @@ class TestRuntimeRuleRemoval:
             warnings.simplefilter("ignore", DeprecationWarning)
             import fluxrules.engine.infrastructure as infra
 
-            rule = infra.RuntimeRule(id=1, name="x", condition_dsl=_leaf())
+            rule = infra.RuntimeRule(id=1, name="x", conditions=_leaf())
 
         assert isinstance(rule, Rule)
 
@@ -360,7 +360,7 @@ class TestRuntimeRuleRemoval:
             warnings.simplefilter("ignore", DeprecationWarning)
             import fluxrules.engine.infrastructure as infra
 
-            rule = infra.RuntimeRule(id=1, name="x", condition_dsl=_leaf())
+            rule = infra.RuntimeRule(id=1, name="x", conditions=_leaf())
 
         assert rule.persist is False
 
@@ -381,7 +381,7 @@ class TestRuntimeRuleRemoval:
         import fluxrules.engine.infrastructure as infra
 
         with pytest.warns(DeprecationWarning) as record:
-            infra.RuntimeRule(id=1, name="x", condition_dsl=_leaf())
+            infra.RuntimeRule(id=1, name="x", conditions=_leaf())
 
         assert "Rule" in str(record[0].message)
 
@@ -408,7 +408,7 @@ class TestCanonicalRuleBehaviour:
     def test_construction_requires_no_database(self):
         from fluxrules import Rule
 
-        rule = Rule(id=1, name="x", condition_dsl=_leaf(), persist=False)
+        rule = Rule(id=1, name="x", conditions=_leaf(), persist=False)
 
         assert rule.domain == "default"
         assert rule.tags == frozenset()
@@ -422,7 +422,7 @@ class TestCanonicalRuleBehaviour:
                 Rule(
                     id=1,
                     name="adult",
-                    condition_dsl=_leaf("age", ">=", 18),
+                    conditions=_leaf("age", ">=", 18),
                     action="allow",
                     persist=False,
                 )
@@ -440,7 +440,7 @@ class TestCanonicalRuleBehaviour:
                 {
                     "id": 1,
                     "name": "adult",
-                    "condition_dsl": _leaf("age", ">=", 18),
+                    "conditions": _leaf("age", ">=", 18),
                     "action": "allow",
                 }
             ]

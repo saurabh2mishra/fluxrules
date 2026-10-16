@@ -43,7 +43,7 @@ from fastapi import HTTPException
 
 # Validate rule DSL before accepting from API
 try:
-    validate_dsl(rule.condition_dsl)
+    validate_dsl(rule.conditions)
 except DSLValidationError as e:
     raise HTTPException(status_code=400, detail=str(e))
 ```

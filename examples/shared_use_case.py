@@ -147,7 +147,7 @@ def build_shared_rules() -> list[Rule]:
             name="triage_for_manual_review",
             domain="fraud_detection",
             tags=frozenset(["tier_1", "manual_review", "cross_border"]),
-            condition_dsl=base,
+            conditions=base,
             action="manual_review",
             priority=20,
         ),
@@ -156,7 +156,7 @@ def build_shared_rules() -> list[Rule]:
             name="triage_for_hard_block",
             domain="compliance",
             tags=frozenset(["tier_2", "block", "geo_risk"]),
-            condition_dsl={
+            conditions={
                 "type": "group",
                 "op": "AND",
                 "children": [
@@ -177,7 +177,7 @@ def build_shared_rules() -> list[Rule]:
             name="triage_for_step_up_auth",
             domain="risk_ops",
             tags=frozenset(["tier_1", "step_up", "identity"]),
-            condition_dsl={
+            conditions={
                 "type": "group",
                 "op": "AND",
                 "children": [

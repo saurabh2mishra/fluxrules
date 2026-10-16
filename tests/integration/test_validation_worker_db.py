@@ -24,7 +24,7 @@ _RULE_PAYLOAD = {
     "group": "g1",
     "priority": 1,
     "enabled": True,
-    "condition_dsl": {"type": "condition", "field": "amount", "op": ">", "value": 100},
+    "conditions": {"type": "condition", "field": "amount", "op": ">", "value": 100},
     "action": "flag_for_review",
 }
 

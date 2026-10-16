@@ -1,13 +1,13 @@
 # Conditions & Operators
-FluxRules uses a `condition_dsl` to define a condition or a group of conditions. It is not just a flat dictionary; it behaves like a small decision tree.
+FluxRules uses a `conditions` to define a condition or a group of conditions. It is not just a flat dictionary; it behaves like a small decision tree.
 
 **Source:** `src/fluxrules/domain/dsl/` (DSL validation and execution)
 
 ---
 
-## `condition_dsl`
+## `conditions`
 
-`condition_dsl` is a small tree with a contract enforced by the validation logic.
+`conditions` is a small tree with a contract enforced by the validation logic.
 
 A leaf is a single check, and a grouped node combines children.
 
@@ -154,19 +154,19 @@ from fluxrules.engine.phreak import PhreakEngine
 
 rule1 = Rule(
     name="high_amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 2000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 2000},
     action="manual_review",
 )
 
 rule2 = Rule(
     name="high_risk_country",
-    condition_dsl={"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
+    conditions={"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
     action="block_payment",
 )
 
 rule3 = Rule(
     name="new_account",
-    condition_dsl={"type": "condition", "field": "account_age_days", "op": "<", "value": 7},
+    conditions={"type": "condition", "field": "account_age_days", "op": "<", "value": 7},
     action="step_up_auth",
 )
 

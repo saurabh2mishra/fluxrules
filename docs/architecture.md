@@ -25,7 +25,7 @@ User: engine.evaluate({"amount": 5000, "country": "NG"})
   │    (via the PHREAK network)
   │
   ├─→ [3. For each rule:
-  │       - Evaluate condition_dsl against fact
+  │       - Evaluate conditions against fact
   │       - If matched: add to fired_rules list
   │       - If matched & action exists: execute action
   │
@@ -109,7 +109,7 @@ Fact input → [Assert into working memory]
 
 ## DSL Processing Pipeline
 
-The condition_dsl is a recursive JSON structure that's validated, compiled, and executed:
+The conditions is a recursive JSON structure that's validated, compiled, and executed:
 
 ```
 Input DSL:
@@ -149,7 +149,7 @@ Rule(
     domain="fraud_detection",             # Grouping
     tags=frozenset(["tier_1", "urgent"]), # Cross-cutting labels
     priority=10,                          # Execution order (higher first)
-    condition_dsl={...},                  # The DSL above
+    conditions={...},                  # The DSL above
     action="flag_for_review",             # Or callable
     persist=False                         # Optional: store in database
 )

@@ -31,7 +31,7 @@ class TestValidationIntegration:
             "group": "test_group",
             "priority": 10,
             "enabled": True,
-            "condition_dsl": {
+            "conditions": {
                 "type": "AND",
                 "children": [
                     {"type": "condition", "field": "age", "op": ">=", "value": 18},
@@ -91,7 +91,7 @@ class TestValidationIntegration:
         """Test validation of complex nested conditions."""
         rule_data = {
             "name": "Complex Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "AND",
                 "children": [
                     {
@@ -132,26 +132,26 @@ class TestValidationIntegration:
         assert not result.has_errors()
 
     def test_normalize_pydantic_model_with_json_dsl(self, gateway: ValidationGateway):
-        """Test normalizing Pydantic model with JSON-encoded condition_dsl."""
+        """Test normalizing Pydantic model with JSON-encoded conditions."""
         mock_model = Mock()
         condition_json = json.dumps({"type": "condition", "field": "age", "op": ">=", "value": 18})
         mock_model.model_dump.return_value = {
             "name": "Test Rule",
-            "condition_dsl": condition_json,
+            "conditions": condition_json,
             "action": "approve",
             "group": "test",
         }
 
         rule_dict = gateway._normalize_rule_data(mock_model)
 
-        assert isinstance(rule_dict["condition_dsl"], dict)
-        assert rule_dict["condition_dsl"]["type"] == "condition"
+        assert isinstance(rule_dict["conditions"], dict)
+        assert rule_dict["conditions"]["type"] == "condition"
 
     def test_validate_and_log_integration(self, gateway: ValidationGateway):
         """Test validate_and_log convenience method."""
         rule_data = {
             "name": "Test Rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": "==",
@@ -170,7 +170,7 @@ class TestValidationIntegration:
         """Test that multiple validation issues are aggregated."""
         rule_data = {
             # Missing name and action
-            "condition_dsl": {"type": "invalid"},  # Invalid condition
+            "conditions": {"type": "invalid"},  # Invalid condition
         }
 
         result = gateway.validate(rule_data, mode="warning")
@@ -225,7 +225,7 @@ class TestValidationIntegration:
         """Test validating rule with metadata."""
         rule_data = {
             "name": "Rule with Metadata",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": ">=",
@@ -248,7 +248,7 @@ class TestValidationIntegration:
         rule_data = {
             "name": "Disabled Rule",
             "enabled": False,
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": ">=",

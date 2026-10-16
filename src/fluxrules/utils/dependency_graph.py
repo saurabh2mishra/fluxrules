@@ -17,7 +17,7 @@ class DependencyGraphBuilder:
 
         Args:
             rules: List of rule dicts with ``id``, ``name``, ``group``,
-                   ``priority``, and ``condition_dsl`` keys.
+                   ``priority``, and ``conditions`` keys.
 
         Returns:
             Dict with ``nodes`` and ``edges`` lists.
@@ -36,9 +36,9 @@ class DependencyGraphBuilder:
             )
 
         for i, rule1 in enumerate(rules):
-            fields1 = self._extract_fields(rule1.get("condition_dsl") or {})
+            fields1 = self._extract_fields(rule1.get("conditions") or {})
             for rule2 in rules[i + 1 :]:
-                fields2 = self._extract_fields(rule2.get("condition_dsl") or {})
+                fields2 = self._extract_fields(rule2.get("conditions") or {})
                 shared_fields = fields1 & fields2
                 if shared_fields:
                     edges.append(

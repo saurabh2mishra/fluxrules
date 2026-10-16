@@ -43,13 +43,13 @@ class ReferentialValidator(Validator):
             # No schema, skip check
             return
 
-        condition_dsl = rule_data.get("condition_dsl")
-        if not isinstance(condition_dsl, dict):
+        conditions = rule_data.get("conditions")
+        if not isinstance(conditions, dict):
             return
 
         # Collect all field references from condition
         fields: set[str] = set()
-        self._collect_fields(condition_dsl, fields)
+        self._collect_fields(conditions, fields)
 
         # Check each field exists in schema
         valid_fields = set(self.schema.keys())
@@ -58,7 +58,7 @@ class ReferentialValidator(Validator):
                 result.add_warning(
                     "field_not_in_schema",
                     f"Field '{field}' referenced in condition is not in schema",
-                    field="condition_dsl",
+                    field="conditions",
                     details={
                         "missing_field": field,
                         "valid_fields": list(valid_fields),

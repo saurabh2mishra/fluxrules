@@ -10,7 +10,7 @@ def test_reference_evaluator_matches_rule_and_actions() -> None:
             EngineRule(
                 id=1,
                 name="adult",
-                conditions=(RuleCondition(fact="age", operator="gte", value=18),),
+                condition_nodes=(RuleCondition(fact="age", operator="gte", value=18),),
                 actions=("allow",),
                 priority=10,
             ),
@@ -28,7 +28,7 @@ def test_reference_evaluator_accepts_canonical_rule() -> None:
             CanonicalRule(
                 id=7,
                 name="adult",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "age",
                     "op": ">=",

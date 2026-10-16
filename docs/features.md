@@ -31,7 +31,7 @@ from fluxrules.engine.phreak import PhreakEngine
 engine = PhreakEngine()
 rule = Rule(
     name="Check Amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="flag_for_review",
     persist=False,
 )
@@ -120,7 +120,7 @@ def my_action(fact_id, amount):
 
 rule = Rule(
     name="process_transaction",
-    condition_dsl={"type": "condition", "field": "type", "op": "==", "value": "transaction"},
+    conditions={"type": "condition", "field": "type", "op": "==", "value": "transaction"},
     action=my_action,  # Any callable
     persist=False,
 )

@@ -18,7 +18,7 @@ def main() -> None:
         name="unified_example",
         domain="fraud_detection",
         tags=frozenset(["tier_0", "cross_border"]),
-        condition_dsl=complex_risk_condition(),
+        conditions=complex_risk_condition(),
         action="manual_review",
         priority=100,
     )

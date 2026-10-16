@@ -57,7 +57,7 @@ def _rule(rule_id: int, dsl: dict, *, priority: int = 0) -> Rule:
     return Rule(
         id=rule_id,
         name=f"rule_{rule_id}",
-        condition_dsl=dsl,
+        conditions=dsl,
         action="flag",
         priority=priority,
     )

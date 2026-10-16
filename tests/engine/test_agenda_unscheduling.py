@@ -20,7 +20,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_1",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -54,7 +54,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_1",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "status",
                     "op": "==",
@@ -66,7 +66,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 2,
                 "name": "rule_2",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "status",
                     "op": "==",
@@ -78,7 +78,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 3,
                 "name": "rule_3",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "region",
                     "op": "==",
@@ -111,7 +111,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_age",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "age",
                     "op": ">",
@@ -123,7 +123,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 2,
                 "name": "rule_status",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "status",
                     "op": "==",
@@ -154,7 +154,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_complex",
-                "condition_dsl": {
+                "conditions": {
                     "type": "and",
                     "conditions": [
                         {"type": "condition", "field": "age", "op": ">", "value": 18},
@@ -193,7 +193,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "parent",
-                "condition_dsl": {
+                "conditions": {
                     "type": "and",
                     "conditions": [
                         {"type": "condition", "field": "age", "op": ">", "value": 18},
@@ -211,7 +211,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 2,
                 "name": "child",
-                "condition_dsl": {
+                "conditions": {
                     "type": "and",
                     "conditions": [
                         {"type": "condition", "field": "age", "op": ">", "value": 18},
@@ -254,7 +254,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_requires_field",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "score",
                     "op": ">",
@@ -283,7 +283,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_optional_field",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "bonus",
                     "op": ">",
@@ -312,7 +312,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_1",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "value",
                     "op": ">",
@@ -349,7 +349,7 @@ class TestAgendaUnscheduling:
             {
                 "id": 1,
                 "name": "rule_1",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "status",
                     "op": "==",
@@ -387,7 +387,7 @@ class TestAgendaUnschedulingPerformance:
                 {
                     "id": i,
                     "name": f"rule_{i}",
-                    "condition_dsl": {
+                    "conditions": {
                         "type": "condition",
                         "field": f"field_{i % 10}",  # 10 unique fields
                         "op": ">",
@@ -423,7 +423,7 @@ class TestAgendaUnschedulingPerformance:
             {
                 "id": i,
                 "name": f"rule_{i}",
-                "condition_dsl": {
+                "conditions": {
                     "type": "condition",
                     "field": "value",
                     "op": ">",

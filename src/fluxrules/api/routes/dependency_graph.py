@@ -11,7 +11,7 @@ from fluxrules.api.models.user import User
 router = APIRouter(tags=["dependency-graph"])
 
 
-def _extract_fields(condition_dsl) -> set[str]:
+def _extract_fields(conditions) -> set[str]:
     fields: set[str] = set()
 
     def walk(node):
@@ -24,7 +24,7 @@ def _extract_fields(condition_dsl) -> set[str]:
             for item in node:
                 walk(item)
 
-    walk(condition_dsl)
+    walk(conditions)
     return fields
 
 
@@ -38,7 +38,7 @@ def _load_rules(db: Session) -> list[dict]:
                 "name": rule.name,
                 "group": rule.group,
                 "priority": rule.priority,
-                "fields": sorted(_extract_fields(rule.condition_dsl)),
+                "fields": sorted(_extract_fields(rule.conditions)),
             }
         )
     return out

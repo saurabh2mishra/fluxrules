@@ -2,7 +2,7 @@
 
 This is the canonical, public ``Rule`` type. It is the single class used across
 every authoring path (YAML, REST API, ORM, CLI) and is what the modern
-DSL-based PHREAK engine consumes via ``condition_dsl``.
+DSL-based PHREAK engine consumes via ``conditions``.
 
 For the reference evaluator and the persistence layer, which work with parsed
 :class:`~fluxrules.domain.models.RuleCondition` tuples, use the ``conditions``
@@ -29,7 +29,7 @@ Usage:
     # Simple rule with auto-generated ID
     rule = Rule(
         name="High Value Transaction",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
         action="flag_for_review",
     )
     print(rule.id)  # Auto-generated sequential ID
@@ -38,7 +38,7 @@ Usage:
     rule = Rule(
         id=42,
         name="My Rule",
-        condition_dsl={...},
+        conditions={...},
         action="flag",
     )
 
@@ -77,7 +77,7 @@ class Rule(BaseModel):
     Attributes:
         id: Unique rule identifier (auto-generated from DB if not provided)
         name: Human-readable rule name
-        condition_dsl: Rule condition in DSL format (dict)
+        conditions: Rule condition in DSL format (dict)
         action: Primary action; a compatibility view of ``actions[0]``
         actions: All actions to execute when the rule matches, in order
         priority: Execution priority (higher = evaluated first)
@@ -107,7 +107,7 @@ class Rule(BaseModel):
         description="Unique rule ID (auto-generated from DB if not provided)",
     )
     name: str = Field(..., min_length=1, max_length=255, description="Rule name")
-    condition_dsl: dict[str, Any] = Field(..., description="Rule condition in DSL format")
+    conditions: dict[str, Any] = Field(..., description="Rule conditions tree")
     action: str = Field(
         default="",
         description=(
@@ -159,17 +159,17 @@ class Rule(BaseModel):
             return frozenset()
         raise ValueError(f"Invalid tags type: {type(v)}")
 
-    @field_validator("condition_dsl")
+    @field_validator("conditions")
     @classmethod
-    def validate_condition_dsl(cls, v: dict[str, Any]) -> dict[str, Any]:
-        """Validate condition DSL structure."""
+    def validate_conditions(cls, v: dict[str, Any]) -> dict[str, Any]:
+        """Validate conditions tree structure."""
         if not isinstance(v, dict):
-            raise ValueError("condition_dsl must be a dictionary")
+            raise ValueError("conditions must be a dictionary")
         if not v:
-            raise ValueError("condition_dsl cannot be empty")
+            raise ValueError("conditions cannot be empty")
         # Basic structure validation
         if "type" not in v:
-            raise ValueError("condition_dsl must have 'type' field")
+            raise ValueError("conditions must have 'type' field")
 
         # A structurally well-formed but *logically* empty tree - say
         # {"type": "and", "children": []} - passes every check above while
@@ -179,7 +179,7 @@ class Rule(BaseModel):
 
         if not has_logic(v):
             raise ValueError(
-                "condition_dsl contains no conditions, so this rule could "
+                "conditions contains no conditions, so this rule could "
                 "never fire. Add at least one condition, or give the rule an "
                 "explicit always-true condition if it is meant to always apply."
             )
@@ -263,7 +263,7 @@ class Rule(BaseModel):
         The explicit counterpart to ``persist=True``. Use it when a rule is
         built in memory first and stored once it is known to be good::
 
-            rule = Rule(name="high_value", condition_dsl=..., action="review")
+            rule = Rule(name="high_value", conditions=..., action="review")
             rule.save()
 
         The rule's ``id`` is replaced with the database-assigned one, and
@@ -315,7 +315,7 @@ class Rule(BaseModel):
             "id": self.id,
             "name": self.name,
             "priority": self.priority,
-            "condition_dsl": self.condition_dsl,
+            "conditions": self.conditions,
             "action": self.action,
             "actions": list(self.actions),
             "enabled": self.enabled,
@@ -324,16 +324,16 @@ class Rule(BaseModel):
         }
 
     @property
-    def conditions(self) -> tuple[RuleCondition, ...]:
-        """Parsed conditions derived from ``condition_dsl`` (read-only).
+    def condition_nodes(self) -> tuple[RuleCondition, ...]:
+        """Parsed flat-tuple derived from ``conditions`` tree (read-only).
 
-        The canonical representation is ``condition_dsl``. This view exposes the
-        same ``RuleCondition`` tuple the reference evaluator and persistence layer
-        expect, without duplicating the DSL as stored state.
+        The canonical representation is ``conditions``. This view exposes the
+        same ``RuleCondition`` tuple the reference evaluator and persistence
+        layer expect, without duplicating the tree as stored state.
         """
         from fluxrules.domain.factory import _extract_conditions_from_dsl
 
-        return _extract_conditions_from_dsl(self.condition_dsl)
+        return _extract_conditions_from_dsl(self.conditions)
 
     def to_engine_rule(self, group: str | None = None) -> DomainRule:
         """Convert to the internal engine ``Rule`` representation.
@@ -355,7 +355,7 @@ class Rule(BaseModel):
             enabled=self.enabled,
             created_at=self.created_at,
             updated_at=self.updated_at,
-            condition_dsl=self.condition_dsl,
+            conditions=self.conditions,
         )
 
     @classmethod
@@ -364,7 +364,7 @@ class Rule(BaseModel):
         engine_rule: DomainRule,
         *,
         persist: bool = False,
-        condition_dsl: dict[str, Any] | None = None,
+        conditions: dict[str, Any] | None = None,
         **overrides: Any,
     ) -> Rule:
         """Build a canonical :class:`Rule` from an internal ``EngineRule``.
@@ -377,31 +377,31 @@ class Rule(BaseModel):
         several to an ``AND`` group. That reconstruction is faithful for rules
         that originated as a flat conjunction, but it **cannot recover ``OR``
         or nested structure**, because that information is not present in the
-        parsed tuple. Pass ``condition_dsl`` explicitly when the original DSL
+        parsed tuple. Pass ``conditions`` explicitly when the original DSL
         is known.
 
         ``persist`` defaults to ``False``: this converts an object that already
         exists in storage, so persisting again would duplicate it.
         """
-        if condition_dsl is None:
+        if conditions is None:
             # Prefer the DSL the engine rule carried: it is the authoritative,
             # faithful source. An EngineRule always carries one now, so the
             # reconstruction below is only a fallback for foreign objects.
-            condition_dsl = getattr(engine_rule, "condition_dsl", None)
-        if condition_dsl is None:
+            conditions = getattr(engine_rule, "conditions", None)
+        if conditions is None:
             # Reconstructing from the flat tuple silently turns an OR into an
             # AND, so this is reached only when no tree exists at all.
-            conditions = tuple(engine_rule.conditions)
+            conditions = tuple(engine_rule.condition_nodes)
             if len(conditions) == 1:
                 c = conditions[0]
-                condition_dsl = {
+                conditions = {
                     "type": "condition",
                     "field": c.fact,
                     "op": c.operator,
                     "value": c.value,
                 }
             else:
-                condition_dsl = {
+                conditions = {
                     "type": "group",
                     "op": "AND",
                     "children": [
@@ -418,7 +418,7 @@ class Rule(BaseModel):
         data: dict[str, Any] = {
             "id": engine_rule.id,
             "name": engine_rule.name,
-            "condition_dsl": condition_dsl,
+            "conditions": conditions,
             "actions": tuple(engine_rule.actions),
             "priority": engine_rule.priority,
             "domain": engine_rule.group or "default",

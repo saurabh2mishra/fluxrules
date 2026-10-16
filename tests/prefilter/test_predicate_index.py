@@ -58,7 +58,7 @@ def _eval(fact: dict, dsl: dict) -> bool:
 
 
 def _rule(rid: int, dsl: dict) -> SimpleNamespace:
-    return SimpleNamespace(id=rid, enabled=True, condition_dsl=dsl)
+    return SimpleNamespace(id=rid, enabled=True, conditions=dsl)
 
 
 # generators
@@ -96,7 +96,7 @@ def test_predicate_index_is_sound(seed: int) -> None:
     index = PredicateIndex.from_rules(rules)
 
     for fact in facts:
-        fires = any(_eval(fact, r.condition_dsl) for r in rules)
+        fires = any(_eval(fact, r.conditions) for r in rules)
         if fires:
             # Hard gate: every firing fact MUST be a candidate.
             assert index.matches(fact), f"false negative on {fact}"
@@ -115,7 +115,7 @@ def test_predicate_index_reduces_work() -> None:
     assert len(candidates) < len(facts)  # actually filters
     # And remains sound.
     for fact in facts:
-        if any(_eval(fact, r.condition_dsl) for r in rules):
+        if any(_eval(fact, r.conditions) for r in rules):
             assert fact in candidates
 
 

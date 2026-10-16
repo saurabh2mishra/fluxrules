@@ -1,4 +1,4 @@
-"""``rules.condition_dsl`` is a JSON column and must hold a JSON object.
+"""``rules.conditions`` is a JSON column and must hold a JSON object.
 
 The API service used to ``json.dumps`` the DSL before assigning it. Because
 the column is ``JSON``, SQLAlchemy then serialised that string *again*: the
@@ -67,12 +67,12 @@ def service(session):
 
 def _stored_json_type(session) -> str:
     """The SQLite-level type of the stored value: 'object' or 'text'."""
-    return session.execute(text("select json_type(condition_dsl) from rules")).scalar()
+    return session.execute(text("select json_type(conditions) from rules")).scalar()
 
 
 def test_rules_column_stores_a_json_object(session):
     """A dict assigned to the JSON column stays an object in the database."""
-    session.add(Rule(name="r", condition_dsl=DSL, action="noop", enabled=True))
+    session.add(Rule(name="r", conditions=DSL, action="noop", enabled=True))
     session.commit()
 
     assert _stored_json_type(session) == "object"
@@ -84,7 +84,7 @@ def test_pre_serialising_the_dsl_double_encodes_it(session):
     This is what ``create_rule`` used to do. It is stored as ``text``, not
     ``object`` - the row is a JSON string containing JSON.
     """
-    session.add(Rule(name="r", condition_dsl=json.dumps(DSL), action="noop", enabled=True))
+    session.add(Rule(name="r", conditions=json.dumps(DSL), action="noop", enabled=True))
     session.commit()
 
     assert _stored_json_type(session) == "text"
@@ -92,13 +92,13 @@ def test_pre_serialising_the_dsl_double_encodes_it(session):
 
 def test_dsl_round_trips_as_a_dict(session):
     """The value read back is the dict that went in, not a string of it."""
-    rule = Rule(name="r", condition_dsl=DSL, action="noop", enabled=True)
+    rule = Rule(name="r", conditions=DSL, action="noop", enabled=True)
     session.add(rule)
     session.commit()
     session.refresh(rule)
 
-    assert isinstance(rule.condition_dsl, dict)
-    assert rule.condition_dsl == DSL
+    assert isinstance(rule.conditions, dict)
+    assert rule.conditions == DSL
 
 
 def test_boolean_structure_survives_storage(session):
@@ -107,23 +107,23 @@ def test_boolean_structure_survives_storage(session):
     The wider failure this suite guards against is boolean structure being
     flattened to a conjunction somewhere in the pipeline.
     """
-    rule = Rule(name="r", condition_dsl=DSL, action="noop", enabled=True)
+    rule = Rule(name="r", conditions=DSL, action="noop", enabled=True)
     session.add(rule)
     session.commit()
     session.refresh(rule)
 
-    assert rule.condition_dsl["type"] == "or"
-    assert len(rule.condition_dsl["children"]) == 2
+    assert rule.conditions["type"] == "or"
+    assert len(rule.conditions["children"]) == 2
 
 
 def test_version_snapshot_is_serialised_because_that_column_is_text(session):
-    """``rule_versions.condition_dsl`` is Text, so it holds a JSON string.
+    """``rule_versions.conditions`` is Text, so it holds a JSON string.
 
     ``_create_version`` copies the value across a column-type boundary. Once
     ``rules`` holds a dict, that copy has to be serialised or the Text column
     receives a dict.
     """
-    rule = Rule(name="r", condition_dsl=DSL, action="noop", enabled=True)
+    rule = Rule(name="r", conditions=DSL, action="noop", enabled=True)
     session.add(rule)
     session.commit()
     session.refresh(rule)
@@ -132,7 +132,7 @@ def test_version_snapshot_is_serialised_because_that_column_is_text(session):
         rule_id=rule.id,
         version=1,
         name=rule.name,
-        condition_dsl=json.dumps(rule.condition_dsl),
+        conditions=json.dumps(rule.conditions),
         action=rule.action,
         enabled=True,
     )
@@ -140,8 +140,8 @@ def test_version_snapshot_is_serialised_because_that_column_is_text(session):
     session.commit()
     session.refresh(version)
 
-    assert isinstance(version.condition_dsl, str)
-    assert json.loads(version.condition_dsl) == DSL
+    assert isinstance(version.conditions, str)
+    assert json.loads(version.conditions) == DSL
 
 
 class TestRuleServiceWritesAnObject:
@@ -157,7 +157,7 @@ class TestRuleServiceWritesAnObject:
         from fluxrules.api.schemas.rule import RuleCreate
 
         service.create_rule(
-            RuleCreate(name="created", condition_dsl=DSL, action="noop"),
+            RuleCreate(name="created", conditions=DSL, action="noop"),
             user_id=1,
         )
 
@@ -167,19 +167,19 @@ class TestRuleServiceWritesAnObject:
         from fluxrules.api.schemas.rule import RuleCreate
 
         rule = service.create_rule(
-            RuleCreate(name="created", condition_dsl=DSL, action="noop"),
+            RuleCreate(name="created", conditions=DSL, action="noop"),
             user_id=1,
         )
         session.refresh(rule)
 
-        assert isinstance(rule.condition_dsl, dict)
-        assert rule.condition_dsl == DSL
+        assert isinstance(rule.conditions, dict)
+        assert rule.conditions == DSL
 
     def test_update_rule_stores_an_object(self, session, service):
         from fluxrules.api.schemas.rule import RuleCreate, RuleUpdate
 
         rule = service.create_rule(
-            RuleCreate(name="created", condition_dsl=DSL, action="noop"),
+            RuleCreate(name="created", conditions=DSL, action="noop"),
             user_id=1,
         )
 
@@ -187,31 +187,31 @@ class TestRuleServiceWritesAnObject:
             "type": "and",
             "children": [{"type": "condition", "field": "x", "op": "eq", "value": 1}],
         }
-        service.update_rule(rule.id, RuleUpdate(condition_dsl=new_dsl), user_id=1)
+        service.update_rule(rule.id, RuleUpdate(conditions=new_dsl), user_id=1)
         session.refresh(rule)
 
         assert _stored_json_type(session) == "object"
-        assert rule.condition_dsl == new_dsl
+        assert rule.conditions == new_dsl
 
     def test_version_snapshot_survives_the_service_path(self, session, service):
         """``_create_version`` copies into a Text column and must serialise."""
         from fluxrules.api.schemas.rule import RuleCreate
 
         rule = service.create_rule(
-            RuleCreate(name="created", condition_dsl=DSL, action="noop"),
+            RuleCreate(name="created", conditions=DSL, action="noop"),
             user_id=1,
         )
 
         version = session.query(RuleVersion).filter(RuleVersion.rule_id == rule.id).first()
         assert version is not None
-        assert isinstance(version.condition_dsl, str)
-        assert json.loads(version.condition_dsl) == DSL
+        assert isinstance(version.conditions, str)
+        assert json.loads(version.conditions) == DSL
 
 
 class TestRuleMetadataHasTheSameSplit:
     """``rule_metadata`` is JSON on ``rules`` and Text on ``rule_versions``.
 
-    Identical to ``condition_dsl``, and it carried the identical bug. It is
+    Identical to ``conditions``, and it carried the identical bug. It is
     tested separately because the two columns are easy to fix independently
     and be left inconsistent.
     """
@@ -222,7 +222,7 @@ class TestRuleMetadataHasTheSameSplit:
         from fluxrules.api.schemas.rule import RuleCreate
 
         service.create_rule(
-            RuleCreate(name="m", condition_dsl=DSL, action="noop", rule_metadata=self.META),
+            RuleCreate(name="m", conditions=DSL, action="noop", rule_metadata=self.META),
             user_id=1,
         )
 
@@ -233,7 +233,7 @@ class TestRuleMetadataHasTheSameSplit:
         from fluxrules.api.schemas.rule import RuleCreate
 
         rule = service.create_rule(
-            RuleCreate(name="m", condition_dsl=DSL, action="noop", rule_metadata=self.META),
+            RuleCreate(name="m", conditions=DSL, action="noop", rule_metadata=self.META),
             user_id=1,
         )
         session.refresh(rule)
@@ -245,7 +245,7 @@ class TestRuleMetadataHasTheSameSplit:
         from fluxrules.api.schemas.rule import RuleCreate, RuleUpdate
 
         rule = service.create_rule(
-            RuleCreate(name="m", condition_dsl=DSL, action="noop"),
+            RuleCreate(name="m", conditions=DSL, action="noop"),
             user_id=1,
         )
         service.update_rule(rule.id, RuleUpdate(rule_metadata=self.META), user_id=1)
@@ -259,7 +259,7 @@ class TestRuleMetadataHasTheSameSplit:
         from fluxrules.api.schemas.rule import RuleCreate
 
         rule = service.create_rule(
-            RuleCreate(name="m", condition_dsl=DSL, action="noop", rule_metadata=self.META),
+            RuleCreate(name="m", conditions=DSL, action="noop", rule_metadata=self.META),
             user_id=1,
         )
 
@@ -272,7 +272,7 @@ class TestRuleMetadataHasTheSameSplit:
         from fluxrules.api.schemas.rule import RuleCreate
 
         rule = service.create_rule(
-            RuleCreate(name="m", condition_dsl=DSL, action="noop"),
+            RuleCreate(name="m", conditions=DSL, action="noop"),
             user_id=1,
         )
         session.refresh(rule)

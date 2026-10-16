@@ -24,20 +24,20 @@ class StatefulDSLValidator(Validator):
         """Validate stateful DSL nodes."""
         result = ValidationResult()
 
-        condition_dsl = rule_data.get("condition_dsl")
-        if not isinstance(condition_dsl, dict) or not condition_dsl:
+        conditions = rule_data.get("conditions")
+        if not isinstance(conditions, dict) or not conditions:
             return result
 
         # Check top-level stateful node exclusivity
-        self._validate_top_level_stateful_exclusivity(condition_dsl, result)
+        self._validate_top_level_stateful_exclusivity(conditions, result)
 
         # Walk and validate all stateful nodes
-        self._walk_stateful_nodes(condition_dsl, result, path="$")
+        self._walk_stateful_nodes(conditions, result, path="$")
 
         return result
 
     def _validate_top_level_stateful_exclusivity(
-        self, condition_dsl: dict[str, Any], result: ValidationResult
+        self, conditions: dict[str, Any], result: ValidationResult
     ) -> None:
         """Validate that top-level stateful nodes don't mix families.
 
@@ -48,9 +48,9 @@ class StatefulDSLValidator(Validator):
         stateful_families = {"sequence", "cross_fact_join", "count_threshold"}
         top_level_families: set = set()
 
-        root_type = condition_dsl.get("type")
+        root_type = conditions.get("type")
         if root_type == "group":
-            for child in condition_dsl.get("children", []) or []:
+            for child in conditions.get("children", []) or []:
                 if isinstance(child, dict) and child.get("type") in stateful_families:
                     top_level_families.add(child["type"])
         elif root_type in stateful_families:
@@ -61,7 +61,7 @@ class StatefulDSLValidator(Validator):
             result.add_error(
                 "dsl_validation_error",
                 f"Top-level stateful node families are mutually exclusive; found: {families}.",
-                field="condition_dsl",
+                field="conditions",
                 details={"stateful_families": list(top_level_families)},
             )
 

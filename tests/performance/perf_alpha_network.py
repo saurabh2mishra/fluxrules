@@ -45,7 +45,7 @@ def _pathological_rule(rid: int, n_fields: int) -> Rule:
     return Rule(
         id=rid,
         name=f"path_{rid}",
-        condition_dsl=_leaf(f"field_{rid % n_fields}", ">", 0),
+        conditions=_leaf(f"field_{rid % n_fields}", ">", 0),
         priority=rid % 10,
         persist=False,
     )
@@ -56,7 +56,7 @@ def _selective_rule(rid: int, n_fields: int) -> Rule:
     return Rule(
         id=rid,
         name=f"sel_{rid}",
-        condition_dsl=_leaf(f"field_{rid % n_fields}", ">", 990),
+        conditions=_leaf(f"field_{rid % n_fields}", ">", 990),
         priority=rid % 10,
         persist=False,
     )
@@ -69,7 +69,7 @@ def _and_heavy_rule(rid: int, n_fields: int, n_conditions: int = 5) -> Rule:
     return Rule(
         id=rid,
         name=f"and_{rid}",
-        condition_dsl={"type": "and", "conditions": conditions},
+        conditions={"type": "and", "conditions": conditions},
         priority=rid % 10,
         persist=False,
     )
@@ -202,7 +202,7 @@ def main() -> None:
                 Rule(
                     id=i,
                     name=f"not_{i}",
-                    condition_dsl={
+                    conditions={
                         "type": "not",
                         "condition": _leaf(f"field_{i % nf}", "==", 1),
                     },

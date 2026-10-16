@@ -40,7 +40,7 @@ from fluxrules import Rule, PhreakEngine
 
 rule = Rule(
     name="high_value_international",
-    condition_dsl={
+    conditions={
         "type": "group",
         "op": "AND",
         "children": [
@@ -85,7 +85,7 @@ At least one condition must be true for the group to match.
 ```python
 rule = Rule(
     name="risky_pattern",
-    condition_dsl={
+    conditions={
         "type": "group",
         "op": "OR",
         "children": [
@@ -136,7 +136,7 @@ Negates a condition (the condition must be false).
 ```python
 rule = Rule(
     name="unverified_high_value",
-    condition_dsl={
+    conditions={
         "type": "group",
         "op": "AND",
         "children": [
@@ -176,7 +176,7 @@ Combine AND, OR, and NOT for sophisticated logic:
 ```python
 rule = Rule(
     name="payment_risk_triage",
-    condition_dsl={
+    conditions={
         "type": "group",
         "op": "AND",
         "children": [
@@ -275,7 +275,7 @@ from fluxrules import Rule
 # Scenario: "Gold members OR (new customers with high purchase intent)"
 rule = Rule(
     name="Special Retention Offer",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'OR', 'children': [
             # Group 1: Existing loyal customers
             {'type': 'condition', 'field': 'membership_level', 'op': '==', 'value': 'gold'},
@@ -301,7 +301,7 @@ from fluxrules import Rule
 
 rule = Rule(
     name="Fast Track Loan Approval",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'AND', 'children': [
             {'type': 'condition', 'field': 'credit_score', 'op': '>=', 'value': 750},
             {'type': 'condition', 'field': 'debt_to_income_ratio', 'op': '<=', 'value': 0.4},
@@ -323,7 +323,7 @@ from fluxrules import Rule
 
 rule = Rule(
     name="Send Summer Sale Email",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'AND', 'children': [
             # Must be active and opted-in
             {'type': 'condition', 'field': 'account_status', 'op': '==', 'value': 'active'},
@@ -349,7 +349,7 @@ from fluxrules import Rule, PhreakEngine
 
 reorder_rule = Rule(
     name="Reorder Low Stock Items",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'AND', 'children': [
             {'type': 'condition', 'field': 'stock_quantity', 'op': '<', 'value': 50},
             {'type': 'group', 'op': 'OR', 'children': [
@@ -364,7 +364,7 @@ reorder_rule = Rule(
 
 discontinue_rule = Rule(
     name="Discontinue Slow-Moving Items",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'AND', 'children': [
             {'type': 'condition', 'field': 'stock_quantity', 'op': '>', 'value': 200},
             {'type': 'condition', 'field': 'units_sold_annual', 'op': '<', 'value': 10},
@@ -386,7 +386,7 @@ from fluxrules import Rule
 
 rule = Rule(
     name="Grant Advanced Analytics Access",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'AND', 'children': [
             # Must have active subscription
             {'type': 'condition', 'field': 'subscription_status', 'op': '==', 'value': 'active'},
@@ -449,7 +449,7 @@ employment_check = {
 # Combine them into a Rule
 rule = Rule(
     name="Credit Card Approval",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'AND',
         'children': [credit_check, income_check, employment_check],
     },
@@ -562,7 +562,7 @@ from fluxrules import Rule
 rule = Rule(
     name="Apply Special Pricing",
     description="Grant special pricing if (new customer OR loyal customer) AND (high order value)",
-    condition_dsl={
+    conditions={
         'type': 'group', 'op': 'AND', 'children': [
             # New OR loyal customers
             {'type': 'group', 'op': 'OR', 'children': [

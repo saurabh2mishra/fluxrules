@@ -32,7 +32,7 @@ _PARTIAL_MATCH = {
 def _engine_with_partial_rule(cls):
     engine = cls()
     engine.load_rules(
-        [Rule(name="adult_in_us", condition_dsl=_PARTIAL_MATCH, action="allow")]
+        [Rule(name="adult_in_us", conditions=_PARTIAL_MATCH, action="allow")]
     )
     return engine
 
@@ -48,7 +48,7 @@ class TestOneResultType:
 
         rule = Rule(
             name="adult",
-            condition_dsl={"type": "condition", "field": "age", "op": ">=", "value": 18},
+            conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
             action="allow",
         )
         engine = PhreakEngine()
@@ -82,7 +82,7 @@ class TestCandidatesAreNotMatches:
         """`fired ⊆ candidates` must hold on every path, not just engine ones."""
         from fluxrules import evaluate
 
-        rule = Rule(name="adult_in_us", condition_dsl=_PARTIAL_MATCH, action="allow")
+        rule = Rule(name="adult_in_us", conditions=_PARTIAL_MATCH, action="allow")
         result = evaluate(rule, {"age": 30, "country": "CA"})
 
         assert result.fired_rules == []

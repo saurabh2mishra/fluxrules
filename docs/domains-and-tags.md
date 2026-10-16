@@ -33,7 +33,7 @@ from fluxrules.domain import Rule
 rule = Rule(
     name="fraud_check",
     domain="fraud_detection",  # Single domain per rule
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="flag_for_review"
 )
 ```
@@ -43,7 +43,7 @@ Default domain is `"default"` if not specified:
 ```python
 rule_no_domain = Rule(
     name="simple_rule",
-    condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "active"},
+    conditions={"type": "condition", "field": "status", "op": "==", "value": "active"},
     action="process"
 )
 # rule_no_domain.domain == "default"
@@ -56,9 +56,9 @@ from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rules = [
-    Rule(name="r1", domain="fraud_detection", condition_dsl={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="flag"),
-    Rule(name="r2", domain="compliance", condition_dsl={"type": "condition", "field": "country", "op": "==", "value": "US"}, action="block"),
-    Rule(name="r3", domain="fraud_detection", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="review"),
+    Rule(name="r1", domain="fraud_detection", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="flag"),
+    Rule(name="r2", domain="compliance", conditions={"type": "condition", "field": "country", "op": "==", "value": "US"}, action="block"),
+    Rule(name="r3", domain="fraud_detection", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="review"),
 ]
 
 engine = PhreakEngine()
@@ -85,7 +85,7 @@ rule = Rule(
     name="vip_fast_track",
     domain="marketing",
     tags=frozenset(["vip", "urgent", "auto_action"]),  # Multiple tags
-    condition_dsl={"type": "condition", "field": "customer_tier", "op": "==", "value": "vip"},
+    conditions={"type": "condition", "field": "customer_tier", "op": "==", "value": "vip"},
     action="fast_track_checkout"
 )
 ```
@@ -95,8 +95,8 @@ Tags must be passed as `frozenset[str]`. Rule automatically converts lists to fr
 ```python
 # python skip
 # Both work:
-# Rule(name="r1", condition_dsl={...}, tags=frozenset(["tag1", "tag2"]))
-# Rule(name="r2", condition_dsl={...}, tags=["tag1", "tag2"])  # Converted to frozenset
+# Rule(name="r1", conditions={...}, tags=frozenset(["tag1", "tag2"]))
+# Rule(name="r2", conditions={...}, tags=["tag1", "tag2"])  # Converted to frozenset
 ```
 
 ### Query by Tags
@@ -106,9 +106,9 @@ from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rules = [
-    Rule(name="r1", tags=frozenset(["urgent", "vip"]), condition_dsl={"type": "condition", "field": "priority", "op": "==", "value": "high"}, action="action1"),
-    Rule(name="r2", tags=frozenset(["low_priority"]), condition_dsl={"type": "condition", "field": "priority", "op": "==", "value": "low"}, action="action2"),
-    Rule(name="r3", tags=frozenset(["urgent"]), condition_dsl={"type": "condition", "field": "type", "op": "==", "value": "alert"}, action="action3"),
+    Rule(name="r1", tags=frozenset(["urgent", "vip"]), conditions={"type": "condition", "field": "priority", "op": "==", "value": "high"}, action="action1"),
+    Rule(name="r2", tags=frozenset(["low_priority"]), conditions={"type": "condition", "field": "priority", "op": "==", "value": "low"}, action="action2"),
+    Rule(name="r3", tags=frozenset(["urgent"]), conditions={"type": "condition", "field": "type", "op": "==", "value": "alert"}, action="action3"),
 ]
 
 engine = PhreakEngine()
@@ -252,9 +252,9 @@ from fluxrules.engine.phreak import PhreakEngine
 
 # Create diverse set of rules
 all_rules = [
-    Rule(name="r1", domain="fraud_detection", tags=frozenset(["tier_1"]), condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag"),
-    Rule(name="r2", domain="fraud_detection", tags=frozenset(["tier_2"]), condition_dsl={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review"),
-    Rule(name="r3", domain="compliance", tags=frozenset(["tier_1", "stable"]), condition_dsl={"type": "condition", "field": "type", "op": "==", "value": "transfer"}, action="log"),
+    Rule(name="r1", domain="fraud_detection", tags=frozenset(["tier_1"]), conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag"),
+    Rule(name="r2", domain="fraud_detection", tags=frozenset(["tier_2"]), conditions={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review"),
+    Rule(name="r3", domain="compliance", tags=frozenset(["tier_1", "stable"]), conditions={"type": "condition", "field": "type", "op": "==", "value": "transfer"}, action="log"),
 ]
 
 # Get all tier_1 rules in fraud_detection domain

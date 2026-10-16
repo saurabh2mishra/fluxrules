@@ -13,7 +13,7 @@ class TestStatefulDSLValidator:
     def test_valid_sequence_with_two_steps(self):
         """Sequence with 2+ different steps should be valid."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "sequence",
                 "steps": [
                     {
@@ -37,7 +37,7 @@ class TestStatefulDSLValidator:
     def test_sequence_missing_steps_field(self):
         """Sequence without 'steps' field should error."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "sequence",
             }
         }
@@ -49,7 +49,7 @@ class TestStatefulDSLValidator:
     def test_sequence_steps_not_array(self):
         """Sequence with non-array 'steps' should error."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "sequence",
                 "steps": "not_an_array",
             }
@@ -62,7 +62,7 @@ class TestStatefulDSLValidator:
     def test_sequence_insufficient_steps(self):
         """Sequence with < 2 steps should error."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "sequence",
                 "steps": [
                     {"type": "condition", "field": "event", "op": "==", "value": True},
@@ -83,7 +83,7 @@ class TestStatefulDSLValidator:
             "value": True,
         }
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "sequence",
                 "steps": [repeated_step, repeated_step, repeated_step],
             }
@@ -98,7 +98,7 @@ class TestStatefulDSLValidator:
     def test_valid_cross_fact_join(self):
         """Valid cross_fact_join with 2+ facts should be valid."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "cross_fact_join",
                 "facts": [
                     {"type": "condition", "field": "user_id", "op": "==", "value": 123},
@@ -117,7 +117,7 @@ class TestStatefulDSLValidator:
     def test_cross_fact_join_missing_facts(self):
         """cross_fact_join without 'facts' field should error."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "cross_fact_join",
             }
         }
@@ -129,7 +129,7 @@ class TestStatefulDSLValidator:
     def test_cross_fact_join_insufficient_facts(self):
         """cross_fact_join with < 2 facts should error."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "cross_fact_join",
                 "facts": [
                     {"type": "condition", "field": "user_id", "op": "==", "value": 123},
@@ -144,7 +144,7 @@ class TestStatefulDSLValidator:
     def test_valid_count_threshold(self):
         """Valid count_threshold with positive integer threshold should be valid."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "count_threshold",
                 "threshold": 5,
                 "pattern": {
@@ -161,7 +161,7 @@ class TestStatefulDSLValidator:
     def test_count_threshold_missing_threshold(self):
         """count_threshold without 'threshold' field should error."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "count_threshold",
                 "pattern": {
                     "type": "condition",
@@ -179,7 +179,7 @@ class TestStatefulDSLValidator:
     def test_count_threshold_invalid_threshold(self):
         """count_threshold with invalid threshold should error."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "count_threshold",
                 "threshold": 0,  # Invalid: must be >= 1
                 "pattern": {
@@ -198,7 +198,7 @@ class TestStatefulDSLValidator:
     def test_top_level_stateful_exclusivity_sequence_and_cross_fact(self):
         """Top-level group can't mix sequence and cross_fact_join."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "AND",
                 "children": [
@@ -227,7 +227,7 @@ class TestStatefulDSLValidator:
     def test_top_level_sequence_only(self):
         """Top-level sequence only should be valid."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "sequence",
                 "steps": [
                     {"type": "condition", "field": "a", "op": "==", "value": 1},
@@ -241,7 +241,7 @@ class TestStatefulDSLValidator:
     def test_nested_stateful_nodes_allowed(self):
         """Nested stateful nodes under sequences/groups should be allowed (only top-level is restricted)."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "sequence",
                 "steps": [
                     {
@@ -265,16 +265,16 @@ class TestStatefulDSLValidator:
         # Should not error due to mixing at top level
         assert not result.has_errors()
 
-    def test_empty_condition_dsl(self):
-        """Empty condition_dsl should be valid (no stateful nodes to validate)."""
-        rule_data = {"condition_dsl": {}}
+    def test_empty_conditions(self):
+        """Empty conditions should be valid (no stateful nodes to validate)."""
+        rule_data = {"conditions": {}}
         result = self.validator.validate(rule_data)
         assert not result.has_errors()
 
     def test_simple_condition_valid(self):
         """Simple non-stateful condition should be valid."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "age",
                 "op": ">",
@@ -287,7 +287,7 @@ class TestStatefulDSLValidator:
     def test_group_with_simple_conditions(self):
         """Group with simple conditions should be valid."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "AND",
                 "children": [
@@ -307,7 +307,7 @@ class TestStatefulDSLValidator:
     def test_multiple_top_level_sequences_error(self):
         """Multiple sequence children at top level should error (mutual exclusivity)."""
         rule_data = {
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "AND",
                 "children": [

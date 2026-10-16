@@ -84,7 +84,7 @@ Get detailed explanation of rule matching.
 {
   "rule_id": 1,
   "rule_name": "high_value_transaction",
-  "condition_dsl": {...},
+  "conditions": {...},
   "matched": true,
   "matching_conditions": ["amount > 5000"],
   "explanation": "Amount exceeds threshold"
@@ -101,7 +101,7 @@ Simulate rule changes without persisting.
   "rules": [
     {
       "name": "test_rule",
-      "condition_dsl": {...},
+      "conditions": {...},
       "action": "flag"
     }
   ],
@@ -125,7 +125,7 @@ Validate DSL syntax.
 **Request:**
 ```json
 {
-  "condition_dsl": {
+  "conditions": {
     "type": "condition",
     "field": "amount",
     "op": ">",
@@ -165,7 +165,7 @@ Create a new rule.
 {
   "name": "new_rule",
   "domain": "fraud_detection",
-  "condition_dsl": {...},
+  "conditions": {...},
   "action": "flag"
 }
 ```

@@ -201,7 +201,7 @@ class RuleBuilder:
         self._description: str = ""
         self._enabled: bool = True
         self._status: RuleStatus = RuleStatus.DRAFT
-        self._condition_dsl: dict[str, Any] | None = None
+        self._conditions: dict[str, Any] | None = None
         self._actions: list[str] = []
         self._tags: set[str] = set()
         self._created_by: str = "system"
@@ -299,11 +299,11 @@ class RuleBuilder:
         self._status = status
         return self
 
-    def condition(self, condition_dsl: dict[str, Any]) -> RuleBuilder:
+    def condition(self, conditions: dict[str, Any]) -> RuleBuilder:
         """Set condition DSL (validated at build time).
 
         Args:
-            condition_dsl: Condition DSL dict.
+            conditions: Condition DSL dict.
 
         Returns:
             Self for chaining.
@@ -313,8 +313,8 @@ class RuleBuilder:
         """
         # Validate by parsing
         parser = DSLParser()
-        parser.parse(condition_dsl)
-        self._condition_dsl = condition_dsl
+        parser.parse(conditions)
+        self._conditions = conditions
         return self
 
     def action(self, action: str) -> RuleBuilder:
@@ -413,13 +413,13 @@ class RuleBuilder:
         """
         if not self._name:
             raise RuleValidationError("Rule name is required")
-        if self._condition_dsl is None:
+        if self._conditions is None:
             raise RuleValidationError("Rule condition is required")
 
         return Rule(
             id=int(self._rule_id) if isinstance(self._rule_id, str) else self._rule_id,
             name=self._name,
-            condition_dsl=self._condition_dsl,
+            conditions=self._conditions,
             actions=tuple(self._actions),
             priority=self._priority,
             domain=self._group or "default",
@@ -439,7 +439,7 @@ class RuleBuilder:
         return self.build().to_engine_rule(group=self._group or None)
 
     def to_dict(self) -> dict[str, Any]:
-        """Build the canonical rule mapping (id, name, priority, condition_dsl, action).
+        """Build the canonical rule mapping (id, name, priority, conditions, action).
 
         Returns:
             The dict shape accepted by rule ingestion and ``Rule(**data)``.
@@ -449,14 +449,14 @@ class RuleBuilder:
         """
         if not self._name:
             raise RuleValidationError("Rule name is required")
-        if self._condition_dsl is None:
+        if self._conditions is None:
             raise RuleValidationError("Rule condition is required")
 
         return {
             "id": int(self._rule_id) if isinstance(self._rule_id, str) else self._rule_id,
             "name": self._name,
             "priority": self._priority,
-            "condition_dsl": self._condition_dsl,
+            "conditions": self._conditions,
             "action": self._actions[0] if self._actions else "",
             "enabled": self._enabled,
         }

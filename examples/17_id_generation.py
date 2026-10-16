@@ -18,7 +18,7 @@ def main() -> None:
     rule1 = Rule(
         name="auto_id_rule_1",
         domain="fraud_detection",
-        condition_dsl=complex_risk_condition(),
+        conditions=complex_risk_condition(),
         action="manual_review",
         priority=100,
     )
@@ -26,7 +26,7 @@ def main() -> None:
     rule2 = Rule(
         name="auto_id_rule_2",
         domain="compliance",
-        condition_dsl=complex_risk_condition(),
+        conditions=complex_risk_condition(),
         action="block",
         priority=100,
     )

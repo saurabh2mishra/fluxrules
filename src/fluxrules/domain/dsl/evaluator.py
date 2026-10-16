@@ -1,6 +1,6 @@
-"""Dependency-free evaluation of a ``condition_dsl`` tree.
+"""Dependency-free evaluation of a ``conditions`` tree.
 
-``condition_dsl`` is the canonical representation of rule logic. Anything that
+``conditions`` is the canonical representation of rule logic. Anything that
 decides whether a rule matches must read it, rather than the flat
 ``conditions`` tuple, which cannot express ``OR``, ``NOT`` or nesting.
 
@@ -49,14 +49,14 @@ def conditions_to_dsl(conditions) -> dict:
     Flattening ``OR(a, b)`` produces the same two leaves as ``AND(a, b)``, so
     rebuilding from it would quietly emit an ``and`` tree - a stricter rule
     that fires less often, with nothing raised and a row that looks perfectly
-    healthy. The caller must pass the original ``condition_dsl`` instead.
+    healthy. The caller must pass the original ``conditions`` instead.
     """
     if getattr(conditions, "lossy", False):
         raise LossyConditionRebuildError(
             "Refusing to rebuild a DSL tree from a lossy condition view: the "
             "original node was an OR/NOT (or nested under one) and rebuilding "
             "would silently turn it into an AND. Pass the rule's "
-            "'condition_dsl' instead."
+            "'conditions' instead."
         )
 
     leaves = [
@@ -74,7 +74,7 @@ def conditions_to_dsl(conditions) -> dict:
     return {"type": "and", "children": leaves}
 
 
-def has_logic(condition_dsl: dict | list) -> bool:
+def has_logic(conditions: dict | list) -> bool:
     """Whether a DSL value carries at least one real condition.
 
     Used to refuse rules that cannot match anything. A composite node with no
@@ -85,27 +85,27 @@ def has_logic(condition_dsl: dict | list) -> bool:
     persistence need the same answer, and they must not disagree about what
     counts as an empty rule.
     """
-    if isinstance(condition_dsl, list):
-        return any(has_logic(item) for item in condition_dsl if isinstance(item, dict))
+    if isinstance(conditions, list):
+        return any(has_logic(item) for item in conditions if isinstance(item, dict))
 
-    if not isinstance(condition_dsl, dict) or not condition_dsl:
+    if not isinstance(conditions, dict) or not conditions:
         return False
 
-    ctype = condition_dsl.get("type")
+    ctype = conditions.get("type")
 
     if ctype in (None, "condition"):
         # A bare `{fact, operator, value}` dict (the legacy list element
         # shape) counts as logic; so does a `condition` node.
-        return bool(condition_dsl.get("field") or condition_dsl.get("fact") or ctype == "condition")
+        return bool(conditions.get("field") or conditions.get("fact") or ctype == "condition")
 
     if ctype == "exists":
-        return bool(condition_dsl.get("field") or condition_dsl.get("condition"))
+        return bool(conditions.get("field") or conditions.get("condition"))
 
     children = (
-        condition_dsl.get("children")
-        or condition_dsl.get("conditions")
-        or condition_dsl.get("condition")
-        or condition_dsl.get("child")
+        conditions.get("children")
+        or conditions.get("conditions")
+        or conditions.get("condition")
+        or conditions.get("child")
     )
     if isinstance(children, dict):
         children = [children]
@@ -123,7 +123,7 @@ class UnsupportedDSLNodeError(ValueError):
 
 
 def evaluate_dsl(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
-    """Evaluate a ``condition_dsl`` tree against a flat fact dict.
+    """Evaluate a ``conditions`` tree against a flat fact dict.
 
     Raises:
         UnsupportedDSLNodeError: For nodes requiring working memory.

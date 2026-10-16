@@ -16,7 +16,7 @@ def main() -> None:
 
     print("validating nested condition trees")
     for rule in rules:
-        validate_dsl(rule.condition_dsl)
+        validate_dsl(rule.conditions)
         print(f"  validated rule={rule.name} id={rule.id}")
 
     invalid = {

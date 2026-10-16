@@ -41,7 +41,7 @@ def _make_rule(
     return Rule(
         id=rule_id,
         name=name or f"rule_{rule_id}",
-        condition_dsl={
+        conditions={
             "type": "condition",
             "field": field,
             "op": op,
@@ -67,7 +67,7 @@ def _make_composite_rule(
     return Rule(
         id=rule_id,
         name=f"rule_{rule_id}",
-        condition_dsl={"type": "composite", "logic": logic, "conditions": conditions},
+        conditions={"type": "composite", "logic": logic, "conditions": conditions},
         priority=priority,
         domain=domain,
         tags=tags or frozenset(),

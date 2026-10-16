@@ -58,7 +58,7 @@ class RuleService:
             group=rule_data.group,
             priority=rule_data.priority,
             enabled=rule_data.enabled,
-            condition_dsl=rule_data.condition_dsl,
+            conditions=rule_data.conditions,
             action=rule_data.action,
             rule_metadata=rule_data.rule_metadata,
             evaluation_mode=rule_data.evaluation_mode,
@@ -87,7 +87,7 @@ class RuleService:
 
         old_group = rule.group
 
-        # Both condition_dsl and rule_metadata are JSON columns on `rules`:
+        # Both conditions and rule_metadata are JSON columns on `rules`:
         # SQLAlchemy serialises them, so pre-encoding here would store a JSON
         # string containing JSON.
         update_data = rule_data.model_dump(exclude_unset=True)
@@ -124,7 +124,7 @@ class RuleService:
         return True
 
     def _create_version(self, rule: Rule, user_id: int, auto_commit: bool = True):
-        # rules.condition_dsl and rules.rule_metadata are JSON columns holding
+        # rules.conditions and rules.rule_metadata are JSON columns holding
         # dicts; the rule_versions equivalents are Text, so the snapshot is
         # serialised as it crosses that boundary.
         version = RuleVersion(
@@ -135,9 +135,9 @@ class RuleService:
             group=rule.group,
             priority=rule.priority,
             enabled=rule.enabled,
-            condition_dsl=json.dumps(rule.condition_dsl)
-            if not isinstance(rule.condition_dsl, str)
-            else rule.condition_dsl,
+            conditions=json.dumps(rule.conditions)
+            if not isinstance(rule.conditions, str)
+            else rule.conditions,
             action=rule.action,
             rule_metadata=json.dumps(rule.rule_metadata)
             if rule.rule_metadata is not None and not isinstance(rule.rule_metadata, str)
@@ -177,7 +177,7 @@ class RuleService:
             "group",
             "priority",
             "enabled",
-            "condition_dsl",
+            "conditions",
             "action",
             "rule_metadata",
         ]

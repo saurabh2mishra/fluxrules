@@ -34,7 +34,7 @@ def build_engine() -> PhreakEngine:
         [
             Rule(
                 name="high_value_new_account",
-                condition_dsl={
+                conditions={
                     "type": "composite",
                     "logic": "AND",
                     "conditions": [
@@ -58,7 +58,7 @@ def build_engine() -> PhreakEngine:
             ),
             Rule(
                 name="high_risk_country",
-                condition_dsl={
+                conditions={
                     "type": "condition",
                     "field": "country",
                     "op": "in",

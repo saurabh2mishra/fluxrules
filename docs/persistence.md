@@ -20,7 +20,7 @@ from fluxrules.engine.phreak import PhreakEngine
 rules = [
     Rule(
         name="high_value_transaction",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
         action="require_approval",
     ),
 ]
@@ -48,7 +48,7 @@ in memory, call `Rule.save()`:
 ```python
 rule = Rule(
     name="production_rule",
-    condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
     action="act",
 )
 rule.save()  # now in the database, rule.id is the stored ID
@@ -62,7 +62,7 @@ you need update semantics.
 # Persisted rule (stored in database)
 rule1 = Rule(
     name="production_rule",
-    condition_dsl={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
     action="act",
     persist=True,  # Database storage
 )
@@ -70,7 +70,7 @@ rule1 = Rule(
 # Temporary rule (in-memory only)
 rule2 = Rule(
     name="test_rule",
-    condition_dsl={"type": "condition", "field": "y", "op": "==", "value": "test"},
+    conditions={"type": "condition", "field": "y", "op": "==", "value": "test"},
     action="test_act",
     persist=False,  # No database storage
 )
@@ -111,7 +111,7 @@ from fluxrules import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Setup engine and rules
-rule = Rule(name="test", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule = Rule(name="test", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
 engine = PhreakEngine()
 engine.load_rules([rule])
 
@@ -188,7 +188,7 @@ app = FastAPI(lifespan=lifespan)
 rule = Rule(
     name="kyc_verified",
     domain="compliance",
-    condition_dsl={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+    conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
     action="proceed",
     persist=True,
 )

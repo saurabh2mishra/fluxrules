@@ -97,7 +97,7 @@ def _and_rule(rid: int, rng: random.Random) -> object:
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl=dsl,
+        conditions=dsl,
         priority=rid % 10,
         domain=f"d{rid % 5}",
         tags=frozenset([f"tag_{rid % 3}"]),

@@ -18,7 +18,7 @@ class RuleBase(BaseModel):
     group: str | None = None
     priority: int = 0
     enabled: bool = True
-    condition_dsl: dict[str, Any]
+    conditions: dict[str, Any]
     action: str
     rule_metadata: dict[str, Any] | None = None
     evaluation_mode: str | None = "stateless"
@@ -34,7 +34,7 @@ class RuleUpdate(BaseModel):
     group: str | None = None
     priority: int | None = None
     enabled: bool | None = None
-    condition_dsl: dict[str, Any] | None = None
+    conditions: dict[str, Any] | None = None
     action: str | None = None
     rule_metadata: dict[str, Any] | None = None
     evaluation_mode: str | None = "stateless"
@@ -61,7 +61,7 @@ class RuleVersionResponse(BaseModel):
     group: str | None = None
     priority: int
     enabled: bool
-    condition_dsl: dict[str, Any]
+    conditions: dict[str, Any]
     action: str
     rule_metadata: dict[str, Any] | None = None
     created_at: datetime

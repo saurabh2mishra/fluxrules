@@ -20,7 +20,7 @@ def _leaf(rid: int, field: str, op: str, value) -> Rule:
     return Rule(
         id=rid,
         name=f"rule_{rid}",
-        condition_dsl={"type": "condition", "field": field, "op": op, "value": value},
+        conditions={"type": "condition", "field": field, "op": op, "value": value},
         priority=rid % 5,
         domain=f"d{rid % 3}",
         tags=frozenset(),

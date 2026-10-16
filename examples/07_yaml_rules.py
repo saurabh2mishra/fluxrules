@@ -31,7 +31,7 @@ priority: 100
         tags=frozenset(yaml_data["tags"]),
         action=yaml_data["action"],
         priority=yaml_data["priority"],
-        condition_dsl=complex_risk_condition(),
+        conditions=complex_risk_condition(),
     )
 
     engine = PhreakEngine()

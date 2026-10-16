@@ -16,7 +16,7 @@ rule = Rule(
     name="high_value_transaction",
     domain="fraud_detection",
     tags=frozenset(["tier_1", "manual_review"]),
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="require_approval",
     priority=10,
     persist=True,  # Enable database persistence
@@ -32,7 +32,7 @@ print(f"Rule created: {rule.name} (ID: {rule.id})")
 | `name` | `str` | Yes | Descriptive rule name |
 | `domain` | `str` | No | Logical grouping (default: "default") |
 | `tags` | `frozenset[str]` | No | Searchable keywords |
-| `condition_dsl` | `dict` | Yes | Rule logic (DSL format) |
+| `conditions` | `dict` | Yes | Rule logic (DSL format) |
 | `action` | `str \| tuple[str, ...]` | No | Action when rule fires |
 | `priority` | `int` | No | Evaluation priority (higher first) |
 | `persist` | `bool` | No | Store in database (default: False) |
@@ -47,13 +47,13 @@ from fluxrules import Rule
 rules = [
     Rule(
         name="rule1",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
         action="act1",
         persist=False,
     ),
     Rule(
         name="rule2",
-        condition_dsl={"type": "condition", "field": "country", "op": "==", "value": "US"},
+        conditions={"type": "condition", "field": "country", "op": "==", "value": "US"},
         action="act2",
         persist=False,
     ),
@@ -156,7 +156,7 @@ Rules are **immutable** once created. To change a rule, create a new Rule with t
 # Original rule
 old_rule = Rule(
     name="check_amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
     action="flag",
     persist=True,
 )
@@ -164,7 +164,7 @@ old_rule = Rule(
 # Updated rule (new instance)
 new_rule = Rule(
     name="check_amount",
-    condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
     action="flag",
     persist=True,
 )

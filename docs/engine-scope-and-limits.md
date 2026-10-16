@@ -36,7 +36,7 @@ engine.load_rules(
     [
         Rule(
             name="amount_check",
-            condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+            conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
             action="review",
             persist=False,
         )
@@ -77,7 +77,7 @@ from fluxrules import Rule
 rules = [
     Rule(
         name="amount_check",
-        condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
         action="review",
         persist=False,
     )

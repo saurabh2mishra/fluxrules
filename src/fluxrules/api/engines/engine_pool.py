@@ -61,7 +61,7 @@ def rules_signature(rules: list[dict[str, Any]]) -> str:
         return (
             rule.get("id"),
             json.dumps(
-                rule.get("condition_dsl"),
+                rule.get("conditions"),
                 sort_keys=True,
                 default=repr,
                 separators=(",", ":"),

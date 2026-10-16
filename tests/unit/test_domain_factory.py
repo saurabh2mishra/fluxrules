@@ -11,7 +11,7 @@ class TestRuleFromDict:
         data = {
             "id": 1,
             "name": "test_rule",
-            "conditions": [
+            "condition_nodes": [
                 {"fact": "age", "operator": "gte", "value": 18},
                 {"fact": "income", "operator": "gt", "value": 30000},
             ],
@@ -23,9 +23,9 @@ class TestRuleFromDict:
         assert isinstance(rule, EngineRule)
         assert rule.id == 1
         assert rule.name == "test_rule"
-        assert len(rule.conditions) == 2
-        assert rule.conditions[0].fact == "age"
-        assert rule.conditions[0].operator == "gte"
+        assert len(rule.condition_nodes) == 2
+        assert rule.condition_nodes[0].fact == "age"
+        assert rule.condition_nodes[0].operator == "gte"
         assert rule.actions == ("approve",)
         assert rule.priority == 5
 
@@ -33,7 +33,7 @@ class TestRuleFromDict:
         data = {
             "id": 2,
             "name": "dsl_rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "condition",
                 "field": "amount",
                 "op": ">",
@@ -46,15 +46,15 @@ class TestRuleFromDict:
         rule = rule_from_dict(data)
         assert isinstance(rule, EngineRule)
         assert rule.id == 2
-        assert rule.conditions[0].fact == "amount"
-        assert rule.conditions[0].operator == ">"
+        assert rule.condition_nodes[0].fact == "amount"
+        assert rule.condition_nodes[0].operator == ">"
         assert rule.actions == ("flag_for_review",)
 
     def test_dsl_group_format(self):
         data = {
             "id": 3,
             "name": "group_rule",
-            "condition_dsl": {
+            "conditions": {
                 "type": "group",
                 "op": "AND",
                 "children": [
@@ -65,9 +65,9 @@ class TestRuleFromDict:
             "action": "do_something",
         }
         rule = rule_from_dict(data)
-        assert len(rule.conditions) == 2
-        assert rule.conditions[0].fact == "a"
-        assert rule.conditions[1].fact == "b"
+        assert len(rule.condition_nodes) == 2
+        assert rule.condition_nodes[0].fact == "a"
+        assert rule.condition_nodes[1].fact == "b"
 
     def test_empty_dict_raises(self):
         with pytest.raises(ValueError, match="must contain 'id' and 'name'"):
@@ -86,7 +86,7 @@ class TestRuleFromDict:
         rule = rule_from_dict(data)
         assert rule.priority == 0
         assert rule.enabled is True
-        assert rule.conditions == ()
+        assert rule.condition_nodes == ()
         assert rule.actions == ()
 
 
@@ -99,7 +99,7 @@ class TestRulesetFromDict:
                 {
                     "id": 1,
                     "name": "r1",
-                    "conditions": [{"fact": "x", "operator": "eq", "value": 1}],
+                    "condition_nodes": [{"fact": "x", "operator": "eq", "value": 1}],
                     "actions": ["act"],
                 },
             ],

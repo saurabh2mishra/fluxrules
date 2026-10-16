@@ -48,7 +48,7 @@ class DSLValidationError(InvalidRuleError):
 class CorruptStoredRuleError(FluxRulesError):
     """Raised when a persisted rule cannot be interpreted.
 
-    ``rules.condition_dsl`` is a JSON column holding exactly one shape: a DSL
+    ``rules.conditions`` is a JSON column holding exactly one shape: a DSL
     object. A row containing anything else was not written by this version and
     its intent cannot be recovered.
 
@@ -67,7 +67,7 @@ class LossyConditionViewWarning(UserWarning):
     it cannot express ``OR``, ``NOT`` or nesting. When such a node is
     flattened, the leaves are still returned, but the boolean structure is
     lost - so the view must not be used to decide rule logic. The canonical
-    representation is always ``condition_dsl``.
+    representation is always ``conditions``.
     """
 
     code = "LOSSY_CONDITION_VIEW"
@@ -85,7 +85,7 @@ class LossyConditionRebuildError(InvalidRuleError):
 
     The warning alone was not enough, because a warning does not stop the
     write. This refuses the conversion outright; callers must pass the
-    original ``condition_dsl``.
+    original ``conditions``.
     """
 
     code = "LOSSY_CONDITION_REBUILD"

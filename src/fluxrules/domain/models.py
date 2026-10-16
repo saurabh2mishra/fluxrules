@@ -89,27 +89,28 @@ class EngineRule:
     :class:`fluxrules.domain.unified_rule.Rule`; obtain this form from it via
     ``Rule.to_engine_rule()``.
 
-    ``condition_dsl`` is the **authoritative representation of rule logic**: the
+    ``conditions`` is the **authoritative representation of rule logic**: the
     full condition tree, preserving ``AND`` / ``OR`` / ``NOT`` / nesting, leaf
     operators and values. It is always present after construction, so nothing
     downstream has to reconstruct semantics from a lossy flat view.
 
-    ``conditions`` is a **derived** flat conjunction of the tree's leaves, kept
-    only for backward-compatible consumers (the reference evaluator's simple
-    path and structural validators). It is always re-derived from
-    ``condition_dsl`` so the two can never disagree, and it cannot express
+    ``condition_nodes`` is a **derived** flat conjunction of the tree's leaves,
+    kept only for backward-compatible consumers (the reference evaluator's
+    simple path and structural validators). It is always re-derived from
+    ``conditions`` so the two can never disagree, and it cannot express
     ``OR`` / ``NOT`` / nesting, so it must never be treated as authoritative.
 
-    Construction accepts either ``condition_dsl`` (preferred) or a flat
-    ``conditions`` tuple (for the native-format path that has no tree). When
-    only ``conditions`` is given, the authoritative tree is synthesised from
-    it; a flat conjunction round-trips faithfully. When both are given,
-    ``condition_dsl`` wins and ``conditions`` is re-derived from it.
+    Construction accepts either ``conditions`` (preferred) or a flat
+    ``condition_nodes`` tuple (for the native-format path that has no tree).
+    When only ``condition_nodes`` is given, the authoritative tree is
+    synthesised from it; a flat conjunction round-trips faithfully. When both
+    are given, ``conditions`` wins and ``condition_nodes`` is re-derived from
+    it.
     """
 
     id: int
     name: str
-    conditions: tuple[RuleCondition, ...] = ()
+    condition_nodes: tuple[RuleCondition, ...] = ()
     actions: tuple[str, ...] = ()
     priority: int = 0
     group: str = ""
@@ -119,20 +120,20 @@ class EngineRule:
     updated_at: str | None = None
     # Excluded from ``hash`` because a dict is unhashable; it stays part of
     # equality, so two rules with different logic remain unequal.
-    condition_dsl: dict[str, Any] | None = field(default=None, hash=False)
+    conditions: dict[str, Any] | None = field(default=None, hash=False)
 
     def __post_init__(self) -> None:
-        if self.condition_dsl is None:
+        if self.conditions is None:
             # No tree given: synthesise the authoritative one from the flat
             # conjunction so every EngineRule always carries a complete,
             # evaluable tree - never a bare, lossy tuple.
             from fluxrules.domain.dsl.evaluator import conditions_to_dsl
 
-            object.__setattr__(self, "condition_dsl", conditions_to_dsl(self.conditions))
+            object.__setattr__(self, "conditions", conditions_to_dsl(self.condition_nodes))
         else:
             # The tree is authoritative; re-derive the flat view from it so the
             # two never diverge. Extraction is silent here - the loud
-            # lossy-view warning belongs at the public ``Rule.conditions``
+            # lossy-view warning belongs at the public ``Rule.condition_nodes``
             # boundary, not at internal engine-rule construction.
             import warnings
 
@@ -142,13 +143,13 @@ class EngineRule:
                 warnings.simplefilter("ignore")
                 object.__setattr__(
                     self,
-                    "conditions",
-                    _extract_conditions_from_dsl(self.condition_dsl),
+                    "condition_nodes",
+                    _extract_conditions_from_dsl(self.conditions),
                 )
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> EngineRule:
-        """Create an ``EngineRule`` from a dictionary carrying ``condition_dsl``.
+        """Create an ``EngineRule`` from a dictionary carrying ``conditions``.
 
         The DSL tree is the authoritative logic and is passed through verbatim,
         so ``OR`` / ``NOT`` / nesting survive.
@@ -163,7 +164,7 @@ class EngineRule:
             enabled=data.get("enabled", True),
             created_at=data.get("created_at"),
             updated_at=data.get("updated_at"),
-            condition_dsl=data.get("condition_dsl"),
+            conditions=data.get("conditions"),
         )
 
 

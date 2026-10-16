@@ -31,7 +31,7 @@ from fluxrules.domain import Rule
 # Define a rule with condition DSL
 rule = Rule(
     name="high_amount_check",
-    condition_dsl={
+    conditions={
         "type": "group",
         "op": "AND",
         "children": [
@@ -44,7 +44,7 @@ rule = Rule(
 
 # Validate the DSL
 try:
-    validate_dsl(rule.condition_dsl)
+    validate_dsl(rule.conditions)
     print("✅ Rule is valid")
 except DSLValidationError as e:
     print(f"❌ Validation error: {e}")

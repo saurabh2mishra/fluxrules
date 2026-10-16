@@ -15,7 +15,7 @@ from fluxrules import Rule
 
 rule = Rule(
     name="payment_risk_high",
-    condition_dsl={
+    conditions={
         "type": "condition",
         "field": "amount",
         "op": ">",
@@ -33,7 +33,7 @@ rule = Rule(
 - `name` - Human-readable rule name
 - `domain` - Logical grouping (e.g., "fraud_detection", "compliance")
 - `tags` - String set for filtering and categorization
-- `condition_dsl` - Nested tree defining when the rule fires
+- `conditions` - Nested tree defining when the rule fires
 - `action` - What to do when the rule matches
 - `priority` - Execution order (higher = runs first)
 
@@ -176,9 +176,9 @@ A **Domain** is a logical grouping of rules. Rules with the same domain typicall
 from fluxrules import Rule, PhreakEngine
 
 # Define rules with domains
-rule1 = Rule(name="rule1", domain="fraud_detection", condition_dsl={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
-rule2 = Rule(name="rule2", domain="compliance", condition_dsl={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review")
-rule3 = Rule(name="rule3", domain="fraud_detection", condition_dsl={"type": "condition", "field": "type", "op": "==", "value": "transaction"}, action="process")
+rule1 = Rule(name="rule1", domain="fraud_detection", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule2 = Rule(name="rule2", domain="compliance", conditions={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review")
+rule3 = Rule(name="rule3", domain="fraud_detection", conditions={"type": "condition", "field": "type", "op": "==", "value": "transaction"}, action="process")
 
 all_rules = [rule1, rule2, rule3]
 

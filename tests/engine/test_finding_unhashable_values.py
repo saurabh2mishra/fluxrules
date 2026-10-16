@@ -33,7 +33,7 @@ def test_f3_streaming_handles_list_valued_fact() -> None:
     rule = Rule(
         id=1,
         name="roles_contains_admin",
-        condition_dsl={"type": "condition", "field": "roles", "op": "contains", "value": "admin"},
+        conditions={"type": "condition", "field": "roles", "op": "contains", "value": "admin"},
         action="grant",
         persist=False,
     )
@@ -56,7 +56,7 @@ def test_f4_list_valued_eq_rule_value_loads_and_matches() -> None:
     rule = Rule(
         id=1,
         name="x_eq_list",
-        condition_dsl={"type": "condition", "field": "x", "op": "==", "value": [1, 2]},
+        conditions={"type": "condition", "field": "x", "op": "==", "value": [1, 2]},
         action="a",
         persist=False,
     )

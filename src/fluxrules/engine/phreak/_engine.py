@@ -155,7 +155,7 @@ def _dsl_linker_safe(dsl: Any) -> bool:
     Such rules must stay candidates and be decided by the sound alpha pre-filter
     plus full evaluation.
 
-    A rule with no ``condition_dsl`` carries a flat conjunction of ``conditions``
+    A rule with no ``conditions`` carries a flat conjunction of ``conditions``
     and so is linker-safe.
     """
     if dsl is None:
@@ -512,7 +512,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         self._linker_unsafe_rule_ids = frozenset(
             rid
             for rid, rule in self.rule_repository.rules.items()
-            if not _dsl_linker_safe(getattr(rule, "condition_dsl", None))
+            if not _dsl_linker_safe(getattr(rule, "conditions", None))
         )
 
         # (Re)build the in-memory alpha pre-filter from the current
@@ -535,7 +535,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         self._compiled_conditions = {}
         if self._compile_conditions_enabled:
             for rid, rule in self.rule_repository.rules.items():
-                condition = getattr(rule, "condition_dsl", None)
+                condition = getattr(rule, "conditions", None)
                 if not isinstance(condition, dict):
                     continue
                 self._compiled_conditions[rid] = compile_condition(
@@ -1013,7 +1013,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         else:
             eval_condition = self._eval_root
         for _prio, rid, rule in rules_with_priority:
-            if eval_condition(rule.condition_dsl, facts, rid):
+            if eval_condition(rule.conditions, facts, rid):
                 fired.append(rid)
                 # Extend with every action, not just the first: a rule may
                 # carry several and dropping the rest would silently lose them.
@@ -1054,7 +1054,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             cached = condition_cache.get(cache_key)
             if cached is not None:
                 return rid, rule, cached
-            result = self._evaluate_condition(rule.condition_dsl, facts, rid)
+            result = self._evaluate_condition(rule.conditions, facts, rid)
             condition_cache[cache_key] = result
             return rid, rule, result
 

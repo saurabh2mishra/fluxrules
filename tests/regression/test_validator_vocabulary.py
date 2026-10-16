@@ -1,6 +1,6 @@
 """Validators must accept exactly what the engines execute.
 
-Two validators inspect `condition_dsl`, and both had drifted away from the
+Two validators inspect `conditions`, and both had drifted away from the
 engines they are supposed to guard. The drift was invisible because each
 validator's own tests only exercised the vocabulary it happened to accept - so
 the shapes it wrongly rejected were never tried, and the shapes it silently
@@ -54,7 +54,7 @@ class TestStructuralValidatorTracksTheEngine:
             StructuralValidator,
         )
 
-        return StructuralValidator().validate({"name": "r", "condition_dsl": dsl, "action": "flag"})
+        return StructuralValidator().validate({"name": "r", "conditions": dsl, "action": "flag"})
 
     @pytest.mark.parametrize("name", sorted(BOOLEAN_SHAPES))
     def test_every_boolean_shape_is_accepted(self, name: str) -> None:
@@ -166,7 +166,7 @@ def test_the_two_validators_agree_on_the_shapes_they_both_see() -> None:
 
     for name, dsl in BOOLEAN_SHAPES.items():
         structural = StructuralValidator().validate(
-            {"name": "r", "condition_dsl": dsl, "action": "flag"}
+            {"name": "r", "conditions": dsl, "action": "flag"}
         )
         assert not structural.has_errors(), name
         validate_dsl(dsl)  # must not raise

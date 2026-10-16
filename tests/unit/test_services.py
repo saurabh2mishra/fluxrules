@@ -12,7 +12,7 @@ def test_rule_service_evaluates_saved_ruleset() -> None:
             EngineRule(
                 id=1,
                 name="approved",
-                conditions=(RuleCondition("risk", "lte", 3),),
+                condition_nodes=(RuleCondition("risk", "lte", 3),),
                 actions=("approve",),
             ),
         ),
@@ -30,7 +30,7 @@ def test_rule_service_can_explain_execution() -> None:
             EngineRule(
                 id=1,
                 name="approved",
-                conditions=(RuleCondition("risk", "lte", 3),),
+                condition_nodes=(RuleCondition("risk", "lte", 3),),
                 actions=("approve",),
             ),
         ),
@@ -55,7 +55,7 @@ def test_rule_service_persist() -> None:
             EngineRule(
                 id=99,
                 name="r99",
-                conditions=(RuleCondition("x", "gt", 0),),
+                condition_nodes=(RuleCondition("x", "gt", 0),),
                 actions=("ok",),
             ),
         ),
