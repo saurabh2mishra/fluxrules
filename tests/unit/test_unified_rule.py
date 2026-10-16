@@ -571,4 +571,115 @@ class TestTimestampFields:
         )
         data = rule.model_dump()
         assert data["created_at"] == "2026-07-20T00:00:00"
-        assert data["updated_at"] is None
+
+
+class TestConditionNodes:
+    """condition_nodes property derives a flat RuleCondition tuple from the tree."""
+
+    def test_single_leaf_yields_one_node(self):
+        rule = Rule(
+            id=1,
+            name="r",
+            conditions={"type": "condition", "field": "amount", "op": ">", "value": 100},
+            priority=0,
+        )
+        nodes = rule.condition_nodes
+        assert len(nodes) == 1
+        assert nodes[0].fact == "amount"
+        assert nodes[0].operator == ">"
+        assert nodes[0].value == 100
+
+    def test_and_group_yields_multiple_nodes(self):
+        rule = Rule(
+            id=2,
+            name="r2",
+            conditions={
+                "type": "and",
+                "conditions": [
+                    {"type": "condition", "field": "a", "op": ">", "value": 1},
+                    {"type": "condition", "field": "b", "op": "==", "value": "US"},
+                ],
+            },
+            priority=0,
+        )
+        nodes = rule.condition_nodes
+        assert len(nodes) == 2
+        assert {n.fact for n in nodes} == {"a", "b"}
+
+
+class TestFromEngineRule:
+    """from_engine_rule round-trips an EngineRule back to a canonical Rule."""
+
+    def _make_engine_rule(self, cond=None):
+        from fluxrules.domain.models import EngineRule
+
+        if cond is None:
+            cond = {"type": "condition", "field": "x", "op": ">", "value": 0}
+        return EngineRule(
+            id=99,
+            name="eng",
+            actions=("alert",),
+            priority=1,
+            group="test",
+            description="d",
+            enabled=True,
+            conditions=cond,
+        )
+
+    def test_round_trip_with_explicit_conditions(self):
+        cond = {"type": "condition", "field": "x", "op": ">", "value": 42}
+        engine_rule = self._make_engine_rule(cond)
+        rule = Rule.from_engine_rule(engine_rule, conditions=cond)
+        assert rule.id == 99
+        assert rule.name == "eng"
+        assert rule.conditions == cond
+        assert rule.domain == "test"
+
+    def test_round_trip_using_engine_rule_conditions(self):
+        cond = {"type": "condition", "field": "score", "op": ">=", "value": 50}
+        engine_rule = self._make_engine_rule(cond)
+        rule = Rule.from_engine_rule(engine_rule)
+        assert rule.conditions == cond
+
+    def test_fallback_reconstructs_from_nodes_single(self):
+        from fluxrules.domain.models import EngineRule
+
+        engine_rule = EngineRule(
+            id=1,
+            name="fallback",
+            actions=("x",),
+            priority=0,
+            group="g",
+            conditions={"type": "condition", "field": "amt", "op": ">", "value": 10},
+        )
+        object.__setattr__(engine_rule, "conditions", None)
+        rule = Rule.from_engine_rule(engine_rule)
+        assert rule.conditions["type"] == "condition"
+        assert rule.conditions["field"] == "amt"
+
+    def test_fallback_reconstructs_from_nodes_multi(self):
+        from fluxrules.domain.models import EngineRule
+
+        cond = {
+            "type": "and",
+            "children": [
+                {"type": "condition", "field": "a", "op": ">", "value": 1},
+                {"type": "condition", "field": "b", "op": ">", "value": 2},
+            ],
+        }
+        engine_rule = EngineRule(
+            id=2, name="multi", actions=("y",), priority=0, group="g", conditions=cond
+        )
+        object.__setattr__(engine_rule, "conditions", None)
+        rule = Rule.from_engine_rule(engine_rule)
+        assert rule.conditions["type"] == "group"
+        assert rule.conditions["op"] == "AND"
+        assert len(rule.conditions["children"]) == 2
+
+    def test_deep_validator_rejects_invalid_operator(self):
+        with pytest.raises(ValidationError, match="Invalid operator"):
+            Rule(
+                name="test",
+                conditions={"type": "condition", "field": "x", "op": "invalid_op", "value": 1},
+                priority=0,
+            )

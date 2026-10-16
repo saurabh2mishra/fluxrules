@@ -131,3 +131,130 @@ class TestDSLValidation:
         for op in VALID_OPERATORS:
             dsl = {"type": "condition", "field": "x", "op": op, "value": 1}
             validate_conditions(dsl)  # Should not raise
+
+
+class TestGroupValidationExtended:
+    def test_group_missing_op_rejected(self):
+        with pytest.raises(ConditionValidationError, match="missing required 'op'"):
+            validate_conditions(
+                {
+                    "type": "group",
+                    "children": [{"type": "condition", "field": "x", "op": ">", "value": 1}],
+                }
+            )
+
+    def test_composite_missing_op_rejected(self):
+        with pytest.raises(ConditionValidationError, match="missing required 'op'"):
+            validate_conditions(
+                {
+                    "type": "composite",
+                    "children": [{"type": "condition", "field": "x", "op": ">", "value": 1}],
+                }
+            )
+
+    def test_group_missing_children_key_rejected(self):
+        with pytest.raises(ConditionValidationError, match="missing required 'children'"):
+            validate_conditions({"type": "group", "op": "AND"})
+
+    def test_group_children_not_list_rejected(self):
+        with pytest.raises(ConditionValidationError, match="must be a list"):
+            validate_conditions({"type": "group", "op": "AND", "children": "not-a-list"})
+
+    def test_and_type_accepts_no_op_field(self):
+        dsl = {
+            "type": "and",
+            "conditions": [{"type": "condition", "field": "x", "op": ">", "value": 1}],
+        }
+        validate_conditions(dsl)  # op not required for 'and' shorthand type
+
+    def test_group_with_conditions_key(self):
+        dsl = {
+            "type": "group",
+            "op": "OR",
+            "conditions": [{"type": "condition", "field": "x", "op": ">", "value": 1}],
+        }
+        validate_conditions(dsl)  # 'conditions' accepted as alias for 'children'
+
+
+class TestNotValidationExtended:
+    def test_not_with_children_list(self):
+        dsl = {
+            "type": "not",
+            "children": [
+                {"type": "condition", "field": "blocked", "op": "==", "value": True},
+            ],
+        }
+        validate_conditions(dsl)
+
+    def test_not_with_conditions_list(self):
+        dsl = {
+            "type": "not",
+            "conditions": [
+                {"type": "condition", "field": "blocked", "op": "==", "value": True},
+            ],
+        }
+        validate_conditions(dsl)
+
+    def test_not_empty_rejected(self):
+        with pytest.raises(ConditionValidationError, match="missing child"):
+            validate_conditions({"type": "not"})
+
+
+class TestExistsValidationExtended:
+    def test_exists_missing_field_rejected(self):
+        with pytest.raises(ConditionValidationError, match="missing required 'field'"):
+            validate_conditions({"type": "exists"})
+
+    def test_exists_empty_field_rejected(self):
+        with pytest.raises(ConditionValidationError, match="non-empty string"):
+            validate_conditions({"type": "exists", "field": ""})
+
+    def test_exists_valid(self):
+        validate_conditions({"type": "exists", "field": "email"})
+
+
+class TestSequenceValidation:
+    def test_valid_sequence(self):
+        dsl = {
+            "type": "sequence",
+            "steps": [
+                {"type": "condition", "field": "a", "op": ">", "value": 1},
+                {"type": "condition", "field": "b", "op": ">", "value": 2},
+            ],
+        }
+        validate_conditions(dsl)
+
+    def test_sequence_missing_steps_rejected(self):
+        with pytest.raises(ConditionValidationError, match="missing required 'steps'"):
+            validate_conditions({"type": "sequence"})
+
+    def test_sequence_empty_steps_rejected(self):
+        with pytest.raises(ConditionValidationError, match="non-empty list"):
+            validate_conditions({"type": "sequence", "steps": []})
+
+    def test_sequence_invalid_step_rejected(self):
+        with pytest.raises(ConditionValidationError):
+            validate_conditions(
+                {
+                    "type": "sequence",
+                    "steps": [{"type": "bad_type", "field": "x"}],
+                }
+            )
+
+
+class TestAccumulateValidation:
+    def test_valid_accumulate(self):
+        dsl = {
+            "type": "accumulate",
+            "field": "amount",
+            "function": "sum",
+        }
+        validate_conditions(dsl)
+
+    def test_accumulate_missing_function_rejected(self):
+        with pytest.raises(ConditionValidationError, match="missing required 'function'"):
+            validate_conditions({"type": "accumulate", "field": "amount"})
+
+    def test_accumulate_invalid_function_rejected(self):
+        with pytest.raises(ConditionValidationError, match="Invalid accumulate function"):
+            validate_conditions({"type": "accumulate", "field": "x", "function": "median"})
