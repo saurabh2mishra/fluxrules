@@ -15,7 +15,7 @@ __all__ = ["ConditionValidationError", "validate_conditions"]
 
 # Valid keys for each DSL node type
 _CONDITION_KEYS = {"type", "field", "op", "value"}
-_GROUP_KEYS = {"type", "op", "children", "conditions"}
+_GROUP_KEYS = {"type", "op", "logic", "children", "conditions"}
 _NOT_KEYS = {"type", "condition", "children"}
 _EXISTS_KEYS = {"type", "field"}
 _SEQUENCE_KEYS = {"type", "steps", "within_seconds"}
@@ -108,14 +108,17 @@ def _validate_group(dsl: dict[str, Any], path: str) -> None:
     _check_extra_keys(dsl, _GROUP_KEYS, node_type or "group", path)
 
     # ``and``/``or`` carry the boolean operator in the *type*; ``group``/
-    # ``composite`` carry it in ``op``. Requiring ``op`` unconditionally
-    # rejected the shape the engines actually evaluate.
+    # ``composite`` carry it in ``op`` or the legacy ``logic`` key — both are
+    # accepted by every engine parser (``dsl.get("logic") or dsl.get("op")``).
     if node_type in ("group", "composite"):
-        if "op" not in dsl:
-            raise ConditionValidationError(f"Group at '{path}' missing required 'op' key")
-        if dsl["op"] not in _VALID_GROUP_OPS:
+        op_val = dsl.get("op") or dsl.get("logic")
+        if not op_val:
             raise ConditionValidationError(
-                f"Invalid group operator '{dsl['op']}' at '{path}'. Valid: AND, OR"
+                f"Group at '{path}' missing required 'op' (or 'logic') key"
+            )
+        if op_val not in _VALID_GROUP_OPS:
+            raise ConditionValidationError(
+                f"Invalid group operator '{op_val}' at '{path}'. Valid: AND, OR"
             )
 
     # Children live under "children" or, for the composite authoring shape,

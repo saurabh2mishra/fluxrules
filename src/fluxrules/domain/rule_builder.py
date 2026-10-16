@@ -145,7 +145,7 @@ class ConditionBuilder:
             if len(self._nodes) == 1
             else {
                 "type": "group",
-                "logic": "AND",
+                "op": "AND",
                 "children": self._nodes,
             }
         )
