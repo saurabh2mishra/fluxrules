@@ -5,7 +5,7 @@
 
 # FluxRules
 
-FluxRules is a Python library for writing rules and executing them against facts. You give it the facts; it executes the rules and takes the actions defined for those rules.
+FluxRules is a Python library for writing rules and executing them against facts. You give it the facts; it runs the rules that match and performs their actions.
 
 It keeps the rules separate from the engine. The engine is fast, deterministic, and inspired by Drools’ Phreak algorithm.
 
