@@ -122,63 +122,42 @@ fluxrules --help
 
 ## How it works
 
-### Evaluation pipeline
+You call `evaluate(facts)` with a dictionary of field values. fluxrules returns which rules matched and what actions they produced. That's the whole contract.
 
-Each call to `evaluate()` runs a fact dictionary through four stages:
+### What happens inside each call
 
 ```
 facts (dict)
-  │
-  ├─ Alpha prefilter — rules whose required fields are absent are skipped
-  │
-  ├─ BitMaskLinker — bitmask check confirms all required segment fields are present
-  │
-  ├─ Per-rule condition evaluation — only linked rules are tested
-  │
-  └─ EvaluationResult — fired rule ids, actions, and optional explanation
+  |
+  +-- Field check: rules that need a field not present in facts are skipped
+  |
+  +-- Value check: rules whose conditions provably cannot match are skipped
+  |
+  +-- Condition evaluation: only the surviving rules are tested
+  |
+  +-- EvaluationResult: fired rule ids, actions, optional explanation
 ```
 
-A per-cycle leaf memo collapses repeated sub-expression evaluations within a
-single call (~96% reduction on shared leaves in typical rulesets).
+Within a single call, identical sub-expressions are evaluated once and reused across all rules. On shared workloads this eliminates roughly 96% of redundant leaf evaluations.
 
-### What is borrowed from Drools Phreak
+### Design choices
 
-- **BitMaskLinker** — rules are "linked" only when the incoming fact contains all
-  fields their conditions reference; unlinked rules are skipped entirely before
-  any condition is tested.
-- **SegmentNetwork** — rules are grouped by their condition field-set; only the
-  segments whose fields appear in the changed fact are re-evaluated.
-- **Dirty-segment tracking** (`LazyEvaluationMixin`) — in streaming mode,
-  segments whose inputs have not changed since the last call are not re-evaluated.
-- **Salience-ordered Agenda** — a `heapq`-backed agenda orders fired rules by
-  priority; populated in streaming mode for ordered action dispatch.
+fluxrules is built around one idea: **evaluate(facts) is a pure function**. Every call is independent. There is no shared state between calls, no side-effects, and no memory of previous evaluations. This makes it safe to run across threads, processes, or load-balanced instances without coordination.
 
-### What is intentionally left out
+That choice drives everything else:
 
-- **No beta network / join nodes.** fluxrules evaluates one fact at a time.
-  `enforce_single_fact_boundary` raises at load time if a rule references more
-  than one fact type. Cross-fact rules use a separate `CrossFactEngine`.
-- **No truth maintenance system (TMS).** There is no consequence retraction;
-  each call is independent and produces no side-effects on engine state.
-- **No tuple-based partial match memory.** Without multi-fact joins, there is
-  nothing to accumulate between rule firings.
+- Rules are evaluated against one fact dictionary at a time. Cross-fact rules (joining two entity types) use a separate `CrossFactEngine`.
+- There is no truth maintenance. fluxrules does not track which rules fired previously or retract consequences when facts change.
+- Streaming mode (`streaming_mode=True`) is the one exception: it caches condition results across calls for long-lived engine instances. Use it when you own the engine lifecycle (a single-process event loop). Use stateless mode everywhere else.
 
-These omissions are deliberate. fluxrules is a **stateless scoring function**:
-`evaluate(facts) → EvaluationResult`. It is designed for concurrent HTTP
-deployments where each request is independent and shared mutable state between
-calls is a liability, not a feature.
+### Lazy evaluation
 
-### Stateless vs. streaming mode
+fluxrules skips work at every level it can:
 
-In the default stateless mode, every `evaluate()` call starts from a clean
-engine state. This is safe to use across threads and processes with no
-coordination.
-
-`streaming_mode=True` adds cross-call caching for long-lived engine instances:
-dirty-segment tracking and the salience agenda are preserved between calls so
-that unchanged segments are not re-evaluated. Use streaming mode when you control
-the engine lifecycle (e.g., a single-process event stream), and stateless mode
-everywhere else.
+- Rules whose required fields are missing from the incoming fact are skipped before any condition is evaluated.
+- In streaming mode, rule segments whose fields have not changed since the last call are not re-evaluated.
+- AND conditions stop as soon as the first failing sub-condition is found. OR conditions stop as soon as the first passing one is found.
+- If the incoming facts are identical to the previous call (streaming mode), the entire evaluation is skipped and an empty result is returned immediately.
 
 ## Documentation
 
