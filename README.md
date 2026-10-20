@@ -5,9 +5,9 @@
 
 # FluxRules
 
-FluxRules is a Python library for writing rules and executing them against facts. You give it the facts; it tells you which rules fire and what to do. 
+FluxRules is a Python library for writing rules and executing them against facts. You give it the facts; it executes the rules and takes the actions defined for those rules.
 
-It keeps the rules separate from the engine. The engine is fast, deterministic, and inspired by Drools’ Phreak engine.
+It keeps the rules separate from the engine. The engine is fast, deterministic, and inspired by Drools’ Phreak algorithm.
 
 ## Core Capabilities
 
@@ -23,36 +23,33 @@ It keeps the rules separate from the engine. The engine is fast, deterministic, 
 
 ## Installation
 
-For local development, clone the repository and install the project with uv:
+Install FluxRules from [PyPI](https://pypi.org/project/fluxrules/):
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
-cd fluxrules
-uv sync --extra dev
+pip install fluxrules
 ```
 
-This creates the project environment and installs FluxRules with its development
-tools. To install the published package in a virtual environment managed by uv:
+Or, if you use [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv venv
-uv pip install fluxrules
+uv add fluxrules
 ```
 
-Install an optional extra in the checkout with `uv sync`, for example:
+The base package is all you need to write and evaluate rules. Add an extra only
+for the feature you want:
 
 ```bash
-uv sync --extra api
-uv sync --extra sql
-uv sync --extra redis
-uv sync --extra otel
-uv sync --extra yaml
-uv sync --extra cli
-uv sync --extra docs
-uv sync --extra all
+pip install 'fluxrules[api]'     # HTTP endpoints
+pip install 'fluxrules[sql]'     # database persistence
+pip install 'fluxrules[redis]'   # Redis persistence
+pip install 'fluxrules[otel]'    # OpenTelemetry tracing
+pip install 'fluxrules[yaml]'    # load rules from YAML
+pip install 'fluxrules[cli]'     # command-line tool
+pip install 'fluxrules[all]'     # everything above
 ```
 
-For more details see the [installation guide](docs/installation.md).
+To work on FluxRules itself, see [CONTRIBUTING](CONTRIBUTING.md). For more
+details see the [installation guide](docs/installation.md).
 
 ## Your First Rule
 
@@ -163,16 +160,20 @@ fluxrules skips work at every level it can:
 
 ## Documentation
 
-[DOCS](https://saurabh2mishra.github.io/fluxrules/)
+[Docs](https://saurabh2mishra.github.io/fluxrules/)
+
+## Architecture 
+
+[Architecture](https://saurabh2mishra.github.io/fluxrules/architecture/)
 
 ## Contributing
 
-[CONTRIBUTING](CONTRIBUTING.md) & [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
+[Contributing](CONTRIBUTING.md) & [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Security
 
-[SECURITY](SECURITY.md)
+[Security](SECURITY.md)
 
 ## License
 
-[LICENSE](LICENSE)
+[License](LICENSE)
