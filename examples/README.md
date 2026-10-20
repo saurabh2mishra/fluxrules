@@ -11,36 +11,29 @@ Welcome! This directory contains **comprehensive, practical examples** demonstra
 **NEW!** FluxRules now recommends the simplified **Pydantic Rule** approach for creating rules:
 
 ```python
-from fluxrules import Rule  # same class as fluxrules.domain.Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
-# Create rules with auto-generated IDs
+# Write conditions as Python expressions - no dicts required
 rule = Rule(
     name="High Value Transaction",
-    conditions={
-        "type": "condition",
-        "field": "amount",
-        "op": ">",
-        "value": 1000,
-    },
+    conditions=(F("amount") > 1000) & (F("currency") == "USD"),
     action="flag_for_review",
     priority=10,
-    persist=False,  # keep it in memory
 )
 
-# Use in your engine
 engine = PhreakEngine()
 engine.load_rules([rule])
-result = engine.evaluate({"amount": 1500})
-print(result.fired_rules)  # Auto-generated rule ID
+result = engine.evaluate({"amount": 1500, "currency": "USD"})
+print(result.fired_rules)  # auto-generated rule ID
 ```
 
-✅ **Why Pydantic Rule?**
-- Simpler syntax (no method chaining)
-- Auto-generated IDs (no manual management)
-- Better IDE support
-- Consistent across all creation paths (YAML, API, etc.)
-- Less boilerplate
+✅ **Why the F DSL?**
+- Write conditions as real Python, not raw dicts
+- Full IDE autocompletion and type checking
+- Precedence errors caught at write-time, not run-time
+- YAML authoring is still supported - the dict format is the wire format
+- Composes naturally: `&`, `|`, `~` for AND / OR / NOT
 
 👉 **See [18_unified_rule.py](18_unified_rule.py) for comprehensive Pydantic Rule examples**
 👉 **Read the [Pydantic Rule Guide](../docs/pydantic-rule-guide.md) for the full reference**

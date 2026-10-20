@@ -159,6 +159,16 @@ class Rule(BaseModel):
             return frozenset()
         raise ValueError(f"Invalid tags type: {type(v)}")
 
+    @field_validator("conditions", mode="before")
+    @classmethod
+    def coerce_condition_input(cls, v: Any) -> Any:
+        """Unwrap a Condition object produced by F-expressions into a plain dict."""
+        from fluxrules.domain.field import Condition
+
+        if isinstance(v, Condition):
+            return v.to_dict()
+        return v
+
     @field_validator("conditions")
     @classmethod
     def validate_conditions(cls, v: dict[str, Any]) -> dict[str, Any]:

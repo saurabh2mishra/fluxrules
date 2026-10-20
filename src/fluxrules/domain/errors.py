@@ -9,15 +9,17 @@ These names are part of the public API and are re-exported from
 """
 
 __all__ = [
+    "ConditionValidationError",
     "CorruptStoredRuleError",
     "CyclicDependencyError",
-    "ConditionValidationError",
     "EmptyRuleLogicError",
+    "FieldNotFoundError",
     "FluxRulesError",
     "InvalidRuleError",
     "LossyConditionRebuildError",
     "LossyConditionViewWarning",
     "UnknownOperatorError",
+    "is_field_typo",
 ]
 
 
@@ -89,6 +91,53 @@ class LossyConditionRebuildError(InvalidRuleError):
     """
 
     code = "LOSSY_CONDITION_REBUILD"
+
+
+def is_field_typo(field: str, facts: dict) -> bool:
+    """Return True when *field* is absent from *facts* but looks like a typo.
+
+    Triggers on case-insensitive matches (``Amount`` vs ``amount``) and on
+    close spellings via difflib (cutoff 0.6). Returns False for fields that are
+    genuinely absent with no resemblance to any key - that is normal when a
+    ruleset holds rules for different fact schemas.
+    """
+    import difflib
+
+    available = [str(k) for k in facts]
+    if any(k.lower() == field.lower() for k in available):
+        return True
+    return bool(difflib.get_close_matches(field, available, n=1, cutoff=0.6))
+
+
+class FieldNotFoundError(FluxRulesError):
+    """Raised when a condition references a field that looks like a typo.
+
+    A ``condition`` node whose field is not a key in the incoming fact dict
+    previously returned ``False`` silently. When the absent field is a
+    case-insensitive match or close spelling of an existing key (e.g.
+    ``Amount`` vs ``amount``), this error is raised so the typo surfaces
+    immediately. Fields with no resemblance to any key are treated as
+    legitimately absent (different fact schema) and return ``False`` as before.
+
+    Use ``F("field").exists()`` when you intentionally want to test whether a
+    field is present - that node always returns ``False`` for absent fields
+    without raising.
+    """
+
+    code = "FIELD_NOT_FOUND"
+
+    @classmethod
+    def for_field(cls, field: str, facts: dict) -> "FieldNotFoundError":
+        """Build the error with an available-keys list and a 'did you mean' hint."""
+        import difflib
+
+        available = sorted(str(k) for k in facts.keys())
+        close = difflib.get_close_matches(field, available, n=1, cutoff=0.6)
+        hint = f" Did you mean '{close[0]}'?" if close else ""
+        return cls(
+            f"Field '{field}' not found in fact.{hint} "
+            f"Available keys: {available}"
+        )
 
 
 class EmptyRuleLogicError(InvalidRuleError):

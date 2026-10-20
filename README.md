@@ -57,11 +57,11 @@ For more details see the [installation guide](docs/installation.md).
 ## Your First Rule
 
 ```python
-from fluxrules import Rule, evaluate
+from fluxrules import F, Rule, evaluate
 
 rule = Rule(
     name="high_value_transaction",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="manual_review",
 )
 
@@ -84,12 +84,12 @@ of rules, or a named `Ruleset`.
 ## Using the engine directly
 
 ```python
-from fluxrules import PhreakEngine, Rule
+from fluxrules import F, PhreakEngine, Rule
 
 rule = Rule(
     name="high_value_transaction",
     domain="payments",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="manual_review",
     priority=100,
 )

@@ -63,7 +63,7 @@ than the built-in SQLite default. This is the recommended pattern for production
 deployments that use PostgreSQL, SQL Server, or another provider:
 
 ```python
-# python skip  — requires a live database and session provider
+# python skip - requires a live database and session provider
 from fluxrules.di import ServiceFactory
 from fluxrules.config import RuntimeConfig, PersistenceConfig
 

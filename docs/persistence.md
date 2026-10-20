@@ -140,7 +140,7 @@ Persist audit records to your logging backend as needed.
 
 - **SQLite** (default, development, single-file)
 - **PostgreSQL** (production, scales to 100K+ rules)
-- **MySQL, SQL Server, and any other SQLAlchemy-supported dialect** — via the ServiceFactory path below; see the note on `backend` in that section
+- **MySQL, SQL Server, and any other SQLAlchemy-supported dialect** - via the ServiceFactory path below; see the note on `backend` in that section
 
 ---
 
@@ -153,7 +153,7 @@ environment variables.
 In real applications you typically configure a connection once at startup (e.g. in a
 FastAPI lifespan handler). When you register a persistence adapter with `ServiceFactory`,
 `persist=True` **automatically delegates to that adapter** instead of the default
-SQLite path — no other changes needed.
+SQLite path - no other changes needed.
 
 ### FastAPI + PostgreSQL example
 
@@ -184,7 +184,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Anywhere in your app — persist=True now writes to Postgres, not SQLite.
+# Anywhere in your app - persist=True now writes to Postgres, not SQLite.
 rule = Rule(
     name="kyc_verified",
     domain="compliance",
@@ -194,7 +194,7 @@ rule = Rule(
 )
 ```
 
-`SQLAlchemyPersistenceAdapter` is dialect-agnostic — it works with any database
+`SQLAlchemyPersistenceAdapter` is dialect-agnostic - it works with any database
 SQLAlchemy supports (PostgreSQL, MySQL, SQL Server, SQLite). The key thing to know:
 `backend="postgres"` is the configuration value that activates the SQLAlchemy path
 in `ServiceFactory`, regardless of the actual database dialect. Change the
@@ -208,24 +208,24 @@ DATABASE_URL = "mysql+pymysql://user:pass@db.example.com/fluxrules"
 DATABASE_URL = "mssql+pyodbc://user:pass@db.example.com/fluxrules?driver=ODBC+Driver+17+for+SQL+Server"
 ```
 
-The rest of the setup — `session_provider`, `ServiceFactory.create_persistence_adapter()` —
+The rest of the setup - `session_provider`, `ServiceFactory.create_persistence_adapter()` -
 is identical.
 
 ### Priority order
 
 When `persist=True` is used, fluxrules checks in this order:
 
-1. **ServiceFactory adapter** — if one is registered and it is not the in-memory
+1. **ServiceFactory adapter** - if one is registered and it is not the in-memory
    fallback, it is used. This covers any SQLAlchemy-backed dialect (Postgres, MySQL,
    SQL Server) as long as `backend="postgres"` was set at registration time.
-2. **DBConnectionManager** — the `initialize_persistence()` / env-var path. Used
+2. **DBConnectionManager** - the `initialize_persistence()` / env-var path. Used
    when no ServiceFactory adapter is registered (the common case for standalone
    scripts and simple deployments).
-3. **Fallback** — if neither is reachable, a locally generated ID is assigned and
+3. **Fallback** - if neither is reachable, a locally generated ID is assigned and
    an `INFO`-level log entry is emitted (`"No database configured; using in-memory mode"`).
    The rule is still usable in-memory.
 
-> **Note — table creation:** `ServiceFactory` does not create database tables.
+> **Note - table creation:** `ServiceFactory` does not create database tables.
 > When using the ServiceFactory path you are responsible for running schema
 > migrations before the application starts (e.g. via Alembic). The
 > `initialize_persistence()` helper creates tables automatically and is the

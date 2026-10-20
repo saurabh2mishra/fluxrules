@@ -119,7 +119,10 @@ Fact input → [Assert into working memory]
 The conditions is a recursive JSON structure that's validated, compiled, and executed:
 
 ```
-Input condition tree:
+Input condition (F DSL or dict):
+(F("amount") > 5000) & (F("country").isin(["NG", "US"]))
+
+Compiled condition tree:
 {
   "type": "group",
   "op": "AND",

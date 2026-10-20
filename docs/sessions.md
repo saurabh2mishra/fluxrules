@@ -108,7 +108,7 @@ Each session is isolated. Facts in one session do not affect another:
 
 ```python
 # python skip
-# Each session is independent — same ruleset, different fact sets
+# Each session is independent - same ruleset, different fact sets
 session1 = service.create_session("order_rules")
 session1.add_fact("user_type", "premium")
 

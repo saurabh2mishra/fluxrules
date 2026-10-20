@@ -43,9 +43,11 @@ class MyCustomEngine(BaseEngine):
 ## Using a custom engine
 
 ```python
+from fluxrules import F
+
 rule = Rule(
     name="high_value",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+    conditions=F("amount") > 1000,
     action="review",
     persist=False,
 )

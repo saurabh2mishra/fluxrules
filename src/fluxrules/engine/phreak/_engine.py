@@ -50,6 +50,43 @@ _ABSENT = object()
 _UNHASHABLE = object()
 
 
+def _find_absent_condition_field(conditions: Any, facts: dict[str, Any]) -> str | None:
+    """Return the first 'condition' node field that is absent AND looks like a typo.
+
+    Skips 'exists' nodes - their purpose is to test field presence, so absent
+    is a valid and expected input. For 'condition' nodes, only returns the field
+    name when it is absent AND resembles an existing key (case mismatch or close
+    spelling), so rules for a genuinely different fact schema are not flagged.
+    """
+    if not isinstance(conditions, dict):
+        return None
+    ctype = conditions.get("type")
+    if ctype == "condition":
+        field = conditions.get("field", "")
+        if field and field not in facts:
+            from fluxrules.domain.errors import is_field_typo
+
+            return field if is_field_typo(field, facts) else None
+        return None
+    if ctype in ("and", "or", "group", "composite"):
+        for child in conditions.get("children") or conditions.get("conditions") or []:
+            result = _find_absent_condition_field(child, facts)
+            if result:
+                return result
+        return None
+    if ctype == "not":
+        inner = conditions.get("condition") or conditions.get("child")
+        if inner:
+            return _find_absent_condition_field(inner, facts)
+        for child in conditions.get("conditions") or conditions.get("children") or []:
+            result = _find_absent_condition_field(child, facts)
+            if result:
+                return result
+        return None
+    # exists and unknown types: no raise
+    return None
+
+
 class _AlphaStats:
     """Running prune statistics for the alpha pre-filter.
 
@@ -276,7 +313,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 loops. Leaves still delegate to ``evaluate_operator`` with the
                 same flags, so compiled and interpreted evaluation agree exactly.
 
-                Default ``False`` — optimal for rules with 1–2 conditions.
+                Default ``False`` - optimal for rules with 1–2 conditions.
                 The per-cycle leaf memo already collapses ~96 % of repeated leaf
                 work across rules, leaving structural inlining almost nothing to
                 gain, and the extra closure call overhead slightly regresses
@@ -694,6 +731,23 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # Record before/after-alpha prune stats (P1.1 observability / P1.3).
         self._alpha_stats.record(n_in, len(candidates), engaged=engaged)
 
+        # Raise FieldNotFoundError if a pruned non-OR/NOT rule references a
+        # 'condition' field absent from facts. This converts the alpha/linker
+        # silent drop into an explicit error so typos (wrong case, wrong name)
+        # are caught immediately. OR/NOT rules (linker_unsafe) are skipped here
+        # because they legitimately evaluate with some fields absent.
+        candidates_set = set(candidates)
+        linker_unsafe = self._linker_unsafe_rule_ids
+        for rid in self._field_bearing_rule_ids:
+            if rid not in candidates_set and rid not in linker_unsafe:
+                rule = self.rule_repository.get(rid)
+                conditions = rule and getattr(rule, "conditions", None)
+                if conditions:
+                    absent = _find_absent_condition_field(conditions, facts)
+                    if absent:
+                        from fluxrules.domain.errors import FieldNotFoundError
+                        raise FieldNotFoundError.for_field(absent, facts)
+
         if filters:
             candidates = self._apply_filters(candidates, filters)
 
@@ -954,7 +1008,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
         return fired, actions, explanations
 
-    # NOTE: Agenda gap — populated but never drained.
+    # NOTE: Agenda gap - populated but never drained.
     # The Agenda (base.py: self.agenda = Agenda()) receives cancel_activation()
     # calls here, but add_activation() and next_activation() are never called
     # from the main evaluation path. To wire it as the primary driver, the main
@@ -1187,6 +1241,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         value_memoizable = value_key is not _UNHASHABLE
 
         def _leaf(facts: dict[str, Any]) -> bool:
+            if field not in facts:
+                from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
+
+                if is_field_typo(field, facts):
+                    raise FieldNotFoundError.for_field(field, facts)
             present = field in facts
             fact_val = facts.get(field)
             memo = self._leaf_memo
@@ -1272,6 +1331,12 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         field = condition.get("field", "")
         op = condition.get("op", "==")
         value = condition.get("value")
+
+        if field not in facts:
+            from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
+
+            if is_field_typo(field, facts):
+                raise FieldNotFoundError.for_field(field, facts)
 
         # Per-cycle leaf memo. Reuse the result for identical
         # (field, op, value) leaves already evaluated this cycle. Only active on

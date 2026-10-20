@@ -28,18 +28,13 @@ The validation system catches errors early with clear error messages.
 from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 from fluxrules.domain import Rule
 
-# Define a rule with a condition tree
+# Define a rule - F DSL is the recommended authoring format
+from fluxrules import F
+
 rule = Rule(
     name="high_amount_check",
-    conditions={
-        "type": "group",
-        "op": "AND",
-        "children": [
-            {"type": "condition", "field": "amount", "op": ">", "value": 5000},
-            {"type": "condition", "field": "country", "op": "in", "value": ["US", "CA"]}
-        ]
-    },
-    action="review"
+    conditions=(F("amount") > 5000) & (F("country").isin(["US", "CA"])),
+    action="review",
 )
 
 # Validate the condition tree
@@ -158,22 +153,27 @@ The validation happens automatically at rule creation. If validation fails, beha
 The shared payment-risk dataset includes a validation example in [Example 04](examples.md):
 
 ```python
+from fluxrules import F, Rule, validate
 from fluxrules.domain.conditions.validation import ConditionValidationError, validate_conditions
 
-# Validate a nested condition tree
-nested_condition = {
-    "type": "group",
-    "op": "AND",
-    "children": [
-        {"type": "condition", "field": "amount", "op": ">", "value": 5000},
-        {"type": "group", "op": "OR", "children": [
-            {"type": "condition", "field": "country", "op": "in", "value": ["CN", "RU"]},
-            {"type": "condition", "field": "ip_risk_score", "op": ">=", "value": 85}
-        ]}
-    ]
-}
+# Author with F DSL, validate with the top-level API
+rule = Rule(
+    name="fraud_check",
+    conditions=(
+        (F("amount") > 5000)
+        & (
+            (F("country").isin(["CN", "RU"]))
+            | (F("ip_risk_score") >= 85)
+        )
+    ),
+    action="block",
+)
 
-validate_conditions(nested_condition)  # ✅ Passes
+issues = validate([rule])
+assert issues == []  # ✅ Passes
+
+# Or validate the underlying condition tree directly
+validate_conditions(rule.conditions)  # ✅ Passes
 ```
 
 See [Example 04: Validation](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py) for complete working code.

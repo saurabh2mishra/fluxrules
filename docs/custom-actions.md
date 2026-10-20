@@ -13,19 +13,19 @@ Actions are strings or tuples of strings that are executed when a rule fires. Fl
 ## Using actions in rules
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rule1 = Rule(
     name="check_high_value",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="require_approval",  # Single action (string)
     persist=False,
 )
 
 rule2 = Rule(
     name="check_fraud",
-    conditions={"type": "condition", "field": "ip_risk_score", "op": ">", "value": 80},
+    conditions=F("ip_risk_score") > 80,
     actions=("block", "notify_security"),  # Multiple actions (tuple)
     persist=False,
 )
@@ -135,9 +135,11 @@ for action_name in result.actions:
 ### Fire multiple actions
 
 ```python
+from fluxrules import F
+
 Rule(
     name="suspicious_transaction",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 50000},
+    conditions=F("amount") > 50000,
     actions=("block", "notify_fraud_team", "log_to_database"),
     persist=False,
 )

@@ -45,6 +45,15 @@ from fluxrules.utils.id_generators import RuleIDGenerator
 class ConditionBuilder:
     """Build condition DSL with type checking.
 
+    .. deprecated::
+        Use ``F`` (``from fluxrules import F``) instead. Operator overloading
+        on ``F`` is more concise and composes naturally::
+
+            from fluxrules import F
+            cond = (F("age") > 18) & (F("status") == "active")
+
+        ``ConditionBuilder`` will be removed in a future release.
+
     Usage:
         cb = ConditionBuilder()
         cb.condition("age", ">", 18)

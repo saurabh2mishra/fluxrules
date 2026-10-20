@@ -14,7 +14,7 @@ logger = logging.getLogger("fluxrules.audit")
 
 
 def _utcnow() -> datetime:
-    # Naive UTC — matches what SQLAlchemy's DateTime column returns after a DB round-trip.
+    # Naive UTC - matches what SQLAlchemy's DateTime column returns after a DB round-trip.
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 

@@ -108,7 +108,7 @@ def _validate_group(dsl: dict[str, Any], path: str) -> None:
     _check_extra_keys(dsl, _GROUP_KEYS, node_type or "group", path)
 
     # ``and``/``or`` carry the boolean operator in the *type*; ``group``/
-    # ``composite`` carry it in ``op`` or the legacy ``logic`` key — both are
+    # ``composite`` carry it in ``op`` or the legacy ``logic`` key - both are
     # accepted by every engine parser (``dsl.get("logic") or dsl.get("op")``).
     if node_type in ("group", "composite"):
         op_val = dsl.get("op") or dsl.get("logic")
@@ -152,7 +152,7 @@ def _validate_not(dsl: dict[str, Any], path: str) -> None:
     children = dsl.get("children") or dsl.get("conditions")
     if not children:
         raise ConditionValidationError(
-            f"NOT node at '{path}' missing child — use 'condition' (dict) or 'children'/'conditions' (list)"
+            f"NOT node at '{path}' missing child - use 'condition' (dict) or 'children'/'conditions' (list)"
         )
     for i, child in enumerate(children):
         validate_conditions(child, path=f"{path}.children[{i}]")
