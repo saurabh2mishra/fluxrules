@@ -434,3 +434,38 @@ class TestOrRulesFireUnderPhreakAlpha:
             action="x",
         )
         assert self._fire(rule, {"a": 0, "b": 1}) == [1]
+
+
+class TestOrWithNullBranchUnderAlpha:
+    """An OR that includes ``== None`` must fire for a present ``None`` value.
+
+    The prefilter reduces an OR over a shared field to "field must be present".
+    A present ``None`` has to pass that test, otherwise the prefilter prunes a
+    rule the evaluator would fire under strict null handling.
+    """
+
+    BRANCHES = [
+        {"type": "condition", "field": "x", "op": "==", "value": None},
+        {"type": "condition", "field": "x", "op": "==", "value": 1},
+    ]
+
+    def _fire(self, conditions, fact, *, alpha):
+        from fluxrules.engine.configuration import EngineConfig
+        from fluxrules.engine.phreak import PhreakEngine
+
+        engine = PhreakEngine(
+            config=EngineConfig(strict_null_handling=True), alpha_prefilter=alpha
+        )
+        engine.load_rules([Rule(id=1, name="r", conditions=conditions, action="a")])
+        return engine.evaluate(fact).fired_rules
+
+    @pytest.mark.parametrize("node_type", ["or", "group"])
+    @pytest.mark.parametrize("alpha", [True, False])
+    def test_null_and_value_branches(self, node_type, alpha):
+        if node_type == "or":
+            conditions = {"type": "or", "children": self.BRANCHES}
+        else:
+            conditions = {"type": "group", "op": "OR", "children": self.BRANCHES}
+        assert self._fire(conditions, {"x": None}, alpha=alpha) == [1]
+        assert self._fire(conditions, {"x": 1}, alpha=alpha) == [1]
+        assert self._fire(conditions, {"x": 2}, alpha=alpha) == []

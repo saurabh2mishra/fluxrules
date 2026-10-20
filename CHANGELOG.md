@@ -36,6 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   treated as AND and pruned whenever one branch failed, so it did not fire when
   only one branch matched. This affected dict and YAML rules as well as `F`
   expressions. Both keys are now honored.
+- **OR rules with an `== None` branch were pruned for a present `None`.** The
+  prefilter reduces an OR over a shared field to "field must be present" but
+  also rejected a present `None`, so with `strict_null_handling=True` the rule
+  did not fire with the prefilter on and fired with it off. A present `None` now
+  passes.
 - **README install section** now leads with `pip install fluxrules` instead of
   cloning the repository.
 

@@ -57,7 +57,9 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
     semantics: an absent or ``None`` value fails every constraining operator.
     """
     if op == "__exists__":
-        return lambda v: v is not _MISSING and v is not None
+        # Present-but-unbounded across an OR. A present ``None`` must pass: a
+        # branch such as ``x == None`` can match it under strict null handling.
+        return lambda v: v is not _MISSING
     if op == "==":
         return lambda v: v is not _MISSING and v == value
     if op == "in":
