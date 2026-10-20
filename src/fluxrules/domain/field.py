@@ -78,7 +78,7 @@ class Field:
 
     All operators accepted by ``VALID_OPERATORS`` are available either as Python
     dunder methods (``>``, ``>=``, ``<``, ``<=``, ``==``, ``!=``) or as named
-    methods (``in_``, ``not_in``, ``contains``, ``not_contains``, ``starts_with``,
+    methods (``isin``, ``not_in``, ``contains``, ``not_contains``, ``starts_with``,
     ``ends_with``, ``regex``, ``exists``).
     """
 

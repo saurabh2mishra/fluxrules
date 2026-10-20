@@ -154,3 +154,26 @@ class TestPhreakEngineRaises:
         engine = self._engine_with(rule)
         result = engine.evaluate({"name": "Alice"})
         assert result.fired_rules == []
+
+    def test_phreak_or_typo_raises_regardless_of_branch_order(self):
+        # Typo detection is a single per-fact scan, so it does not depend on OR
+        # short-circuit order: both arrangements raise for the same fact.
+        fact = {"amount": 50000, "country": "US"}
+        typo_first = self._engine_with(_rule((F("Amount") > 10000) | (F("country") == "US")))
+        with pytest.raises(FieldNotFoundError, match="Amount"):
+            typo_first.evaluate(fact)
+        typo_second = self._engine_with(_rule((F("country") == "US") | (F("Amount") > 10000)))
+        with pytest.raises(FieldNotFoundError, match="Amount"):
+            typo_second.evaluate(fact)
+
+    def test_phreak_not_typo_raises(self):
+        rule = _rule(~(F("Blocked") == True))  # noqa: E712
+        engine = self._engine_with(rule)
+        with pytest.raises(FieldNotFoundError, match="Blocked"):
+            engine.evaluate({"blocked": False})
+
+    def test_phreak_clean_or_does_not_raise(self):
+        rule = _rule((F("amount") > 5000) | (F("country") == "US"))
+        engine = self._engine_with(rule)
+        result = engine.evaluate({"amount": 10, "country": "US"})
+        assert rule.id in result.fired_rules

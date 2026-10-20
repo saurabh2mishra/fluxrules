@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fluxrules.domain.conditions.parser import ConditionParser
+from fluxrules.domain.field import Condition
 from fluxrules.domain.models import (
     ChangeReason,
     EngineRule,
@@ -308,11 +309,13 @@ class RuleBuilder:
         self._status = status
         return self
 
-    def condition(self, conditions: dict[str, Any]) -> RuleBuilder:
+    def condition(self, conditions: dict[str, Any] | Condition) -> RuleBuilder:
         """Set condition DSL (validated at build time).
 
         Args:
-            conditions: Condition DSL dict.
+            conditions: a raw condition DSL dict, or a ``Condition`` produced by
+                an ``F`` expression (e.g. ``F("amount") > 5000``). A ``Condition``
+                is unwrapped to its dict before validation.
 
         Returns:
             Self for chaining.
@@ -320,6 +323,8 @@ class RuleBuilder:
         Raises:
             ConditionParseError: If condition DSL is invalid.
         """
+        if isinstance(conditions, Condition):
+            conditions = conditions.to_dict()
         # Validate by parsing
         parser = ConditionParser()
         parser.parse(conditions)

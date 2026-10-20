@@ -129,6 +129,7 @@ Python's `&` and `|` bind more tightly than `>`, `<`, `==`. Always wrap each
 individual leaf in parentheses before composing:
 
 ```python
+# python skip - the Wrong line deliberately raises to show the trap
 # Correct - each leaf is parenthesised
 (F("amount") > 2000) & (F("country") == "NG")
 

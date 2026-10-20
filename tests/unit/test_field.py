@@ -88,7 +88,7 @@ class TestComparisonOperators:
 
 
 class TestNamedOperators:
-    def test_in_(self):
+    def test_isin(self):
         c = F("status").isin(["active", "pending"]).to_dict()
         assert c == {
             "type": "condition",
@@ -328,3 +328,110 @@ class TestEndToEnd:
         )
         assert rule.id in evaluate(rule, {"status": "active"}).fired_rules
         assert evaluate(rule, {"status": "suspended"}).fired_rules == []
+
+
+# ---------------------------------------------------------------------------
+# RuleBuilder.condition() accepts an F expression, not only a raw dict.
+# ---------------------------------------------------------------------------
+
+
+class TestRuleBuilderAcceptsFExpressions:
+    """`.condition()` must accept a Condition from an F expression, not only a dict."""
+
+    def test_builder_single_f_expression(self):
+        from fluxrules import RuleBuilder
+
+        rule = RuleBuilder().name("hv").condition(F("amount") > 5000).action("review").build()
+        assert rule.conditions == {
+            "type": "condition",
+            "field": "amount",
+            "op": ">",
+            "value": 5000,
+        }
+        assert rule.id in evaluate(rule, {"amount": 7500}).fired_rules
+
+    def test_builder_composed_f_expression(self):
+        from fluxrules import RuleBuilder
+
+        rule = (
+            RuleBuilder()
+            .name("hv_us")
+            .condition((F("amount") > 5000) & (F("country").isin(["NG", "GH"])))
+            .action("x")
+            .build()
+        )
+        assert rule.id in evaluate(rule, {"amount": 6000, "country": "NG"}).fired_rules
+
+    def test_builder_raw_dict_still_works(self):
+        from fluxrules import RuleBuilder
+
+        rule = (
+            RuleBuilder()
+            .name("adult")
+            .condition({"type": "condition", "field": "age", "op": ">=", "value": 18})
+            .action("allow")
+            .build()
+        )
+        assert rule.id in evaluate(rule, {"age": 30}).fired_rules
+
+
+# ---------------------------------------------------------------------------
+# OR rules fire under the default PhreakEngine (alpha prefilter on).
+#
+# The F DSL `|` emits {"type":"group","op":"OR",...}. The alpha prefilter reads
+# the group's AND/OR selector from either the "logic" or the "op" key; if it
+# only read "logic" it would treat such a group as a conjunction and silently
+# prune every OR rule. These assert an OR rule that matches exactly one branch
+# still fires with the prefilter engaged.
+# ---------------------------------------------------------------------------
+
+
+class TestOrRulesFireUnderPhreakAlpha:
+    def _fire(self, rule, fact):
+        from fluxrules.engine.phreak import PhreakEngine
+
+        engine = PhreakEngine()  # alpha prefilter on by default
+        engine.load_rules([rule])
+        return engine.evaluate(fact).fired_rules
+
+    def test_or_fires_on_first_branch(self):
+        rule = Rule(id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x")
+        assert self._fire(rule, {"amount": 6000, "country": "ZZ"}) == [1]
+
+    def test_or_fires_on_second_branch(self):
+        rule = Rule(id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x")
+        assert self._fire(rule, {"amount": 10, "country": "US"}) == [1]
+
+    def test_or_does_not_fire_when_neither_branch_matches(self):
+        rule = Rule(id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x")
+        assert self._fire(rule, {"amount": 10, "country": "ZZ"}) == []
+
+    def test_nested_or_in_and_fires_on_one_branch(self):
+        rule = Rule(
+            id=1,
+            name="nested",
+            conditions=(F("amount") > 2000) & ((F("country") == "NG") | (F("ip") >= 70)),
+            action="x",
+        )
+        # amount passes, only the country branch of the OR matches
+        assert self._fire(rule, {"amount": 3000, "country": "NG", "ip": 0}) == [1]
+        # amount passes, only the ip branch of the OR matches
+        assert self._fire(rule, {"amount": 3000, "country": "ZZ", "ip": 90}) == [1]
+        # amount passes but neither OR branch matches
+        assert self._fire(rule, {"amount": 3000, "country": "ZZ", "ip": 0}) == []
+
+    def test_dict_group_or_fires(self):
+        rule = Rule(
+            id=1,
+            name="d",
+            conditions={
+                "type": "group",
+                "op": "OR",
+                "children": [
+                    {"type": "condition", "field": "a", "op": ">", "value": 5},
+                    {"type": "condition", "field": "b", "op": "==", "value": 1},
+                ],
+            },
+            action="x",
+        )
+        assert self._fire(rule, {"a": 0, "b": 1}) == [1]

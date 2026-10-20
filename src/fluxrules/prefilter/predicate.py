@@ -202,11 +202,13 @@ class PredicateExtractor:
                 return {}
             return {f: LeafPredicate(field=f, op=op, value=val)}
 
-        # ``composite``/``group`` carry an explicit ``logic`` (AND/OR). Route by
-        # it so an OR composite is NOT mistakenly treated as a conjunction (which
-        # would be UNSOUND - it would drop facts matching only one branch).
+        # ``composite``/``group`` carry their AND/OR selector in either ``logic``
+        # or ``op`` (the F DSL and the engine interpreter both use ``op``). Route
+        # by whichever is present so an OR composite is NOT mistakenly treated as
+        # a conjunction, which would be UNSOUND: it would drop facts matching only
+        # one branch. Must match ``_engine._evaluate_condition_inner`` exactly.
         if ctype in ("composite", "group"):
-            logic = str(dsl.get("logic", "and")).lower()
+            logic = str(dsl.get("logic") or dsl.get("op") or "and").lower()
             ctype = "or" if logic == "or" else "and"
 
         if ctype == "and":

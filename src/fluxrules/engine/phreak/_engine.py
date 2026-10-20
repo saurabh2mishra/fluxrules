@@ -50,41 +50,38 @@ _ABSENT = object()
 _UNHASHABLE = object()
 
 
-def _find_absent_condition_field(conditions: Any, facts: dict[str, Any]) -> str | None:
-    """Return the first 'condition' node field that is absent AND looks like a typo.
+def _collect_condition_fields(conditions: Any, out: set[str]) -> None:
+    """Collect every ``condition``-leaf field name in a tree into *out*.
 
-    Skips 'exists' nodes - their purpose is to test field presence, so absent
-    is a valid and expected input. For 'condition' nodes, only returns the field
-    name when it is absent AND resembles an existing key (case mismatch or close
-    spelling), so rules for a genuinely different fact schema are not flagged.
+    Walks ``and`` / ``or`` / ``group`` / ``composite`` / ``not`` nodes and
+    gathers the ``field`` of each ``condition`` leaf. ``exists`` nodes are
+    deliberately skipped: an exists node tests presence and must never raise
+    ``FieldNotFoundError`` for an absent field. The result is computed once per
+    rule at load time and drives per-fact typo detection (see
+    ``_candidate_rule_ids``), so detection costs O(distinct fields) per fact
+    instead of O(rules x tree).
     """
     if not isinstance(conditions, dict):
-        return None
+        return
     ctype = conditions.get("type")
     if ctype == "condition":
         field = conditions.get("field", "")
-        if field and field not in facts:
-            from fluxrules.domain.errors import is_field_typo
-
-            return field if is_field_typo(field, facts) else None
-        return None
+        if field:
+            out.add(field)
+        return
     if ctype in ("and", "or", "group", "composite"):
         for child in conditions.get("children") or conditions.get("conditions") or []:
-            result = _find_absent_condition_field(child, facts)
-            if result:
-                return result
-        return None
+            _collect_condition_fields(child, out)
+        return
     if ctype == "not":
         inner = conditions.get("condition") or conditions.get("child")
         if inner:
-            return _find_absent_condition_field(inner, facts)
+            _collect_condition_fields(inner, out)
+            return
         for child in conditions.get("conditions") or conditions.get("children") or []:
-            result = _find_absent_condition_field(child, facts)
-            if result:
-                return result
-        return None
-    # exists and unknown types: no raise
-    return None
+            _collect_condition_fields(child, out)
+        return
+    # exists and unknown types: contribute no typo-checkable field.
 
 
 class _AlphaStats:
@@ -416,6 +413,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # fields is then not necessary to fire (F1 and the OR-branch variant).
         self._linker_unsafe_rule_ids: frozenset[int] = frozenset()
 
+        # Union of condition-leaf field names across all field-bearing rules
+        # (exists() fields excluded). Drives per-fact typo detection. Empty until
+        # ``load_rules`` so ``evaluate`` before load is well-defined.
+        self._typo_candidate_fields: tuple[str, ...] = ()
+
         # Per-rule condition compilation. Each rule's condition tree is compiled
         # once at load time into a ``fn(facts) -> bool`` closure that inlines
         # the boolean structure and explicit short-circuit loops. Leaves still
@@ -570,6 +572,21 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             for rid, rule in self.rule_repository.rules.items()
             if not _linker_safe(getattr(rule, "conditions", None))
         )
+
+        # Precompute the union of all condition-leaf field names across every
+        # field-bearing rule (exists() fields excluded). Per fact we scan this
+        # set once to raise FieldNotFoundError for an absent field that looks
+        # like a typo, which is O(distinct fields) and order-independent. This
+        # replaces walking every pruned rule's tree per fact, and makes typo
+        # detection deterministic across AND / OR / NOT shapes. Sorted so the
+        # field reported first is stable when several fields are typos.
+        _typo_fields: set[str] = set()
+        for rid in self._field_bearing_rule_ids:
+            rule = self.rule_repository.rules.get(rid)
+            conditions = getattr(rule, "conditions", None)
+            if conditions:
+                _collect_condition_fields(conditions, _typo_fields)
+        self._typo_candidate_fields: tuple[str, ...] = tuple(sorted(_typo_fields))
 
         # (Re)build the in-memory alpha pre-filter from the current
         # rule set. Done once per load, never per fact.
@@ -731,22 +748,21 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # Record before/after-alpha prune stats (P1.1 observability / P1.3).
         self._alpha_stats.record(n_in, len(candidates), engaged=engaged)
 
-        # Raise FieldNotFoundError if a pruned non-OR/NOT rule references a
-        # 'condition' field absent from facts. This converts the alpha/linker
-        # silent drop into an explicit error so typos (wrong case, wrong name)
-        # are caught immediately. OR/NOT rules (linker_unsafe) are skipped here
-        # because they legitimately evaluate with some fields absent.
-        candidates_set = set(candidates)
-        linker_unsafe = self._linker_unsafe_rule_ids
-        for rid in self._field_bearing_rule_ids:
-            if rid not in candidates_set and rid not in linker_unsafe:
-                rule = self.rule_repository.get(rid)
-                conditions = rule and getattr(rule, "conditions", None)
-                if conditions:
-                    absent = _find_absent_condition_field(conditions, facts)
-                    if absent:
-                        from fluxrules.domain.errors import FieldNotFoundError
-                        raise FieldNotFoundError.for_field(absent, facts)
+        # Typo detection: raise FieldNotFoundError for any condition-leaf field
+        # that is absent from the fact and is a case variant of a present key
+        # (e.g. ``Amount`` vs ``amount``). Scanning the precomputed union of leaf
+        # fields once per fact is O(distinct fields) - it does not rescan pruned
+        # rules - and is order-independent, so the same ruleset raises the same
+        # error regardless of AND/OR/NOT shape or alpha pruning. Genuinely absent
+        # fields with no resemblance to any key return False as before, so
+        # multi-schema rulesets keep working. exists() fields are excluded by
+        # construction (see _collect_condition_fields).
+        if self._typo_candidate_fields:
+            from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
+
+            for fld in self._typo_candidate_fields:
+                if fld not in facts and is_field_typo(fld, facts):
+                    raise FieldNotFoundError.for_field(fld, facts)
 
         if filters:
             candidates = self._apply_filters(candidates, filters)

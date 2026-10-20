@@ -5,9 +5,9 @@
 
 # FluxRules
 
-FluxRules is a Python library for authoring rules and evaluating them against facts. It is loosely based on the concepts from Drools’ Phreak engine.
+FluxRules is a Python library for writing rules and executing them against facts. You give it the facts; it tells you which rules fire and what to do. 
 
-Use FluxRules to keep decision logic separate from application flow and evaluate rules consistently across facts.
+It keeps the rules separate from the engine. The engine is fast, deterministic, and inspired by Drools’ Phreak engine.
 
 ## Core Capabilities
 
@@ -77,9 +77,10 @@ Fired rules: [1]
 Actions: ['manual_review']
 ```
 
-Constructing a `Rule` does no I/O and `evaluate()` takes rules directly, so
-there is nothing to configure to get an answer. `evaluate()` also accepts a list
-of rules, or a named `Ruleset`.
+You do not need a database, a server, or any setup to get a result: creating a
+`Rule` touches nothing external, and `evaluate()` runs the rules you pass it
+right away. You can pass a single rule, a list of rules, or a
+[Ruleset](https://github.com/saurabh2mishra/fluxrules/blob/main/src/fluxrules/domain/models.py#L171-L182) (a named group of rules).
 
 ## Using the engine directly
 
@@ -142,13 +143,14 @@ Within a single call, identical sub-expressions are evaluated once and reused ac
 
 ### Design choices
 
-fluxrules is built around one idea: **evaluate(facts) is a pure function**. Every call is independent. There is no shared state between calls, no side-effects, and no memory of previous evaluations. This makes it safe to run across threads, processes, or load-balanced instances without coordination.
+By default, FluxRules is **stateless**. Each `evaluate(facts)` call stands on its own: it reads the facts you pass in, returns what matched, and keeps nothing afterwards. Because calls share no state, you can run them in parallel across threads, processes, or servers with no coordination.
 
-That choice drives everything else:
+Two features keep state on purpose, and you opt into each:
 
-- Rules are evaluated against one fact dictionary at a time. Cross-fact rules (joining two entity types) use a separate `CrossFactEngine`.
-- There is no truth maintenance. fluxrules does not track which rules fired previously or retract consequences when facts change.
-- Streaming mode (`streaming_mode=True`) is the one exception: it caches condition results across calls for long-lived engine instances. Use it when you own the engine lifecycle (a single-process event loop). Use stateless mode everywhere else.
+- **Streaming mode** (`streaming_mode=True`): a long-lived engine remembers results between calls and skips work that has not changed, so repeated evaluations on the same engine run faster. Use it when you own that engine (for example, a single-process event loop). Use the stateless default everywhere else.
+- **Cross-fact joins** (`CrossFactEngine`): to match a rule across more than one fact (say, an order and its customer), the engine holds those facts in memory so it can line them up.
+
+FluxRules does no truth maintenance: when facts change, it does not undo rules that fired earlier. Each run just reports what matches right now.
 
 ### Lazy evaluation
 

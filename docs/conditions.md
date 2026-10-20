@@ -66,6 +66,7 @@ comparisons like `>`, `<`, `==`. Always wrap each individual condition in
 parentheses:
 
 ```python
+# python skip - the second line deliberately raises to show the trap
 # Correct
 (F("amount") > 5000) & (F("country") == "US")
 
@@ -199,8 +200,8 @@ Dict equivalent:
 ```
 
 Use `exists()` when a field might legitimately be absent - `condition` nodes
-raise `FieldNotFoundError` if the field looks like a typo (wrong case or close
-spelling). `exists()` never raises.
+raise `FieldNotFoundError` if the field is a case variant of a present key
+(e.g. `Amount` vs `amount`). `exists()` never raises.
 
 ---
 
@@ -210,9 +211,10 @@ spelling). `exists()` never raises.
 
 `F("Amount")` and `F("amount")` are different fields. If a fact arrives with
 `{"amount": 5000}` and the condition says `F("Amount")`, the rule raises a
-`FieldNotFoundError` when the names are similar enough to look like a typo.
-For genuinely different schemas (multi-domain rulesets), absent fields return
-`False` silently, which is the correct behaviour.
+`FieldNotFoundError` because the field is a case variant of a present key.
+For genuinely different schemas (multi-domain rulesets), absent fields that are
+not a case variant of any present key return `False` silently, which is the
+correct behaviour.
 
 ```python
 # Fact: {"amount": 5000}
@@ -226,6 +228,7 @@ Python evaluates `&` and `|` before `>`, `<`, `==`. The rule is simple: wrap
 every individual `F(...)` comparison in its own parentheses before composing:
 
 ```python
+# python skip - the unsafe line deliberately raises to show the trap
 # safe - each leaf is wrapped
 (F("amount") > 5000) & (F("country") == "US")
 
@@ -258,6 +261,7 @@ F("tags").contains("vip")  # list field → scalar value to find in it
 ### `isin` takes a list, not positional args
 
 ```python
+# python skip - the second line deliberately raises to show the trap
 F("country").isin(["NG", "SN", "GH"])   # correct
 F("country").isin("NG", "SN", "GH")    # wrong - TypeError
 ```
@@ -287,6 +291,7 @@ exposes an explicit validate step for bulk checks before deployment.
 Invalid conditions are caught when you build the `Rule`:
 
 ```python
+# python skip - this block deliberately raises to show the validation error
 from fluxrules import F, Rule
 
 Rule(
@@ -323,9 +328,9 @@ passed. Use it in CI before deploying a new ruleset.
 
 ### `FieldNotFoundError` at evaluation time
 
-When a `condition` field is absent from the incoming fact and the name looks
-like a typo (wrong case or close spelling), the engine raises instead of
-silently returning False:
+When a `condition` field is absent from the incoming fact and the name is a
+case variant of a present key (e.g. `Amount` vs `amount`), the engine raises
+instead of silently returning False:
 
 ```python
 from fluxrules import F, FieldNotFoundError, Rule, evaluate

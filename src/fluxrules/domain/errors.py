@@ -94,30 +94,33 @@ class LossyConditionRebuildError(InvalidRuleError):
 
 
 def is_field_typo(field: str, facts: dict) -> bool:
-    """Return True when *field* is absent from *facts* but looks like a typo.
+    """Return True when *field* is absent from *facts* but is a case variant of a
+    present key (e.g. ``Amount`` vs ``amount``).
 
-    Triggers on case-insensitive matches (``Amount`` vs ``amount``) and on
-    close spellings via difflib (cutoff 0.6). Returns False for fields that are
-    genuinely absent with no resemblance to any key - that is normal when a
-    ruleset holds rules for different fact schemas.
+    Only a case-insensitive exact match counts as a typo, because it is
+    unambiguous. Close-spelling (difflib) matching is deliberately NOT used to
+    decide this: field families such as ``field_0`` / ``field_10`` or
+    ``line_1`` / ``line_2`` resemble each other closely, so a fuzzy match would
+    raise on legitimately different fields in multi-schema or numbered-field
+    rulesets. Fields that are genuinely absent with no case-variant present
+    return False and evaluate to ``False`` as before. The human-facing
+    "Did you mean" hint in :meth:`FieldNotFoundError.for_field` still uses
+    difflib, since a suggestion is advisory and never changes control flow.
     """
-    import difflib
-
-    available = [str(k) for k in facts]
-    if any(k.lower() == field.lower() for k in available):
-        return True
-    return bool(difflib.get_close_matches(field, available, n=1, cutoff=0.6))
+    lower = field.lower()
+    return any(str(k).lower() == lower for k in facts)
 
 
 class FieldNotFoundError(FluxRulesError):
     """Raised when a condition references a field that looks like a typo.
 
     A ``condition`` node whose field is not a key in the incoming fact dict
-    previously returned ``False`` silently. When the absent field is a
-    case-insensitive match or close spelling of an existing key (e.g.
-    ``Amount`` vs ``amount``), this error is raised so the typo surfaces
-    immediately. Fields with no resemblance to any key are treated as
-    legitimately absent (different fact schema) and return ``False`` as before.
+    previously returned ``False`` silently. When the absent field is a case
+    variant of an existing key (e.g. ``Amount`` vs ``amount``), this error is
+    raised so the typo surfaces immediately. Fields with no case-variant present
+    are treated as legitimately absent (different fact schema) and return
+    ``False`` as before. The error message still offers a difflib "Did you mean"
+    suggestion, which is advisory only and does not affect whether it is raised.
 
     Use ``F("field").exists()`` when you intentionally want to test whether a
     field is present - that node always returns ``False`` for absent fields
