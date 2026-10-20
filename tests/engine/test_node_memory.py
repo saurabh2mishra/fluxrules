@@ -176,33 +176,41 @@ class TestNodeMemoryInvalidation:
         assert mem.hit_rate == 0.0
 
     def test_invalidate_field(self):
-        """Test field invalidation removes relevant entries.
+        """Test field invalidation removes entries that depend on that field.
 
-        This is a heuristic test since the actual invalidation
-        logic depends on the string representation of values.
+        relevant_fields must be passed to put() so the inverted index maps
+        field names → cache keys.  Entries stored without relevant_fields are
+        not indexed and are not affected by invalidate_field().
         """
         mem = NodeMemory()
-        # Put entries with different values
-        mem.put(1, "condition.0", ("field_A",), True)
-        mem.put(1, "condition.1", ("value_B",), False)
-        mem.put(1, "condition.2", ("other_value",), True)
+        # Rule 1 depends on field_A (value 42) and field_C (value 99)
+        mem.put(1, "condition.0", (42, 99), True, relevant_fields=("field_A", "field_C"))
+        # Rule 2 depends only on field_B (value 7) — must survive invalidation of field_A
+        mem.put(2, "condition.0", (7,), False, relevant_fields=("field_B",))
+        # Rule 3 stored without relevant_fields — not indexed, must survive
+        mem.put(3, "condition.0", (42,), True)
 
-        # Invalidate entries mentioning "field_A"
         mem.invalidate_field("field_A")
 
-        # The first entry should be gone, others remain
-        assert mem.get(1, "condition.0", ("field_A",)) is None
+        # Rule 1 evicted (depends on field_A)
+        assert mem.get(1, "condition.0", (42, 99)) is None
+        # Rule 2 kept (depends only on field_B)
+        assert mem.get(2, "condition.0", (7,)) is False
+        # Rule 3 kept (not indexed)
+        assert mem.get(3, "condition.0", (42,)) is True
 
     def test_invalidate_fields(self):
-        """Test invalidating multiple fields."""
+        """Test invalidating multiple fields evicts all dependent entries."""
         mem = NodeMemory()
-        mem.put(1, "condition.0", ("value_A", "value_B"), True)
-        mem.put(2, "condition.1", ("value_C",), False)
+        mem.put(1, "condition.0", (10, 20), True, relevant_fields=("age", "amount"))
+        mem.put(2, "condition.0", (30,), False, relevant_fields=("score",))
 
-        mem.invalidate_fields({"value_A", "value_B"})
+        mem.invalidate_fields({"age", "amount"})
 
-        # First entry invalidated
-        assert mem.get(1, "condition.0", ("value_A", "value_B")) is None
+        # Rule 1 evicted (depends on age and amount)
+        assert mem.get(1, "condition.0", (10, 20)) is None
+        # Rule 2 kept (depends on score, not affected)
+        assert mem.get(2, "condition.0", (30,)) is False
 
 
 class TestNodeMemoryStreaming:
@@ -228,17 +236,22 @@ class TestNodeMemoryStreaming:
         assert mem.hit_rate > 0.99
 
     def test_streaming_fact_change(self):
-        """Test handling fact changes in streaming."""
+        """Test handling fact changes in streaming.
+
+        relevant_fields must be supplied so invalidate_field() finds the entry.
+        The cache key uses the fact VALUE (25); the field index uses the field
+        NAME ("age") — these are distinct.
+        """
         mem = NodeMemory()
 
-        # Initial facts
-        mem.put(1, "condition.0", ("age_25",), True)
-        mem.get(1, "condition.0", ("age_25",))
+        # Initial facts: age=25, condition depends on field "age"
+        mem.put(1, "condition.0", (25,), True, relevant_fields=("age",))
+        mem.get(1, "condition.0", (25,))
 
-        # Age changes
-        mem.invalidate_field("age_25")
+        # Age field changes — invalidate by field name, not by value
+        mem.invalidate_field("age")
         # Should get a miss
-        result = mem.get(1, "condition.0", ("age_25",))
+        result = mem.get(1, "condition.0", (25,))
         assert result is None
 
         # Cache new result for new age

@@ -59,32 +59,43 @@ class NodeMemory:
         self._misses = 0
         self._evictions = 0
         self._lock = threading.Lock()
-        # Inverted index: maps each value found in a key's relevant_values to
-        # the set of cache keys that contain that value.  Maintained in sync
-        # with _cache so that invalidate_field() can look up exactly the keys
-        # to evict in O(k) time (k = keys referencing the changed field)
-        # instead of scanning the entire cache.
-        self._field_to_keys: dict[Any, set] = {}
+        # Inverted index: maps field NAME → set of cache keys that depend on
+        # that field.  Keyed by field names (not fact values) so that
+        # invalidate_field("age") finds entries regardless of what numeric
+        # value age held when the entry was cached.
+        # _key_to_fields stores the field names for each key so _unindex_key
+        # can clean up without needing the caller to supply them again.
+        self._field_to_keys: dict[str, set] = {}
+        self._key_to_fields: dict[tuple, tuple] = {}
 
-    def _index_key(self, key: tuple) -> None:
-        """Add key to the field inverted index (called under _lock)."""
-        _rule_id, _condition_path, relevant_values = key
-        for v in relevant_values:
-            entry = self._field_to_keys.get(v)
+    def _index_key(self, key: tuple, relevant_fields: tuple | None) -> None:
+        """Register key in the field inverted index (called under _lock).
+
+        relevant_fields must be the tuple of fact field names the entry depends
+        on (e.g. ("age", "amount")).  When None (legacy path) the index is
+        skipped; invalidate_field() will then miss this entry.
+        """
+        if relevant_fields is None:
+            return
+        self._key_to_fields[key] = relevant_fields
+        for field in relevant_fields:
+            entry = self._field_to_keys.get(field)
             if entry is None:
-                self._field_to_keys[v] = {key}
+                self._field_to_keys[field] = {key}
             else:
                 entry.add(key)
 
     def _unindex_key(self, key: tuple) -> None:
         """Remove key from the field inverted index (called under _lock)."""
-        _rule_id, _condition_path, relevant_values = key
-        for v in relevant_values:
-            entry = self._field_to_keys.get(v)
+        fields = self._key_to_fields.pop(key, None)
+        if fields is None:
+            return
+        for field in fields:
+            entry = self._field_to_keys.get(field)
             if entry is not None:
                 entry.discard(key)
                 if not entry:
-                    del self._field_to_keys[v]
+                    del self._field_to_keys[field]
 
     def get(self, rule_id: int, condition_path: str, relevant_values: tuple) -> bool | None:
         """Look up a cached condition result, refreshing its LRU recency.
@@ -111,7 +122,15 @@ class NodeMemory:
             self._misses += 1
             return None
 
-    def put(self, rule_id: int, condition_path: str, relevant_values: tuple, result: bool) -> None:
+    def put(
+        self,
+        rule_id: int,
+        condition_path: str,
+        relevant_values: tuple,
+        result: bool,
+        *,
+        relevant_fields: tuple | None = None,
+    ) -> None:
         """Cache a condition result, evicting the LRU entry on overflow.
 
         Args:
@@ -119,6 +138,10 @@ class NodeMemory:
             condition_path: Path to the condition node in the DSL tree
             relevant_values: Tuple of fact values relevant to this condition
             result: Boolean evaluation result to cache
+            relevant_fields: Tuple of fact field names this condition depends on
+                (e.g. ``("age", "amount")``).  Must be supplied for
+                ``invalidate_field()`` to correctly evict this entry; without
+                it the entry stays in cache until LRU eviction.
         """
         key = (rule_id, condition_path, relevant_values)
         with self._lock:
@@ -128,7 +151,7 @@ class NodeMemory:
                 self._cache.move_to_end(key)
                 return
             self._cache[key] = result  # inserted at the MRU end
-            self._index_key(key)       # register in the inverted index
+            self._index_key(key, relevant_fields)  # register in field index
             # Evict least-recently-used entries until within bounds.
             while len(self._cache) > self._max_entries:
                 evicted_key, _ = self._cache.popitem(last=False)
@@ -171,6 +194,7 @@ class NodeMemory:
         with self._lock:
             self._cache.clear()
             self._field_to_keys.clear()
+            self._key_to_fields.clear()
 
     @property
     def hit_rate(self) -> float:
@@ -183,6 +207,7 @@ class NodeMemory:
         with self._lock:
             self._cache.clear()
             self._field_to_keys.clear()
+            self._key_to_fields.clear()
             self._hits = 0
             self._misses = 0
             self._evictions = 0

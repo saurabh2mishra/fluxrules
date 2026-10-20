@@ -1132,7 +1132,10 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                     return cached_result
 
                 result = self._eval_root(condition, facts, rule_id)
-                self._node_memory.put(rule_id, "root", relevant_values, result)
+                self._node_memory.put(
+                    rule_id, "root", relevant_values, result,
+                    relevant_fields=relevant_fields,
+                )
                 return result
 
         # No caching available (stateless mode, no rule_id, or unregistered rule)

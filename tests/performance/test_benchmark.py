@@ -413,7 +413,7 @@ def test_benchmark_phreak_streaming(scenario: StreamingScenario) -> None:
     rng = random.Random(SEED)
     rules_dicts = _generate_rules_dicts(scenario.rule_count, rng)
 
-    def _make_engine() -> "UnifiedPhreak":  # type: ignore[type-arg]
+    def _make_engine() -> UnifiedPhreak:  # type: ignore[type-arg]
         eng = UnifiedPhreak(streaming_mode=True)
         eng.load_rules(
             [
