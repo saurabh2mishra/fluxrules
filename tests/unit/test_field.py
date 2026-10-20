@@ -8,7 +8,6 @@ from pydantic import ValidationError
 from fluxrules import F, Field, Rule, evaluate
 from fluxrules.domain.field import Condition
 
-
 # ---------------------------------------------------------------------------
 # Field construction
 # ---------------------------------------------------------------------------

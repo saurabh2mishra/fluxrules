@@ -586,7 +586,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             conditions = getattr(rule, "conditions", None)
             if conditions:
                 _collect_condition_fields(conditions, _typo_fields)
-        self._typo_candidate_fields: tuple[str, ...] = tuple(sorted(_typo_fields))
+        self._typo_candidate_fields = tuple(sorted(_typo_fields))
 
         # (Re)build the in-memory alpha pre-filter from the current
         # rule set. Done once per load, never per fact.

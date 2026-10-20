@@ -44,9 +44,9 @@ from fluxrules.domain.errors import (
     LossyConditionViewWarning,
     UnknownOperatorError,
 )
+from fluxrules.domain.field import Condition, F, Field
 from fluxrules.domain.models import EngineRule as _EngineRule
 from fluxrules.domain.models import EvaluationResult, Ruleset
-from fluxrules.domain.field import Condition, F, Field
 from fluxrules.domain.rule_builder import ConditionBuilder, RuleBuilder
 from fluxrules.domain.unified_rule import Rule
 from fluxrules.engine import (
