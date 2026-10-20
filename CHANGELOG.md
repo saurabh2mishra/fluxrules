@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-20
+
+### Fixed
+
+- **`NodeMemory.invalidate_field` now correctly evicts streaming cache entries.**
+  The inverted index previously keyed on fact *values* (e.g. `30` for `age=30`)
+  instead of field *names* (`"age"`), so `invalidate_field("age")` never matched
+  any bucket and stale entries remained in the LRU cache indefinitely. A new
+  `_key_to_fields` dict stores field names per cache key; `put()` accepts a
+  `relevant_fields` kwarg and the engine now supplies it, making invalidation O(k)
+  and correct.
+
+### Performance
+
+- **AND/OR condition short-circuit in default interpreter path.**
+  `_evaluate_condition_inner` used an eager list comprehension for AND/OR trees,
+  forcing all children to evaluate before `all()`/`any()` could exit early. Replaced
+  with generator-based evaluation matching the compiled path and the `not` branch.
+  Selective AND trees (first condition fails ~85% of the time) show 35–45% throughput
+  improvement.
+
+### Added
+
+- **Multi-condition benchmarks** — 6 new scenarios (flat and selective AND trees,
+  3–8 conditions/rule) and 3 streaming mode scenarios (unchanged-facts O(1)
+  short-circuit, 5–6x speedup) added to `tests/performance/test_benchmark.py`.
+- **README `## How it works` section** — evaluation pipeline, Phreak-borrowed
+  mechanisms, intentional omissions, and stateless vs. streaming guidance.
+- **`compile_conditions` user documentation** — `PhreakEngine.__init__` docstring
+  now explains when to enable (3+ selective AND conditions → 20–40% gain) and the
+  trade-off on single-condition rules (≈0.90x).
+- **Agenda gap documented** — `# NOTE:` comments in `agenda.py` and `_engine.py`
+  explain that `add_activation`/`next_activation` are never called from the main
+  evaluation path.
+
 ## [0.1.3] - 2026-10-16
 
 ### Breaking Changes
