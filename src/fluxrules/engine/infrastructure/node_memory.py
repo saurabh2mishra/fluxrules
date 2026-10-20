@@ -59,6 +59,43 @@ class NodeMemory:
         self._misses = 0
         self._evictions = 0
         self._lock = threading.Lock()
+        # Inverted index: maps field NAME → set of cache keys that depend on
+        # that field.  Keyed by field names (not fact values) so that
+        # invalidate_field("age") finds entries regardless of what numeric
+        # value age held when the entry was cached.
+        # _key_to_fields stores the field names for each key so _unindex_key
+        # can clean up without needing the caller to supply them again.
+        self._field_to_keys: dict[str, set] = {}
+        self._key_to_fields: dict[tuple, tuple] = {}
+
+    def _index_key(self, key: tuple, relevant_fields: tuple | None) -> None:
+        """Register key in the field inverted index (called under _lock).
+
+        relevant_fields must be the tuple of fact field names the entry depends
+        on (e.g. ("age", "amount")).  When None (legacy path) the index is
+        skipped; invalidate_field() will then miss this entry.
+        """
+        if relevant_fields is None:
+            return
+        self._key_to_fields[key] = relevant_fields
+        for field in relevant_fields:
+            entry = self._field_to_keys.get(field)
+            if entry is None:
+                self._field_to_keys[field] = {key}
+            else:
+                entry.add(key)
+
+    def _unindex_key(self, key: tuple) -> None:
+        """Remove key from the field inverted index (called under _lock)."""
+        fields = self._key_to_fields.pop(key, None)
+        if fields is None:
+            return
+        for field in fields:
+            entry = self._field_to_keys.get(field)
+            if entry is not None:
+                entry.discard(key)
+                if not entry:
+                    del self._field_to_keys[field]
 
     def get(self, rule_id: int, condition_path: str, relevant_values: tuple) -> bool | None:
         """Look up a cached condition result, refreshing its LRU recency.
@@ -85,7 +122,15 @@ class NodeMemory:
             self._misses += 1
             return None
 
-    def put(self, rule_id: int, condition_path: str, relevant_values: tuple, result: bool) -> None:
+    def put(
+        self,
+        rule_id: int,
+        condition_path: str,
+        relevant_values: tuple,
+        result: bool,
+        *,
+        relevant_fields: tuple | None = None,
+    ) -> None:
         """Cache a condition result, evicting the LRU entry on overflow.
 
         Args:
@@ -93,6 +138,10 @@ class NodeMemory:
             condition_path: Path to the condition node in the DSL tree
             relevant_values: Tuple of fact values relevant to this condition
             result: Boolean evaluation result to cache
+            relevant_fields: Tuple of fact field names this condition depends on
+                (e.g. ``("age", "amount")``).  Must be supplied for
+                ``invalidate_field()`` to correctly evict this entry; without
+                it the entry stays in cache until LRU eviction.
         """
         key = (rule_id, condition_path, relevant_values)
         with self._lock:
@@ -102,34 +151,34 @@ class NodeMemory:
                 self._cache.move_to_end(key)
                 return
             self._cache[key] = result  # inserted at the MRU end
+            self._index_key(key, relevant_fields)  # register in field index
             # Evict least-recently-used entries until within bounds.
             while len(self._cache) > self._max_entries:
-                self._cache.popitem(last=False)
+                evicted_key, _ = self._cache.popitem(last=False)
                 self._evictions += 1
+                self._unindex_key(evicted_key)  # remove from inverted index
 
     def invalidate_field(self, field_name: str) -> None:
         """Invalidate all cache entries that depend on a specific field.
 
-        Called when dirty tracking detects a field change. This is O(N)
-        over cache entries, but acceptable for streaming mode where
-        invalidations are infrequent relative to cache hits.
+        Uses the inverted index (_field_to_keys) for O(k) complexity, where
+        k = number of cache entries that reference the changed field.  This
+        replaces the previous O(N) full-cache scan.
 
         Args:
             field_name: Name of the field that changed
         """
-        # Simple approach: invalidate entries that mention this field
-        # A more sophisticated version could maintain a field-to-entries index
         with self._lock:
-            to_remove = []
-            for key in self._cache:
-                _rule_id, _condition_path, relevant_values = key
-                # Check if field_name appears in any of the relevant values
-                # This is a heuristic; a more precise approach would track
-                # which fields each condition depends on explicitly
-                if any(field_name in str(v) for v in relevant_values if v is not None):
-                    to_remove.append(key)
-            for key in to_remove:
-                del self._cache[key]
+            # Pop the entire bucket for this field in one dict operation.
+            keys_to_remove = self._field_to_keys.pop(field_name, None)
+            if not keys_to_remove:
+                return
+            for key in keys_to_remove:
+                self._cache.pop(key, None)
+                # Clean up the key from every OTHER field bucket it was in so
+                # the index stays consistent (the field_name bucket is already
+                # gone; _unindex_key safely skips missing entries).
+                self._unindex_key(key)
 
     def invalidate_fields(self, fields: set[str]) -> None:
         """Invalidate entries for multiple changed fields.
@@ -144,6 +193,8 @@ class NodeMemory:
         """Invalidate the entire cache. Used when significant changes occur."""
         with self._lock:
             self._cache.clear()
+            self._field_to_keys.clear()
+            self._key_to_fields.clear()
 
     @property
     def hit_rate(self) -> float:
@@ -155,6 +206,8 @@ class NodeMemory:
         """Clear all cache entries and statistics."""
         with self._lock:
             self._cache.clear()
+            self._field_to_keys.clear()
+            self._key_to_fields.clear()
             self._hits = 0
             self._misses = 0
             self._evictions = 0

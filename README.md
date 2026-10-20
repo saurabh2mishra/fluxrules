@@ -120,6 +120,66 @@ uv sync --extra cli
 fluxrules --help
 ```
 
+## How it works
+
+### Evaluation pipeline
+
+Each call to `evaluate()` runs a fact dictionary through four stages:
+
+```
+facts (dict)
+  │
+  ├─ Alpha prefilter — rules whose required fields are absent are skipped
+  │
+  ├─ BitMaskLinker — bitmask check confirms all required segment fields are present
+  │
+  ├─ Per-rule condition evaluation — only linked rules are tested
+  │
+  └─ EvaluationResult — fired rule ids, actions, and optional explanation
+```
+
+A per-cycle leaf memo collapses repeated sub-expression evaluations within a
+single call (~96% reduction on shared leaves in typical rulesets).
+
+### What is borrowed from Drools Phreak
+
+- **BitMaskLinker** — rules are "linked" only when the incoming fact contains all
+  fields their conditions reference; unlinked rules are skipped entirely before
+  any condition is tested.
+- **SegmentNetwork** — rules are grouped by their condition field-set; only the
+  segments whose fields appear in the changed fact are re-evaluated.
+- **Dirty-segment tracking** (`LazyEvaluationMixin`) — in streaming mode,
+  segments whose inputs have not changed since the last call are not re-evaluated.
+- **Salience-ordered Agenda** — a `heapq`-backed agenda orders fired rules by
+  priority; populated in streaming mode for ordered action dispatch.
+
+### What is intentionally left out
+
+- **No beta network / join nodes.** fluxrules evaluates one fact at a time.
+  `enforce_single_fact_boundary` raises at load time if a rule references more
+  than one fact type. Cross-fact rules use a separate `CrossFactEngine`.
+- **No truth maintenance system (TMS).** There is no consequence retraction;
+  each call is independent and produces no side-effects on engine state.
+- **No tuple-based partial match memory.** Without multi-fact joins, there is
+  nothing to accumulate between rule firings.
+
+These omissions are deliberate. fluxrules is a **stateless scoring function**:
+`evaluate(facts) → EvaluationResult`. It is designed for concurrent HTTP
+deployments where each request is independent and shared mutable state between
+calls is a liability, not a feature.
+
+### Stateless vs. streaming mode
+
+In the default stateless mode, every `evaluate()` call starts from a clean
+engine state. This is safe to use across threads and processes with no
+coordination.
+
+`streaming_mode=True` adds cross-call caching for long-lived engine instances:
+dirty-segment tracking and the salience agenda are preserved between calls so
+that unchanged segments are not re-evaluated. Use streaming mode when you control
+the engine lifecycle (e.g., a single-process event stream), and stateless mode
+everywhere else.
+
 ## Documentation
 
 [DOCS](https://saurabh2mishra.github.io/fluxrules/)

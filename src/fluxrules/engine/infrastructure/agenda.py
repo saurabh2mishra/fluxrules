@@ -47,6 +47,10 @@ class Agenda:
     Supports activation cancellation (unscheduling) for dirty tracking.
     When facts change, rules that depend on those facts can be cancelled
     before they are fired.
+
+    NOTE: Currently populated by PhreakEngine in streaming mode but not
+    drained via ``next_activation()`` from the main evaluation path.
+    See ``_cancel_affected_activations`` in ``_engine.py`` for context.
     """
 
     def __init__(self) -> None:
