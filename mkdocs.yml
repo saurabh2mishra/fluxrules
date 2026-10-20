@@ -55,6 +55,7 @@ nav:
     - Scope and Limits: engine-scope-and-limits.md
     - Benchmarks: benchmarks.md
   - Authoring Rules:
+    - Overview: authoring-rules.md
     - Rule Types: rule-types.md
     - Pydantic Rule Guide: pydantic-rule-guide.md
     - Conditions: conditions.md

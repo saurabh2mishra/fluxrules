@@ -13,14 +13,14 @@ FluxRules rules can be persisted to a database. Use persistence when you need to
 ## Quick start: Store and load rules
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Create rules
 rules = [
     Rule(
         name="high_value_transaction",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+        conditions=F("amount") > 5000,
         action="require_approval",
     ),
 ]
@@ -46,9 +46,11 @@ defines rules never opens a database connection. To store a rule you built
 in memory, call `Rule.save()`:
 
 ```python
+from fluxrules import F
+
 rule = Rule(
     name="production_rule",
-    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions=F("x") > 10,
     action="act",
 )
 rule.save()  # now in the database, rule.id is the stored ID
@@ -60,9 +62,11 @@ you need update semantics.
 
 ```python
 # Persisted rule (stored in database)
+from fluxrules import F
+
 rule1 = Rule(
     name="production_rule",
-    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions=F("x") > 10,
     action="act",
     persist=True,  # Database storage
 )
@@ -70,7 +74,7 @@ rule1 = Rule(
 # Temporary rule (in-memory only)
 rule2 = Rule(
     name="test_rule",
-    conditions={"type": "condition", "field": "y", "op": "==", "value": "test"},
+    conditions=F("y") == "test",
     action="test_act",
     persist=False,  # No database storage
 )
@@ -107,11 +111,11 @@ FluxRules auto-initializes the database on first use if not called explicitly.
 Every rule evaluation produces an audit trail automatically:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Setup engine and rules
-rule = Rule(name="test", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule = Rule(name="test", conditions=F("amount") > 5000, action="flag")
 engine = PhreakEngine()
 engine.load_rules([rule])
 
@@ -166,7 +170,7 @@ from fastapi import FastAPI
 
 from fluxrules.config import PersistenceConfig, RuntimeConfig
 from fluxrules.di import ServiceFactory
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 DATABASE_URL = "postgresql://user:pass@db.example.com/fluxrules"
 engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
@@ -188,7 +192,7 @@ app = FastAPI(lifespan=lifespan)
 rule = Rule(
     name="kyc_verified",
     domain="compliance",
-    conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+    conditions=F("kyc_status") == "verified",
     action="proceed",
     persist=True,
 )

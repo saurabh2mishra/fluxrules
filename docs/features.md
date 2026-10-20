@@ -25,13 +25,14 @@ FluxRules provides everything needed for production rule engines.
 Every evaluation returns which rules matched and what actions fired:
 
 ```python
+from fluxrules import F
 from fluxrules.domain import Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 engine = PhreakEngine()
 rule = Rule(
     name="Check Amount",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="flag_for_review",
     persist=False,
 )
@@ -114,13 +115,15 @@ Actions are any Python callable:
 
 ```python
 # python skip
+from fluxrules import F
+
 def my_action(fact_id, amount):
     print(f"Processing {fact_id}: ${amount}")
 
 
 rule = Rule(
     name="process_transaction",
-    conditions={"type": "condition", "field": "type", "op": "==", "value": "transaction"},
+    conditions=F("type") == "transaction",
     action=my_action,  # Any callable
     persist=False,
 )

@@ -9,13 +9,13 @@
 Use the engine directly for simple cases:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Define rules
 rule = Rule(
     name="high_value",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+    conditions=F("amount") > 1000,
     action="flag"
 )
 
@@ -34,13 +34,13 @@ print(f"Latency: {result.latency_ms} ms")    # ~2ms
 Validate rules before use:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.services.rule_service import RuleService
 
 # Create a rule and service
 rule = Rule(
     name="check",
-    conditions={"type": "condition", "field": "status", "op": "==", "value": "active"},
+    conditions=F("status") == "active",
     action="proceed"
 )
 
@@ -53,11 +53,11 @@ service = RuleService.create()
 For more control, use engines directly:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
-rule1 = Rule(name="rule1", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="flag")
-rule2 = Rule(name="rule2", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="review")
+rule1 = Rule(name="rule1", conditions=F("status") == "active", action="flag")
+rule2 = Rule(name="rule2", conditions=F("amount") > 5000, action="review")
 
 engine = PhreakEngine()
 engine.load_rules([rule1, rule2])

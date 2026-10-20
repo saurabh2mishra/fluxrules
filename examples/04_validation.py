@@ -19,6 +19,7 @@ def main() -> None:
         validate_conditions(rule.conditions)
         print(f"  validated rule={rule.name} id={rule.id}")
 
+    # Hand-written dict on purpose: F cannot express an unknown operator.
     invalid = {
         "type": "group",
         "op": "AND",

@@ -28,12 +28,13 @@ A domain is a logical grouping. Each rule belongs to exactly one domain.
 ### Define a Domain
 
 ```python
+from fluxrules import F
 from fluxrules.domain import Rule
 
 rule = Rule(
     name="fraud_check",
     domain="fraud_detection",  # Single domain per rule
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="flag_for_review"
 )
 ```
@@ -41,9 +42,11 @@ rule = Rule(
 Default domain is `"default"` if not specified:
 
 ```python
+from fluxrules import F
+
 rule_no_domain = Rule(
     name="simple_rule",
-    conditions={"type": "condition", "field": "status", "op": "==", "value": "active"},
+    conditions=F("status") == "active",
     action="process"
 )
 # rule_no_domain.domain == "default"
@@ -52,13 +55,13 @@ rule_no_domain = Rule(
 ### Query by Domain
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rules = [
-    Rule(name="r1", domain="fraud_detection", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="flag"),
-    Rule(name="r2", domain="compliance", conditions={"type": "condition", "field": "country", "op": "==", "value": "US"}, action="block"),
-    Rule(name="r3", domain="fraud_detection", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="review"),
+    Rule(name="r1", domain="fraud_detection", conditions=F("status") == "active", action="flag"),
+    Rule(name="r2", domain="compliance", conditions=F("country") == "US", action="block"),
+    Rule(name="r3", domain="fraud_detection", conditions=F("amount") > 5000, action="review"),
 ]
 
 engine = PhreakEngine()
@@ -79,13 +82,14 @@ Tags are labels you add to rules for cross-cutting organization. A rule can have
 ### Add Tags to a Rule
 
 ```python
+from fluxrules import F
 from fluxrules.domain import Rule
 
 rule = Rule(
     name="vip_fast_track",
     domain="marketing",
     tags=frozenset(["vip", "urgent", "auto_action"]),  # Multiple tags
-    conditions={"type": "condition", "field": "customer_tier", "op": "==", "value": "vip"},
+    conditions=F("customer_tier") == "vip",
     action="fast_track_checkout"
 )
 ```
@@ -102,13 +106,13 @@ Tags must be passed as `frozenset[str]`. Rule automatically converts lists to fr
 ### Query by Tags
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rules = [
-    Rule(name="r1", tags=frozenset(["urgent", "vip"]), conditions={"type": "condition", "field": "priority", "op": "==", "value": "high"}, action="action1"),
-    Rule(name="r2", tags=frozenset(["low_priority"]), conditions={"type": "condition", "field": "priority", "op": "==", "value": "low"}, action="action2"),
-    Rule(name="r3", tags=frozenset(["urgent"]), conditions={"type": "condition", "field": "type", "op": "==", "value": "alert"}, action="action3"),
+    Rule(name="r1", tags=frozenset(["urgent", "vip"]), conditions=F("priority") == "high", action="action1"),
+    Rule(name="r2", tags=frozenset(["low_priority"]), conditions=F("priority") == "low", action="action2"),
+    Rule(name="r3", tags=frozenset(["urgent"]), conditions=F("type") == "alert", action="action3"),
 ]
 
 engine = PhreakEngine()
@@ -247,14 +251,14 @@ TAG_MEANINGS = {
 ### 4. Combine Domains and Tags for Powerful Queries
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Create diverse set of rules
 all_rules = [
-    Rule(name="r1", domain="fraud_detection", tags=frozenset(["tier_1"]), conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag"),
-    Rule(name="r2", domain="fraud_detection", tags=frozenset(["tier_2"]), conditions={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review"),
-    Rule(name="r3", domain="compliance", tags=frozenset(["tier_1", "stable"]), conditions={"type": "condition", "field": "type", "op": "==", "value": "transfer"}, action="log"),
+    Rule(name="r1", domain="fraud_detection", tags=frozenset(["tier_1"]), conditions=F("amount") > 5000, action="flag"),
+    Rule(name="r2", domain="fraud_detection", tags=frozenset(["tier_2"]), conditions=F("country") == "NG", action="review"),
+    Rule(name="r3", domain="compliance", tags=frozenset(["tier_1", "stable"]), conditions=F("type") == "transfer", action="log"),
 ]
 
 # Get all tier_1 rules in fraud_detection domain

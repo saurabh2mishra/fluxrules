@@ -1,6 +1,6 @@
 # Rule Builder
 
-**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (condition tree).
+**Prerequisites:** [Concepts](concepts.md) (Rule), [Authoring Rules](authoring-rules.md) and [Conditions](conditions.md) (condition tree).
 
 ---
 
@@ -123,13 +123,11 @@ The builder fails at the point of the mistake rather than at evaluation time.
 required fields are present.
 
 ```python
-from fluxrules import RuleBuilder
+from fluxrules import F, RuleBuilder
 from fluxrules.exceptions import RuleValidationError
 
 try:
-    RuleBuilder().condition(
-        {"type": "condition", "field": "x", "op": ">", "value": 1}
-    ).build()
+    RuleBuilder().condition(F("x") > 1).build()
 except RuleValidationError as e:
     print(f"Invalid rule: {e}")
 ```

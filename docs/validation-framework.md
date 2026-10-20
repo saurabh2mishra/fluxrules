@@ -47,6 +47,9 @@ except ConditionValidationError as e:
 
 ### Common Validation Errors
 
+These examples are written as dictionaries on purpose: `F` expressions can only
+build valid nodes, so a hand-written dictionary is how an invalid one appears.
+
 **Invalid operator:**
 ```python
 invalid_dsl = {
@@ -94,6 +97,10 @@ Tests a single field against a value using an operator.
 **Valid operators:** `==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `not_in`, `contains`, `not_contains`
 
 ```python
+from fluxrules import F
+
+F("amount") >= 1000
+# stored as:
 {"type": "condition", "field": "amount", "op": ">=", "value": 1000}
 ```
 
@@ -106,6 +113,10 @@ Combines multiple conditions with AND or OR logic.
 **Valid op values:** `"AND"`, `"OR"` (case-insensitive; both uppercase and lowercase work)
 
 ```python
+from fluxrules import F
+
+(F("amount") > 100) & (F("status") == "active")
+# stored as:
 {
     "type": "group",
     "op": "AND",
@@ -123,6 +134,10 @@ Negates a condition.
 **Required fields:** `type`, `condition`
 
 ```python
+from fluxrules import F
+
+~(F("status") == "blocked")
+# stored as:
 {
     "type": "not",
     "condition": {"type": "condition", "field": "status", "op": "==", "value": "blocked"}
@@ -219,20 +234,24 @@ except ConditionValidationError as e:
 
 ## Valid Operators Reference
 
-The 10 valid operators are:
+The 13 valid operators are below. The comparison operators also accept the word
+aliases `eq`, `ne`, `gt`, `gte`, `lt` and `lte` in dictionary and YAML rules.
 
-| Operator | Type | Example | Use Case |
-|----------|------|---------|----------|
-| `==` | Equality | `"op": "=="` | Exact match |
-| `!=` | Inequality | `"op": "!="` | Not equal |
-| `>` | Greater than | `"op": ">"` | Greater than (numeric) |
-| `>=` | Greater or equal | `"op": ">="` | Greater or equal (numeric) |
-| `<` | Less than | `"op": "<"` | Less than (numeric) |
-| `<=` | Less or equal | `"op": "<="` | Less or equal (numeric) |
-| `in` | Membership | `"op": "in", "value": [...]` | One of multiple values |
-| `not_in` | Non-membership | `"op": "not_in", "value": [...]` | Not in list |
-| `contains` | String contains | `"op": "contains"` | Substring match |
-| `not_contains` | String doesn't contain | `"op": "not_contains"` | Substring not found |
+| `"op"` | F expression | Use case |
+|--------|--------------|----------|
+| `==` | `F("x") == v` | Exact match |
+| `!=` | `F("x") != v` | Not equal |
+| `>` | `F("x") > v` | Greater than (numeric) |
+| `>=` | `F("x") >= v` | Greater or equal (numeric) |
+| `<` | `F("x") < v` | Less than (numeric) |
+| `<=` | `F("x") <= v` | Less or equal (numeric) |
+| `in` | `F("x").isin([...])` | One of several values |
+| `not_in` | `F("x").not_in([...])` | Not one of several values |
+| `contains` | `F("x").contains(v)` | Collection or string contains a value |
+| `not_contains` | `F("x").not_contains(v)` | Does not contain a value |
+| `starts_with` | `F("x").starts_with(v)` | String prefix |
+| `ends_with` | `F("x").ends_with(v)` | String suffix |
+| `regex` | `F("x").regex(p)` | Regular expression match |
 
 **Source:** `src/fluxrules/engine/operators.py` (VALID_OPERATORS)
 

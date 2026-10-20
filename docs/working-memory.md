@@ -17,12 +17,12 @@ Each engine evaluates independently. If you need multi-fact correlation, see [Cr
 `PhreakEngine` evaluates one fact dict per call:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rule = Rule(
     name="high_value_flag",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="flag_for_review",
     persist=False,
 )
@@ -44,12 +44,12 @@ Each call to `evaluate()` is independent-engines do not correlate facts across t
 Every engine has a built-in fact store accessed via `assert_fact` and `retract_fact`:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 engine = PhreakEngine()
 engine.load_rules([
-    Rule(name="test", conditions={"type": "condition", "field": "x", "op": ">", "value": 10}, action="act", persist=False)
+    Rule(name="test", conditions=F("x") > 10, action="act", persist=False)
 ])
 
 # Assert facts into the store
@@ -74,7 +74,7 @@ engine.retract_fact(fact_id_1)
 For workflows that accumulate facts across multiple steps, use `EvaluationSession`:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.services.rule_service import RuleService
 
 # Create a ruleset (persisted rules)
@@ -83,14 +83,14 @@ rules = [
     Rule(
         name="kyc_verified",
         domain="compliance",
-        conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+        conditions=F("kyc_status") == "verified",
         action="proceed",
         persist=True,
     ),
     Rule(
         name="high_risk",
         domain="fraud",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 10000},
+        conditions=F("amount") > 10000,
         action="review",
         persist=True,
     ),

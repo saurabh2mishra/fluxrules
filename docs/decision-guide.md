@@ -24,13 +24,13 @@ High-level flowchart for FluxRules usage decisions.
 - Single deployment unit
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 engine = PhreakEngine()
 rule = Rule(
     name="adult",
-    conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    conditions=F("age") >= 18,
     action="allow",
     persist=False,
 )

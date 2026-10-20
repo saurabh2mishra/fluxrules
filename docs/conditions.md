@@ -4,6 +4,9 @@ A rule's `conditions` field defines when the rule fires. FluxRules gives you
 three ways to author conditions, the same condition tree on the wire for all
 three, and a set of tools to validate before you deploy.
 
+Start with [Authoring Rules](authoring-rules.md) for how to choose between them.
+This page is the reference: every operator and every validation tool.
+
 ---
 
 ## Three ways to write conditions
@@ -87,7 +90,7 @@ Rule(
 )
 ```
 
-YAML (loaded with `fluxrules.yaml`):
+YAML (loaded with `load_rules_from_yaml`, see [YAML Rules](yaml-rules.md)):
 
 ```yaml
 name: high_value
@@ -112,9 +115,11 @@ AND/OR in dict form:
 }
 ```
 
-The F DSL and the dict format produce identical trees. Mix them freely - a
-`Rule` built with `F(...)` serialises to the same JSON as one built with
-a dict, and loads back from YAML identically.
+The F DSL and the dict format describe the same conditions. Mix them freely: a
+`Rule` built with `F(...)` stores a dictionary tree like one built from a dict,
+and loads back from YAML the same way. One difference in shape: `a & b & c`
+nests as `(a & b) & c`, where a hand-written dict usually has one flat group of
+three. Both give the same results.
 
 ### 3. RuleBuilder - fluent step-by-step construction
 

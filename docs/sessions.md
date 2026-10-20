@@ -16,7 +16,7 @@ Create a session via `RuleService`, then accumulate facts and evaluate:
 
 ```python
 # python skip
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
 
@@ -26,12 +26,12 @@ service = RuleService.create()
 rules = [
     Rule(
         name="verify_kyc",
-        conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+        conditions=F("kyc_status") == "verified",
         action="proceed_to_payment",
     ),
     Rule(
         name="check_amount",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 10000},
+        conditions=F("amount") > 10000,
         action="require_approval",
     ),
 ]

@@ -14,11 +14,11 @@ tree is the source of truth for boolean logic. Set `persist=False` in examples
 and tests to avoid writing to the configured database.
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 rule = Rule(
     name="adult",
-    conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    conditions=F("age") >= 18,
     actions=("allow", "audit"),
     persist=False,
 )
@@ -38,14 +38,14 @@ needs no conversion before evaluation. Use `build_engine_rule()` when an
 internal boundary needs the `EngineRule` shape instead.
 
 ```python
-from fluxrules import RuleBuilder
+from fluxrules import F, RuleBuilder
 
 rule = (
     RuleBuilder(rule_id=1)
     .name("High Value Transaction")
     .group("fraud_detection")
     .priority(10)
-    .condition({"type": "condition", "field": "amount", "op": ">", "value": 10000})
+    .condition(F("amount") > 10000)
     .action("flag_for_review")
     .build()
 )
@@ -54,7 +54,7 @@ assert rule.conditions["type"] == "condition"
 assert rule.domain == "fraud_detection"
 
 engine_rule = RuleBuilder(rule_id=2).name("internal").condition(
-    {"type": "condition", "field": "amount", "op": ">", "value": 1}
+    F("amount") > 1
 ).action("flag").build_engine_rule()
 assert engine_rule.conditions["type"] == "condition"
 ```
@@ -72,11 +72,11 @@ to rebuild rule logic.
 Convert explicitly at an internal integration boundary:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 rule = Rule(
     name="adult",
-    conditions={"type": "condition", "field": "age", "op": ">=", "value": 18},
+    conditions=F("age") >= 18,
     action="allow",
     persist=False,
 )

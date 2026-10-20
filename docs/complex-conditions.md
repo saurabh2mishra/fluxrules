@@ -2,7 +2,7 @@
 
 Combine multiple simple conditions using AND / OR / NOT logic.
 
-**Prerequisites:** [Conditions & Operators](conditions.md) - covers all
+**Prerequisites:** [Authoring Rules](authoring-rules.md) and [Conditions & Operators](conditions.md) - covers all
 operators and the three authoring formats.
 
 ---

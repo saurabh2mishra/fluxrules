@@ -6,7 +6,8 @@ same underlying data model is used consistently.
 
 from __future__ import annotations
 
-from fluxrules.domain import Rule
+from fluxrules import F, Rule
+from fluxrules.domain.field import Condition
 
 USE_CASE_NAME = "cross_border_payment_risk_triage"
 
@@ -60,79 +61,23 @@ SHARED_FACTS = [
 ]
 
 
-def complex_risk_condition() -> dict:
-    """Return the canonical nested DSL with at least 7 conditions."""
-    return {
-        "type": "group",
-        "op": "AND",
-        "children": [
-            {"type": "condition", "field": "amount", "op": ">", "value": 2000},
-            {"type": "condition", "field": "velocity_1h", "op": ">=", "value": 3},
-            {
-                "type": "condition",
-                "field": "chargeback_ratio",
-                "op": ">",
-                "value": 0.08,
-            },
-            {
-                "type": "group",
-                "op": "OR",
-                "children": [
-                    {
-                        "type": "condition",
-                        "field": "country",
-                        "op": "in",
-                        "value": ["NG", "SN", "GH"],
-                    },
-                    {
-                        "type": "condition",
-                        "field": "ip_risk_score",
-                        "op": ">=",
-                        "value": 70,
-                    },
-                ],
-            },
-            {
-                "type": "group",
-                "op": "OR",
-                "children": [
-                    {
-                        "type": "condition",
-                        "field": "device_age_days",
-                        "op": "<",
-                        "value": 7,
-                    },
-                    {
-                        "type": "condition",
-                        "field": "account_age_days",
-                        "op": "<",
-                        "value": 14,
-                    },
-                ],
-            },
-            {
-                "type": "not",
-                "condition": {
-                    "type": "condition",
-                    "field": "email_domain",
-                    "op": "ends_with",
-                    "value": "trusted.example",
-                },
-            },
-            {
-                "type": "condition",
-                "field": "payment_method",
-                "op": "in",
-                "value": ["crypto", "prepaid_card"],
-            },
-            {
-                "type": "condition",
-                "field": "tags",
-                "op": "contains",
-                "value": "manual_review_candidate",
-            },
-        ],
-    }
+def complex_risk_condition() -> Condition:
+    """Return the canonical nested condition with eight checks, written with F.
+
+    Read top to bottom: a large, fast, charged-back payment, from a risky
+    country or IP, on a new device or account, not from a trusted email domain,
+    using a risky payment method and flagged for manual review.
+    """
+    return (
+        (F("amount") > 2000)
+        & (F("velocity_1h") >= 3)
+        & (F("chargeback_ratio") > 0.08)
+        & ((F("country").isin(["NG", "SN", "GH"])) | (F("ip_risk_score") >= 70))
+        & ((F("device_age_days") < 7) | (F("account_age_days") < 14))
+        & ~(F("email_domain").ends_with("trusted.example"))
+        & (F("payment_method").isin(["crypto", "prepaid_card"]))
+        & (F("tags").contains("manual_review_candidate"))
+    )
 
 
 def build_shared_rules() -> list[Rule]:
@@ -156,19 +101,7 @@ def build_shared_rules() -> list[Rule]:
             name="triage_for_hard_block",
             domain="compliance",
             tags=frozenset(["tier_2", "block", "geo_risk"]),
-            conditions={
-                "type": "group",
-                "op": "AND",
-                "children": [
-                    *base["children"],
-                    {
-                        "type": "condition",
-                        "field": "ip_risk_score",
-                        "op": ">=",
-                        "value": 85,
-                    },
-                ],
-            },
+            conditions=base & (F("ip_risk_score") >= 85),
             action="block_payment",
             priority=30,
         ),
@@ -177,31 +110,8 @@ def build_shared_rules() -> list[Rule]:
             name="triage_for_step_up_auth",
             domain="risk_ops",
             tags=frozenset(["tier_1", "step_up", "identity"]),
-            conditions={
-                "type": "group",
-                "op": "AND",
-                "children": [
-                    *base["children"],
-                    {
-                        "type": "group",
-                        "op": "OR",
-                        "children": [
-                            {
-                                "type": "condition",
-                                "field": "customer_tier",
-                                "op": "==",
-                                "value": "standard",
-                            },
-                            {
-                                "type": "condition",
-                                "field": "currency",
-                                "op": "==",
-                                "value": "USD",
-                            },
-                        ],
-                    },
-                ],
-            },
+            conditions=base
+            & ((F("customer_tier") == "standard") | (F("currency") == "USD")),
             action="step_up_auth",
             priority=15,
         ),

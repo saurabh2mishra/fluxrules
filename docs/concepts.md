@@ -109,38 +109,41 @@ A **condition tree** is a nested tree that defines when a rule fires. It combine
 
 **Basic condition:**
 ```python
-{
-    "type": "condition",
-    "field": "amount",
-    "op": ">",
-    "value": 5000,
-}
+from fluxrules import F
+
+F("amount") > 5000
 ```
 
-**Nested conditions (with AND/OR):**
+**Nested conditions (with AND/OR):** `&` means both must be true, `|` means either one is enough.
+```python
+from fluxrules import F
+
+(F("amount") > 5000) & (F("country").isin(["NG", "SN"]))
+```
+
+**With NOT:** `~` means the condition must be false.
+```python
+from fluxrules import F
+
+~F("email_domain").ends_with("trusted.com")
+```
+
+Every expression is stored as a plain dictionary tree, the same format YAML files
+and the HTTP API use. The AND example above is stored as:
+
 ```python
 {
     "type": "group",
-    "op": "AND",  # Both children must be true
+    "op": "AND",
     "children": [
         {"type": "condition", "field": "amount", "op": ">", "value": 5000},
         {"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
-    ]
+    ],
 }
 ```
 
-**With NOT:**
-```python
-{
-    "type": "not",
-    "condition": {
-        "type": "condition",
-        "field": "email_domain",
-        "op": "ends_with",
-        "value": "trusted.com"
-    }
-}
-```
+You can write the dictionary by hand when you prefer. See
+[Authoring Rules](authoring-rules.md) for all the ways to write a condition.
 
 **Validation:** Use `from fluxrules.domain.conditions.validation import validate_conditions`
 
@@ -180,12 +183,12 @@ For example depending on how your rules are grouped you can give a name e.g. `co
 
 **Filtering by domain:**
 ```python
-from fluxrules import Rule, PhreakEngine
+from fluxrules import F, PhreakEngine, Rule
 
 # Define rules with domains
-rule1 = Rule(name="rule1", domain="fraud_detection", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
-rule2 = Rule(name="rule2", domain="compliance", conditions={"type": "condition", "field": "country", "op": "==", "value": "NG"}, action="review")
-rule3 = Rule(name="rule3", domain="fraud_detection", conditions={"type": "condition", "field": "type", "op": "==", "value": "transaction"}, action="process")
+rule1 = Rule(name="rule1", domain="fraud_detection", conditions=F("amount") > 5000, action="flag")
+rule2 = Rule(name="rule2", domain="compliance", conditions=F("country") == "NG", action="review")
+rule3 = Rule(name="rule3", domain="fraud_detection", conditions=F("type") == "transaction", action="process")
 
 all_rules = [rule1, rule2, rule3]
 

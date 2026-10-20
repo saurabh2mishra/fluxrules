@@ -46,19 +46,12 @@ flat_fact = pipeline(fact)
 After flattening, write rules using dot notation:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rule = Rule(
     name="premium_users_high_value",
-    conditions={
-        "type": "group",
-        "op": "AND",
-        "children": [
-            {"type": "condition", "field": "user.profile.tier", "op": "==", "value": "premium"},
-            {"type": "condition", "field": "transaction.amount", "op": ">", "value": 10000},
-        ],
-    },
+    conditions=(F("user.profile.tier") == "premium") & (F("transaction.amount") > 10000),
     action="require_approval",
     persist=False,
 )
