@@ -72,3 +72,6 @@ mkdocs_material/
 
 # Claude Code — keep local only, do not publish to remote.
 .claude/
+
+# Local research notes — never committed.
+.research/
