@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`F` / `Field` fluent condition DSL.** Write conditions as Python expressions:
+  `(F("amount") > 5000) & (F("country").isin(["NG", "GH"]))`. Comparison
+  operators, `&`, `|` and `~` build the same condition dicts the engine already
+  accepts, so stored and YAML rules are unchanged. Named methods cover the
+  remaining operators: `isin`, `not_in`, `contains`, `not_contains`,
+  `starts_with`, `ends_with`, `regex` and `exists`. `Rule(conditions=...)` and
+  `RuleBuilder.condition(...)` accept either an `F` expression or a raw dict.
+- **`FieldNotFoundError`** (code `FIELD_NOT_FOUND`). A condition now raises when
+  its field is absent from the fact but is a case variant of a key that is
+  present, for example `F("Amount")` against `{"amount": 1}`. The message lists
+  the available keys and suggests the closest match. Fields that match no
+  present key still evaluate to `False`, so rulesets that mix fact schemas keep
+  working. `exists()` never raises.
+- **Docs.** `docs/conditions.md` is now "Conditions & Rule Authoring": the three
+  ways to write conditions, what to keep in mind when authoring, and how to
+  validate. README, examples and the other docs use the `F` DSL.
+
+### Fixed
+
+- **OR groups were silently dropped by the alpha prefilter.** The prefilter read a
+  `group` or `composite` node's AND/OR selector only from the `logic` key, but the
+  engine and the `F` DSL use `op`. A `{"type": "group", "op": "OR"}` rule was
+  treated as AND and pruned whenever one branch failed, so it did not fire when
+  only one branch matched. This affected dict and YAML rules as well as `F`
+  expressions. Both keys are now honored.
+- **README install section** now leads with `pip install fluxrules` instead of
+  cloning the repository.
+
+### Changed
+
+- **Behavior change:** a condition whose field is a case variant of a present key
+  now raises `FieldNotFoundError` instead of returning no match. Rules that
+  relied on the silent miss need their field name corrected.
+- `ConditionBuilder` is deprecated in favor of `F` and will be removed in a
+  future release.
+
 ## [0.1.4] - 2026-10-20
 
 ### Fixed
