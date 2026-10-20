@@ -35,8 +35,7 @@ Or, if you use [uv](https://docs.astral.sh/uv/):
 uv add fluxrules
 ```
 
-The base package is all you need to write and evaluate rules. Add an extra only
-for the feature you want:
+The base package is all you need to write and evaluate rules. Add an extra only for the feature you want:
 
 ```bash
 pip install 'fluxrules[api]'     # HTTP endpoints
@@ -48,8 +47,7 @@ pip install 'fluxrules[cli]'     # command-line tool
 pip install 'fluxrules[all]'     # everything above
 ```
 
-To work on FluxRules itself, see [CONTRIBUTING](CONTRIBUTING.md). For more
-details see the [installation guide](docs/installation.md).
+For more details see the [installation guide](docs/installation.md).
 
 ## Your First Rule
 
