@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2610,7 +2638,7 @@
 <code>Rule(persist=True)</code> and <code>Rule.save()</code> automatically delegate to that adapter rather
 than the built-in SQLite default. This is the recommended pattern for production
 deployments that use PostgreSQL, SQL Server, or another provider:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip  — requires a live database and session provider</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># python skip - requires a live database and session provider</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.di</span><span class="w"> </span><span class="kn">import</span> <span class="n">ServiceFactory</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuntimeConfig</span><span class="p">,</span> <span class="n">PersistenceConfig</span>
 

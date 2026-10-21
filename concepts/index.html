@@ -1080,6 +1080,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2766,34 +2794,33 @@
 </li>
 </ul>
 <p><strong>Basic condition:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
-    <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span>
-    <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span>
-    <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span>
 </code></pre></div></p>
-<p><strong>Nested conditions (with AND/OR):</strong>
+<p><strong>Nested conditions (with AND/OR):</strong> <code>&amp;</code> means both must be true, <code>|</code> means either one is enough.
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s2">"NG"</span><span class="p">,</span> <span class="s2">"SN"</span><span class="p">]))</span>
+</code></pre></div></p>
+<p><strong>With NOT:</strong> <code>~</code> means the condition must be false.
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="o">~</span><span class="n">F</span><span class="p">(</span><span class="s2">"email_domain"</span><span class="p">)</span><span class="o">.</span><span class="n">ends_with</span><span class="p">(</span><span class="s2">"trusted.com"</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Every expression is stored as a plain dictionary tree, the same format YAML files
+and the HTTP API use. The AND example above is stored as:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
-    <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>  <span class="c1"># Both children must be true</span>
+    <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
     <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
         <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"NG"</span><span class="p">,</span> <span class="s2">"SN"</span><span class="p">]},</span>
-    <span class="p">]</span>
+    <span class="p">],</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>With NOT:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"not"</span><span class="p">,</span>
-    <span class="s2">"condition"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
-        <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"email_domain"</span><span class="p">,</span>
-        <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"ends_with"</span><span class="p">,</span>
-        <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"trusted.com"</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
+<p>You can write the dictionary by hand when you prefer. See
+<a href="../authoring-rules/">Authoring Rules</a> for all the ways to write a condition.</p>
 <p><strong>Validation:</strong> Use <code>from fluxrules.domain.conditions.validation import validate_conditions</code></p>
 <p><strong>See:</strong> <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py">examples/02_complex_conditions.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/13_complex_rules.py">examples/13_complex_rules.py</a></p>
 <hr />
@@ -2816,12 +2843,12 @@
 <p>A <strong>Domain</strong> is a logical grouping of rules. Rules with the same domain typically handle a specific problem area. </p>
 <p>For example depending on how your rules are grouped you can give a name e.g. <code>compliance</code> or <code>fraud_detections</code> etc.</p>
 <p><strong>Filtering by domain:</strong>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span><span class="p">,</span> <span class="n">PhreakEngine</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">PhreakEngine</span><span class="p">,</span> <span class="n">Rule</span>
 
 <span class="c1"># Define rules with domains</span>
-<span class="n">rule1</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule1"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">)</span>
-<span class="n">rule2</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule2"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"NG"</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)</span>
-<span class="n">rule3</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule3"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"type"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"transaction"</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"process"</span><span class="p">)</span>
+<span class="n">rule1</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule1"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"flag"</span><span class="p">)</span>
+<span class="n">rule2</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule2"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"NG"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)</span>
+<span class="n">rule3</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"rule3"</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"transaction"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"process"</span><span class="p">)</span>
 
 <span class="n">all_rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">rule1</span><span class="p">,</span> <span class="n">rule2</span><span class="p">,</span> <span class="n">rule3</span><span class="p">]</span>
 

@@ -936,6 +936,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2587,28 +2615,30 @@
 <hr />
 <p>FluxRules automatically generates rule IDs. By default, IDs are sequential integers (1, 2, 3, ...).</p>
 <h2 id="auto-generated-ids">Auto-generated IDs<a class="headerlink" href="#auto-generated-ids" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 
 <span class="n">rule1</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"check_1"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">rule1</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>  <span class="c1"># 1</span>
 
 <span class="n">rule2</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"check_2"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">rule2</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>  <span class="c1"># 2</span>
 </code></pre></div>
 <h2 id="custom-ids">Custom IDs<a class="headerlink" href="#custom-ids" title="Permanent link">&para;</a></h2>
 <p>Override auto-generation with the <code>id</code> parameter:</p>
-<div class="highlight"><pre><span></span><code><span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="nb">id</span><span class="o">=</span><span class="mi">999</span><span class="p">,</span>  <span class="c1"># Custom ID</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"custom_id_rule"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>  <span class="c1"># 999</span>
@@ -2620,13 +2650,14 @@
   same thing for a rule that already exists in memory.</li>
 </ul>
 <p>When you persist rules to the database, the database assigns final IDs:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
 
 <span class="n">service</span> <span class="o">=</span> <span class="n">RuleService</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"will_be_persisted"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Will store in database</span>
 <span class="p">)</span>
 

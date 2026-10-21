@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2594,7 +2622,7 @@
 <h2 id="creating-and-using-a-session">Creating and using a session<a class="headerlink" href="#creating-and-using-a-session" title="Permanent link">&para;</a></h2>
 <p>Create a session via <code>RuleService</code>, then accumulate facts and evaluate:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
 
@@ -2604,12 +2632,12 @@
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"verify_kyc"</span><span class="p">,</span>
-        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"kyc_status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"verified"</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"proceed_to_payment"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"check_amount"</span><span class="p">,</span>
-        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10000</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"require_approval"</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">]</span>
@@ -2671,7 +2699,7 @@
 <h2 id="isolation">Isolation<a class="headerlink" href="#isolation" title="Permanent link">&para;</a></h2>
 <p>Each session is isolated. Facts in one session do not affect another:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="c1"># Each session is independent — same ruleset, different fact sets</span>
+<span class="c1"># Each session is independent - same ruleset, different fact sets</span>
 <span class="n">session1</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"order_rules"</span><span class="p">)</span>
 <span class="n">session1</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"user_type"</span><span class="p">,</span> <span class="s2">"premium"</span><span class="p">)</span>
 

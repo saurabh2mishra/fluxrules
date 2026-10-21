@@ -1038,6 +1038,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2587,24 +2615,28 @@
 <hr />
 <p>High-level flowchart for FluxRules usage decisions.</p>
 <h2 id="is-fluxrules-right-for-your-use-case">Is FluxRules right for your use case?<a class="headerlink" href="#is-fluxrules-right-for-your-use-case" title="Permanent link">&para;</a></h2>
-<p><strong>Do you need to:</strong>
-- Execute business rules conditionally? (Yes → continue)
-- Match complex logic against data? (Yes → continue)
-- Change rules without code deployment? (Yes → continue)</p>
+<p><strong>Do you need to:</strong></p>
+<ul>
+<li>Execute business rules conditionally? (Yes → continue)</li>
+<li>Match complex logic against data? (Yes → continue)</li>
+<li>Change rules without code deployment? (Yes → continue)</li>
+</ul>
 <p><strong>If all yes:</strong> FluxRules is a good fit.</p>
 <h2 id="integration-library-vs-api">Integration: Library vs API?<a class="headerlink" href="#integration-library-vs-api" title="Permanent link">&para;</a></h2>
-<p><strong>Library mode</strong> (in-process):
-- Import FluxRules in your app
-- Evaluate locally
-- No network overhead
-- Single deployment unit</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<p><strong>Library mode</strong> (in-process):</p>
+<ul>
+<li>Import FluxRules in your app</li>
+<li>Evaluate locally</li>
+<li>No network overhead</li>
+<li>Single deployment unit</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
 
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"adult"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">18</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"age"</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">18</span><span class="p">,</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"allow"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2612,60 +2644,76 @@
 <span class="n">fact</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"age"</span><span class="p">:</span> <span class="mi">21</span><span class="p">}</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>API mode</strong> (microservice):
-- Run FluxRules as separate service
-- Evaluate via HTTP
-- Network latency added
-- Separate deployment and scaling</p>
+<p><strong>API mode</strong> (microservice):</p>
+<ul>
+<li>Run FluxRules as separate service</li>
+<li>Evaluate via HTTP</li>
+<li>Network latency added</li>
+<li>Separate deployment and scaling</li>
+</ul>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://fluxrules-service/api/v1/evaluate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"facts": {...}}'</span>
 </code></pre></div>
-<p><strong>Decision:</strong>
-- Single app, fast iteration → Library
-- Multiple services, shared rules → API
-- High scale requirements → API</p>
+<p><strong>Decision:</strong></p>
+<ul>
+<li>Single app, fast iteration → Library</li>
+<li>Multiple services, shared rules → API</li>
+<li>High scale requirements → API</li>
+</ul>
 <h2 id="persistence-store-rules-or-keep-in-memory">Persistence: Store rules or keep in-memory?<a class="headerlink" href="#persistence-store-rules-or-keep-in-memory" title="Permanent link">&para;</a></h2>
-<p><strong>In-memory (default):</strong>
-- Rules defined in code
-- No database needed
-- Rules reset on app restart</p>
+<p><strong>In-memory (default):</strong></p>
+<ul>
+<li>Rules defined in code</li>
+<li>No database needed</li>
+<li>Rules reset on app restart</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
 <span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">([</span><span class="n">rule1</span><span class="p">,</span> <span class="n">rule2</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
 </code></pre></div>
-<p><strong>Persistent (database):</strong>
-- Rules stored in database
-- Load rules on startup
-- Audit trail available
-- Requires <code>[sql]</code> extra</p>
+<p><strong>Persistent (database):</strong></p>
+<ul>
+<li>Rules stored in database</li>
+<li>Load rules on startup</li>
+<li>Audit trail available</li>
+<li>Requires <code>[sql]</code> extra</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://...
 service.persist_rules<span class="o">([</span>rule1,<span class="w"> </span>rule2,<span class="w"> </span>...<span class="o">])</span>
 </code></pre></div>
-<p><strong>Decision:</strong>
-- Prototype/testing → In-memory
-- Production/stable rules → Persistent
-- Rules change frequently → Persistent</p>
+<p><strong>Decision:</strong></p>
+<ul>
+<li>Prototype/testing → In-memory</li>
+<li>Production/stable rules → Persistent</li>
+<li>Rules change frequently → Persistent</li>
+</ul>
 <h2 id="state-management-stateless-or-stateful">State management: Stateless or stateful?<a class="headerlink" href="#state-management-stateless-or-stateful" title="Permanent link">&para;</a></h2>
-<p><strong>Stateless (each evaluation independent):</strong>
-- Default behavior
-- No side effects between evaluations
-- Simple, predictable</p>
+<p><strong>Stateless (each evaluation independent):</strong></p>
+<ul>
+<li>Default behavior</li>
+<li>No side effects between evaluations</li>
+<li>Simple, predictable</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
 <span class="n">result1</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">fact1</span><span class="p">)</span>
 <span class="n">result2</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">fact2</span><span class="p">)</span>  <span class="c1"># No state from result1</span>
 </code></pre></div>
-<p><strong>Stateful (multi-step workflow with sessions):</strong>
-- Accumulate facts across evaluations
-- Session snapshot support
-- Requires <code>[sql]</code> extra</p>
+<p><strong>Stateful (multi-step workflow with sessions):</strong></p>
+<ul>
+<li>Accumulate facts across evaluations</li>
+<li>Session snapshot support</li>
+<li>Requires <code>[sql]</code> extra</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
 <span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"step1"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
 <span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"step2"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
 </code></pre></div>
-<p><strong>Decision:</strong>
-- Single fact evaluation → Stateless
-- Multi-step workflow → Stateful</p>
+<p><strong>Decision:</strong></p>
+<ul>
+<li>Single fact evaluation → Stateless</li>
+<li>Multi-step workflow → Stateful</li>
+</ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>

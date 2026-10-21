@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2594,12 +2622,12 @@
 <p>Each engine evaluates independently. If you need multi-fact correlation, see <a href="../cross-fact-rules/">Cross-Fact Rules</a>.</p>
 <h2 id="single-fact-evaluation">Single-fact evaluation<a class="headerlink" href="#single-fact-evaluation" title="Permanent link">&para;</a></h2>
 <p><code>PhreakEngine</code> evaluates one fact dict per call:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_value_flag"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">,</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"flag_for_review"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2615,12 +2643,12 @@
 <hr />
 <h2 id="working-memory-fact-store">Working memory (fact store)<a class="headerlink" href="#working-memory-fact-store" title="Permanent link">&para;</a></h2>
 <p>Every engine has a built-in fact store accessed via <code>assert_fact</code> and <code>retract_fact</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
 
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
 <span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">([</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"test"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span> <span class="n">action</span><span class="o">=</span><span class="s2">"act"</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"test"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"x"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"act"</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="p">])</span>
 
 <span class="c1"># Assert facts into the store</span>
@@ -2639,7 +2667,7 @@
 <hr />
 <h2 id="stateful-sessions">Stateful sessions<a class="headerlink" href="#stateful-sessions" title="Permanent link">&para;</a></h2>
 <p>For workflows that accumulate facts across multiple steps, use <code>EvaluationSession</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
 
 <span class="c1"># Create a ruleset (persisted rules)</span>
@@ -2648,14 +2676,14 @@
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"kyc_verified"</span><span class="p">,</span>
         <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span>
-        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"kyc_status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"verified"</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"proceed"</span><span class="p">,</span>
         <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"high_risk"</span><span class="p">,</span>
         <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud"</span><span class="p">,</span>
-        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10000</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
         <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">),</span>

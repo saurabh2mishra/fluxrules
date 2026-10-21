@@ -1131,6 +1131,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2788,13 +2816,14 @@
 <h2 id="built-in-observability">Built-In Observability<a class="headerlink" href="#built-in-observability" title="Permanent link">&para;</a></h2>
 <h3 id="audit-trail-fired-rules">Audit Trail (Fired Rules)<a class="headerlink" href="#audit-trail-fired-rules" title="Permanent link">&para;</a></h3>
 <p>Every evaluation returns which rules matched and what actions fired:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
 
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"Check Amount"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">,</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"flag_for_review"</span><span class="p">,</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2855,13 +2884,15 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">".[al
 <h3 id="custom-actions">Custom Actions<a class="headerlink" href="#custom-actions" title="Permanent link">&para;</a></h3>
 <p>Actions are any Python callable:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
 <span class="k">def</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">fact_id</span><span class="p">,</span> <span class="n">amount</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing </span><span class="si">{</span><span class="n">fact_id</span><span class="si">}</span><span class="s2">: $</span><span class="si">{</span><span class="n">amount</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"process_transaction"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"type"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"transaction"</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"transaction"</span><span class="p">,</span>
     <span class="n">action</span><span class="o">=</span><span class="n">my_action</span><span class="p">,</span>  <span class="c1"># Any callable</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>

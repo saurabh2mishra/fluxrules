@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2690,7 +2718,7 @@
 <h2 id="health-monitoring">Health monitoring<a class="headerlink" href="#health-monitoring" title="Permanent link">&para;</a></h2>
 <p>Use the health endpoint for readiness checks:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/health
-<span class="c1"># {"status": "healthy", "version": "0.1.0"}</span>
+<span class="c1"># {"status": "healthy", "version": "0.2.0"}</span>
 </code></pre></div>
 <p>Add to Docker/K8s liveness probes:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">livenessProbe</span><span class="p">:</span>

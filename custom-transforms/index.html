@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2621,7 +2649,7 @@
         <span class="k">return</span> <span class="n">TransformMetadata</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="s2">"my_transform"</span><span class="p">,</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">"My custom transform"</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="s2">"enrichment"</span><span class="p">,</span>
+            <span class="n">output_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"enriched_field"</span><span class="p">],</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fact</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -2646,7 +2674,8 @@
         <span class="k">return</span> <span class="n">TransformMetadata</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="s2">"geo_enricher"</span><span class="p">,</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">"Add geographic risk scores"</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="s2">"enrichment"</span><span class="p">,</span>
+            <span class="n">required_input_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"country"</span><span class="p">],</span>
+            <span class="n">output_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"geo_risk_score"</span><span class="p">,</span> <span class="s2">"geo_region"</span><span class="p">],</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fact</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>

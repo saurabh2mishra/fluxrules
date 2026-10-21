@@ -1066,6 +1066,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2656,7 +2684,7 @@
 <p><strong>Workaround:</strong> Pre-aggregate facts upstream, then pass combined dict to evaluate().</p>
 <p>For a deployment where unsupported cross-fact or temporal rule shapes must fail
 at startup instead of logging a warning, enable the strict guardrail:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
 
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">(</span><span class="n">strict_scope</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2664,7 +2692,7 @@ at startup instead of logging a warning, enable the strict guardrail:</p>
     <span class="p">[</span>
         <span class="n">Rule</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="s2">"amount_check"</span><span class="p">,</span>
-            <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+            <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span>
             <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
             <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
@@ -2690,12 +2718,12 @@ fact.</p>
 representative fact sample, and record the candidate and latency metrics before
 choosing a worker count:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Rule</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"amount_check"</span><span class="p">,</span>
-        <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
         <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>

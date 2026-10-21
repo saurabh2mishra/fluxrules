@@ -715,10 +715,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#engine-mode-as-a-runtime-concern" class="md-nav__link">
+  <a href="#choosing-an-evaluation-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Engine mode as a runtime concern
+        Choosing an evaluation mode
       
     </span>
   </a>
@@ -726,10 +726,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stateful-versus-stateless-execution" class="md-nav__link">
+  <a href="#working-memory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stateful versus stateless execution
+        Working memory
       
     </span>
   </a>
@@ -737,10 +737,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cross-fact-and-nested-data-reasoning" class="md-nav__link">
+  <a href="#cross-fact-and-nested-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cross-fact and nested data reasoning
+        Cross-fact and nested data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules-as-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules as data
       
     </span>
   </a>
@@ -776,10 +787,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#action-system-and-registry" class="md-nav__link">
+  <a href="#actions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action system and registry
+        Actions
       
     </span>
   </a>
@@ -787,10 +798,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fact-pipeline-and-transforms" class="md-nav__link">
+  <a href="#fact-pipelines-and-transforms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fact pipeline and transforms
+        Fact pipelines and transforms
       
     </span>
   </a>
@@ -1108,6 +1119,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -2609,10 +2648,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#engine-mode-as-a-runtime-concern" class="md-nav__link">
+  <a href="#choosing-an-evaluation-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Engine mode as a runtime concern
+        Choosing an evaluation mode
       
     </span>
   </a>
@@ -2620,10 +2659,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stateful-versus-stateless-execution" class="md-nav__link">
+  <a href="#working-memory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stateful versus stateless execution
+        Working memory
       
     </span>
   </a>
@@ -2631,10 +2670,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cross-fact-and-nested-data-reasoning" class="md-nav__link">
+  <a href="#cross-fact-and-nested-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cross-fact and nested data reasoning
+        Cross-fact and nested data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules-as-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules as data
       
     </span>
   </a>
@@ -2670,10 +2720,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#action-system-and-registry" class="md-nav__link">
+  <a href="#actions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action system and registry
+        Actions
       
     </span>
   </a>
@@ -2681,10 +2731,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fact-pipeline-and-transforms" class="md-nav__link">
+  <a href="#fact-pipelines-and-transforms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fact pipeline and transforms
+        Fact pipelines and transforms
       
     </span>
   </a>
@@ -2739,92 +2789,144 @@
 
 
 <h1 id="advanced-capabilities">Advanced Capabilities<a class="headerlink" href="#advanced-capabilities" title="Permanent link">&para;</a></h1>
-<p>FluxRules supports much more than basic condition matching. This page maps advanced capabilities to runnable examples so each claim is backed by executable code.</p>
+<p>FluxRules does more than match one condition against one fact. This page maps
+each advanced capability to a runnable example, so every claim is backed by code
+you can read and run.</p>
+<p>Run any example from the <code>examples/</code> folder, for example
+<code>cd examples &amp;&amp; python 20_streaming_mode.py</code>.</p>
 <h2 id="capability-map">Capability Map<a class="headerlink" href="#capability-map" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Capability</th>
 <th>What it enables</th>
-<th>Primary examples</th>
+<th>Examples</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Multiple engine implementations</td>
-<td>Choose behavior and performance profile by workload</td>
-<td><code>09_custom_engines.py</code>, <code>10_pluggable_engines.py</code>, <code>23_streaming_vs_stateless.py</code></td>
+<td>Custom engines and the engine registry</td>
+<td>Change how matched rules are chosen, and pick an engine by name</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/09_custom_engines.py">09_custom_engines.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/10_pluggable_engines.py">10_pluggable_engines.py</a></td>
 </tr>
 <tr>
-<td>Stateful evaluation</td>
-<td>Keep and reuse context across evaluations</td>
-<td><code>06_working_memory.py</code>, <code>20_streaming_mode.py</code></td>
+<td>Evaluation modes</td>
+<td>Stateless by default, or streaming for a long-lived stream of updates</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/20_streaming_mode.py">20_streaming_mode.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/23_streaming_vs_stateless.py">23_streaming_vs_stateless.py</a></td>
+</tr>
+<tr>
+<td>Working memory</td>
+<td>Hold the facts of a session and retract them later</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/06_working_memory.py">06_working_memory.py</a></td>
 </tr>
 <tr>
 <td>Rules as data</td>
-<td>Author and load rules from YAML</td>
-<td><code>07_yaml_rules.py</code></td>
+<td>Keep complete rules, conditions included, in a YAML file</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/07_yaml_rules.py">07_yaml_rules.py</a></td>
 </tr>
 <tr>
-<td>Extensible actions</td>
-<td>Register and execute custom actions</td>
-<td><code>15_action_system.py</code>, <code>21_action_registry.py</code></td>
+<td>Actions</td>
+<td>Run code when a rule fires, and describe your actions</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py">15_action_system.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/21_action_registry.py">21_action_registry.py</a></td>
 </tr>
 <tr>
-<td>Complex decision modeling</td>
-<td>Express nested logic and multi-fact scenarios</td>
-<td><code>13_complex_rules.py</code>, <code>24_cross_fact_joins.py</code>, <code>25_nested_facts.py</code></td>
+<td>Complex decision logic</td>
+<td>Nested AND, OR and NOT across many checks</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/13_complex_rules.py">13_complex_rules.py</a></td>
 </tr>
 <tr>
-<td>Fact normalization pipeline</td>
-<td>Transform heterogeneous inputs before evaluation</td>
-<td><code>26_fact_loader.py</code>, <code>27_factpipeline.py</code>, <code>28_factpipeline_tier1.py</code>, <code>29_custom_transforms.py</code></td>
+<td>Cross-fact joins</td>
+<td>Rules that relate two facts, such as a payment and its customer</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/24_cross_fact_joins.py">24_cross_fact_joins.py</a></td>
 </tr>
 <tr>
-<td>API and CLI integration</td>
-<td>Embed rule evaluation in service and automation paths</td>
-<td><code>11_cli_usage.py</code>, <code>12_api_usage.py</code>, <code>22_real_world_workflow.py</code></td>
+<td>Nested facts</td>
+<td>Match nested input by flattening it first</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/25_nested_facts.py">25_nested_facts.py</a></td>
+</tr>
+<tr>
+<td>Fact pipelines</td>
+<td>Clean, validate and enrich raw input before evaluation</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/26_fact_loader.py">26_fact_loader.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/27_factpipeline.py">27_factpipeline.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/28_factpipeline_tier1.py">28_factpipeline_tier1.py</a>, <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/29_custom_transforms.py">29_custom_transforms.py</a></td>
+</tr>
+<tr>
+<td>CLI and HTTP API</td>
+<td>Evaluate rules from scripts and from other services</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/11_cli_usage.py">11_cli_usage.py</a> (needs <code>fluxrules[cli]</code>), <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/12_api_usage.py">12_api_usage.py</a> (needs <code>fluxrules[api]</code>)</td>
+</tr>
+<tr>
+<td>A full workflow</td>
+<td>Validate, normalize, evaluate, act and explain, end to end</td>
+<td><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/22_real_world_workflow.py">22_real_world_workflow.py</a></td>
 </tr>
 </tbody>
 </table>
 <h2 id="advanced-evaluation-patterns">Advanced Evaluation Patterns<a class="headerlink" href="#advanced-evaluation-patterns" title="Permanent link">&para;</a></h2>
-<h3 id="engine-mode-as-a-runtime-concern">Engine mode as a runtime concern<a class="headerlink" href="#engine-mode-as-a-runtime-concern" title="Permanent link">&para;</a></h3>
-<p>Use different evaluation modes for different workloads. You can keep rule definitions stable while swapping the execution strategy.</p>
+<h3 id="choosing-an-evaluation-mode">Choosing an evaluation mode<a class="headerlink" href="#choosing-an-evaluation-mode" title="Permanent link">&para;</a></h3>
+<p>The same rules run in two modes. You choose the mode when you create the engine.</p>
 <ul>
-<li>Use <code>PhreakEngine</code> (stateless, default) for high-throughput request-response evaluation.</li>
-<li>Use <code>PhreakEngine(streaming_mode=True)</code> when you need incremental deltas across a session.</li>
+<li><strong>Stateless</strong> (<code>PhreakEngine()</code>, the default) answers every call in full. Any
+  instance can serve any request, so it suits request-response services behind a
+  load balancer.</li>
+<li><strong>Streaming</strong> (<code>PhreakEngine(streaming_mode=True)</code>) remembers the previous call.
+  It skips a fact identical to the last one and re-evaluates a changed one. One
+  stream must always reach the same instance.</li>
 </ul>
-<p>See <code>10_pluggable_engines.py</code> for switching evaluation modes while keeping the same rule intent.</p>
-<h3 id="stateful-versus-stateless-execution">Stateful versus stateless execution<a class="headerlink" href="#stateful-versus-stateless-execution" title="Permanent link">&para;</a></h3>
-<p>FluxRules supports both one-shot evaluation and stateful flows.</p>
+<p><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/20_streaming_mode.py">20_streaming_mode.py</a> sends a stream of updates to a streaming engine, and
+<a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/23_streaming_vs_stateless.py">23_streaming_vs_stateless.py</a> sends the same stream to both modes side by
+side. <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/10_pluggable_engines.py">10_pluggable_engines.py</a> creates both by name through the engine
+registry.</p>
+<h3 id="working-memory">Working memory<a class="headerlink" href="#working-memory" title="Permanent link">&para;</a></h3>
+<p><code>PhreakEngine.assert_fact</code> stores a fact and returns an id, and <code>retract_fact</code>
+removes it. Stored facts do not change what <code>evaluate()</code> returns, which always
+works on the fact you pass in. <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/06_working_memory.py">06_working_memory.py</a> asserts the shared
+transactions, evaluates them and retracts one.</p>
+<h3 id="cross-fact-and-nested-data">Cross-fact and nested data<a class="headerlink" href="#cross-fact-and-nested-data" title="Permanent link">&para;</a></h3>
+<p><code>PhreakEngine</code> evaluates one flat fact at a time. Two patterns cover data that
+does not fit that shape:</p>
 <ul>
-<li>Stateless: evaluate facts independently.</li>
-<li>Stateful: keep working memory/session context and evaluate incrementally.</li>
+<li><strong>Facts that must be related to each other</strong>: use <code>CrossFactEngine</code>. It keeps
+  typed facts in memory and fires when a tuple of facts matches, for example a
+  payment over 2000 joined to a customer whose account is under 14 days old. An
+  update or retract removes the matches that depended on the fact. See
+  <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/24_cross_fact_joins.py">24_cross_fact_joins.py</a>.</li>
+<li><strong>Nested input</strong>: the engine does not walk into nested dictionaries, so flatten
+  first with the <code>Flatten</code> transform. <code>{"payment": {"amount": 4200}}</code> becomes
+  <code>{"payment.amount": 4200}</code>, and rules use the dotted name. See
+  <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/25_nested_facts.py">25_nested_facts.py</a>.</li>
 </ul>
-<p>See <code>23_streaming_vs_stateless.py</code> for a side-by-side comparison and <code>06_working_memory.py</code> for state retention patterns.</p>
-<h3 id="cross-fact-and-nested-data-reasoning">Cross-fact and nested data reasoning<a class="headerlink" href="#cross-fact-and-nested-data-reasoning" title="Permanent link">&para;</a></h3>
-<p>You can express nested condition logic and evaluate relationships between multiple facts. Engines evaluate flat key-value facts, so nested input must be <strong>pre-flattened</strong> into dotted (or otherwise flattened) keys before evaluation; engines do not traverse nested dictionaries at match time.</p>
-<ul>
-<li>Cross-fact joins: <code>24_cross_fact_joins.py</code></li>
-<li>Pre-flattened nested facts: <code>25_nested_facts.py</code></li>
-</ul>
-<p>These patterns are useful in fraud, eligibility, and compliance workflows where single-row checks are not enough.</p>
+<h3 id="rules-as-data">Rules as data<a class="headerlink" href="#rules-as-data" title="Permanent link">&para;</a></h3>
+<p>A rule can live entirely in a YAML file: metadata and conditions, written in the
+same dict format that F expressions produce. <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/07_yaml_rules.py">07_yaml_rules.py</a> loads
+<a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/payment_risk_rules.yaml">payment_risk_rules.yaml</a> with <code>load_rules_from_yaml</code>, builds each rule
+with <code>Rule.model_validate_yaml</code>, and checks that the YAML triage rule decides
+every shared fact the same way as the F-built version.</p>
 <h2 id="extensibility-surface">Extensibility Surface<a class="headerlink" href="#extensibility-surface" title="Permanent link">&para;</a></h2>
 <h3 id="custom-engines">Custom engines<a class="headerlink" href="#custom-engines" title="Permanent link">&para;</a></h3>
-<p>You can implement custom engine behavior and still integrate with the surrounding FluxRules flow. See <code>09_custom_engines.py</code>.</p>
-<h3 id="action-system-and-registry">Action system and registry<a class="headerlink" href="#action-system-and-registry" title="Permanent link">&para;</a></h3>
-<p>You can define reusable action handlers and register them for rule-triggered behavior. See:</p>
+<p>Subclass <code>BaseEngine</code> and override <code>_evaluate_rules</code> to decide which candidate
+rules fire. <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/09_custom_engines.py">09_custom_engines.py</a> builds a first-match engine that fires
+only the highest-priority matching rule, registers it with <code>register_engine</code>, and
+compares it with <code>PhreakEngine</code> on the same facts.</p>
+<h3 id="actions">Actions<a class="headerlink" href="#actions" title="Permanent link">&para;</a></h3>
+<p>A rule's action is a name. <code>evaluate()</code> returns the names that fired and your
+application runs them.</p>
 <ul>
-<li><code>15_action_system.py</code></li>
-<li><code>21_action_registry.py</code></li>
+<li><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py">15_action_system.py</a> registers a handler per action with <code>@action</code> and
+  dispatches the fired actions with <code>action_registry.execute</code>.</li>
+<li><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/21_action_registry.py">21_action_registry.py</a> shows what the registry records: descriptions,
+  categories, parameters, and async handlers run with <code>execute_async</code>.</li>
 </ul>
-<h3 id="fact-pipeline-and-transforms">Fact pipeline and transforms<a class="headerlink" href="#fact-pipeline-and-transforms" title="Permanent link">&para;</a></h3>
-<p>For heterogeneous input data, normalize before evaluation using loader and pipeline stages:</p>
+<h3 id="fact-pipelines-and-transforms">Fact pipelines and transforms<a class="headerlink" href="#fact-pipelines-and-transforms" title="Permanent link">&para;</a></h3>
+<p>Normalize raw input before evaluation:</p>
 <ul>
-<li><code>26_fact_loader.py</code></li>
-<li><code>27_factpipeline.py</code></li>
-<li><code>28_factpipeline_tier1.py</code></li>
-<li><code>29_custom_transforms.py</code></li>
+<li><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/26_fact_loader.py">26_fact_loader.py</a> loads a batch with <code>FactLoader</code> and collects bad rows
+  in a dead-letter list instead of stopping.</li>
+<li><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/27_factpipeline.py">27_factpipeline.py</a> covers the framework: built-in transforms,
+  composition with <code>&gt;&gt;</code> and <code>|</code>, metrics with <code>MetricsHook</code>, and versioning with
+  <code>diff_pipelines</code>.</li>
+<li><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/28_factpipeline_tier1.py">28_factpipeline_tier1.py</a> splits a pipeline into clean, validate and
+  enrich tiers.</li>
+<li><a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/29_custom_transforms.py">29_custom_transforms.py</a> writes custom stages by subclassing <code>Transform</code>.</li>
 </ul>
 <h2 id="deep-dive-pages">Deep-Dive Pages<a class="headerlink" href="#deep-dive-pages" title="Permanent link">&para;</a></h2>
 <p>These pages cover advanced areas in more detail:</p>
@@ -2839,7 +2941,8 @@
 <li><a href="../../custom-transforms/">Custom Transforms</a></li>
 </ul>
 <h2 id="verification-note">Verification Note<a class="headerlink" href="#verification-note" title="Permanent link">&para;</a></h2>
-<p>All examples listed in this page were executed successfully in repository verification on 2026-07-01.</p>
+<p>Every example on this page was run successfully on 2026-10-21 with the <code>dev</code>
+extras installed.</p>
 
 
 

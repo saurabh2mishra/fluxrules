@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2901,18 +2929,13 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_conditions</span><span class="p">,</span> <span class="n">ConditionValidationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
 
-<span class="c1"># Define a rule with a condition tree</span>
+<span class="c1"># Define a rule - F DSL is the recommended authoring format</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_amount_check"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
-        <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
-        <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
-            <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
-            <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"US"</span><span class="p">,</span> <span class="s2">"CA"</span><span class="p">]}</span>
-        <span class="p">]</span>
-    <span class="p">},</span>
-    <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s2">"US"</span><span class="p">,</span> <span class="s2">"CA"</span><span class="p">])),</span>
+    <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># Validate the condition tree</span>
@@ -2923,6 +2946,8 @@
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"❌ Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="common-validation-errors">Common Validation Errors<a class="headerlink" href="#common-validation-errors" title="Permanent link">&para;</a></h3>
+<p>These examples are written as dictionaries on purpose: <code>F</code> expressions can only
+build valid nodes, so a hand-written dictionary is how an invalid one appears.</p>
 <p><strong>Invalid operator:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">invalid_dsl</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span>
@@ -2957,13 +2982,21 @@
 <p>Tests a single field against a value using an operator.</p>
 <p><strong>Required fields:</strong> <code>type</code>, <code>field</code>, <code>op</code>, <code>value</code></p>
 <p><strong>Valid operators:</strong> <code>==</code>, <code>!=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>in</code>, <code>not_in</code>, <code>contains</code>, <code>not_contains</code></p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1000</span>
+<span class="c1"># stored as:</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">}</span>
 </code></pre></div>
 <h3 id="group">group<a class="headerlink" href="#group" title="Permanent link">&para;</a></h3>
 <p>Combines multiple conditions with AND or OR logic.</p>
 <p><strong>Required fields:</strong> <code>type</code>, <code>op</code>, <code>children</code></p>
 <p><strong>Valid op values:</strong> <code>"AND"</code>, <code>"OR"</code> (case-insensitive; both uppercase and lowercase work)</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"active"</span><span class="p">)</span>
+<span class="c1"># stored as:</span>
+<span class="p">{</span>
     <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
     <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
     <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
@@ -2975,7 +3008,11 @@
 <h3 id="not">not<a class="headerlink" href="#not" title="Permanent link">&para;</a></h3>
 <p>Negates a condition.</p>
 <p><strong>Required fields:</strong> <code>type</code>, <code>condition</code></p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="o">~</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"blocked"</span><span class="p">)</span>
+<span class="c1"># stored as:</span>
+<span class="p">{</span>
     <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"not"</span><span class="p">,</span>
     <span class="s2">"condition"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"blocked"</span><span class="p">}</span>
 <span class="p">}</span>
@@ -2995,22 +3032,27 @@
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <h3 id="using-the-shared-dataset">Using the Shared Dataset<a class="headerlink" href="#using-the-shared-dataset" title="Permanent link">&para;</a></h3>
 <p>The shared payment-risk dataset includes a validation example in <a href="../examples/">Example 04</a>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionValidationError</span><span class="p">,</span> <span class="n">validate_conditions</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span><span class="p">,</span> <span class="n">validate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.conditions.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionValidationError</span><span class="p">,</span> <span class="n">validate_conditions</span>
 
-<span class="c1"># Validate a nested condition tree</span>
-<span class="n">nested_condition</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
-    <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
-    <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"OR"</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
-            <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"CN"</span><span class="p">,</span> <span class="s2">"RU"</span><span class="p">]},</span>
-            <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"ip_risk_score"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">85</span><span class="p">}</span>
-        <span class="p">]}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
+<span class="c1"># Author with F DSL, validate with the top-level API</span>
+<span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"fraud_check"</span><span class="p">,</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s2">"CN"</span><span class="p">,</span> <span class="s2">"RU"</span><span class="p">]))</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"ip_risk_score"</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">85</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+    <span class="n">action</span><span class="o">=</span><span class="s2">"block"</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="n">validate_conditions</span><span class="p">(</span><span class="n">nested_condition</span><span class="p">)</span>  <span class="c1"># ✅ Passes</span>
+<span class="n">issues</span> <span class="o">=</span> <span class="n">validate</span><span class="p">([</span><span class="n">rule</span><span class="p">])</span>
+<span class="k">assert</span> <span class="n">issues</span> <span class="o">==</span> <span class="p">[]</span>  <span class="c1"># ✅ Passes</span>
+
+<span class="c1"># Or validate the underlying condition tree directly</span>
+<span class="n">validate_conditions</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">conditions</span><span class="p">)</span>  <span class="c1"># ✅ Passes</span>
 </code></pre></div>
 <p>See <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py">Example 04: Validation</a> for complete working code.</p>
 <p>For error handling with validation, see <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/14_error_handling.py">Example 14: Error Handling</a>.</p>
@@ -3042,76 +3084,81 @@
 </code></pre></div>
 <hr />
 <h2 id="valid-operators-reference">Valid Operators Reference<a class="headerlink" href="#valid-operators-reference" title="Permanent link">&para;</a></h2>
-<p>The 10 valid operators are:</p>
+<p>The 13 valid operators are below. The comparison operators also accept the word
+aliases <code>eq</code>, <code>ne</code>, <code>gt</code>, <code>gte</code>, <code>lt</code> and <code>lte</code> in dictionary and YAML rules.</p>
 <table>
 <thead>
 <tr>
-<th>Operator</th>
-<th>Type</th>
-<th>Example</th>
-<th>Use Case</th>
+<th><code>"op"</code></th>
+<th>F expression</th>
+<th>Use case</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>==</code></td>
-<td>Equality</td>
-<td><code>"op": "=="</code></td>
+<td><code>F("x") == v</code></td>
 <td>Exact match</td>
 </tr>
 <tr>
 <td><code>!=</code></td>
-<td>Inequality</td>
-<td><code>"op": "!="</code></td>
+<td><code>F("x") != v</code></td>
 <td>Not equal</td>
 </tr>
 <tr>
 <td><code>&gt;</code></td>
-<td>Greater than</td>
-<td><code>"op": "&gt;"</code></td>
+<td><code>F("x") &gt; v</code></td>
 <td>Greater than (numeric)</td>
 </tr>
 <tr>
 <td><code>&gt;=</code></td>
-<td>Greater or equal</td>
-<td><code>"op": "&gt;="</code></td>
+<td><code>F("x") &gt;= v</code></td>
 <td>Greater or equal (numeric)</td>
 </tr>
 <tr>
 <td><code>&lt;</code></td>
-<td>Less than</td>
-<td><code>"op": "&lt;"</code></td>
+<td><code>F("x") &lt; v</code></td>
 <td>Less than (numeric)</td>
 </tr>
 <tr>
 <td><code>&lt;=</code></td>
-<td>Less or equal</td>
-<td><code>"op": "&lt;="</code></td>
+<td><code>F("x") &lt;= v</code></td>
 <td>Less or equal (numeric)</td>
 </tr>
 <tr>
 <td><code>in</code></td>
-<td>Membership</td>
-<td><code>"op": "in", "value": [...]</code></td>
-<td>One of multiple values</td>
+<td><code>F("x").isin([...])</code></td>
+<td>One of several values</td>
 </tr>
 <tr>
 <td><code>not_in</code></td>
-<td>Non-membership</td>
-<td><code>"op": "not_in", "value": [...]</code></td>
-<td>Not in list</td>
+<td><code>F("x").not_in([...])</code></td>
+<td>Not one of several values</td>
 </tr>
 <tr>
 <td><code>contains</code></td>
-<td>String contains</td>
-<td><code>"op": "contains"</code></td>
-<td>Substring match</td>
+<td><code>F("x").contains(v)</code></td>
+<td>Collection or string contains a value</td>
 </tr>
 <tr>
 <td><code>not_contains</code></td>
-<td>String doesn't contain</td>
-<td><code>"op": "not_contains"</code></td>
-<td>Substring not found</td>
+<td><code>F("x").not_contains(v)</code></td>
+<td>Does not contain a value</td>
+</tr>
+<tr>
+<td><code>starts_with</code></td>
+<td><code>F("x").starts_with(v)</code></td>
+<td>String prefix</td>
+</tr>
+<tr>
+<td><code>ends_with</code></td>
+<td><code>F("x").ends_with(v)</code></td>
+<td>String suffix</td>
+</tr>
+<tr>
+<td><code>regex</code></td>
+<td><code>F("x").regex(p)</code></td>
+<td>Regular expression match</td>
 </tr>
 </tbody>
 </table>

@@ -1203,6 +1203,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -3003,20 +3031,17 @@ Fact input → [Assert into working memory]
 </code></pre></div></p>
 <p><strong>When to use:</strong></p>
 <ul>
-<li>
-<p>Many facts over same rule set within a session</p>
-</li>
-<li>
-<p>Event streams where only changes matter</p>
-</li>
-<li>
-<p>Incremental fact updates (assert/retract)</p>
-</li>
+<li>Many facts over same rule set within a session</li>
+<li>Event streams where only changes matter</li>
+<li>Incremental fact updates (assert/retract)</li>
 </ul>
 <hr />
 <h2 id="condition-processing-pipeline">Condition Processing Pipeline<a class="headerlink" href="#condition-processing-pipeline" title="Permanent link">&para;</a></h2>
 <p>The conditions is a recursive JSON structure that's validated, compiled, and executed:</p>
-<div class="highlight"><pre><span></span><code>Input condition tree:
+<div class="highlight"><pre><span></span><code>Input condition (F DSL or dict):
+(F("amount") &gt; 5000) &amp; (F("country").isin(["NG", "US"]))
+
+Compiled condition tree:
 {
   "type": "group",
   "op": "AND",
@@ -3056,18 +3081,10 @@ Fact input → [Assert into working memory]
 </code></pre></div>
 <p><strong>Key design:</strong></p>
 <ul>
-<li>
-<p>Rule is immutable once created (frozen Pydantic model)</p>
-</li>
-<li>
-<p>Conditions are pure predicates (no side effects)</p>
-</li>
-<li>
-<p>Actions are simple strings or callables</p>
-</li>
-<li>
-<p>Domain/tags allow flexible rule organization</p>
-</li>
+<li>Rule is immutable once created (frozen Pydantic model)</li>
+<li>Conditions are pure predicates (no side effects)</li>
+<li>Actions are simple strings or callables</li>
+<li>Domain/tags allow flexible rule organization</li>
 </ul>
 <hr />
 <h2 id="pluggability-points">Pluggability Points<a class="headerlink" href="#pluggability-points" title="Permanent link">&para;</a></h2>

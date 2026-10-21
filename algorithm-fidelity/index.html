@@ -1016,6 +1016,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2548,16 +2576,20 @@ Because the two implementations share no matching code, agreeing on results is
 strong evidence of correctness.</p>
 <h2 id="verification-approach">Verification approach<a class="headerlink" href="#verification-approach" title="Permanent link">&para;</a></h2>
 <p><strong>Test dataset:</strong> cross_border_payment_risk_triage (3 facts, shared use case)</p>
-<p><strong>Test rules:</strong> All 31 example rules with varying complexity:
-- Simple conditions (1 field)
-- Complex AND/OR logic
-- NOT operators
-- Nested groups</p>
-<p><strong>Verification method:</strong>
-1. Load the same ruleset into PHREAK and the reference evaluator
-2. Evaluate identical facts
-3. Compare <code>fired_rules</code> and <code>actions</code>
-4. Assert complete parity</p>
+<p><strong>Test rules:</strong> All 31 example rules with varying complexity:</p>
+<ul>
+<li>Simple conditions (1 field)</li>
+<li>Complex AND/OR logic</li>
+<li>NOT operators</li>
+<li>Nested groups</li>
+</ul>
+<p><strong>Verification method:</strong></p>
+<ol>
+<li>Load the same ruleset into PHREAK and the reference evaluator</li>
+<li>Evaluate identical facts</li>
+<li>Compare <code>fired_rules</code> and <code>actions</code></li>
+<li>Assert complete parity</li>
+</ol>
 <p>The same harness also compares PHREAK's <strong>stateless</strong> and <strong>streaming</strong> modes to
 confirm a fact fires the same rules on first sight in either mode.</p>
 <h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>

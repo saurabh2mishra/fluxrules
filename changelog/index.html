@@ -932,6 +932,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2619,6 +2647,14 @@
 <p>For the most up-to-date changes, see <code>CHANGELOG.md</code> in the repository root or the git commit log.</p>
 <h3 id="key-milestones">Key Milestones<a class="headerlink" href="#key-milestones" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>v0.2.0</strong> (2026) - Fluent condition DSL</li>
+<li><code>F("amount") &gt; 5000</code> expressions build the same condition dicts the engine
+    already accepts, combined with <code>&amp;</code>, <code>|</code> and <code>~</code></li>
+<li><code>FieldNotFoundError</code> flags a field name that differs from a present key only
+    by case</li>
+<li><code>evaluate()</code> and the engine share one set of operators</li>
+<li>Fixes for OR rules in the alpha prefilter, uncomparable fact values, and
+    action handlers that take <code>**kwargs</code></li>
 <li><strong>v0.1.0</strong> (2026) - First release intended for publication</li>
 <li>One <code>EvaluationResult</code> type across every evaluation path, with
     <code>fired_rules</code> as the single name for what matched</li>

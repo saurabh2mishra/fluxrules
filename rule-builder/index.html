@@ -936,6 +936,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2627,13 +2655,15 @@
 
 
 <h1 id="rule-builder">Rule Builder<a class="headerlink" href="#rule-builder" title="Permanent link">&para;</a></h1>
-<p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (Rule) and <a href="../conditions/">Conditions</a> (condition tree).</p>
+<p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (Rule), <a href="../authoring-rules/">Authoring Rules</a> and <a href="../conditions/">Conditions</a> (condition tree).</p>
 <hr />
 <p><code>RuleBuilder</code> is a fluent API for constructing rules step by step. It validates
 as you go and <code>build()</code> returns the same canonical <code>Rule</code> every other authoring
 path produces, so the result goes straight into an engine with no conversion.</p>
 <h2 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span><span class="p">,</span> <span class="n">RuleBuilder</span>
+<p><code>.condition()</code> accepts an <code>F</code> expression or a raw dict - both compile to the
+same condition tree.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">PhreakEngine</span><span class="p">,</span> <span class="n">RuleBuilder</span>
 
 <span class="n">rule</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">RuleBuilder</span><span class="p">()</span>
@@ -2641,7 +2671,7 @@ path produces, so the result goes straight into an engine with no conversion.</p
     <span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"fraud_detection"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">"tier_1"</span><span class="p">,</span> <span class="s2">"manual_review"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">priority</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">condition</span><span class="p">({</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">})</span>
+    <span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">)</span>
     <span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s2">"require_approval"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
@@ -2652,12 +2682,12 @@ path produces, so the result goes straight into an engine with no conversion.</p
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fired: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <p><code>build()</code> returns a <code>Rule</code>, so it also works with the top-level <code>evaluate()</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleBuilder</span><span class="p">,</span> <span class="n">evaluate</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">RuleBuilder</span><span class="p">,</span> <span class="n">evaluate</span>
 
 <span class="n">rule</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">RuleBuilder</span><span class="p">()</span>
     <span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">"adult"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">condition</span><span class="p">({</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">18</span><span class="p">})</span>
+    <span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"age"</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">18</span><span class="p">)</span>
     <span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s2">"allow"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
@@ -2680,8 +2710,8 @@ path produces, so the result goes straight into an engine with no conversion.</p
 <td>Builder</td>
 </tr>
 <tr>
-<td><code>.condition(dict)</code></td>
-<td>Set condition tree, parsed and validated now (required)</td>
+<td><code>.condition(F(...) or dict)</code></td>
+<td>Set condition tree - accepts <code>F</code> expression or raw dict (required)</td>
 <td>Builder</td>
 </tr>
 <tr>
@@ -2750,12 +2780,12 @@ path produces, so the result goes straight into an engine with no conversion.</p
 <code>RuleBuilder(42)</code> when you need a specific ID.</p>
 <h2 id="multiple-actions">Multiple actions<a class="headerlink" href="#multiple-actions" title="Permanent link">&para;</a></h2>
 <p>Call <code>.action()</code> once per action. They fire in the order added.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleBuilder</span><span class="p">,</span> <span class="n">evaluate</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">RuleBuilder</span><span class="p">,</span> <span class="n">evaluate</span>
 
 <span class="n">rule</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">RuleBuilder</span><span class="p">()</span>
     <span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">"escalate"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">condition</span><span class="p">({</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"risk"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">90</span><span class="p">})</span>
+    <span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"risk"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">90</span><span class="p">)</span>
     <span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s2">"notify_compliance"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s2">"freeze_account"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
@@ -2765,35 +2795,34 @@ path produces, so the result goes straight into an engine with no conversion.</p
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="building-complex-conditions">Building complex conditions<a class="headerlink" href="#building-complex-conditions" title="Permanent link">&para;</a></h2>
-<p><code>ConditionBuilder</code> assembles nested boolean logic without writing condition tree dicts by
-hand.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionBuilder</span><span class="p">,</span> <span class="n">PhreakEngine</span><span class="p">,</span> <span class="n">RuleBuilder</span>
+<p>Compose conditions with <code>&amp;</code>, <code>|</code>, and <code>~</code> directly on <code>F</code> expressions:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">PhreakEngine</span><span class="p">,</span> <span class="n">RuleBuilder</span>
 
-<span class="n">cb</span> <span class="o">=</span> <span class="n">ConditionBuilder</span><span class="p">()</span>
-<span class="n">dsl</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">and_group</span><span class="p">(</span>
-    <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"NG"</span><span class="p">,</span> <span class="s2">"GH"</span><span class="p">]},</span>
-<span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
-
-<span class="n">rule</span> <span class="o">=</span> <span class="n">RuleBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">"complex_rule"</span><span class="p">)</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">dsl</span><span class="p">)</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s2">"review"</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="n">rule</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">RuleBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">"complex_rule"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">condition</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s2">"NG"</span><span class="p">,</span> <span class="s2">"GH"</span><span class="p">]))</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s2">"review"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
 <span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">([</span><span class="n">rule</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fired: </span><span class="si">{</span><span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s1">'amount'</span><span class="p">:</span><span class="w"> </span><span class="mi">6000</span><span class="p">,</span><span class="w"> </span><span class="s1">'country'</span><span class="p">:</span><span class="w"> </span><span class="s1">'NG'</span><span class="p">})</span><span class="o">.</span><span class="n">fired_rules</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
-<p>Use <code>.or_group(...)</code> the same way for disjunctions, and nest the dicts it
-returns to build deeper trees.</p>
+<p><code>ConditionBuilder</code> is still available for dict-based composition but is
+superseded by the F DSL for new code.</p>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <p>The builder fails at the point of the mistake rather than at evaluation time.
 <code>.condition()</code> parses the condition tree immediately, and <code>.build()</code> enforces that the
 required fields are present.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleBuilder</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">RuleBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleValidationError</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">RuleBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span>
-        <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+    <span class="n">RuleBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"x"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="k">except</span> <span class="n">RuleValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid rule: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>

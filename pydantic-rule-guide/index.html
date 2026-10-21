@@ -936,6 +936,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -2721,12 +2749,12 @@
 <hr />
 <p>The <code>Rule</code> class is a Pydantic v2 model. This guide covers all fields and validation.</p>
 <h2 id="rule-fields">Rule fields<a class="headerlink" href="#rule-fields" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="c1"># Core (required)</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"high_value_transaction"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">,</span>
 
     <span class="c1"># Core (optional)</span>
     <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud_detection"</span><span class="p">,</span>                     <span class="c1"># Logical grouping (default: "default")</span>
@@ -2801,24 +2829,28 @@
 </tbody>
 </table>
 <h2 id="condition-tree-format">Condition tree format<a class="headerlink" href="#condition-tree-format" title="Permanent link">&para;</a></h2>
-<p>The <code>conditions</code> field defines rule logic:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Simple condition</span>
-<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">}</span>
+<p>The <code>conditions</code> field defines rule logic. Write it with <code>F</code> expressions:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
+<span class="c1"># Simple condition</span>
+<span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span>
 
 <span class="c1"># AND/OR grouping</span>
-<span class="p">{</span>
+<span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"US"</span><span class="p">)</span>
+
+<span class="c1"># NOT operator</span>
+<span class="o">~</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"verified"</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Each expression is stored as a dictionary tree. A plain dictionary is accepted
+anywhere an <code>F</code> expression is, for example when rules come from YAML or a
+database:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"group"</span><span class="p">,</span>
     <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"AND"</span><span class="p">,</span>
     <span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"US"</span><span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
-
-<span class="c1"># NOT operator</span>
-<span class="p">{</span>
-    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"not"</span><span class="p">,</span>
-    <span class="s2">"condition"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"verified"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+        <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"country"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"US"</span><span class="p">},</span>
+    <span class="p">],</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>See <a href="../conditions/">Conditions</a> and <a href="../complex-conditions/">Complex Conditions</a> for details.</p>
@@ -2845,9 +2877,11 @@
 <h2 id="working-with-fields">Working with fields<a class="headerlink" href="#working-with-fields" title="Permanent link">&para;</a></h2>
 <h3 id="add-tags">Add tags<a class="headerlink" href="#add-tags" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"check"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"pending"</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"pending"</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">"tier_1"</span><span class="p">,</span> <span class="s2">"fraud"</span><span class="p">,</span> <span class="s2">"manual_review"</span><span class="p">]),</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2856,12 +2890,12 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>  <span class="c1"># frozenset({'tier_1', 'fraud', 'manual_review'})</span>
 </code></pre></div>
 <h3 id="multiple-actions">Multiple actions<a class="headerlink" href="#multiple-actions" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 
 <span class="c1"># Action is a single string</span>
 <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">"suspicious"</span><span class="p">,</span>
-    <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"risk_score"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">75</span><span class="p">},</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"risk_score"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">75</span><span class="p">,</span>
     <span class="n">action</span><span class="o">=</span><span class="s2">"block"</span><span class="p">,</span>  <span class="c1"># Single action</span>
     <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2869,12 +2903,12 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>  <span class="c1"># "block"</span>
 </code></pre></div>
 <h3 id="priority-for-ordering">Priority for ordering<a class="headerlink" href="#priority-for-ordering" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"urgent"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"critical"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"normal"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"warning"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"low"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"condition"</span><span class="p">,</span> <span class="s2">"field"</span><span class="p">:</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"info"</span><span class="p">},</span> <span class="n">priority</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"urgent"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"critical"</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"normal"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"warning"</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"low"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"info"</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
 <span class="p">]</span>
 
 <span class="c1"># Higher priority evaluated first</span>

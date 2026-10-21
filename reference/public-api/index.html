@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../rule-types/" class="md-nav__link">
         
   
@@ -2810,7 +2838,9 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 <p>From <code>fluxrules</code>:</p>
 <ul>
 <li><code>Rule</code> - Pydantic v2 model: <code>id</code>, <code>name</code>, <code>domain</code>, <code>tags</code>, <code>conditions</code>, <code>action</code>, <code>actions</code>, <code>priority</code>, <code>enabled</code>, <code>persist</code></li>
-<li><code>RuleBuilder</code> / <code>ConditionBuilder</code> - Fluent authoring; <code>RuleBuilder.build()</code> returns a <code>Rule</code></li>
+<li><code>F</code> (alias of <code>Field</code>) and <code>Condition</code> - The recommended way to write <code>conditions</code>: <code>(F("amount") &gt; 5000) &amp; (F("country") == "US")</code>. See <a href="../../authoring-rules/">Authoring Rules</a>.</li>
+<li><code>RuleBuilder</code> - Fluent authoring; <code>RuleBuilder.build()</code> returns a <code>Rule</code>. <code>RuleBuilder.condition()</code> accepts an <code>F</code> expression or a dictionary.</li>
+<li><code>ConditionBuilder</code> - Deprecated in favor of <code>F</code>; it will be removed in a future release.</li>
 <li><code>Ruleset</code> - Optional named collection of rules (<code>group: str</code>, <code>rules: tuple[...]</code>). <code>evaluate()</code> accepts bare rules, so you only need this to name a group.</li>
 <li><code>EvaluationResult</code> - The single result type for every evaluation path.
   <code>fired_rules</code> is what matched; <code>actions</code> are the collected actions. Also
@@ -2877,6 +2907,12 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 <td><code>InvalidRuleError</code></td>
 <td><code>DSL_VALIDATION_ERROR</code></td>
 <td>A <code>conditions</code> tree fails strict validation</td>
+</tr>
+<tr>
+<td><code>FieldNotFoundError</code></td>
+<td><code>FluxRulesError</code></td>
+<td><code>FIELD_NOT_FOUND</code></td>
+<td>A condition's field is a case variant of a key in the fact, for example <code>Amount</code> against <code>amount</code></td>
 </tr>
 <tr>
 <td><code>EmptyRuleLogicError</code></td>

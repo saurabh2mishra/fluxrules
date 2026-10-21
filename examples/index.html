@@ -934,6 +934,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../rule-types/" class="md-nav__link">
         
   
@@ -3645,12 +3673,12 @@
 </code></pre></div></p>
 <h3 id="example-06-working-memory">Example 06: Working Memory<a class="headerlink" href="#example-06-working-memory" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/06_working_memory.py</code></p>
-<p>Maintain state between rule executions. Learn:
-- What is working memory?
-- Adding facts to working memory
-- Querying working memory
-- Using working memory for complex workflows</p>
-<p><strong>Key Concepts:</strong> Working Memory, State, Sessions</p>
+<p>Keep facts in working memory. Learn:
+- Storing facts with <code>assert_fact</code> and getting an id back
+- Removing them with <code>retract_fact</code>
+- Reading the count with <code>get_stats()["facts_in_memory"]</code>
+- Why stored facts do not change what <code>evaluate()</code> returns</p>
+<p><strong>Key Concepts:</strong> Working Memory, Fact Lifecycle</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/06_working_memory.py
 </code></pre></div></p>
@@ -3658,11 +3686,11 @@
 <h2 id="rules-as-data-60-minutes">Rules as Data (60 minutes)<a class="headerlink" href="#rules-as-data-60-minutes" title="Permanent link">&para;</a></h2>
 <h3 id="example-07-yaml-rules">Example 07: YAML Rules<a class="headerlink" href="#example-07-yaml-rules" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/07_yaml_rules.py</code></p>
-<p>Define rules in YAML format. Learn:
-- YAML rule syntax
-- Loading rules from files
-- Rule definitions without code
-- Domain-specific configurations</p>
+<p>Load complete rules, conditions included, from <code>examples/payment_risk_rules.yaml</code>. Learn:
+- Writing conditions in YAML with the same dict format F expressions produce
+- Loading a file with <code>load_rules_from_yaml</code> and building rules with <code>Rule.model_validate_yaml</code>
+- Keeping YAML rules in memory with <code>persist: False</code>
+- Checking that a YAML rule decides facts the same way as its F-built version</p>
 <p><strong>Key Concepts:</strong> YAML, Declarative Rules, File-based Configuration</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/07_yaml_rules.py
@@ -3671,12 +3699,12 @@
 <h2 id="advanced-features-2-hours">Advanced Features (2+ hours)<a class="headerlink" href="#advanced-features-2-hours" title="Permanent link">&para;</a></h2>
 <h3 id="example-09-custom-engines">Example 09: Custom Engines<a class="headerlink" href="#example-09-custom-engines" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/09_custom_engines.py</code></p>
-<p>Build your own rule engine. Learn:
-- Engine interface and lifecycle
-- Implementing a custom engine
-- Optimization opportunities
-- When to use custom engines</p>
-<p><strong>Key Concepts:</strong> Custom Engines, Architecture, Extensibility</p>
+<p>Build your own engine. Learn:
+- Subclassing <code>BaseEngine</code> and overriding <code>_evaluate_rules</code>
+- A first-match engine that fires only the highest-priority rule
+- Registering it with <code>register_engine</code> and creating it with <code>get_engine</code>
+- Comparing it with <code>PhreakEngine</code> on the same facts</p>
+<p><strong>Key Concepts:</strong> Custom Engines, Engine Registry</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/09_custom_engines.py
 </code></pre></div></p>
@@ -3694,10 +3722,10 @@
 <h3 id="example-11-cli-usage">Example 11: CLI Usage<a class="headerlink" href="#example-11-cli-usage" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/11_cli_usage.py</code></p>
 <p>Use FluxRules from the command line. Learn:
-- CLI interface
-- Loading rules and facts
-- Producing reports
-- Scripting with FluxRules</p>
+- <code>fluxrules validate rules.json</code>
+- <code>fluxrules evaluate rules.json fact.json --format json</code>
+- The JSON rule and fact files the CLI reads
+- Running the CLI in-process with Typer's <code>CliRunner</code></p>
 <p><strong>Key Concepts:</strong> CLI, Scripting, Automation</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/11_cli_usage.py
@@ -3705,10 +3733,10 @@
 <h3 id="example-12-rest-api-usage">Example 12: REST API Usage<a class="headerlink" href="#example-12-rest-api-usage" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/12_api_usage.py</code></p>
 <p>Call FluxRules over HTTP. Learn:
-- Starting a REST API server
-- Calling rules via HTTP
-- Integration patterns
-- Error handling</p>
+- Building the app with <code>create_app()</code> and storing a ruleset
+- <code>POST /v1/rulesets/{group}/evaluate</code>
+- Explaining a decision with <code>GET /v1/executions/{id}</code>
+- Batch what-if runs with <code>POST /v1/rulesets/{group}/simulate</code></p>
 <p><strong>Key Concepts:</strong> REST API, HTTP, Integration</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/12_api_usage.py
@@ -3737,12 +3765,12 @@
 </code></pre></div></p>
 <h3 id="example-15-action-system">Example 15: Action System<a class="headerlink" href="#example-15-action-system" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/15_action_system.py</code></p>
-<p>Master the action system. Learn:
-- Built-in actions (set, increment, transform)
-- Custom action implementations
-- Action chains and pipelines
-- Action context and execution</p>
-<p><strong>Key Concepts:</strong> Actions, Custom Actions, Action Pipelines</p>
+<p>Run code when a rule fires. Learn:
+- Registering a handler for each action name with <code>@action</code>
+- Dispatching the fired actions with <code>action_registry.execute</code>
+- Passing the fact to a handler as keyword arguments
+- Why evaluation and execution stay separate</p>
+<p><strong>Key Concepts:</strong> Actions, Action Dispatch</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/15_action_system.py
 </code></pre></div></p>
@@ -3793,33 +3821,33 @@
 <h2 id="data-processing-pipelines-2-hours">Data Processing Pipelines (2+ hours)<a class="headerlink" href="#data-processing-pipelines-2-hours" title="Permanent link">&para;</a></h2>
 <h3 id="example-20-streaming-mode">Example 20: Streaming Mode<a class="headerlink" href="#example-20-streaming-mode" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/20_streaming_mode.py</code></p>
-<p>Process facts as a stream. Learn:
-- Streaming fact processing
-- Latency measurement per fact
-- Incremental evaluation
-- Pipeline throughput</p>
-<p><strong>Key Concepts:</strong> Streaming, Incremental Processing</p>
+<p>Evaluate a stream of updates. Learn:
+- Turning on <code>streaming_mode=True</code>
+- An unchanged repeat returning no fired rules
+- A changed fact being re-evaluated
+- Why one stream must go to one engine instance</p>
+<p><strong>Key Concepts:</strong> Streaming, Incremental Evaluation</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/20_streaming_mode.py
 </code></pre></div></p>
 <h3 id="example-21-action-registry">Example 21: Action Registry<a class="headerlink" href="#example-21-action-registry" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/21_action_registry.py</code></p>
-<p>Manage and track actions. Learn:
-- Extracting unique actions from rules
-- Action execution counts
-- Action registry patterns
-- Tracking action usage</p>
-<p><strong>Key Concepts:</strong> Action Registry, Tracking, Metrics</p>
+<p>Inspect the action registry. Learn:
+- Descriptions and categories recorded by <code>@action</code>
+- Listing actions and filtering by category
+- Reading a handler's parameters with <code>get_action_signature</code>
+- Running an async handler with <code>execute_async</code></p>
+<p><strong>Key Concepts:</strong> Action Registry, Metadata, Async Actions</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/21_action_registry.py
 </code></pre></div></p>
 <h3 id="example-22-real-world-workflow">Example 22: Real-World Workflow<a class="headerlink" href="#example-22-real-world-workflow" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/22_real_world_workflow.py</code></p>
-<p>End-to-end production workflow. Learn:
-- Real-world transaction triage
-- Multi-step decision logic
-- Audit trail integration
-- Production-ready patterns</p>
+<p>An end-to-end triage workflow. Learn:
+- Validating the ruleset at startup with <code>validate()</code>
+- Normalizing each payment with a <code>FactPipeline</code>
+- Evaluating and dispatching the fired actions
+- Explaining a past decision with <code>explain()</code></p>
 <p><strong>Key Concepts:</strong> Workflows, Production Patterns, Audit Trails</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/22_real_world_workflow.py
@@ -3829,77 +3857,77 @@
 <h3 id="example-23-streaming-vs-stateless">Example 23: Streaming vs Stateless<a class="headerlink" href="#example-23-streaming-vs-stateless" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/23_streaming_vs_stateless.py</code></p>
 <p>Compare evaluation modes. Learn:
-- Stateless evaluation (default)
-- Streaming evaluation characteristics
-- Performance differences
-- When to use each mode</p>
+- Stateless mode answering every call in full
+- Streaming mode skipping unchanged repeats
+- The same stream sent to both, side by side
+- Why streaming needs sticky routing</p>
 <p><strong>Key Concepts:</strong> Evaluation Modes, Stateless Processing</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/23_streaming_vs_stateless.py
 </code></pre></div></p>
 <h3 id="example-24-cross-fact-joins">Example 24: Cross-Fact Joins<a class="headerlink" href="#example-24-cross-fact-joins" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/24_cross_fact_joins.py</code></p>
-<p>Relate multiple facts. Learn:
-- Processing multiple facts together
-- Cross-fact pattern detection
-- Relational evaluation
-- Fact correlation</p>
-<p><strong>Key Concepts:</strong> Cross-Fact Joins, Relational Logic</p>
+<p>Relate multiple facts with <code>CrossFactEngine</code>. Learn:
+- Patterns, field constraints and joins between facts
+- A rule that fires only when a payment and its customer both match
+- Activation deltas returned by <code>insert</code>, <code>update</code> and <code>retract</code>
+- Matches disappearing when a fact changes or is retracted</p>
+<p><strong>Key Concepts:</strong> Cross-Fact Joins, Truth Maintenance</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/24_cross_fact_joins.py
 </code></pre></div></p>
 <h3 id="example-25-nested-facts">Example 25: Nested Facts<a class="headerlink" href="#example-25-nested-facts" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/25_nested_facts.py</code></p>
-<p>Work with hierarchical data. Learn:
-- Nested fact structures
-- Accessing nested fields
-- Hierarchical condition evaluation
-- Complex data models</p>
-<p><strong>Key Concepts:</strong> Nested Structures, Hierarchical Data</p>
+<p>Work with nested data. Learn:
+- Why the engine matches flat facts only
+- Flattening nested events with the <code>Flatten</code> transform
+- Writing rules on dotted names such as <code>payment.amount</code>
+- What happens if you skip flattening</p>
+<p><strong>Key Concepts:</strong> Nested Facts, Flattening</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/25_nested_facts.py
 </code></pre></div></p>
 <h3 id="example-26-fact-loader">Example 26: Fact Loader<a class="headerlink" href="#example-26-fact-loader" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/26_fact_loader.py</code></p>
-<p>Load facts at scale. Learn:
-- Batch fact loading
-- Fact preprocessing
-- Large-scale processing
-- Throughput optimization</p>
-<p><strong>Key Concepts:</strong> Fact Loading, Batch Processing</p>
+<p>Load a batch of raw records. Learn:
+- <code>FactLoader</code> with an <code>IterableSource</code>
+- Converting string columns with <code>FieldType</code>
+- Collecting bad rows with <code>on_error="collect"</code>
+- Reading failures from <code>loader.dead_letter</code></p>
+<p><strong>Key Concepts:</strong> Fact Loading, Batch Processing, Dead Letters</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/26_fact_loader.py
 </code></pre></div></p>
 <h3 id="example-27-factpipeline">Example 27: FactPipeline<a class="headerlink" href="#example-27-factpipeline" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/27_factpipeline.py</code></p>
-<p>Pipeline-based fact processing. Learn:
-- Multi-stage fact pipelines
-- Loading, enrichment, evaluation workflow
-- Result output and formatting
-- End-to-end data flow</p>
-<p><strong>Key Concepts:</strong> Fact Pipelines, ETL, Data Flow</p>
+<p>The <code>FactPipeline</code> framework. Learn:
+- Built-in transforms: <code>Rename</code>, <code>FieldType</code>, <code>Defaults</code>, <code>Require</code>
+- Composition with <code>&gt;&gt;</code> and fallback with <code>|</code>
+- Observability with <code>MetricsHook</code> and <code>inspect()</code>
+- Versioning with <code>PipelineVersion</code> and <code>diff_pipelines</code></p>
+<p><strong>Key Concepts:</strong> Fact Pipelines, Composition, Versioning</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/27_factpipeline.py
 </code></pre></div></p>
 <h3 id="example-28-factpipeline-tier-1">Example 28: FactPipeline (Tier 1)<a class="headerlink" href="#example-28-factpipeline-tier-1" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/28_factpipeline_tier1.py</code></p>
-<p>High-priority rule filtering. Learn:
-- Filtering rules by tags
-- Tier-based rule organization
-- Priority-based evaluation
-- Optimized rule selection</p>
-<p><strong>Key Concepts:</strong> Rule Tiers, Filtering, Priority</p>
+<p>A tiered pipeline architecture. Learn:
+- Separate clean, validate and enrich tiers
+- Chaining tiers with <code>&gt;&gt;</code>
+- Seeing the fact after each tier
+- Rejecting a record at the tier that fails</p>
+<p><strong>Key Concepts:</strong> Pipeline Tiers, Composition</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/28_factpipeline_tier1.py
 </code></pre></div></p>
 <h3 id="example-29-custom-transforms">Example 29: Custom Transforms<a class="headerlink" href="#example-29-custom-transforms" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>examples/29_custom_transforms.py</code></p>
-<p>Transform facts before evaluation. Learn:
-- Custom fact enrichment
-- Computed field addition
-- Data transformation pipelines
-- Pre-evaluation preprocessing</p>
-<p><strong>Key Concepts:</strong> Transforms, Data Enrichment, Preprocessing</p>
+<p>Write your own transform stages. Learn:
+- Subclassing <code>Transform</code> with <code>__call__</code> and <code>metadata</code>
+- Declaring what a stage reads and writes
+- Composing custom stages with <code>&gt;&gt;</code>
+- Matching rules on the fields they add</p>
+<p><strong>Key Concepts:</strong> Custom Transforms, Data Enrichment</p>
 <p><strong>Run it:</strong>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/29_custom_transforms.py
 </code></pre></div></p>

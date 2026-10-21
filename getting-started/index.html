@@ -346,6 +346,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#optional-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional extras
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-that-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check that it works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#minimal-evaluation-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -357,21 +379,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#local-docs" class="md-nav__link">
+  <a href="#working-on-fluxrules-itself" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Local Docs
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-project-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run the project tests
+        Working on FluxRules itself
       
     </span>
   </a>
@@ -1039,6 +1050,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -2550,6 +2589,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#optional-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional extras
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-that-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check that it works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#minimal-evaluation-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2561,21 +2622,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#local-docs" class="md-nav__link">
+  <a href="#working-on-fluxrules-itself" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Local Docs
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-project-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run the project tests
+        Working on FluxRules itself
       
     </span>
   </a>
@@ -2603,31 +2653,42 @@
 
 
 <h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
-<p>This page helps you run FluxRules locally in a few minutes.</p>
+<p>This page gets you from nothing to a working rule in a few minutes.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Python 3.10 or newer</li>
 <li>uv (recommended) or pip</li>
 </ul>
 <h2 id="install-with-uv">Install with uv<a class="headerlink" href="#install-with-uv" title="Permanent link">&para;</a></h2>
-<p>The recommended setup is to use uv for dependency management and a local virtual environment:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/saurabh2mishra/fluxrules.git
-<span class="nb">cd</span><span class="w"> </span>fluxrules
-uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev
+<p>Add FluxRules to your project from PyPI:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span>fluxrules
 </code></pre></div>
-<p>This creates the project environment and installs the package plus the developer tooling.</p>
+<p>Or, to try it in a fresh virtual environment without a project:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>venv
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>fluxrules
+</code></pre></div>
 <h2 id="install-with-pip">Install with pip<a class="headerlink" href="#install-with-pip" title="Permanent link">&para;</a></h2>
-<p>If you prefer pip, the project also installs normally with a standard virtual environment:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/saurabh2mishra/fluxrules.git
-<span class="nb">cd</span><span class="w"> </span>fluxrules
-python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<p>Create a virtual environment and install the release from PyPI:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-pip<span class="w"> </span>install<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>fluxrules
 </code></pre></div>
-<p>For API endpoints, install extras:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'.[api]'</span>
+<h2 id="optional-extras">Optional extras<a class="headerlink" href="#optional-extras" title="Permanent link">&para;</a></h2>
+<p>The base package is enough to write and evaluate rules. Add an extra for the
+feature you need, for example the HTTP API:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'fluxrules[api]'</span>
 <span class="c1"># or with uv</span>
-uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'.[api]'</span>
+uv<span class="w"> </span>add<span class="w"> </span><span class="s1">'fluxrules[api]'</span>
+</code></pre></div>
+<p>See <a href="../installation/">Installation</a> for the full list of extras.</p>
+<h2 id="check-that-it-works">Check that it works<a class="headerlink" href="#check-that-it-works" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span><span class="p">,</span> <span class="n">evaluate</span>
+
+<span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"adult"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"age"</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">18</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"allow"</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">{</span><span class="s2">"age"</span><span class="p">:</span> <span class="mi">30</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">)</span>  <span class="c1"># the id of the rule that matched</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>      <span class="c1"># ['allow']</span>
 </code></pre></div>
 <h2 id="minimal-evaluation-flow">Minimal Evaluation Flow<a class="headerlink" href="#minimal-evaluation-flow" title="Permanent link">&para;</a></h2>
 <ol>
@@ -2635,16 +2696,11 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
 <li>Evaluate facts.</li>
 <li>Inspect matched rules and trace.</li>
 </ol>
-<p>See <a href="../quickstart/">Quickstart</a> for a full example.</p>
-<h2 id="local-docs">Local Docs<a class="headerlink" href="#local-docs" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev
-uv<span class="w"> </span>run<span class="w"> </span>mkdocs<span class="w"> </span>serve
-</code></pre></div>
-<p>Open the local URL shown by MkDocs.</p>
-<h2 id="run-the-project-tests">Run the project tests<a class="headerlink" href="#run-the-project-tests" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-v
-</code></pre></div>
-<p>This is the preferred way to validate the project in a local environment.</p>
+<p>See <a href="../quickstart/">Quickstart</a> for a full example, and
+<a href="../authoring-rules/">Authoring Rules</a> for the ways to write a condition.</p>
+<h2 id="working-on-fluxrules-itself">Working on FluxRules itself<a class="headerlink" href="#working-on-fluxrules-itself" title="Permanent link">&para;</a></h2>
+<p>See <a href="../contributing/">Contributing</a> for the
+full contributor guide.</p>
 
 
 
