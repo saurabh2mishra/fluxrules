@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-20
+
+### Added
+
+- **`F` / `Field` fluent condition DSL.** Write conditions as Python expressions:
+  `(F("amount") > 5000) & (F("country").isin(["NG", "GH"]))`. Comparison
+  operators, `&`, `|` and `~` build the same condition dicts the engine already
+  accepts, so stored and YAML rules are unchanged. Named methods cover the
+  remaining operators: `isin`, `not_in`, `contains`, `not_contains`,
+  `starts_with`, `ends_with`, `regex` and `exists`. `Rule(conditions=...)` and
+  `RuleBuilder.condition(...)` accept either an `F` expression or a raw dict.
+- **`FieldNotFoundError`** (code `FIELD_NOT_FOUND`). A condition now raises when
+  its field is absent from the fact but is a case variant of a key that is
+  present, for example `F("Amount")` against `{"amount": 1}`. The message lists
+  the available keys and suggests the closest match. Fields that match no
+  present key still evaluate to `False`, so rulesets that mix fact schemas keep
+  working. `exists()` never raises.
+- **Docs.** `docs/conditions.md` is now "Conditions & Rule Authoring": the three
+  ways to write conditions, what to keep in mind when authoring, and how to
+  validate. README, examples and the other docs use the `F` DSL.
+
+### Fixed
+
+- **OR groups were silently dropped by the alpha prefilter.** The prefilter read a
+  `group` or `composite` node's AND/OR selector only from the `logic` key, but the
+  engine and the `F` DSL use `op`. A `{"type": "group", "op": "OR"}` rule was
+  treated as AND and pruned whenever one branch failed, so it did not fire when
+  only one branch matched. This affected dict and YAML rules as well as `F`
+  expressions. Both keys are now honored.
+- **OR rules with an `== None` branch were pruned for a present `None`.** The
+  prefilter reduces an OR over a shared field to "field must be present" but
+  also rejected a present `None`, so with `strict_null_handling=True` the rule
+  did not fire with the prefilter on and fired with it off. A present `None` now
+  passes.
+- **Action handlers with `**kwargs` could not be executed.** The action registry
+  listed a `**kwargs` parameter as a required parameter named `kwargs`, so every
+  such handler failed with "Missing required parameter: kwargs". `*args` and
+  `**kwargs` are no longer treated as parameters, and a handler with `**kwargs`
+  accepts extra keyword arguments. Named parameters are still required, and a
+  handler without `**kwargs` still rejects unknown arguments.
+- **`docs/custom-transforms.md` passed a nonexistent `category` argument** to
+  `TransformMetadata`. It now uses the real `required_input_fields` and
+  `output_fields`.
+- **Examples that did not show their feature.** 15 examples (06, 09, 11, 12, 15,
+  20 to 29) only ran a stateless `PhreakEngine` over the shared facts, whatever
+  their title said. They are rewritten to use the feature they are named for:
+  working memory, a custom registered engine, the CLI, the HTTP API, action
+  dispatch and the action registry, streaming mode, `CrossFactEngine`,
+  `Flatten`, `FactLoader`, the `FactPipeline` framework, tiered pipelines and
+  custom transforms. Example 07 took only rule metadata from YAML and built the
+  conditions in Python; it now loads complete rules, conditions included, from
+  `examples/payment_risk_rules.yaml`. `docs/usage/advanced-capabilities.md` and `docs/examples.md`
+  now describe what each example does, and link to it on GitHub.
+- **`PhreakEngine` crashed on values it could not compare.** With the alpha
+  prefilter on (the default), a fact value Python cannot compare with the rule
+  value, such as a string tested with `> 5`, or cannot hash, such as a list
+  tested with `isin`, raised `TypeError` out of `evaluate()`. With the prefilter
+  off the same rule correctly returned no match. The prefilter now keeps such a
+  rule as a candidate and lets the engine decide, so both settings agree.
+- **`evaluate()` rejected `starts_with`, `ends_with` and `regex`.** The reference
+  evaluator behind the top-level `evaluate()` and `validate()` kept its own copy
+  of the operators, and that copy had no entry for these three, so a rule using
+  them failed with "unsupported operator" even though `PhreakEngine` ran them.
+  The reference evaluator now calls the engine's operator function with the
+  default engine settings, so both paths share one implementation. A new test
+  runs every operator through both and checks they agree, including on `None`
+  values, type mismatches and invalid regex patterns.
+- **README install section** now leads with `pip install fluxrules` instead of
+  cloning the repository.
+
+### Changed
+
+- **Behavior change:** a condition whose field is a case variant of a present key
+  now raises `FieldNotFoundError` instead of returning no match. Rules that
+  relied on the silent miss need their field name corrected.
+- `ConditionBuilder` is deprecated in favor of `F` and will be removed in a
+  future release.
+- **Behavior change:** because `evaluate()` now shares the engine's operators, it
+  treats a `None` value the way `PhreakEngine` does by default: no operator
+  matches it. `F("x") == None` against `{"x": None}` used to match through
+  `evaluate()` and now does not. A comparison between mismatched types, such as
+  `contains` on a number, now returns no match instead of raising `TypeError`.
+
 ## [0.1.4] - 2026-10-20
 
 ### Fixed

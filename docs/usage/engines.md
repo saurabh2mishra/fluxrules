@@ -18,6 +18,7 @@
 ## Engine-Level Evaluation
 
 ```python
+from fluxrules import F
 from fluxrules.engine.phreak import PhreakEngine
 from fluxrules.domain.unified_rule import Rule
 
@@ -26,7 +27,7 @@ engine.load_rules([
     Rule(
         id=1,
         name="high_value",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions=F("amount") > 1000,
         action="review",
     )
 ])

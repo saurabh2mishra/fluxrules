@@ -28,7 +28,7 @@ For a deployment where unsupported cross-fact or temporal rule shapes must fail
 at startup instead of logging a warning, enable the strict guardrail:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 engine = PhreakEngine(strict_scope=True)
@@ -36,7 +36,7 @@ engine.load_rules(
     [
         Rule(
             name="amount_check",
-            conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+            conditions=F("amount") > 1000,
             action="review",
             persist=False,
         )
@@ -72,12 +72,12 @@ choosing a worker count:
 
 ```python
 from fluxrules.engine.phreak import PhreakEngine
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 rules = [
     Rule(
         name="amount_check",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions=F("amount") > 1000,
         action="review",
         persist=False,
     )

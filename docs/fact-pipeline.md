@@ -14,7 +14,7 @@ A Fact Pipeline transforms facts before rule evaluation. Use pipelines to:
 ## Basic pipeline
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 from fluxrules.pipeline import Defaults, FactPipeline, Flatten, Rename, FieldType, Require
 
@@ -45,7 +45,7 @@ engine.load_rules(
     [
         Rule(
             name="high_value",
-            conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+            conditions=F("amount") > 1000,
             action="review",
             persist=False,
         )

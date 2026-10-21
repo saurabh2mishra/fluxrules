@@ -11,36 +11,29 @@ Welcome! This directory contains **comprehensive, practical examples** demonstra
 **NEW!** FluxRules now recommends the simplified **Pydantic Rule** approach for creating rules:
 
 ```python
-from fluxrules import Rule  # same class as fluxrules.domain.Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
-# Create rules with auto-generated IDs
+# Write conditions as Python expressions - no dicts required
 rule = Rule(
     name="High Value Transaction",
-    conditions={
-        "type": "condition",
-        "field": "amount",
-        "op": ">",
-        "value": 1000,
-    },
+    conditions=(F("amount") > 1000) & (F("currency") == "USD"),
     action="flag_for_review",
     priority=10,
-    persist=False,  # keep it in memory
 )
 
-# Use in your engine
 engine = PhreakEngine()
 engine.load_rules([rule])
-result = engine.evaluate({"amount": 1500})
-print(result.fired_rules)  # Auto-generated rule ID
+result = engine.evaluate({"amount": 1500, "currency": "USD"})
+print(result.fired_rules)  # auto-generated rule ID
 ```
 
-✅ **Why Pydantic Rule?**
-- Simpler syntax (no method chaining)
-- Auto-generated IDs (no manual management)
-- Better IDE support
-- Consistent across all creation paths (YAML, API, etc.)
-- Less boilerplate
+✅ **Why the F DSL?**
+- Write conditions as real Python, not raw dicts
+- Full IDE autocompletion and type checking
+- Precedence errors caught at write-time, not run-time
+- YAML authoring is still supported - the dict format is the wire format
+- Composes naturally: `&`, `|`, `~` for AND / OR / NOT
 
 👉 **See [18_unified_rule.py](18_unified_rule.py) for comprehensive Pydantic Rule examples**
 👉 **Read the [Pydantic Rule Guide](../docs/pydantic-rule-guide.md) for the full reference**
@@ -119,7 +112,7 @@ Learn how to persist, manage state, and load rules from files.
 |---|---------|-------|------|
 | **05** | `05_persistence.py` | Save & load rules from database | 10 min |
 | **06** | `06_working_memory.py` | Stateful evaluation with assert/retract | 15 min |
-| **07** | `07_yaml_rules.py` | Load rules from YAML (DevOps-friendly) | 10 min |
+| **07** | `07_yaml_rules.py` | Load complete rules, conditions included, from `payment_risk_rules.yaml` | 10 min |
 
 ### Engine & Architecture - ~25 minutes
 
@@ -137,7 +130,7 @@ Integrate FluxRules into your application and deployment pipeline.
 | # | Example | Focus | Time |
 |---|---------|-------|------|
 | **11** | `11_cli_usage.py` | Command-line interface for automation | 10 min |
-| **12** | `12_api_usage.py` | REST API server (FastAPI) | 15 min |
+| **12** | `12_api_usage.py` | HTTP API: evaluate, explain and simulate over FastAPI | 15 min |
 
 ### Advanced Techniques - ~35 minutes
 
@@ -166,8 +159,8 @@ Get heterogeneous facts (JSON, CSV, streams) into the engine cleanly.
 |---|---------|-------|------|
 | **24** | `24_cross_fact_joins.py` | Cross-fact joins across working memory | 10 min |
 | **25** | `25_nested_facts.py` | Flatten nested facts to dot notation | 10 min |
-| **26** | `26_fact_loader.py` | DataLoader-style fact pipeline (prototype) | 15 min |
-| **27** | `27_factpipeline.py` | ⭐ **FactPipeline framework** (type-safe transforms, composition, observability, versioning) | 15 min |
+| **26** | `26_fact_loader.py` | Batch-load raw records with FactLoader and a dead-letter list | 15 min |
+| **27** | `27_factpipeline.py` | ⭐ **FactPipeline framework** (transforms, composition, observability, versioning) | 15 min |
 | **28** | `28_factpipeline_tier1.py` | Tiered pipeline architecture | 15 min |
 | **29** | `29_custom_transforms.py` | Writing your own transform stages | 15 min |
 | **30** | `30_conflict_detection.py` | ⭐ **Rule health**: conflicts, coverage gaps, shadowed rules | 15 min |

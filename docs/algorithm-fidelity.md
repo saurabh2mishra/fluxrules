@@ -15,12 +15,14 @@ strong evidence of correctness.
 **Test dataset:** cross_border_payment_risk_triage (3 facts, shared use case)
 
 **Test rules:** All 31 example rules with varying complexity:
+
 - Simple conditions (1 field)
 - Complex AND/OR logic
 - NOT operators
 - Nested groups
 
 **Verification method:**
+
 1. Load the same ruleset into PHREAK and the reference evaluator
 2. Evaluate identical facts
 3. Compare `fired_rules` and `actions`

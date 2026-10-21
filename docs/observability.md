@@ -14,12 +14,12 @@ Enable the bounded in-process collector when you need candidate, selectivity,
 latency, or streaming-cache signals:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rule = Rule(
     name="amount_check",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 100},
+    conditions=F("amount") > 100,
     action="review",
     persist=False,
 )
@@ -109,7 +109,7 @@ Response:
 ```json
 {
   "status": "healthy",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
 ```
 

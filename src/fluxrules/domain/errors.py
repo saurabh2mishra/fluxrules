@@ -9,15 +9,17 @@ These names are part of the public API and are re-exported from
 """
 
 __all__ = [
+    "ConditionValidationError",
     "CorruptStoredRuleError",
     "CyclicDependencyError",
-    "ConditionValidationError",
     "EmptyRuleLogicError",
+    "FieldNotFoundError",
     "FluxRulesError",
     "InvalidRuleError",
     "LossyConditionRebuildError",
     "LossyConditionViewWarning",
     "UnknownOperatorError",
+    "is_field_typo",
 ]
 
 
@@ -89,6 +91,56 @@ class LossyConditionRebuildError(InvalidRuleError):
     """
 
     code = "LOSSY_CONDITION_REBUILD"
+
+
+def is_field_typo(field: str, facts: dict) -> bool:
+    """Return True when *field* is absent from *facts* but is a case variant of a
+    present key (e.g. ``Amount`` vs ``amount``).
+
+    Only a case-insensitive exact match counts as a typo, because it is
+    unambiguous. Close-spelling (difflib) matching is deliberately NOT used to
+    decide this: field families such as ``field_0`` / ``field_10`` or
+    ``line_1`` / ``line_2`` resemble each other closely, so a fuzzy match would
+    raise on legitimately different fields in multi-schema or numbered-field
+    rulesets. Fields that are genuinely absent with no case-variant present
+    return False and evaluate to ``False`` as before. The human-facing
+    "Did you mean" hint in :meth:`FieldNotFoundError.for_field` still uses
+    difflib, since a suggestion is advisory and never changes control flow.
+    """
+    lower = field.lower()
+    return any(str(k).lower() == lower for k in facts)
+
+
+class FieldNotFoundError(FluxRulesError):
+    """Raised when a condition references a field that looks like a typo.
+
+    A ``condition`` node whose field is not a key in the incoming fact dict
+    previously returned ``False`` silently. When the absent field is a case
+    variant of an existing key (e.g. ``Amount`` vs ``amount``), this error is
+    raised so the typo surfaces immediately. Fields with no case-variant present
+    are treated as legitimately absent (different fact schema) and return
+    ``False`` as before. The error message still offers a difflib "Did you mean"
+    suggestion, which is advisory only and does not affect whether it is raised.
+
+    Use ``F("field").exists()`` when you intentionally want to test whether a
+    field is present - that node always returns ``False`` for absent fields
+    without raising.
+    """
+
+    code = "FIELD_NOT_FOUND"
+
+    @classmethod
+    def for_field(cls, field: str, facts: dict) -> "FieldNotFoundError":
+        """Build the error with an available-keys list and a 'did you mean' hint."""
+        import difflib
+
+        available = sorted(str(k) for k in facts.keys())
+        close = difflib.get_close_matches(field, available, n=1, cutoff=0.6)
+        hint = f" Did you mean '{close[0]}'?" if close else ""
+        return cls(
+            f"Field '{field}' not found in fact.{hint} "
+            f"Available keys: {available}"
+        )
 
 
 class EmptyRuleLogicError(InvalidRuleError):

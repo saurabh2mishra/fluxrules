@@ -10,6 +10,14 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **v0.2.0** (2026) - Fluent condition DSL
+  - `F("amount") > 5000` expressions build the same condition dicts the engine
+    already accepts, combined with `&`, `|` and `~`
+  - `FieldNotFoundError` flags a field name that differs from a present key only
+    by case
+  - `evaluate()` and the engine share one set of operators
+  - Fixes for OR rules in the alpha prefilter, uncomparable fact values, and
+    action handlers that take `**kwargs`
 - **v0.1.0** (2026) - First release intended for publication
   - One `EvaluationResult` type across every evaluation path, with
     `fired_rules` as the single name for what matched

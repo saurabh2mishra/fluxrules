@@ -13,18 +13,13 @@ Get your first rule working in 5 minutes.
 Create a Python script:
 
 ```python
-from fluxrules import Rule, PhreakEngine
+from fluxrules import F, PhreakEngine, Rule
 
 # Create a rule
 rule = Rule(
     name="high_value_transaction",
     domain="fraud_detection",
-    conditions={
-        "type": "condition",
-        "field": "amount",
-        "op": ">",
-        "value": 5000,
-    },
+    conditions=F("amount") > 5000,
     action="manual_review",
     priority=100,
 )
@@ -54,28 +49,17 @@ Actions: ['manual_review']
 Rules can have nested boolean logic:
 
 ```python
+from fluxrules import F, PhreakEngine, Rule
+
 rule = Rule(
     name="risky_payment",
     domain="fraud_detection",
-    conditions={
-        "type": "group",
-        "op": "AND",  # All children must be true
-        "children": [
-            {"type": "condition", "field": "amount", "op": ">", "value": 2000},
-            {
-                "type": "group",
-                "op": "OR",  # At least one child must be true
-                "children": [
-                    {"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
-                    {"type": "condition", "field": "ip_risk_score", "op": ">=", "value": 70},
-                ],
-            },
-            {
-                "type": "not",  # This condition must be false
-                "condition": {"type": "condition", "field": "verified_user", "op": "==", "value": True},
-            },
-        ],
-    },
+    # & means all must hold, | means either suffices, ~ means must be false
+    conditions=(
+        (F("amount") > 2000)
+        & ((F("country").isin(["NG", "SN"])) | (F("ip_risk_score") >= 70))
+        & ~(F("verified_user") == True)
+    ),
     action="block_payment",
     priority=100,
 )
@@ -96,16 +80,18 @@ print(result.fired_rules)  # [1]
 Load multiple rules at once:
 
 ```python
+from fluxrules import F
+
 rules = [
     Rule(
         name="high_value",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+        conditions=F("amount") > 5000,
         action="manual_review",
         priority=100,
     ),
     Rule(
         name="high_risk_country",
-        conditions={"type": "condition", "field": "country", "op": "in", "value": ["NG", "SN"]},
+        conditions=F("country").isin(["NG", "SN"]),
         action="block_payment",
         priority=110,
     ),

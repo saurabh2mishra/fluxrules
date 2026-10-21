@@ -37,12 +37,14 @@ from fluxrules.domain.errors import (
     CorruptStoredRuleError,
     CyclicDependencyError,
     EmptyRuleLogicError,
+    FieldNotFoundError,
     FluxRulesError,
     InvalidRuleError,
     LossyConditionRebuildError,
     LossyConditionViewWarning,
     UnknownOperatorError,
 )
+from fluxrules.domain.field import Condition, F, Field
 from fluxrules.domain.models import EngineRule as _EngineRule
 from fluxrules.domain.models import EvaluationResult, Ruleset
 from fluxrules.domain.rule_builder import ConditionBuilder, RuleBuilder
@@ -163,6 +165,7 @@ def explain(execution_id: str) -> dict[str, object]:
 __all__ = [
     "AuditService",
     "BaseEngine",
+    "Condition",
     "ConditionBuilder",
     "ConfigValidationError",
     "CorruptStoredRuleError",
@@ -176,6 +179,9 @@ __all__ = [
     "EngineConfig",
     "EvaluationResult",
     "EvaluationService",
+    "F",
+    "Field",
+    "FieldNotFoundError",
     "FluxRulesError",
     "IDStrategy",
     "InvalidRuleError",

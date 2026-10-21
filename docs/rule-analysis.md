@@ -11,11 +11,11 @@ Analyze rules for coverage, conflicts, and dead rules.
 Check which rules are actually firing:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
-rule1 = Rule(name="rule1", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="allow")
-rule2 = Rule(name="rule2", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule1 = Rule(name="rule1", conditions=F("status") == "active", action="allow")
+rule2 = Rule(name="rule2", conditions=F("amount") > 5000, action="flag")
 rules = [rule1, rule2]
 
 engine = PhreakEngine()
@@ -58,8 +58,8 @@ from fluxrules.engine.phreak import PhreakEngine
 
 # Setup rules and engine
 rules = [
-    Rule(name="rule1", conditions={"type": "condition", "field": "status", "op": "==", "value": "active"}, action="allow"),
-    Rule(name="rule2", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag"),
+    Rule(name="rule1", conditions=F("status") == "active", action="allow"),
+    Rule(name="rule2", conditions=F("amount") > 5000, action="flag"),
 ]
 engine = PhreakEngine()
 engine.load_rules(rules)

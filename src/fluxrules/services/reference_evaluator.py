@@ -121,6 +121,10 @@ class ReferenceEvaluator(EnginePort):
             return False
         for condition in rule.condition_nodes:
             if condition.fact not in facts:
+                from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
+
+                if is_field_typo(condition.fact, facts):
+                    raise FieldNotFoundError.for_field(condition.fact, facts)
                 return False
             if not evaluate_operator(condition.operator, facts[condition.fact], condition.value):
                 return False

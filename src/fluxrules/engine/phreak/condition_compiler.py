@@ -166,8 +166,13 @@ def _compile_leaf(condition: dict[str, Any], flags: _Flags) -> CompiledCondition
     )
 
     def _leaf(facts: dict[str, Any]) -> bool:
-        present = field in facts
-        return op_call(facts.get(field), field_present=present)
+        if field not in facts:
+            from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
+
+            if is_field_typo(field, facts):
+                raise FieldNotFoundError.for_field(field, facts)
+            return op_call(facts.get(field), field_present=False)
+        return op_call(facts[field], field_present=True)
 
     return _leaf
 

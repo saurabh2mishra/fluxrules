@@ -9,12 +9,12 @@ The `Rule` class is a Pydantic v2 model. This guide covers all fields and valida
 ## Rule fields
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 rule = Rule(
     # Core (required)
     name="high_value_transaction",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     
     # Core (optional)
     domain="fraud_detection",                     # Logical grouping (default: "default")
@@ -40,26 +40,33 @@ rule = Rule(
 
 ## Condition tree format
 
-The `conditions` field defines rule logic:
+The `conditions` field defines rule logic. Write it with `F` expressions:
 
 ```python
+from fluxrules import F
+
 # Simple condition
-{"type": "condition", "field": "amount", "op": ">", "value": 5000}
+F("amount") > 5000
 
 # AND/OR grouping
+(F("amount") > 5000) & (F("country") == "US")
+
+# NOT operator
+~(F("verified") == True)
+```
+
+Each expression is stored as a dictionary tree. A plain dictionary is accepted
+anywhere an `F` expression is, for example when rules come from YAML or a
+database:
+
+```python
 {
     "type": "group",
     "op": "AND",
     "children": [
         {"type": "condition", "field": "amount", "op": ">", "value": 5000},
-        {"type": "condition", "field": "country", "op": "==", "value": "US"}
-    ]
-}
-
-# NOT operator
-{
-    "type": "not",
-    "condition": {"type": "condition", "field": "verified", "op": "==", "value": True}
+        {"type": "condition", "field": "country", "op": "==", "value": "US"},
+    ],
 }
 ```
 
@@ -95,9 +102,11 @@ except ValidationError as e:
 
 ```python
 # python skip
+from fluxrules import F
+
 rule = Rule(
     name="check",
-    conditions={"type": "condition", "field": "status", "op": "==", "value": "pending"},
+    conditions=F("status") == "pending",
     tags=frozenset(["tier_1", "fraud", "manual_review"]),
     persist=False,
 )
@@ -109,12 +118,12 @@ print(rule.tags)  # frozenset({'tier_1', 'fraud', 'manual_review'})
 ### Multiple actions
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 # Action is a single string
 rule = Rule(
     name="suspicious",
-    conditions={"type": "condition", "field": "risk_score", "op": ">", "value": 75},
+    conditions=F("risk_score") > 75,
     action="block",  # Single action
     persist=False,
 )
@@ -125,12 +134,12 @@ print(rule.action)  # "block"
 ### Priority for ordering
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 rules = [
-    Rule(name="urgent", conditions={"type": "condition", "field": "status", "op": "==", "value": "critical"}, priority=100, persist=False),
-    Rule(name="normal", conditions={"type": "condition", "field": "status", "op": "==", "value": "warning"}, priority=10, persist=False),
-    Rule(name="low", conditions={"type": "condition", "field": "status", "op": "==", "value": "info"}, priority=1, persist=False),
+    Rule(name="urgent", conditions=F("status") == "critical", priority=100, persist=False),
+    Rule(name="normal", conditions=F("status") == "warning", priority=10, persist=False),
+    Rule(name="low", conditions=F("status") == "info", priority=1, persist=False),
 ]
 
 # Higher priority evaluated first

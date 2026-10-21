@@ -136,6 +136,10 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
     if ctype == "condition":
         field = dsl.get("field", "")
         if field not in facts:
+            from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
+
+            if is_field_typo(field, facts):
+                raise FieldNotFoundError.for_field(field, facts)
             return False
         return evaluate_operator(dsl.get("op", "=="), facts[field], dsl.get("value"))
 

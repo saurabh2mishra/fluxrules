@@ -70,8 +70,8 @@ rule_engine.db-shm
 # Optional generated docs/assets
 mkdocs_material/
 
-# Claude Code — keep local only, do not publish to remote.
+# Claude Code - keep local only, do not publish to remote.
 .claude/
 
-# Local research notes — never committed.
+# Local research notes - never committed.
 .research/

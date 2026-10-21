@@ -9,18 +9,18 @@ FluxRules automatically generates rule IDs. By default, IDs are sequential integ
 ## Auto-generated IDs
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 rule1 = Rule(
     name="check_1",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions=F("amount") > 0,
     persist=False,
 )
 print(rule1.id)  # 1
 
 rule2 = Rule(
     name="check_2",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions=F("amount") > 0,
     persist=False,
 )
 print(rule2.id)  # 2
@@ -31,10 +31,12 @@ print(rule2.id)  # 2
 Override auto-generation with the `id` parameter:
 
 ```python
+from fluxrules import F
+
 rule = Rule(
     id=999,  # Custom ID
     name="custom_id_rule",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions=F("amount") > 0,
     persist=False,
 )
 print(rule.id)  # 999
@@ -49,13 +51,14 @@ print(rule.id)  # 999
 When you persist rules to the database, the database assigns final IDs:
 
 ```python
+from fluxrules import F
 from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
 
 service = RuleService.create()
 rule = Rule(
     name="will_be_persisted",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 0},
+    conditions=F("amount") > 0,
     persist=True,  # Will store in database
 )
 

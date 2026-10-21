@@ -13,14 +13,14 @@ FluxRules rules can be persisted to a database. Use persistence when you need to
 ## Quick start: Store and load rules
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Create rules
 rules = [
     Rule(
         name="high_value_transaction",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+        conditions=F("amount") > 5000,
         action="require_approval",
     ),
 ]
@@ -46,9 +46,11 @@ defines rules never opens a database connection. To store a rule you built
 in memory, call `Rule.save()`:
 
 ```python
+from fluxrules import F
+
 rule = Rule(
     name="production_rule",
-    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions=F("x") > 10,
     action="act",
 )
 rule.save()  # now in the database, rule.id is the stored ID
@@ -60,9 +62,11 @@ you need update semantics.
 
 ```python
 # Persisted rule (stored in database)
+from fluxrules import F
+
 rule1 = Rule(
     name="production_rule",
-    conditions={"type": "condition", "field": "x", "op": ">", "value": 10},
+    conditions=F("x") > 10,
     action="act",
     persist=True,  # Database storage
 )
@@ -70,7 +74,7 @@ rule1 = Rule(
 # Temporary rule (in-memory only)
 rule2 = Rule(
     name="test_rule",
-    conditions={"type": "condition", "field": "y", "op": "==", "value": "test"},
+    conditions=F("y") == "test",
     action="test_act",
     persist=False,  # No database storage
 )
@@ -107,11 +111,11 @@ FluxRules auto-initializes the database on first use if not called explicitly.
 Every rule evaluation produces an audit trail automatically:
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 # Setup engine and rules
-rule = Rule(name="test", conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}, action="flag")
+rule = Rule(name="test", conditions=F("amount") > 5000, action="flag")
 engine = PhreakEngine()
 engine.load_rules([rule])
 
@@ -140,7 +144,7 @@ Persist audit records to your logging backend as needed.
 
 - **SQLite** (default, development, single-file)
 - **PostgreSQL** (production, scales to 100K+ rules)
-- **MySQL, SQL Server, and any other SQLAlchemy-supported dialect** — via the ServiceFactory path below; see the note on `backend` in that section
+- **MySQL, SQL Server, and any other SQLAlchemy-supported dialect** - via the ServiceFactory path below; see the note on `backend` in that section
 
 ---
 
@@ -153,7 +157,7 @@ environment variables.
 In real applications you typically configure a connection once at startup (e.g. in a
 FastAPI lifespan handler). When you register a persistence adapter with `ServiceFactory`,
 `persist=True` **automatically delegates to that adapter** instead of the default
-SQLite path — no other changes needed.
+SQLite path - no other changes needed.
 
 ### FastAPI + PostgreSQL example
 
@@ -166,7 +170,7 @@ from fastapi import FastAPI
 
 from fluxrules.config import PersistenceConfig, RuntimeConfig
 from fluxrules.di import ServiceFactory
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 DATABASE_URL = "postgresql://user:pass@db.example.com/fluxrules"
 engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
@@ -184,17 +188,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Anywhere in your app — persist=True now writes to Postgres, not SQLite.
+# Anywhere in your app - persist=True now writes to Postgres, not SQLite.
 rule = Rule(
     name="kyc_verified",
     domain="compliance",
-    conditions={"type": "condition", "field": "kyc_status", "op": "==", "value": "verified"},
+    conditions=F("kyc_status") == "verified",
     action="proceed",
     persist=True,
 )
 ```
 
-`SQLAlchemyPersistenceAdapter` is dialect-agnostic — it works with any database
+`SQLAlchemyPersistenceAdapter` is dialect-agnostic - it works with any database
 SQLAlchemy supports (PostgreSQL, MySQL, SQL Server, SQLite). The key thing to know:
 `backend="postgres"` is the configuration value that activates the SQLAlchemy path
 in `ServiceFactory`, regardless of the actual database dialect. Change the
@@ -208,24 +212,24 @@ DATABASE_URL = "mysql+pymysql://user:pass@db.example.com/fluxrules"
 DATABASE_URL = "mssql+pyodbc://user:pass@db.example.com/fluxrules?driver=ODBC+Driver+17+for+SQL+Server"
 ```
 
-The rest of the setup — `session_provider`, `ServiceFactory.create_persistence_adapter()` —
+The rest of the setup - `session_provider`, `ServiceFactory.create_persistence_adapter()` -
 is identical.
 
 ### Priority order
 
 When `persist=True` is used, fluxrules checks in this order:
 
-1. **ServiceFactory adapter** — if one is registered and it is not the in-memory
+1. **ServiceFactory adapter** - if one is registered and it is not the in-memory
    fallback, it is used. This covers any SQLAlchemy-backed dialect (Postgres, MySQL,
    SQL Server) as long as `backend="postgres"` was set at registration time.
-2. **DBConnectionManager** — the `initialize_persistence()` / env-var path. Used
+2. **DBConnectionManager** - the `initialize_persistence()` / env-var path. Used
    when no ServiceFactory adapter is registered (the common case for standalone
    scripts and simple deployments).
-3. **Fallback** — if neither is reachable, a locally generated ID is assigned and
+3. **Fallback** - if neither is reachable, a locally generated ID is assigned and
    an `INFO`-level log entry is emitted (`"No database configured; using in-memory mode"`).
    The rule is still usable in-memory.
 
-> **Note — table creation:** `ServiceFactory` does not create database tables.
+> **Note - table creation:** `ServiceFactory` does not create database tables.
 > When using the ServiceFactory path you are responsible for running schema
 > migrations before the application starts (e.g. via Alembic). The
 > `initialize_persistence()` helper creates tables automatically and is the

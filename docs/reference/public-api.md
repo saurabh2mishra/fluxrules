@@ -56,7 +56,9 @@ From `fluxrules.engine`:
 From `fluxrules`:
 
 - `Rule` - Pydantic v2 model: `id`, `name`, `domain`, `tags`, `conditions`, `action`, `actions`, `priority`, `enabled`, `persist`
-- `RuleBuilder` / `ConditionBuilder` - Fluent authoring; `RuleBuilder.build()` returns a `Rule`
+- `F` (alias of `Field`) and `Condition` - The recommended way to write `conditions`: `(F("amount") > 5000) & (F("country") == "US")`. See [Authoring Rules](../authoring-rules.md).
+- `RuleBuilder` - Fluent authoring; `RuleBuilder.build()` returns a `Rule`. `RuleBuilder.condition()` accepts an `F` expression or a dictionary.
+- `ConditionBuilder` - Deprecated in favor of `F`; it will be removed in a future release.
 - `Ruleset` - Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
 - `EvaluationResult` - The single result type for every evaluation path.
   `fired_rules` is what matched; `actions` are the collected actions. Also
@@ -97,6 +99,7 @@ except FluxRulesError as exc:
 | `UnknownOperatorError` | `FluxRulesError` | `UNKNOWN_OPERATOR` | A condition names an operator that does not exist |
 | `CyclicDependencyError` | `FluxRulesError` | `CYCLIC_DEPENDENCY` | Rule dependencies form a cycle |
 | `ConditionValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `conditions` tree fails strict validation |
+| `FieldNotFoundError` | `FluxRulesError` | `FIELD_NOT_FOUND` | A condition's field is a case variant of a key in the fact, for example `Amount` against `amount` |
 | `EmptyRuleLogicError` | `InvalidRuleError` | `EMPTY_RULE_LOGIC` | A rule with no condition logic would be stored |
 | `LossyConditionRebuildError` | `InvalidRuleError` | `LOSSY_CONDITION_REBUILD` | A condition tree would be rebuilt from a lossy `.conditions` view |
 

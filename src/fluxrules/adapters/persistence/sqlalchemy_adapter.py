@@ -73,7 +73,7 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
         When a *session_provider* was supplied at construction time the
         provider is called to obtain a session.  Each write method captures
         this property **once** into a local variable so that add/commit/refresh
-        all operate on the same session object — a plain ``sessionmaker``
+        all operate on the same session object - a plain ``sessionmaker``
         returns a new session on every call, so re-accessing the property
         inside a single operation would silently commit an empty transaction.
         """
@@ -85,7 +85,7 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
     # ── Write operations ─────────────────────────────────────────────────────
 
     def save_rule(self, rule: EngineRule, group: str = "", created_by: int | None = None) -> int:
-        db = self.db  # capture once — session_provider may return a new session each call
+        db = self.db  # capture once - session_provider may return a new session each call
         orm_rule = domain_rule_to_orm(rule, group=group, created_by=created_by)
         db.add(orm_rule)
         db.commit()
@@ -102,7 +102,7 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
     def update_rule(self, rule_id: int, **kwargs) -> EngineRule | None:
         from fluxrules.api.models.rule import Rule as OrmRule
 
-        db = self.db  # capture once — session_provider may return a new session each call
+        db = self.db  # capture once - session_provider may return a new session each call
         orm_rule = db.query(OrmRule).filter(OrmRule.id == rule_id).first()
         if orm_rule is None:
             return None
@@ -129,7 +129,7 @@ class SQLAlchemyPersistenceAdapter(RulePersistencePort):
     def delete_rule(self, rule_id: int) -> bool:
         from fluxrules.api.models.rule import Rule as OrmRule
 
-        db = self.db  # capture once — session_provider may return a new session each call
+        db = self.db  # capture once - session_provider may return a new session each call
         orm_rule = db.query(OrmRule).filter(OrmRule.id == rule_id).first()
         if orm_rule is None:
             return False

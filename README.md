@@ -5,9 +5,7 @@
 
 # FluxRules
 
-FluxRules is a Python library for authoring rules and evaluating them against facts. It is loosely based on the concepts from Drools’ Phreak engine.
-
-Use FluxRules to keep decision logic separate from application flow and evaluate rules consistently across facts.
+FluxRules is a lightweight Python library for defining and managing business rules. It evaluates rules against facts using a fast, deterministic engine inspired by Drools’ Phreak algorithm.
 
 ## Core Capabilities
 
@@ -23,33 +21,28 @@ Use FluxRules to keep decision logic separate from application flow and evaluate
 
 ## Installation
 
-For local development, clone the repository and install the project with uv:
+Install FluxRules from [PyPI](https://pypi.org/project/fluxrules/):
 
 ```bash
-git clone https://github.com/fluxrules/fluxrules.git
-cd fluxrules
-uv sync --extra dev
+pip install fluxrules
 ```
 
-This creates the project environment and installs FluxRules with its development
-tools. To install the published package in a virtual environment managed by uv:
+Or, if you use [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv venv
-uv pip install fluxrules
+uv add fluxrules
 ```
 
-Install an optional extra in the checkout with `uv sync`, for example:
+The base package is all you need to write and evaluate rules. Add an extra only for the feature you want:
 
 ```bash
-uv sync --extra api
-uv sync --extra sql
-uv sync --extra redis
-uv sync --extra otel
-uv sync --extra yaml
-uv sync --extra cli
-uv sync --extra docs
-uv sync --extra all
+pip install 'fluxrules[api]'     # HTTP endpoints
+pip install 'fluxrules[sql]'     # database persistence
+pip install 'fluxrules[redis]'   # Redis persistence
+pip install 'fluxrules[otel]'    # OpenTelemetry tracing
+pip install 'fluxrules[yaml]'    # load rules from YAML
+pip install 'fluxrules[cli]'     # command-line tool
+pip install 'fluxrules[all]'     # everything above
 ```
 
 For more details see the [installation guide](docs/installation.md).
@@ -57,11 +50,11 @@ For more details see the [installation guide](docs/installation.md).
 ## Your First Rule
 
 ```python
-from fluxrules import Rule, evaluate
+from fluxrules import F, Rule, evaluate
 
 rule = Rule(
     name="high_value_transaction",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="manual_review",
 )
 
@@ -77,19 +70,22 @@ Fired rules: [1]
 Actions: ['manual_review']
 ```
 
-Constructing a `Rule` does no I/O and `evaluate()` takes rules directly, so
-there is nothing to configure to get an answer. `evaluate()` also accepts a list
-of rules, or a named `Ruleset`.
+You do not need a database, a server, or any setup to get a result: creating a
+`Rule` touches nothing external, and `evaluate()` runs the rules you pass it
+right away. You can pass a single rule, a list of rules, or a
+[Ruleset](https://github.com/saurabh2mishra/fluxrules/blob/main/src/fluxrules/domain/models.py#L171-L182) (a named group of rules).
+
+How to write rule(s)? [Authoring Rules](docs/authoring-rules.md) 
 
 ## Using the engine directly
 
 ```python
-from fluxrules import PhreakEngine, Rule
+from fluxrules import F, PhreakEngine, Rule
 
 rule = Rule(
     name="high_value_transaction",
     domain="payments",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="manual_review",
     priority=100,
 )
@@ -142,13 +138,14 @@ Within a single call, identical sub-expressions are evaluated once and reused ac
 
 ### Design choices
 
-fluxrules is built around one idea: **evaluate(facts) is a pure function**. Every call is independent. There is no shared state between calls, no side-effects, and no memory of previous evaluations. This makes it safe to run across threads, processes, or load-balanced instances without coordination.
+By default, FluxRules is **stateless**. Each `evaluate(facts)` call stands on its own: it reads the facts you pass in, returns what matched, and keeps nothing afterwards. Because calls share no state, you can run them in parallel across threads, processes, or servers with no coordination.
 
-That choice drives everything else:
+Two features keep state on purpose, and you opt into each:
 
-- Rules are evaluated against one fact dictionary at a time. Cross-fact rules (joining two entity types) use a separate `CrossFactEngine`.
-- There is no truth maintenance. fluxrules does not track which rules fired previously or retract consequences when facts change.
-- Streaming mode (`streaming_mode=True`) is the one exception: it caches condition results across calls for long-lived engine instances. Use it when you own the engine lifecycle (a single-process event loop). Use stateless mode everywhere else.
+- **Streaming mode** (`streaming_mode=True`): a long-lived engine remembers results between calls and skips work that has not changed, so repeated evaluations on the same engine run faster. Use it when you own that engine (for example, a single-process event loop). Use the stateless default everywhere else.
+- **Cross-fact joins** (`CrossFactEngine`): to match a rule across more than one fact (say, an order and its customer), the engine holds those facts in memory so it can line them up.
+
+FluxRules does no truth maintenance: when facts change, it does not undo rules that fired earlier. Each run just reports what matches right now.
 
 ### Lazy evaluation
 
@@ -161,16 +158,20 @@ fluxrules skips work at every level it can:
 
 ## Documentation
 
-[DOCS](https://saurabh2mishra.github.io/fluxrules/)
+[Docs](https://saurabh2mishra.github.io/fluxrules/)
+
+## Architecture 
+
+[Architecture](https://saurabh2mishra.github.io/fluxrules/architecture/)
 
 ## Contributing
 
-[CONTRIBUTING](CONTRIBUTING.md) & [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
+[Contributing](CONTRIBUTING.md) & [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Security
 
-[SECURITY](SECURITY.md)
+[Security](SECURITY.md)
 
 ## License
 
-[LICENSE](LICENSE)
+[License](LICENSE)

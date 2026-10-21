@@ -34,11 +34,11 @@ python -m fluxrules.api.app --port 8001
 2. **Check fact format:** Ensure fact keys match condition field names
 ```python
 # python skip
-   from fluxrules import Rule
+   from fluxrules import F, Rule
    
    # Rule expects "amount" field
    rule = Rule(
-       conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000}
+       conditions=F("amount") > 5000
    )
    
    # Fact must have "amount"

@@ -1,6 +1,6 @@
 # Rule Builder
 
-**Prerequisites:** [Concepts](concepts.md) (Rule) and [Conditions](conditions.md) (condition tree).
+**Prerequisites:** [Concepts](concepts.md) (Rule), [Authoring Rules](authoring-rules.md) and [Conditions](conditions.md) (condition tree).
 
 ---
 
@@ -10,8 +10,11 @@ path produces, so the result goes straight into an engine with no conversion.
 
 ## Basic usage
 
+`.condition()` accepts an `F` expression or a raw dict - both compile to the
+same condition tree.
+
 ```python
-from fluxrules import PhreakEngine, RuleBuilder
+from fluxrules import F, PhreakEngine, RuleBuilder
 
 rule = (
     RuleBuilder()
@@ -19,7 +22,7 @@ rule = (
     .group("fraud_detection")
     .tag("tier_1", "manual_review")
     .priority(10)
-    .condition({"type": "condition", "field": "amount", "op": ">", "value": 5000})
+    .condition(F("amount") > 5000)
     .action("require_approval")
     .build()
 )
@@ -33,12 +36,12 @@ print(f"Fired: {result.fired_rules}")
 `build()` returns a `Rule`, so it also works with the top-level `evaluate()`:
 
 ```python
-from fluxrules import RuleBuilder, evaluate
+from fluxrules import F, RuleBuilder, evaluate
 
 rule = (
     RuleBuilder()
     .name("adult")
-    .condition({"type": "condition", "field": "age", "op": ">=", "value": 18})
+    .condition(F("age") >= 18)
     .action("allow")
     .build()
 )
@@ -51,7 +54,7 @@ print(evaluate(rule, {"age": 30}).fired_rules)
 | Method | Purpose | Returns |
 |--------|---------|---------|
 | `.name(str)` | Set rule name (required) | Builder |
-| `.condition(dict)` | Set condition tree, parsed and validated now (required) | Builder |
+| `.condition(F(...) or dict)` | Set condition tree - accepts `F` expression or raw dict (required) | Builder |
 | `.action(str)` | Append an action; call repeatedly for several | Builder |
 | `.priority(int)` | Set priority, higher evaluates first | Builder |
 | `.group(str)` | Set the group/domain | Builder |
@@ -73,12 +76,12 @@ print(evaluate(rule, {"age": 30}).fired_rules)
 Call `.action()` once per action. They fire in the order added.
 
 ```python
-from fluxrules import RuleBuilder, evaluate
+from fluxrules import F, RuleBuilder, evaluate
 
 rule = (
     RuleBuilder()
     .name("escalate")
-    .condition({"type": "condition", "field": "risk", "op": ">", "value": 90})
+    .condition(F("risk") > 90)
     .action("notify_compliance")
     .action("freeze_account")
     .build()
@@ -90,27 +93,28 @@ print(result.actions)
 
 ## Building complex conditions
 
-`ConditionBuilder` assembles nested boolean logic without writing condition tree dicts by
-hand.
+Compose conditions with `&`, `|`, and `~` directly on `F` expressions:
 
 ```python
-from fluxrules import ConditionBuilder, PhreakEngine, RuleBuilder
+from fluxrules import F, PhreakEngine, RuleBuilder
 
-cb = ConditionBuilder()
-dsl = cb.and_group(
-    {"type": "condition", "field": "amount", "op": ">", "value": 5000},
-    {"type": "condition", "field": "country", "op": "in", "value": ["NG", "GH"]},
-).build()
-
-rule = RuleBuilder().name("complex_rule").condition(dsl).action("review").build()
+rule = (
+    RuleBuilder()
+    .name("complex_rule")
+    .condition(
+        (F("amount") > 5000) & (F("country").isin(["NG", "GH"]))
+    )
+    .action("review")
+    .build()
+)
 
 engine = PhreakEngine()
 engine.load_rules([rule])
 print(f"Fired: {engine.evaluate({'amount': 6000, 'country': 'NG'}).fired_rules}")
 ```
 
-Use `.or_group(...)` the same way for disjunctions, and nest the dicts it
-returns to build deeper trees.
+`ConditionBuilder` is still available for dict-based composition but is
+superseded by the F DSL for new code.
 
 ## Validation
 
@@ -119,13 +123,11 @@ The builder fails at the point of the mistake rather than at evaluation time.
 required fields are present.
 
 ```python
-from fluxrules import RuleBuilder
+from fluxrules import F, RuleBuilder
 from fluxrules.exceptions import RuleValidationError
 
 try:
-    RuleBuilder().condition(
-        {"type": "condition", "field": "x", "op": ">", "value": 1}
-    ).build()
+    RuleBuilder().condition(F("x") > 1).build()
 except RuleValidationError as e:
     print(f"Invalid rule: {e}")
 ```

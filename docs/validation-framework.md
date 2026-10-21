@@ -28,18 +28,13 @@ The validation system catches errors early with clear error messages.
 from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 from fluxrules.domain import Rule
 
-# Define a rule with a condition tree
+# Define a rule - F DSL is the recommended authoring format
+from fluxrules import F
+
 rule = Rule(
     name="high_amount_check",
-    conditions={
-        "type": "group",
-        "op": "AND",
-        "children": [
-            {"type": "condition", "field": "amount", "op": ">", "value": 5000},
-            {"type": "condition", "field": "country", "op": "in", "value": ["US", "CA"]}
-        ]
-    },
-    action="review"
+    conditions=(F("amount") > 5000) & (F("country").isin(["US", "CA"])),
+    action="review",
 )
 
 # Validate the condition tree
@@ -51,6 +46,9 @@ except ConditionValidationError as e:
 ```
 
 ### Common Validation Errors
+
+These examples are written as dictionaries on purpose: `F` expressions can only
+build valid nodes, so a hand-written dictionary is how an invalid one appears.
 
 **Invalid operator:**
 ```python
@@ -99,6 +97,10 @@ Tests a single field against a value using an operator.
 **Valid operators:** `==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `not_in`, `contains`, `not_contains`
 
 ```python
+from fluxrules import F
+
+F("amount") >= 1000
+# stored as:
 {"type": "condition", "field": "amount", "op": ">=", "value": 1000}
 ```
 
@@ -111,6 +113,10 @@ Combines multiple conditions with AND or OR logic.
 **Valid op values:** `"AND"`, `"OR"` (case-insensitive; both uppercase and lowercase work)
 
 ```python
+from fluxrules import F
+
+(F("amount") > 100) & (F("status") == "active")
+# stored as:
 {
     "type": "group",
     "op": "AND",
@@ -128,6 +134,10 @@ Negates a condition.
 **Required fields:** `type`, `condition`
 
 ```python
+from fluxrules import F
+
+~(F("status") == "blocked")
+# stored as:
 {
     "type": "not",
     "condition": {"type": "condition", "field": "status", "op": "==", "value": "blocked"}
@@ -158,22 +168,27 @@ The validation happens automatically at rule creation. If validation fails, beha
 The shared payment-risk dataset includes a validation example in [Example 04](examples.md):
 
 ```python
+from fluxrules import F, Rule, validate
 from fluxrules.domain.conditions.validation import ConditionValidationError, validate_conditions
 
-# Validate a nested condition tree
-nested_condition = {
-    "type": "group",
-    "op": "AND",
-    "children": [
-        {"type": "condition", "field": "amount", "op": ">", "value": 5000},
-        {"type": "group", "op": "OR", "children": [
-            {"type": "condition", "field": "country", "op": "in", "value": ["CN", "RU"]},
-            {"type": "condition", "field": "ip_risk_score", "op": ">=", "value": 85}
-        ]}
-    ]
-}
+# Author with F DSL, validate with the top-level API
+rule = Rule(
+    name="fraud_check",
+    conditions=(
+        (F("amount") > 5000)
+        & (
+            (F("country").isin(["CN", "RU"]))
+            | (F("ip_risk_score") >= 85)
+        )
+    ),
+    action="block",
+)
 
-validate_conditions(nested_condition)  # ✅ Passes
+issues = validate([rule])
+assert issues == []  # ✅ Passes
+
+# Or validate the underlying condition tree directly
+validate_conditions(rule.conditions)  # ✅ Passes
 ```
 
 See [Example 04: Validation](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py) for complete working code.
@@ -219,20 +234,24 @@ except ConditionValidationError as e:
 
 ## Valid Operators Reference
 
-The 10 valid operators are:
+The 13 valid operators are below. The comparison operators also accept the word
+aliases `eq`, `ne`, `gt`, `gte`, `lt` and `lte` in dictionary and YAML rules.
 
-| Operator | Type | Example | Use Case |
-|----------|------|---------|----------|
-| `==` | Equality | `"op": "=="` | Exact match |
-| `!=` | Inequality | `"op": "!="` | Not equal |
-| `>` | Greater than | `"op": ">"` | Greater than (numeric) |
-| `>=` | Greater or equal | `"op": ">="` | Greater or equal (numeric) |
-| `<` | Less than | `"op": "<"` | Less than (numeric) |
-| `<=` | Less or equal | `"op": "<="` | Less or equal (numeric) |
-| `in` | Membership | `"op": "in", "value": [...]` | One of multiple values |
-| `not_in` | Non-membership | `"op": "not_in", "value": [...]` | Not in list |
-| `contains` | String contains | `"op": "contains"` | Substring match |
-| `not_contains` | String doesn't contain | `"op": "not_contains"` | Substring not found |
+| `"op"` | F expression | Use case |
+|--------|--------------|----------|
+| `==` | `F("x") == v` | Exact match |
+| `!=` | `F("x") != v` | Not equal |
+| `>` | `F("x") > v` | Greater than (numeric) |
+| `>=` | `F("x") >= v` | Greater or equal (numeric) |
+| `<` | `F("x") < v` | Less than (numeric) |
+| `<=` | `F("x") <= v` | Less or equal (numeric) |
+| `in` | `F("x").isin([...])` | One of several values |
+| `not_in` | `F("x").not_in([...])` | Not one of several values |
+| `contains` | `F("x").contains(v)` | Collection or string contains a value |
+| `not_contains` | `F("x").not_contains(v)` | Does not contain a value |
+| `starts_with` | `F("x").starts_with(v)` | String prefix |
+| `ends_with` | `F("x").ends_with(v)` | String suffix |
+| `regex` | `F("x").regex(p)` | Regular expression match |
 
 **Source:** `src/fluxrules/engine/operators.py` (VALID_OPERATORS)
 

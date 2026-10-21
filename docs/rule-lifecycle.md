@@ -9,14 +9,14 @@ A rule's lifecycle consists of: **Create** → **Load** → **Validate** → **E
 ## Create a rule
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 rule = Rule(
     name="high_value_transaction",
     domain="fraud_detection",
     tags=frozenset(["tier_1", "manual_review"]),
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="require_approval",
     priority=10,
     persist=True,  # Enable database persistence
@@ -42,18 +42,18 @@ print(f"Rule created: {rule.name} (ID: {rule.id})")
 ### From Python code (temporary)
 
 ```python
-from fluxrules import Rule
+from fluxrules import F, Rule
 
 rules = [
     Rule(
         name="rule1",
-        conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+        conditions=F("amount") > 1000,
         action="act1",
         persist=False,
     ),
     Rule(
         name="rule2",
-        conditions={"type": "condition", "field": "country", "op": "==", "value": "US"},
+        conditions=F("country") == "US",
         action="act2",
         persist=False,
     ),
@@ -86,10 +86,11 @@ rules = [Rule(**r) for r in rules_dicts]
 ## Validate a rule
 
 ```python
+from fluxrules import F
 from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 
 # Validate condition tree syntax before creating a rule
-dsl = {"type": "condition", "field": "amount", "op": ">", "value": 5000}
+dsl = (F("amount") > 5000).to_dict()
 
 try:
     validate_conditions(dsl)
@@ -154,9 +155,11 @@ Rules are **immutable** once created. To change a rule, create a new Rule with t
 ```python
 # python skip
 # Original rule
+from fluxrules import F
+
 old_rule = Rule(
     name="check_amount",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 1000},
+    conditions=F("amount") > 1000,
     action="flag",
     persist=True,
 )
@@ -164,7 +167,7 @@ old_rule = Rule(
 # Updated rule (new instance)
 new_rule = Rule(
     name="check_amount",
-    conditions={"type": "condition", "field": "amount", "op": ">", "value": 5000},
+    conditions=F("amount") > 5000,
     action="flag",
     persist=True,
 )

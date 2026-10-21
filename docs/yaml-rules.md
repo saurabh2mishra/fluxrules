@@ -1,6 +1,6 @@
 # YAML Rules
 
-**Prerequisites:** [Conditions](conditions.md) and [Rule Types](rule-types.md).
+**Prerequisites:** [Authoring Rules](authoring-rules.md), [Conditions](conditions.md) and [Rule Types](rule-types.md).
 
 FluxRules provides a YAML file loader. It returns rule mappings; the canonical
 `Rule` model remains the validation boundary before rules are passed to

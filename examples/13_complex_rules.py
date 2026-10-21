@@ -19,7 +19,7 @@ def main() -> None:
 
     print("Complex DSL structure (8-condition tree with nested OR/AND/NOT):")
     import json
-    dsl = complex_risk_condition()
+    dsl = complex_risk_condition().to_dict()
     print(json.dumps(dsl, indent=2)[:500] + "...")  # Print first 500 chars
     print()
 
