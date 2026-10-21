@@ -1,8 +1,42 @@
-"""Batch 3 example: action registry patterns over shared use case."""
+"""Batch 3 example: what the action registry knows about each action.
 
-from fluxrules.engine.phreak import PhreakEngine
+Registering a handler with ``@action`` records more than the function. The
+registry keeps a description and a category for each action, inspects its
+parameters, and can run it synchronously or, for ``async_handler=True``, with
+``await``. This lets a service list its actions, group them, and check a call's
+arguments before running it.
 
-from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
+See 15_action_system.py for dispatching fired actions after evaluation.
+"""
+
+from __future__ import annotations
+
+import asyncio
+
+from shared_use_case import SHARED_FACTS, USE_CASE_NAME
+
+from fluxrules.plugins.actions import action, action_registry
+
+
+@action(name="notify_risk_team", description="Post to the risk team channel", category="notifications")
+def notify_risk_team(fact_id: str, reason: str = "rule fired") -> dict:
+    return {"notified": "risk-team", "fact_id": fact_id, "reason": reason}
+
+
+@action(name="email_customer", description="Email the cardholder", category="notifications")
+def email_customer(fact_id: str, template: str = "payment_on_hold") -> dict:
+    return {"emailed": True, "fact_id": fact_id, "template": template}
+
+
+@action(
+    name="record_case",
+    description="Store a case in the case system",
+    category="case_management",
+    async_handler=True,
+)
+async def record_case(fact_id: str, amount: float) -> dict:
+    await asyncio.sleep(0)  # stands in for a database or HTTP call
+    return {"case_id": f"case-{fact_id}", "amount": amount}
 
 
 def main() -> None:
@@ -11,28 +45,23 @@ def main() -> None:
     print(f"Use case: {USE_CASE_NAME}")
     print("=" * 80)
 
-    rules = build_shared_rules()
+    print("\nRegistered actions:")
+    for name in sorted(action_registry.list_actions()):
+        info = action_registry.get(name)
+        print(f"  {info.name:18} category={info.category:16} {info.description}")
 
-    # Extract unique actions from rules
-    unique_actions = set()
-    for rule in rules:
-        unique_actions.add(rule.action)
+    notifications = action_registry.get_actions_by_category("notifications")
+    print(f"\nIn category 'notifications': {sorted(a.name for a in notifications)}")
 
-    print(f"Loaded {len(rules)} rules with {len(unique_actions)} unique actions.")
-    print(f"Registry: {unique_actions}\n")
+    print(f"\nParameters of notify_risk_team: {action_registry.get_action_signature('notify_risk_team')}")
 
-    engine = PhreakEngine()
-    engine.load_rules(rules)
-
-    action_counts = {}
-    for fact in SHARED_FACTS:
-        result = engine.evaluate(fact)
-        for action in result.actions:
-            action_counts[action] = action_counts.get(action, 0) + 1
-
-    print("Action execution counts:")
-    for action, count in sorted(action_counts.items()):
-        print(f"  {action}: {count}")
+    fact = SHARED_FACTS[0]
+    print(f"\nRun handlers for {fact['fact_id']}:")
+    print(f"  sync:  {action_registry.execute('notify_risk_team', fact_id=fact['fact_id'])}")
+    case = asyncio.run(
+        action_registry.execute_async("record_case", fact_id=fact["fact_id"], amount=fact["amount"])
+    )
+    print(f"  async: {case}")
 
 
 if __name__ == "__main__":

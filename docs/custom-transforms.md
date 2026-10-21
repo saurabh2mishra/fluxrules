@@ -21,7 +21,7 @@ class MyTransform(Transform):
         return TransformMetadata(
             name="my_transform",
             description="My custom transform",
-            category="enrichment",
+            output_fields=["enriched_field"],
         )
 
     def __call__(self, fact: dict[str, Any]) -> dict[str, Any]:
@@ -49,7 +49,8 @@ class GeoEnricher(Transform):
         return TransformMetadata(
             name="geo_enricher",
             description="Add geographic risk scores",
-            category="enrichment",
+            required_input_fields=["country"],
+            output_fields=["geo_risk_score", "geo_region"],
         )
 
     def __call__(self, fact: dict[str, Any]) -> dict[str, Any]:

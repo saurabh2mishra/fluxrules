@@ -1,0 +1,44 @@
+# Rules for the shared cross-border payment risk use case, loaded by
+# 07_yaml_rules.py. Each entry is a complete rule: metadata and conditions.
+# The conditions use the same dict format that F expressions produce.
+
+- id: 1
+  name: cross_border_risk_triage
+  domain: fraud_detection
+  tags: [tier_0, cross_border]
+  priority: 100
+  action: manual_review
+  conditions:
+    type: group
+    op: AND
+    children:
+      - {type: condition, field: amount, op: ">", value: 2000}
+      - {type: condition, field: velocity_1h, op: ">=", value: 3}
+      - {type: condition, field: chargeback_ratio, op: ">", value: 0.08}
+      - type: group
+        op: OR
+        children:
+          - {type: condition, field: country, op: in, value: [NG, SN, GH]}
+          - {type: condition, field: ip_risk_score, op: ">=", value: 70}
+      - type: group
+        op: OR
+        children:
+          - {type: condition, field: device_age_days, op: "<", value: 7}
+          - {type: condition, field: account_age_days, op: "<", value: 14}
+      - type: not
+        condition: {type: condition, field: email_domain, op: ends_with, value: trusted.example}
+      - {type: condition, field: payment_method, op: in, value: [crypto, prepaid_card]}
+      - {type: condition, field: tags, op: contains, value: manual_review_candidate}
+
+- id: 2
+  name: vip_fast_track
+  domain: fraud_detection
+  tags: [tier_2]
+  priority: 10
+  action: approve
+  conditions:
+    type: group
+    op: AND
+    children:
+      - {type: condition, field: customer_tier, op: "==", value: vip}
+      - {type: condition, field: ip_risk_score, op: "<", value: 50}

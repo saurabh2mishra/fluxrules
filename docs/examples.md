@@ -126,13 +126,13 @@ python examples/05_persistence.py
 ### Example 06: Working Memory
 **File:** `examples/06_working_memory.py`
 
-Maintain state between rule executions. Learn:
-- What is working memory?
-- Adding facts to working memory
-- Querying working memory
-- Using working memory for complex workflows
+Keep facts in working memory. Learn:
+- Storing facts with `assert_fact` and getting an id back
+- Removing them with `retract_fact`
+- Reading the count with `get_stats()["facts_in_memory"]`
+- Why stored facts do not change what `evaluate()` returns
 
-**Key Concepts:** Working Memory, State, Sessions
+**Key Concepts:** Working Memory, Fact Lifecycle
 
 **Run it:**
 ```bash
@@ -146,11 +146,11 @@ python examples/06_working_memory.py
 ### Example 07: YAML Rules
 **File:** `examples/07_yaml_rules.py`
 
-Define rules in YAML format. Learn:
-- YAML rule syntax
-- Loading rules from files
-- Rule definitions without code
-- Domain-specific configurations
+Load complete rules, conditions included, from `examples/payment_risk_rules.yaml`. Learn:
+- Writing conditions in YAML with the same dict format F expressions produce
+- Loading a file with `load_rules_from_yaml` and building rules with `Rule.model_validate_yaml`
+- Keeping YAML rules in memory with `persist: False`
+- Checking that a YAML rule decides facts the same way as its F-built version
 
 **Key Concepts:** YAML, Declarative Rules, File-based Configuration
 
@@ -166,13 +166,13 @@ python examples/07_yaml_rules.py
 ### Example 09: Custom Engines
 **File:** `examples/09_custom_engines.py`
 
-Build your own rule engine. Learn:
-- Engine interface and lifecycle
-- Implementing a custom engine
-- Optimization opportunities
-- When to use custom engines
+Build your own engine. Learn:
+- Subclassing `BaseEngine` and overriding `_evaluate_rules`
+- A first-match engine that fires only the highest-priority rule
+- Registering it with `register_engine` and creating it with `get_engine`
+- Comparing it with `PhreakEngine` on the same facts
 
-**Key Concepts:** Custom Engines, Architecture, Extensibility
+**Key Concepts:** Custom Engines, Engine Registry
 
 **Run it:**
 ```bash
@@ -199,10 +199,10 @@ python examples/10_pluggable_engines.py
 **File:** `examples/11_cli_usage.py`
 
 Use FluxRules from the command line. Learn:
-- CLI interface
-- Loading rules and facts
-- Producing reports
-- Scripting with FluxRules
+- `fluxrules validate rules.json`
+- `fluxrules evaluate rules.json fact.json --format json`
+- The JSON rule and fact files the CLI reads
+- Running the CLI in-process with Typer's `CliRunner`
 
 **Key Concepts:** CLI, Scripting, Automation
 
@@ -215,10 +215,10 @@ python examples/11_cli_usage.py
 **File:** `examples/12_api_usage.py`
 
 Call FluxRules over HTTP. Learn:
-- Starting a REST API server
-- Calling rules via HTTP
-- Integration patterns
-- Error handling
+- Building the app with `create_app()` and storing a ruleset
+- `POST /v1/rulesets/{group}/evaluate`
+- Explaining a decision with `GET /v1/executions/{id}`
+- Batch what-if runs with `POST /v1/rulesets/{group}/simulate`
 
 **Key Concepts:** REST API, HTTP, Integration
 
@@ -262,13 +262,13 @@ python examples/14_rule_builder.py
 ### Example 15: Action System
 **File:** `examples/15_action_system.py`
 
-Master the action system. Learn:
-- Built-in actions (set, increment, transform)
-- Custom action implementations
-- Action chains and pipelines
-- Action context and execution
+Run code when a rule fires. Learn:
+- Registering a handler for each action name with `@action`
+- Dispatching the fired actions with `action_registry.execute`
+- Passing the fact to a handler as keyword arguments
+- Why evaluation and execution stay separate
 
-**Key Concepts:** Actions, Custom Actions, Action Pipelines
+**Key Concepts:** Actions, Action Dispatch
 
 **Run it:**
 ```bash
@@ -345,13 +345,13 @@ python examples/19_advanced_features.py
 ### Example 20: Streaming Mode
 **File:** `examples/20_streaming_mode.py`
 
-Process facts as a stream. Learn:
-- Streaming fact processing
-- Latency measurement per fact
-- Incremental evaluation
-- Pipeline throughput
+Evaluate a stream of updates. Learn:
+- Turning on `streaming_mode=True`
+- An unchanged repeat returning no fired rules
+- A changed fact being re-evaluated
+- Why one stream must go to one engine instance
 
-**Key Concepts:** Streaming, Incremental Processing
+**Key Concepts:** Streaming, Incremental Evaluation
 
 **Run it:**
 ```bash
@@ -361,13 +361,13 @@ python examples/20_streaming_mode.py
 ### Example 21: Action Registry
 **File:** `examples/21_action_registry.py`
 
-Manage and track actions. Learn:
-- Extracting unique actions from rules
-- Action execution counts
-- Action registry patterns
-- Tracking action usage
+Inspect the action registry. Learn:
+- Descriptions and categories recorded by `@action`
+- Listing actions and filtering by category
+- Reading a handler's parameters with `get_action_signature`
+- Running an async handler with `execute_async`
 
-**Key Concepts:** Action Registry, Tracking, Metrics
+**Key Concepts:** Action Registry, Metadata, Async Actions
 
 **Run it:**
 ```bash
@@ -377,11 +377,11 @@ python examples/21_action_registry.py
 ### Example 22: Real-World Workflow
 **File:** `examples/22_real_world_workflow.py`
 
-End-to-end production workflow. Learn:
-- Real-world transaction triage
-- Multi-step decision logic
-- Audit trail integration
-- Production-ready patterns
+An end-to-end triage workflow. Learn:
+- Validating the ruleset at startup with `validate()`
+- Normalizing each payment with a `FactPipeline`
+- Evaluating and dispatching the fired actions
+- Explaining a past decision with `explain()`
 
 **Key Concepts:** Workflows, Production Patterns, Audit Trails
 
@@ -398,10 +398,10 @@ python examples/22_real_world_workflow.py
 **File:** `examples/23_streaming_vs_stateless.py`
 
 Compare evaluation modes. Learn:
-- Stateless evaluation (default)
-- Streaming evaluation characteristics
-- Performance differences
-- When to use each mode
+- Stateless mode answering every call in full
+- Streaming mode skipping unchanged repeats
+- The same stream sent to both, side by side
+- Why streaming needs sticky routing
 
 **Key Concepts:** Evaluation Modes, Stateless Processing
 
@@ -413,13 +413,13 @@ python examples/23_streaming_vs_stateless.py
 ### Example 24: Cross-Fact Joins
 **File:** `examples/24_cross_fact_joins.py`
 
-Relate multiple facts. Learn:
-- Processing multiple facts together
-- Cross-fact pattern detection
-- Relational evaluation
-- Fact correlation
+Relate multiple facts with `CrossFactEngine`. Learn:
+- Patterns, field constraints and joins between facts
+- A rule that fires only when a payment and its customer both match
+- Activation deltas returned by `insert`, `update` and `retract`
+- Matches disappearing when a fact changes or is retracted
 
-**Key Concepts:** Cross-Fact Joins, Relational Logic
+**Key Concepts:** Cross-Fact Joins, Truth Maintenance
 
 **Run it:**
 ```bash
@@ -429,13 +429,13 @@ python examples/24_cross_fact_joins.py
 ### Example 25: Nested Facts
 **File:** `examples/25_nested_facts.py`
 
-Work with hierarchical data. Learn:
-- Nested fact structures
-- Accessing nested fields
-- Hierarchical condition evaluation
-- Complex data models
+Work with nested data. Learn:
+- Why the engine matches flat facts only
+- Flattening nested events with the `Flatten` transform
+- Writing rules on dotted names such as `payment.amount`
+- What happens if you skip flattening
 
-**Key Concepts:** Nested Structures, Hierarchical Data
+**Key Concepts:** Nested Facts, Flattening
 
 **Run it:**
 ```bash
@@ -445,13 +445,13 @@ python examples/25_nested_facts.py
 ### Example 26: Fact Loader
 **File:** `examples/26_fact_loader.py`
 
-Load facts at scale. Learn:
-- Batch fact loading
-- Fact preprocessing
-- Large-scale processing
-- Throughput optimization
+Load a batch of raw records. Learn:
+- `FactLoader` with an `IterableSource`
+- Converting string columns with `FieldType`
+- Collecting bad rows with `on_error="collect"`
+- Reading failures from `loader.dead_letter`
 
-**Key Concepts:** Fact Loading, Batch Processing
+**Key Concepts:** Fact Loading, Batch Processing, Dead Letters
 
 **Run it:**
 ```bash
@@ -461,13 +461,13 @@ python examples/26_fact_loader.py
 ### Example 27: FactPipeline
 **File:** `examples/27_factpipeline.py`
 
-Pipeline-based fact processing. Learn:
-- Multi-stage fact pipelines
-- Loading, enrichment, evaluation workflow
-- Result output and formatting
-- End-to-end data flow
+The `FactPipeline` framework. Learn:
+- Built-in transforms: `Rename`, `FieldType`, `Defaults`, `Require`
+- Composition with `>>` and fallback with `|`
+- Observability with `MetricsHook` and `inspect()`
+- Versioning with `PipelineVersion` and `diff_pipelines`
 
-**Key Concepts:** Fact Pipelines, ETL, Data Flow
+**Key Concepts:** Fact Pipelines, Composition, Versioning
 
 **Run it:**
 ```bash
@@ -477,13 +477,13 @@ python examples/27_factpipeline.py
 ### Example 28: FactPipeline (Tier 1)
 **File:** `examples/28_factpipeline_tier1.py`
 
-High-priority rule filtering. Learn:
-- Filtering rules by tags
-- Tier-based rule organization
-- Priority-based evaluation
-- Optimized rule selection
+A tiered pipeline architecture. Learn:
+- Separate clean, validate and enrich tiers
+- Chaining tiers with `>>`
+- Seeing the fact after each tier
+- Rejecting a record at the tier that fails
 
-**Key Concepts:** Rule Tiers, Filtering, Priority
+**Key Concepts:** Pipeline Tiers, Composition
 
 **Run it:**
 ```bash
@@ -493,13 +493,13 @@ python examples/28_factpipeline_tier1.py
 ### Example 29: Custom Transforms
 **File:** `examples/29_custom_transforms.py`
 
-Transform facts before evaluation. Learn:
-- Custom fact enrichment
-- Computed field addition
-- Data transformation pipelines
-- Pre-evaluation preprocessing
+Write your own transform stages. Learn:
+- Subclassing `Transform` with `__call__` and `metadata`
+- Declaring what a stage reads and writes
+- Composing custom stages with `>>`
+- Matching rules on the fields they add
 
-**Key Concepts:** Transforms, Data Enrichment, Preprocessing
+**Key Concepts:** Custom Transforms, Data Enrichment
 
 **Run it:**
 ```bash

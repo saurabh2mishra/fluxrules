@@ -41,6 +41,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   also rejected a present `None`, so with `strict_null_handling=True` the rule
   did not fire with the prefilter on and fired with it off. A present `None` now
   passes.
+- **Action handlers with `**kwargs` could not be executed.** The action registry
+  listed a `**kwargs` parameter as a required parameter named `kwargs`, so every
+  such handler failed with "Missing required parameter: kwargs". `*args` and
+  `**kwargs` are no longer treated as parameters, and a handler with `**kwargs`
+  accepts extra keyword arguments. Named parameters are still required, and a
+  handler without `**kwargs` still rejects unknown arguments.
+- **`docs/custom-transforms.md` passed a nonexistent `category` argument** to
+  `TransformMetadata`. It now uses the real `required_input_fields` and
+  `output_fields`.
+- **Examples that did not show their feature.** 15 examples (06, 09, 11, 12, 15,
+  20 to 29) only ran a stateless `PhreakEngine` over the shared facts, whatever
+  their title said. They are rewritten to use the feature they are named for:
+  working memory, a custom registered engine, the CLI, the HTTP API, action
+  dispatch and the action registry, streaming mode, `CrossFactEngine`,
+  `Flatten`, `FactLoader`, the `FactPipeline` framework, tiered pipelines and
+  custom transforms. Example 07 took only rule metadata from YAML and built the
+  conditions in Python; it now loads complete rules, conditions included, from
+  `examples/payment_risk_rules.yaml`. `docs/usage/advanced-capabilities.md` and `docs/examples.md`
+  now describe what each example does, and link to it on GitHub.
+- **`PhreakEngine` crashed on values it could not compare.** With the alpha
+  prefilter on (the default), a fact value Python cannot compare with the rule
+  value, such as a string tested with `> 5`, or cannot hash, such as a list
+  tested with `isin`, raised `TypeError` out of `evaluate()`. With the prefilter
+  off the same rule correctly returned no match. The prefilter now keeps such a
+  rule as a candidate and lets the engine decide, so both settings agree.
 - **`evaluate()` rejected `starts_with`, `ends_with` and `regex`.** The reference
   evaluator behind the top-level `evaluate()` and `validate()` kept its own copy
   of the operators, and that copy had no entry for these three, so a rule using
