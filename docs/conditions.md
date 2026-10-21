@@ -181,7 +181,7 @@ Both sides are coerced to strings before matching.
 |---|---|---|
 | `F("x").starts_with("adm")` | `"starts_with"` | `str(x).startswith(...)` |
 | `F("x").ends_with(".com")` | `"ends_with"` | `str(x).endswith(...)` |
-| `F("x").regex("^4[0-9]{12}")` | `"regex"` | `re.match(pattern, str(x))` - anchored at start |
+| `F("x").regex("^4[0-9]{12}")` | `"regex"` | `re.search(pattern, str(x))` - matches anywhere in the string, so add `^` to anchor at the start |
 
 ### Boolean composition (F DSL)
 

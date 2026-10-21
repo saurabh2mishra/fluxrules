@@ -41,6 +41,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   also rejected a present `None`, so with `strict_null_handling=True` the rule
   did not fire with the prefilter on and fired with it off. A present `None` now
   passes.
+- **`evaluate()` rejected `starts_with`, `ends_with` and `regex`.** The reference
+  evaluator behind the top-level `evaluate()` and `validate()` kept its own copy
+  of the operators, and that copy had no entry for these three, so a rule using
+  them failed with "unsupported operator" even though `PhreakEngine` ran them.
+  The reference evaluator now calls the engine's operator function with the
+  default engine settings, so both paths share one implementation. A new test
+  runs every operator through both and checks they agree, including on `None`
+  values, type mismatches and invalid regex patterns.
 - **README install section** now leads with `pip install fluxrules` instead of
   cloning the repository.
 
@@ -51,6 +59,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   relied on the silent miss need their field name corrected.
 - `ConditionBuilder` is deprecated in favor of `F` and will be removed in a
   future release.
+- **Behavior change:** because `evaluate()` now shares the engine's operators, it
+  treats a `None` value the way `PhreakEngine` does by default: no operator
+  matches it. `F("x") == None` against `{"x": None}` used to match through
+  `evaluate()` and now does not. A comparison between mismatched types, such as
+  `contains` on a number, now returns no match instead of raising `TypeError`.
 
 ## [0.1.4] - 2026-10-20
 
