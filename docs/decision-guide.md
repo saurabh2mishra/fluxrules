@@ -9,6 +9,7 @@ High-level flowchart for FluxRules usage decisions.
 ## Is FluxRules right for your use case?
 
 **Do you need to:**
+
 - Execute business rules conditionally? (Yes → continue)
 - Match complex logic against data? (Yes → continue)
 - Change rules without code deployment? (Yes → continue)
@@ -18,6 +19,7 @@ High-level flowchart for FluxRules usage decisions.
 ## Integration: Library vs API?
 
 **Library mode** (in-process):
+
 - Import FluxRules in your app
 - Evaluate locally
 - No network overhead
@@ -40,6 +42,7 @@ result = engine.evaluate(fact)
 ```
 
 **API mode** (microservice):
+
 - Run FluxRules as separate service
 - Evaluate via HTTP
 - Network latency added
@@ -51,6 +54,7 @@ curl -X POST http://fluxrules-service/api/v1/evaluate \
 ```
 
 **Decision:**
+
 - Single app, fast iteration → Library
 - Multiple services, shared rules → API
 - High scale requirements → API
@@ -58,6 +62,7 @@ curl -X POST http://fluxrules-service/api/v1/evaluate \
 ## Persistence: Store rules or keep in-memory?
 
 **In-memory (default):**
+
 - Rules defined in code
 - No database needed
 - Rules reset on app restart
@@ -68,6 +73,7 @@ engine.load_rules([rule1, rule2, ...])
 ```
 
 **Persistent (database):**
+
 - Rules stored in database
 - Load rules on startup
 - Audit trail available
@@ -79,6 +85,7 @@ service.persist_rules([rule1, rule2, ...])
 ```
 
 **Decision:**
+
 - Prototype/testing → In-memory
 - Production/stable rules → Persistent
 - Rules change frequently → Persistent
@@ -86,6 +93,7 @@ service.persist_rules([rule1, rule2, ...])
 ## State management: Stateless or stateful?
 
 **Stateless (each evaluation independent):**
+
 - Default behavior
 - No side effects between evaluations
 - Simple, predictable
@@ -97,6 +105,7 @@ result2 = engine.evaluate(fact2)  # No state from result1
 ```
 
 **Stateful (multi-step workflow with sessions):**
+
 - Accumulate facts across evaluations
 - Session snapshot support
 - Requires `[sql]` extra
@@ -110,6 +119,7 @@ session.evaluate()
 ```
 
 **Decision:**
+
 - Single fact evaluation → Stateless
 - Multi-step workflow → Stateful
 

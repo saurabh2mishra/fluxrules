@@ -107,9 +107,7 @@ Fact input → [Assert into working memory]
 **When to use:**
 
 - Many facts over same rule set within a session
-
 - Event streams where only changes matter
-
 - Incremental fact updates (assert/retract)
 
 ---
@@ -168,11 +166,8 @@ Rule(
 **Key design:**
 
 - Rule is immutable once created (frozen Pydantic model)
-
 - Conditions are pure predicates (no side effects)
-
 - Actions are simple strings or callables
-
 - Domain/tags allow flexible rule organization
 
 ---
