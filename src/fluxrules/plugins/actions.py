@@ -103,6 +103,8 @@ class ActionMetadata:
     return_type: type
     is_async: bool
     doc: str | None = None
+    #: True when the handler declares ``**kwargs``, so it accepts any keyword.
+    accepts_extra_kwargs: bool = False
 
     def __repr__(self) -> str:
         params = ", ".join(str(p) for p in self.parameters)
@@ -221,9 +223,18 @@ class ActionRegistry:
         # Extract parameters
         sig = inspect.signature(func)
         parameters = []
+        accepts_extra_kwargs = False
 
         for param_name, param in sig.parameters.items():
             if param_name in ("self", "cls"):
+                continue
+            # ``*args`` and ``**kwargs`` are not parameters a caller must pass.
+            # Listing them made every ``**kwargs`` handler fail validation with
+            # "Missing required parameter: kwargs".
+            if param.kind is inspect.Parameter.VAR_KEYWORD:
+                accepts_extra_kwargs = True
+                continue
+            if param.kind is inspect.Parameter.VAR_POSITIONAL:
                 continue
 
             param_type = type_hints.get(param_name, Any)
@@ -251,6 +262,7 @@ class ActionRegistry:
             return_type=return_type,
             is_async=is_async,
             doc=inspect.getdoc(func),
+            accepts_extra_kwargs=accepts_extra_kwargs,
         )
 
     def get(self, name: str) -> ActionMetadata | None:
@@ -324,7 +336,9 @@ class ActionRegistry:
             if param.required and param.name not in kwargs:
                 return False, f"Missing required parameter: {param.name}"
 
-        # Check for extra parameters
+        # Check for extra parameters, unless the handler takes ``**kwargs``
+        if metadata.accepts_extra_kwargs:
+            return True, ""
         valid_names = {p.name for p in metadata.parameters}
         extra = set(kwargs.keys()) - valid_names
         if extra:

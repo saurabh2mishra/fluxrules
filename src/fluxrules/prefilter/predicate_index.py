@@ -55,6 +55,10 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
     The callable receives the field's value (or ``_MISSING`` when absent) and
     returns whether the leaf is satisfied. Mirrors the engine's operator
     semantics: an absent or ``None`` value fails every constraining operator.
+
+    A test may raise ``TypeError`` for a value it cannot compare (``"x" > 5``,
+    or an unhashable list tested with ``in``). ``PredicateIndex._eval_nodes``
+    handles that, so the tests themselves stay a single comparison.
     """
     if op == "__exists__":
         # Present-but-unbounded across an OR. A present ``None`` must pass: a
@@ -75,6 +79,14 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
         return lambda v: v is not _MISSING and v is not None and v <= value
     # Should never reach here: extractor only emits constraining ops.
     return lambda v: True
+
+
+def _test_or_keep(node: _AlphaNode, value: Any) -> bool:
+    """Run one node test, treating a ``TypeError`` as "keep the candidate"."""
+    try:
+        return node.test(value)
+    except TypeError:
+        return True
 
 
 @dataclass(frozen=True)
@@ -197,9 +209,20 @@ class PredicateIndex:
     # streaming screen
 
     def _eval_nodes(self, fact: dict[str, Any]) -> list[bool]:
-        """Evaluate every distinct alpha node once for this fact."""
+        """Evaluate every distinct alpha node once for this fact.
+
+        The common case is one list comprehension with no per-node overhead. If
+        a value cannot be compared (``"x" > 5``, or an unhashable list tested
+        with ``in``), Python raises ``TypeError``. The fact is then re-evaluated
+        node by node, and a node that raises counts as passing, which keeps its
+        rules as candidates for the engine to decide. That is always sound: the
+        prefilter may keep extra rules, but must never drop one that could fire.
+        """
         get = fact.get
-        return [node.test(get(node.field, _MISSING)) for node in self._nodes]
+        try:
+            return [node.test(get(node.field, _MISSING)) for node in self._nodes]
+        except TypeError:
+            return [_test_or_keep(node, get(node.field, _MISSING)) for node in self._nodes]
 
     @property
     def signature_count(self) -> int:
