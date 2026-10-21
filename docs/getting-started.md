@@ -1,6 +1,6 @@
 # Getting Started
 
-This page helps you run FluxRules locally in a few minutes.
+This page gets you from nothing to a working rule in a few minutes.
 
 ## Prerequisites
 
@@ -9,34 +9,52 @@ This page helps you run FluxRules locally in a few minutes.
 
 ## Install with uv
 
-The recommended setup is to use uv for dependency management and a local virtual environment:
+Add FluxRules to your project from PyPI:
 
 ```bash
-git clone https://github.com/saurabh2mishra/fluxrules.git
-cd fluxrules
-uv sync --extra dev
+uv add fluxrules
 ```
 
-This creates the project environment and installs the package plus the developer tooling.
+Or, to try it in a fresh virtual environment without a project:
+
+```bash
+uv venv
+uv pip install fluxrules
+```
 
 ## Install with pip
 
-If you prefer pip, the project also installs normally with a standard virtual environment:
+Create a virtual environment and install the release from PyPI:
 
 ```bash
-git clone https://github.com/saurabh2mishra/fluxrules.git
-cd fluxrules
 python -m venv .venv
 source .venv/bin/activate
-pip install .
+pip install fluxrules
 ```
 
-For API endpoints, install extras:
+## Optional extras
+
+The base package is enough to write and evaluate rules. Add an extra for the
+feature you need, for example the HTTP API:
 
 ```bash
-pip install '.[api]'
+pip install 'fluxrules[api]'
 # or with uv
-uv pip install '.[api]'
+uv add 'fluxrules[api]'
+```
+
+See [Installation](installation.md) for the full list of extras.
+
+## Check that it works
+
+```python
+from fluxrules import F, Rule, evaluate
+
+rule = Rule(name="adult", conditions=F("age") >= 18, action="allow")
+
+result = evaluate(rule, {"age": 30})
+print(result.fired_rules)  # the id of the rule that matched
+print(result.actions)      # ['allow']
 ```
 
 ## Minimal Evaluation Flow
@@ -45,21 +63,10 @@ uv pip install '.[api]'
 2. Evaluate facts.
 3. Inspect matched rules and trace.
 
-See [Quickstart](quickstart.md) for a full example.
+See [Quickstart](quickstart.md) for a full example, and
+[Authoring Rules](authoring-rules.md) for the ways to write a condition.
 
-## Local Docs
+## Working on FluxRules itself
 
-```bash
-uv sync --extra dev
-uv run mkdocs serve
-```
-
-Open the local URL shown by MkDocs.
-
-## Run the project tests
-
-```bash
-uv run pytest tests/ -v
-```
-
-This is the preferred way to validate the project in a local environment.
+See [Contributing](contributing.md) for the
+full contributor guide.
