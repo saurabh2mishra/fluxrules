@@ -7,8 +7,9 @@ Example::
 
     >>> profiler = RuleProfiler()
     >>> profiler.start(1)
-    >>> profiler.end(1)  # returns elapsed seconds
-    0.00012...
+    >>> elapsed = profiler.end(1)  # returns elapsed seconds
+    >>> elapsed >= 0
+    True
 """
 
 from __future__ import annotations

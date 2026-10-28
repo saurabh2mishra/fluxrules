@@ -92,10 +92,16 @@ class LazyEvaluationMixin:
             Set of segment IDs that need re-evaluation (empty set if no changes)
 
         Example:
+            >>> from fluxrules import F, Rule
+            >>> from fluxrules.engine.phreak import PhreakEngine
+            >>> engine = PhreakEngine(streaming_mode=True)
+            >>> engine.load_rules([
+            ...     Rule(id=1, name="adult", conditions=F("age") >= 18, action="a", persist=False),
+            ...     Rule(id=2, name="us", conditions=F("country") == "US", action="b", persist=False),
+            ... ])
             >>> engine._prev_facts = {"age": 25, "country": "US"}
-            >>> affected = engine._identify_dirty_segments({"age": 30, "country": "US"})
-            >>> affected  # Only segments depending on 'age' field
-            {'segment_1', 'segment_3'}
+            >>> engine._identify_dirty_segments({"age": 30, "country": "US"})  # only 'age' changed
+            {'seg_age'}
         """
         # On first evaluation, treat all fields as dirty
         if not self._prev_facts:
@@ -132,10 +138,18 @@ class LazyEvaluationMixin:
             facts: Facts from the completed evaluation
 
         Example:
-            >>> engine.evaluate({"amount": 100})
-            >>> # Internally calls: engine._update_prev_facts(facts)
-            >>> # Next call: engine.evaluate({"amount": 150})
-            >>> # Can now see that 'amount' changed
+            >>> from fluxrules import F, Rule
+            >>> from fluxrules.engine.phreak import PhreakEngine
+            >>> engine = PhreakEngine(streaming_mode=True)
+            >>> engine.load_rules(
+            ...     [Rule(id=1, name="big", conditions=F("amount") > 50, action="a", persist=False)]
+            ... )
+            >>> engine.evaluate({"amount": 100}).fired_rules  # calls _update_prev_facts
+            [1]
+            >>> engine._prev_facts
+            {'amount': 100}
+            >>> engine._identify_dirty_segments({"amount": 150})  # 'amount' changed
+            {'seg_amount'}
         """
         self._prev_facts = dict(facts)
 
@@ -154,10 +168,15 @@ class LazyEvaluationMixin:
             rules: List of Rule objects or rule dicts to index
 
         Example:
-            >>> rules = [rule1, rule2, rule3]
-            >>> engine._build_lazy_indices(rules)
-            >>> # Now engine.field_index knows which rules use which fields
-            >>> # And engine.segment_network is ready for token propagation
+            >>> from fluxrules import F, Rule
+            >>> from fluxrules.engine.phreak import PhreakEngine
+            >>> engine = PhreakEngine(streaming_mode=True)
+            >>> engine._build_lazy_indices([
+            ...     Rule(id=1, name="adult", conditions=F("age") >= 18, action="a", persist=False),
+            ...     Rule(id=2, name="us", conditions=F("country") == "US", action="b", persist=False),
+            ... ])
+            >>> sorted(engine.field_index._field_to_segments)  # fields the index tracks
+            ['age', 'country']
         """
         # Add rules to repository (if not already done by caller)
         for rule in rules:
