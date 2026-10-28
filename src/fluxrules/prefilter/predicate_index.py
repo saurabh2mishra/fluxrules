@@ -287,7 +287,7 @@ class PredicateIndex:
             # No signature failed -> nothing to prune. Avoid all set ops.
             return set(universe)
         kept: set[int] = set()
-        for passed, rule_ids in zip(sig_pass, self._signature_rules):
+        for passed, rule_ids in zip(sig_pass, self._signature_rules, strict=True):
             if passed:
                 kept |= rule_ids
         kept |= self._always_candidate_rules
@@ -307,7 +307,7 @@ class PredicateIndex:
         if all(sig_pass):
             return universe  # nothing pruned -> reuse caller's list, zero copy
         keep: set[int] = set()
-        for passed, rule_ids in zip(sig_pass, self._signature_rules):
+        for passed, rule_ids in zip(sig_pass, self._signature_rules, strict=True):
             if passed:
                 keep |= rule_ids
         keep |= self._always_candidate_rules

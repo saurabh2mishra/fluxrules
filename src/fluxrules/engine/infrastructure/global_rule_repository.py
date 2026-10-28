@@ -280,7 +280,7 @@ class _DeprecatedRuntimeRule:
                 "version",
                 "metadata",
             )
-            kwargs.update(dict(zip(names, args)))
+            kwargs.update(dict(zip(names, args, strict=False)))  # args may be a prefix of names
         kwargs.setdefault("persist", False)
         return CanonicalRule(**kwargs)
 

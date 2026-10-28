@@ -48,7 +48,7 @@ class FieldIntervalIndex:
     def remove(self, rule_id: str) -> None:
         new_entries: list[IndexEntry] = []
         new_lows: list[float] = []
-        for entry, low in zip(self._entries, self._sorted_lows):
+        for entry, low in zip(self._entries, self._sorted_lows, strict=True):
             if entry.rule_id != rule_id:
                 new_entries.append(entry)
                 new_lows.append(low)
