@@ -168,3 +168,61 @@ def test_evaluate_no_match_yields_empty_actions(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["matched_rules"] == []
     assert payload["actions"] == []
+
+
+def _fail_import(monkeypatch: pytest.MonkeyPatch, target: str, missing: str) -> None:
+    """Make importing ``target`` raise as if ``missing`` were not installed.
+
+    ``fluxrules.cli.main`` is dropped from ``sys.modules`` so ``run()`` re-imports it.
+    """
+    import builtins
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == target or name.startswith(f"{target}."):
+            raise ModuleNotFoundError(f"No module named '{missing}'", name=missing)
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.delitem(sys.modules, "fluxrules.cli.main", raising=False)
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+
+@pytest.mark.parametrize(
+    ("target", "missing"),
+    [("typer", "typer"), ("rich", "rich"), ("typer", "click")],  # click surfaces via typer
+)
+def test_entry_point_without_cli_extra_prints_install_hint(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], target: str, missing: str
+) -> None:
+    from fluxrules.cli import run
+
+    _fail_import(monkeypatch, target, missing)
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 1
+    err = capsys.readouterr().err
+    assert f"{missing} is not installed" in err
+    assert "pip install 'fluxrules[cli]'" in err
+
+
+def test_entry_point_reraises_unrelated_import_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fluxrules.cli import run
+
+    _fail_import(monkeypatch, "typer", "not_a_cli_dependency")
+    with pytest.raises(ModuleNotFoundError, match="not_a_cli_dependency"):
+        run()
+
+
+def test_entry_point_runs_app(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from fluxrules.cli import run
+    from fluxrules.version import __version__
+
+    monkeypatch.setattr(sys, "argv", ["fluxrules", "version"])
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+    assert exc_info.value.code == 0
+    assert __version__ in capsys.readouterr().out
