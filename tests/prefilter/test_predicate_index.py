@@ -148,3 +148,19 @@ def test_shared_predicate_is_interned_once() -> None:
     assert len(index._nodes) == 1
     assert len(index._signatures) == 1
     assert index._signature_rules[0] == frozenset({1, 2, 3})
+
+
+def test_prune_drops_rules_whose_signature_fails() -> None:
+    rules = [
+        _rule(1, {"type": "condition", "field": "field_1", "op": ">", "value": 10}),
+        _rule(2, {"type": "condition", "field": "field_2", "op": "<", "value": 5}),
+        _rule(3, {"type": "condition", "field": "field_1", "op": ">", "value": 10}),
+    ]
+    index = PredicateIndex.from_rules(rules)
+    universe = [3, 2, 1]
+    fact = {"field_1": 20, "field_2": 50}
+
+    pruned = index.prune(fact, universe)
+    assert pruned == [3, 1]  # rule 2 dropped, caller's order preserved
+    assert pruned is not universe
+    assert index.candidate_rule_ids(fact, universe) == {1, 3}
