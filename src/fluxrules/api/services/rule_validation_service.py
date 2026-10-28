@@ -237,9 +237,7 @@ class RuleValidationService:
             "priority": rule.priority,
             "enabled": rule.enabled,
             "conditions": (
-                json.loads(rule.conditions)
-                if isinstance(rule.conditions, str)
-                else rule.conditions
+                json.loads(rule.conditions) if isinstance(rule.conditions, str) else rule.conditions
             ),
             "action": rule.action,
         }

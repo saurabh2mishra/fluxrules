@@ -74,7 +74,9 @@ CASES = [
 ]
 
 
-@pytest.mark.parametrize(("case", "condition", "fact", "expected"), CASES, ids=[c[0] for c in CASES])
+@pytest.mark.parametrize(
+    ("case", "condition", "fact", "expected"), CASES, ids=[c[0] for c in CASES]
+)
 def test_evaluate_and_phreak_agree(case, condition, fact, expected):
     rule = Rule(id=1, name="r", conditions=condition, action="a")
     assert _evaluate(rule, fact) == expected

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 from uuid import uuid4
@@ -26,7 +26,7 @@ _SESSIONS: dict[str, dict[str, Any]] = {}
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _session_not_found(session_id: str) -> HTTPException:

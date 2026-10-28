@@ -49,13 +49,7 @@ def test_evaluate_accepts_a_list_of_rules() -> None:
 
 
 def test_evaluate_accepts_a_built_rule() -> None:
-    rule = (
-        RuleBuilder(7)
-        .name("adult")
-        .condition(_ADULT_DSL)
-        .action("allow")
-        .build()
-    )
+    rule = RuleBuilder(7).name("adult").condition(_ADULT_DSL).action("allow").build()
 
     assert evaluate(rule, {"age": 30}).fired_rules == [7]
 

@@ -8,7 +8,7 @@ complex nested data structures and untrusted input.
 from __future__ import annotations
 
 import json
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 __all__ = [
@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-class ListStrategy(str, Enum):
+class ListStrategy(StrEnum):
     """How :func:`flatten_dict` should handle list values.
 
     Members:

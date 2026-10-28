@@ -10,7 +10,7 @@ results of a single audit execution.
   integrity hash for tamper detection.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     Boolean,
@@ -39,12 +39,12 @@ class AuditPolicy(Base):
     next_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
-        onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        default=lambda: datetime.now(UTC).replace(tzinfo=None),
+        onupdate=lambda: datetime.now(UTC).replace(tzinfo=None),
     )
 
 
@@ -67,5 +67,5 @@ class AuditReport(Base):
     integrity_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     triggered_by: Mapped[str] = mapped_column(String, nullable=False, default="schedule")
     executed_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None), index=True
     )

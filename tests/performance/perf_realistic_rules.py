@@ -48,7 +48,7 @@ import sys
 import time
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 sys.path.insert(0, "src")
 
@@ -546,7 +546,7 @@ def run_readiness(
 
     streaming_artifact = {
         "benchmark": "streaming_readiness",
-        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "generated_utc": datetime.now(UTC).isoformat(),
         "environment": _environment(),
         "workload": _workload_dict(cfg),
         "seed": seed,
@@ -594,7 +594,7 @@ def run_readiness(
 
     scaling_artifact = {
         "benchmark": "horizontal_scaling",
-        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "generated_utc": datetime.now(UTC).isoformat(),
         "environment": _environment(),
         "workload": _workload_dict(cfg),
         "seed": seed,

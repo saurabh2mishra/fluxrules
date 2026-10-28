@@ -85,7 +85,9 @@ def _load_ruleset(
         query = query.filter(OrmRule.group == ruleset_id)
     orm_rules = query.order_by(OrmRule.priority.desc()).all()
 
-    canonical_rules = tuple(orm_rule_to_canonical(orm_rule).to_engine_rule() for orm_rule in orm_rules)
+    canonical_rules = tuple(
+        orm_rule_to_canonical(orm_rule).to_engine_rule() for orm_rule in orm_rules
+    )
     return Ruleset(group=ruleset_id or "all", rules=canonical_rules)
 
 

@@ -140,8 +140,18 @@ class TestBooleanComposition:
         assert c["type"] == "group"
         assert c["op"] == "AND"
         assert len(c["children"]) == 2
-        assert c["children"][0] == {"type": "condition", "field": "amount", "op": ">", "value": 10000}
-        assert c["children"][1] == {"type": "condition", "field": "country", "op": "==", "value": "US"}
+        assert c["children"][0] == {
+            "type": "condition",
+            "field": "amount",
+            "op": ">",
+            "value": 10000,
+        }
+        assert c["children"][1] == {
+            "type": "condition",
+            "field": "country",
+            "op": "==",
+            "value": "US",
+        }
 
     def test_or_produces_group(self):
         c = ((F("amount") > 10000) | (F("country") == "US")).to_dict()
@@ -394,15 +404,21 @@ class TestOrRulesFireUnderPhreakAlpha:
         return engine.evaluate(fact).fired_rules
 
     def test_or_fires_on_first_branch(self):
-        rule = Rule(id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x")
+        rule = Rule(
+            id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x"
+        )
         assert self._fire(rule, {"amount": 6000, "country": "ZZ"}) == [1]
 
     def test_or_fires_on_second_branch(self):
-        rule = Rule(id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x")
+        rule = Rule(
+            id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x"
+        )
         assert self._fire(rule, {"amount": 10, "country": "US"}) == [1]
 
     def test_or_does_not_fire_when_neither_branch_matches(self):
-        rule = Rule(id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x")
+        rule = Rule(
+            id=1, name="or", conditions=(F("amount") > 5000) | (F("country") == "US"), action="x"
+        )
         assert self._fire(rule, {"amount": 10, "country": "ZZ"}) == []
 
     def test_nested_or_in_and_fires_on_one_branch(self):
@@ -453,9 +469,7 @@ class TestOrWithNullBranchUnderAlpha:
         from fluxrules.engine.configuration import EngineConfig
         from fluxrules.engine.phreak import PhreakEngine
 
-        engine = PhreakEngine(
-            config=EngineConfig(strict_null_handling=True), alpha_prefilter=alpha
-        )
+        engine = PhreakEngine(config=EngineConfig(strict_null_handling=True), alpha_prefilter=alpha)
         engine.load_rules([Rule(id=1, name="r", conditions=conditions, action="a")])
         return engine.evaluate(fact).fired_rules
 

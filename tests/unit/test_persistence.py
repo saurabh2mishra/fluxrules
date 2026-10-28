@@ -362,13 +362,26 @@ class _StubPersistenceAdapter(RulePersistencePort):
         self.saved.append((rule, group))
         return self._assigned_id
 
-    def load_rule(self, rule_id): return None
-    def load_all_rules(self): return []
-    def delete_rule(self, rule_id): return False
-    def save_ruleset(self, ruleset, created_by=None): return []
-    def load_ruleset(self, group): return Ruleset(group=group, rules=())
-    def load_all_rulesets(self): return {}
-    def update_rule(self, rule_id, **kwargs): return None
+    def load_rule(self, rule_id):
+        return None
+
+    def load_all_rules(self):
+        return []
+
+    def delete_rule(self, rule_id):
+        return False
+
+    def save_ruleset(self, ruleset, created_by=None):
+        return []
+
+    def load_ruleset(self, group):
+        return Ruleset(group=group, rules=())
+
+    def load_all_rulesets(self):
+        return {}
+
+    def update_rule(self, rule_id, **kwargs):
+        return None
 
 
 class TestPersistenceManagerServiceFactoryDelegation:

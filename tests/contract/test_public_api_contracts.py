@@ -74,10 +74,9 @@ def test_public_evaluate_takes_rules_not_only_a_ruleset() -> None:
 
     assert evaluate(rule, {"amount": 150}).fired_rules == [rule.id]
     assert evaluate([rule], {"amount": 150}).fired_rules == [rule.id]
-    assert (
-        evaluate(Ruleset(group="c", rules=(rule.to_engine_rule(),)), {"amount": 150}).fired_rules
-        == [rule.id]
-    )
+    assert evaluate(
+        Ruleset(group="c", rules=(rule.to_engine_rule(),)), {"amount": 150}
+    ).fired_rules == [rule.id]
 
 
 def test_cross_fact_contract_is_dedicated_and_not_single_fact_registry() -> None:

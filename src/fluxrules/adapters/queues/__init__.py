@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fluxrules.ports.queue import QueuePort
@@ -38,7 +38,7 @@ class InMemoryQueueAdapter(QueuePort):
             "type": message.get("type", "unknown"),
             "payload": message.get("payload", {}),
             "source": message.get("source", "api"),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "priority": priority,
             "partition_key": partition_key,
             "retry_count": 0,

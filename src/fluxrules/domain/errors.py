@@ -137,10 +137,7 @@ class FieldNotFoundError(FluxRulesError):
         available = sorted(str(k) for k in facts.keys())
         close = difflib.get_close_matches(field, available, n=1, cutoff=0.6)
         hint = f" Did you mean '{close[0]}'?" if close else ""
-        return cls(
-            f"Field '{field}' not found in fact.{hint} "
-            f"Available keys: {available}"
-        )
+        return cls(f"Field '{field}' not found in fact.{hint} Available keys: {available}")
 
 
 class EmptyRuleLogicError(InvalidRuleError):

@@ -129,15 +129,11 @@ def _generate_multi_condition_rules_dicts(
             field = rng.choice(FIELD_NAMES)
             if j == 0 and selective_first:
                 # Tight first gate: ~15% pass rate → ~85% short-circuit exits
-                conditions.append(
-                    {"type": "condition", "field": field, "op": ">", "value": 8500.0}
-                )
+                conditions.append({"type": "condition", "field": field, "op": ">", "value": 8500.0})
             else:
                 op = rng.choice([">", ">=", "<", "<="])
                 value = round(rng.uniform(0, 10000), 2)
-                conditions.append(
-                    {"type": "condition", "field": field, "op": op, "value": value}
-                )
+                conditions.append({"type": "condition", "field": field, "op": op, "value": value})
         rules.append(
             {
                 "id": i + 1,
@@ -388,16 +384,20 @@ class StreamingScenario:
 
 
 STREAMING_SCENARIOS = [
-    StreamingScenario("Stream-100", rule_count=100, fact_count=20, iterations=50, target_unchanged_ms=1.0),
-    StreamingScenario("Stream-1000", rule_count=1000, fact_count=50, iterations=20, target_unchanged_ms=2.0),
-    StreamingScenario("Stream-5000", rule_count=5000, fact_count=100, iterations=10, target_unchanged_ms=10.0),
+    StreamingScenario(
+        "Stream-100", rule_count=100, fact_count=20, iterations=50, target_unchanged_ms=1.0
+    ),
+    StreamingScenario(
+        "Stream-1000", rule_count=1000, fact_count=50, iterations=20, target_unchanged_ms=2.0
+    ),
+    StreamingScenario(
+        "Stream-5000", rule_count=5000, fact_count=100, iterations=10, target_unchanged_ms=10.0
+    ),
 ]
 
 
 @pytest.mark.performance
-@pytest.mark.parametrize(
-    "scenario", STREAMING_SCENARIOS, ids=[s.name for s in STREAMING_SCENARIOS]
-)
+@pytest.mark.parametrize("scenario", STREAMING_SCENARIOS, ids=[s.name for s in STREAMING_SCENARIOS])
 def test_benchmark_phreak_streaming(scenario: StreamingScenario) -> None:
     """Benchmark PhreakEngine streaming_mode=True across three call patterns.
 

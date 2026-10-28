@@ -57,9 +57,7 @@ def test_public_route_contract_is_registered() -> None:
     }
 
     registered_operations = {
-        (path, method)
-        for path, operations in paths.items()
-        for method in operations
+        (path, method) for path, operations in paths.items() for method in operations
     }
     missing_operations = expected_operations - registered_operations
 
@@ -77,9 +75,7 @@ def test_duplicate_route_registrations_are_not_mounted() -> None:
         create_app().openapi()
 
     duplicate_operation_ids = [
-        str(w.message)
-        for w in caught
-        if "Duplicate Operation ID" in str(w.message)
+        str(w.message) for w in caught if "Duplicate Operation ID" in str(w.message)
     ]
 
     assert not duplicate_operation_ids, duplicate_operation_ids

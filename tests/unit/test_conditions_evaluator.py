@@ -59,7 +59,9 @@ class TestEvaluateConditions:
         assert evaluate_conditions({"type": "not"}, {}) is False
 
     def test_exists_with_field_present(self):
-        assert evaluate_conditions({"type": "exists", "field": "email"}, {"email": "a@b.com"}) is True
+        assert (
+            evaluate_conditions({"type": "exists", "field": "email"}, {"email": "a@b.com"}) is True
+        )
 
     def test_exists_with_field_absent(self):
         assert evaluate_conditions({"type": "exists", "field": "email"}, {}) is False

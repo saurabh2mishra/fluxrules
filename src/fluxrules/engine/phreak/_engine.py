@@ -1203,7 +1203,10 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
                 result = self._eval_root(condition, facts, rule_id)
                 self._node_memory.put(
-                    rule_id, "root", relevant_values, result,
+                    rule_id,
+                    "root",
+                    relevant_values,
+                    result,
                     relevant_fields=relevant_fields,
                 )
                 return result

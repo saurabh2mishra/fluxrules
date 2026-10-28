@@ -31,9 +31,7 @@ _PARTIAL_MATCH = {
 
 def _engine_with_partial_rule(cls):
     engine = cls()
-    engine.load_rules(
-        [Rule(name="adult_in_us", conditions=_PARTIAL_MATCH, action="allow")]
-    )
+    engine.load_rules([Rule(name="adult_in_us", conditions=_PARTIAL_MATCH, action="allow")])
     return engine
 
 

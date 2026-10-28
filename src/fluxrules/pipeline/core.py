@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from time import perf_counter
 from typing import TYPE_CHECKING, Any
 
@@ -27,7 +27,7 @@ __all__ = [
 ]
 
 
-class CompositionOperator(str, Enum):
+class CompositionOperator(StrEnum):
     """Operators used to compose transforms into a tree."""
 
     SEQUENCE = "seq"  # a >> b: apply a, then b
