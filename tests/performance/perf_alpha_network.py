@@ -123,7 +123,7 @@ def _bench_workload(name: str, rules: list[Rule], facts: list[dict]) -> None:
     out_on, fired_on = _run(on, facts)
 
     # correctness gate: identical fired_rules per fact
-    mismatches = sum(1 for a, b in zip(fired_off, fired_on) if a != b)
+    mismatches = sum(1 for a, b in zip(fired_off, fired_on, strict=True) if a != b)
     parity = "PASS ✅" if mismatches == 0 else f"FAIL ❌ ({mismatches} differ)"
 
     # candidate reduction: how many rules the alpha layer drops per fact

@@ -938,7 +938,7 @@ def _parse_xlsx_rules(content: bytes) -> list[dict]:
 
     rules: list[dict] = []
     for i, row in enumerate(rows[1:], start=1):
-        cell = dict(zip(headers, row))
+        cell = dict(zip(headers, row, strict=False))  # sheet rows may be shorter than the header
         try:
             rule: dict = {}
             rule["name"] = str(cell.get("name") or "").strip()

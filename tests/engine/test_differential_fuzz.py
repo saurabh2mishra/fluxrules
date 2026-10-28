@@ -128,7 +128,7 @@ def _assert_priority_major(fired: list[int], rules: list[Rule]) -> None:
     priority = {r.id: r.priority for r in rules}
     priorities = [priority[i] for i in fired]
     assert priorities == sorted(priorities, reverse=True), (
-        f"fired rules not in non-increasing priority order: {list(zip(fired, priorities))}"
+        f"fired rules not in non-increasing priority order: {list(zip(fired, priorities, strict=True))}"
     )
 
 
