@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pip 25.1 or newer.
 - **Smaller source distribution.** The sdist no longer ships `.github/`,
   `scripts/`, `uv.lock`, `Makefile` or `docker-compose.yml`.
+- **Internal `zip()` calls state their length contract.** Ruff's B905 rule is
+  now enforced. Where two sequences must stay in lockstep (predicate-index
+  pruning, interval-index removal, rule-to-action pairing) `zip(..., strict=True)`
+  raises `ValueError` on a length mismatch instead of silently dropping the
+  extra items. These pairs are always built together, so a mismatch means an
+  internal bug, not bad input; no public behavior changes. XLSX rows shorter
+  than the header row and positional `Rule(...)` arguments are still accepted
+  (`strict=False`).
 
 ### Fixed
 
