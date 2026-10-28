@@ -2739,7 +2739,7 @@
 <p><code>action</code> - What to do when the rule matches</p>
 </li>
 <li>
-<p><code>priority</code> - Execution order (higher = runs first)</p>
+<p><code>priority</code> - Execution order (higher = runs first). All matching rules fire; priority only orders them. Ties are currently broken by rule ID (highest first), which is not a guaranteed contract, so use distinct priorities if order matters. Same-group, same-priority rules raise a validation warning.</p>
 </li>
 </ul>
 <p><strong>See:</strong> <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py">examples/18_unified_rule.py</a></p>

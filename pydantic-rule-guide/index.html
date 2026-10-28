@@ -2912,8 +2912,16 @@ database:</p>
 <span class="p">]</span>
 
 <span class="c1"># Higher priority evaluated first</span>
-<span class="c1"># Ties broken by load order</span>
 </code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Equal priorities</p>
+<p>All matching rules fire; priority only controls order. When two rules share a
+priority (in the same group or in different groups), the engine currently
+orders them by rule ID, highest first. This is an implementation detail, not a
+guaranteed contract, so don't rely on it. Give rules distinct priorities if
+their relative order matters. Same-group, same-priority rules also raise a
+<code>priority_conflict</code> validation warning.</p>
+</div>
 <h2 id="serialization">Serialization<a class="headerlink" href="#serialization" title="Permanent link">&para;</a></h2>
 <p>Convert Rule to/from JSON:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
