@@ -38,7 +38,7 @@ Changelog = "https://github.com/saurabh2mishra/fluxrules/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/saurabh2mishra/fluxrules/issues"
 
 [project.scripts]
-fluxrules = "fluxrules.cli.main:app"
+fluxrules = "fluxrules.cli:run"
 
 [project.optional-dependencies]
 # Starlette 1.x represents included routers lazily, so route contracts use

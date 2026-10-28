@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`fluxrules` command without the `cli` extra.** A plain `pip install fluxrules`
+  installs the `fluxrules` command, but running it crashed with
+  `ModuleNotFoundError: No module named 'typer'`. It now prints
+  `Install it with: pip install 'fluxrules[cli]'` and exits with status 1. The
+  console script now points at `fluxrules.cli:run`, which checks for the CLI
+  dependencies before loading the Typer app.
+
 ## [1.0.0] - 2026-10-28
 
 First stable release.
