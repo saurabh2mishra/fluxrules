@@ -10,6 +10,9 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **v1.0.1** (2026) - CLI install hint
+  - Running `fluxrules` without the `cli` extra prints
+    `pip install 'fluxrules[cli]'` instead of a `ModuleNotFoundError`
 - **v1.0.0** (2026) - First stable release
   - Documented equal-priority ordering (rule ID, highest first; not a guaranteed
     contract)
