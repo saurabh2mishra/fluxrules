@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-28
+
+First stable release. No code changes since 0.2.0.
+
+### Changed
+
+- **Docs.** Documented that rules with equal priority are currently ordered by
+  rule ID, highest first, and that this is not a guaranteed contract. Same-group,
+  same-priority rules raise a `priority_conflict` validation warning. Corrected
+  the pydantic rule guide, which described ties as broken by load order.
+
 ## [0.2.0] - 2026-10-20
 
 ### Added

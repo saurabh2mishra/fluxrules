@@ -143,8 +143,15 @@ rules = [
 ]
 
 # Higher priority evaluated first
-# Ties broken by load order
 ```
+
+!!! note "Equal priorities"
+    All matching rules fire; priority only controls order. When two rules share a
+    priority (in the same group or in different groups), the engine currently
+    orders them by rule ID, highest first. This is an implementation detail, not a
+    guaranteed contract, so don't rely on it. Give rules distinct priorities if
+    their relative order matters. Same-group, same-priority rules also raise a
+    `priority_conflict` validation warning.
 
 ## Serialization
 
