@@ -54,5 +54,5 @@ python -c "import fluxrules; print(fluxrules.__version__)"
 
 ## Requirements
 
-- Python 3.10 or later
+- Python 3.11 or later
 

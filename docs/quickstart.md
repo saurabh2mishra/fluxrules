@@ -3,7 +3,7 @@
 Get your first rule working in 5 minutes.
 
 **Prerequisites:** 
-- Python 3.10+ with `pydantic>=2.8`
+- Python 3.11+ with `pydantic>=2.8`
 - [Installation](installation.md) complete
 
 ---

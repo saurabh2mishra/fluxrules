@@ -9,10 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-10-28
 
-First stable release. No code changes since 0.2.0.
+First stable release.
+
+### Removed
+
+- **Python 3.10 support.** `requires-python` is now `>=3.11`. Python 3.10 reached
+  end of life in October 2026, and security fixes for `dnspython` and `filelock`
+  are only published for Python 3.11 and newer, so 3.10 could not pass the
+  dependency audit.
 
 ### Changed
 
+- Bumped transitive dependencies (`dnspython`, `filelock`, `msgpack`,
+  `opentelemetry-*`) to patched releases.
 - **Docs.** Documented that rules with equal priority are currently ordered by
   rule ID, highest first, and that this is not a guaranteed contract. Same-group,
   same-priority rules raise a `priority_conflict` validation warning. Corrected

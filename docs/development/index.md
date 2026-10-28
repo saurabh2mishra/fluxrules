@@ -17,7 +17,7 @@ clean sync resolves the latest versions allowed by the ranges declared in
 ### Prerequisites
 
 - **uv** ≥ 0.7 (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- **Python** ≥ 3.10 (uv will download a matching interpreter if none is present)
+- **Python** ≥ 3.11 (uv will download a matching interpreter if none is present)
 
 ### Dev environment
 
