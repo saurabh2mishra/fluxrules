@@ -60,6 +60,9 @@ jobs:
       - name: Docs snippet tests
         run: uv run pytest tests/docs/test_doc_snippets.py -q
 
+      - name: Pipeline doctests
+        run: uv run pytest --doctest-modules src/fluxrules/pipeline -q
+
       - name: MkDocs build
         run: uv run mkdocs build
 

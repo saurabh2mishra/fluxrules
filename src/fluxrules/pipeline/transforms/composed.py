@@ -33,9 +33,14 @@ class Conditional(Transform):
     """Apply one of two transforms based on a predicate.
 
     Example:
+        >>> from fluxrules.pipeline import Rename
         >>> legacy = Rename({"id": ["legacy_id"]})
         >>> modern = Rename({"id": ["uuid"]})
         >>> t = Conditional(lambda f: f.get("source") == "legacy", legacy, modern)
+        >>> t({"source": "legacy", "legacy_id": 7})
+        {'source': 'legacy', 'legacy_id': 7, 'id': 7}
+        >>> t({"source": "new", "uuid": 9})
+        {'source': 'new', 'uuid': 9, 'id': 9}
     """
 
     def __init__(
@@ -115,13 +120,17 @@ class Switch(Transform):
     match, ``default`` runs (or the fact passes through unchanged).
 
     Example:
+        >>> from fluxrules.pipeline import Rename
         >>> router = Switch(
         ...     [
-        ...         (lambda f: f["kind"] == "a", transform_a),
-        ...         (lambda f: f["kind"] == "b", transform_b),
+        ...         (lambda f: f["kind"] == "a", Rename({"id": ["a_id"]})),
+        ...         (lambda f: f["kind"] == "b", Rename({"id": ["b_id"]})),
         ...     ],
-        ...     default=fallback_transform,
         ... )
+        >>> router({"kind": "a", "a_id": 1})
+        {'kind': 'a', 'a_id': 1, 'id': 1}
+        >>> router({"kind": "c", "x": 3})  # no match and no default: unchanged
+        {'kind': 'c', 'x': 3}
     """
 
     def __init__(
