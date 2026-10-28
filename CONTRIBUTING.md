@@ -33,7 +33,7 @@ git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 unset VIRTUAL_ENV
 python scripts/check_uv.py
-uv sync --extra dev
+uv sync          # installs the dev dependency group by default
 ```
 
 The project uses the root `.venv`. If you intentionally use another active

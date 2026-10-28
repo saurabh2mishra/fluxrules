@@ -37,8 +37,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install project with docs extras
-        run: uv sync --extra docs
+      - name: Install project with docs dependencies
+        run: uv sync --no-default-groups --group docs
 
       - name: Configure git for gh-deploy
         run: |

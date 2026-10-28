@@ -19,7 +19,7 @@ install: check-uv
 	$(UV) sync
 
 dev: check-uv
-	$(UV) sync --extra dev --extra docs
+	$(UV) sync --group docs
 	$(UV) run pre-commit install
 
 lint: check-uv

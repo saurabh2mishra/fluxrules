@@ -1,4 +1,4 @@
-[![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+[![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/saurabh2mishra/fluxrules/blob/main/LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![CI](https://github.com/saurabh2mishra/fluxrules/actions/workflows/ci.yml/badge.svg)](https://github.com/saurabh2mishra/fluxrules/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/saurabh2mishra/fluxrules/branch/main/graph/badge.svg)](https://codecov.io/gh/saurabh2mishra/fluxrules)
@@ -17,7 +17,7 @@ FluxRules is a lightweight Python library for defining and managing business rul
 
 ## Requirements
 
-- **Python 3.11 or newer.** FluxRules 1.x is tested on Python 3.11 and 3.12.
+- **Python 3.11 or newer.** FluxRules 1.x is tested on Python 3.11, 3.12, 3.13 and 3.14.
 - Python 3.10 and older are not supported. On those versions pip will not install
   FluxRules 1.x and reports that no matching distribution was found. Upgrade
   Python, or pin `fluxrules<1.0` to stay on the last release that supported 3.10.
@@ -54,7 +54,7 @@ pip install 'fluxrules[cli]'     # command-line tool
 pip install 'fluxrules[all]'     # everything above
 ```
 
-For more details see the [installation guide](docs/installation.md).
+For more details see the [installation guide](https://saurabh2mishra.github.io/fluxrules/installation/).
 
 ## Your First Rule
 
@@ -84,7 +84,7 @@ You do not need a database, a server, or any setup to get a result: creating a
 right away. You can pass a single rule, a list of rules, or a
 [Ruleset](https://github.com/saurabh2mishra/fluxrules/blob/main/src/fluxrules/domain/models.py#L171-L182) (a named group of rules).
 
-How to write rule(s)? [Authoring Rules](docs/authoring-rules.md) 
+How to write rule(s)? [Authoring Rules](https://saurabh2mishra.github.io/fluxrules/authoring-rules/) 
 
 ## Using the engine directly
 
@@ -108,7 +108,7 @@ for fact in ({"amount": 6000}, {"amount": 10}):
 ```
 
 To persist a rule, call `rule.save()`, or pass `persist=True` when constructing
-it. See the [persistence guide](docs/persistence.md).
+it. See the [persistence guide](https://saurabh2mishra.github.io/fluxrules/persistence/).
 
 ## API Server (Optional)
 
@@ -116,7 +116,7 @@ it. See the [persistence guide](docs/persistence.md).
 uv sync --extra api
 uvicorn fluxrules.api.app:create_app --factory --reload
 ```
-see [API](/docs/api.md) for more detail.
+see [API](https://saurabh2mishra.github.io/fluxrules/api/) for more detail.
 
 ## CLI (Optional)
 
@@ -175,12 +175,12 @@ fluxrules skips work at every level it can:
 
 ## Contributing
 
-[Contributing](CONTRIBUTING.md) & [Code of Conduct](CODE_OF_CONDUCT.md)
+[Contributing](https://github.com/saurabh2mishra/fluxrules/blob/main/CONTRIBUTING.md) & [Code of Conduct](https://github.com/saurabh2mishra/fluxrules/blob/main/CODE_OF_CONDUCT.md)
 
 ## Security
 
-[Security](SECURITY.md)
+[Security](https://github.com/saurabh2mishra/fluxrules/blob/main/SECURITY.md)
 
 ## License
 
-[License](LICENSE)
+[License](https://github.com/saurabh2mishra/fluxrules/blob/main/LICENSE)

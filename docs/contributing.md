@@ -29,8 +29,8 @@ Be respectful, inclusive, and constructive in all interactions.
 git clone https://github.com/saurabh2mishra/fluxrules.git
 cd fluxrules
 
-# Install with dev extras
-pip install -e ".[dev]"
+# Install with the dev dependency group (pip >= 25.1)
+pip install -e . --group dev
 
 # Run tests
 pytest tests/ -v

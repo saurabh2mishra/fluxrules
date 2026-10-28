@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Python 3.13 and 3.14 support.** Both are now tested in CI and listed in the
+  package classifiers. The full test suite passes on both.
+
+### Changed
+
+- **Packaging metadata.** The license is declared as the SPDX expression `MIT`
+  (PEP 639) instead of a free-text table, and the PyPI summary now reads "A
+  lightweight business rule engine for Python".
+- **`dev` and `docs` are dependency groups, not extras.** They are contributor
+  tooling and are no longer published, so `pip install fluxrules[dev]` no longer
+  installs ruff, mypy and pytest. Contributors use `uv sync` (the `dev` group is
+  the default) and `uv sync --group docs`, or `pip install -e . --group dev` with
+  pip 25.1 or newer.
+- **Smaller source distribution.** The sdist no longer ships `.github/`,
+  `scripts/`, `uv.lock`, `Makefile` or `docker-compose.yml`.
+
+### Fixed
+
+- **README links on PyPI.** Relative links (docs pages, LICENSE, CONTRIBUTING,
+  SECURITY) returned 404 on the PyPI project page. They now point at the docs
+  site and GitHub. The API link was broken on GitHub too.
+
 ## [1.0.1] - 2026-10-28
 
 ### Fixed
