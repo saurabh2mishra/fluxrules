@@ -1,5 +1,5 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![CI](https://github.com/saurabh2mishra/fluxrules/actions/workflows/ci.yml/badge.svg)](https://github.com/saurabh2mishra/fluxrules/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/saurabh2mishra/fluxrules/branch/main/graph/badge.svg)](https://codecov.io/gh/saurabh2mishra/fluxrules)
 
@@ -17,7 +17,16 @@ FluxRules is a lightweight Python library for defining and managing business rul
 
 ## Requirements
 
-- Python 3.10+
+- **Python 3.11 or newer.** FluxRules 1.0.0 is tested on Python 3.11 and 3.12.
+- Python 3.10 and older are not supported. On those versions pip will not install
+  FluxRules 1.0.0 and reports that no matching distribution was found. Upgrade
+  Python, or pin `fluxrules<1.0` to stay on the last release that supported 3.10.
+
+Check your version before installing:
+
+```bash
+python --version  # must print 3.11 or higher
+```
 
 ## Installation
 

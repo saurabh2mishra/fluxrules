@@ -53,12 +53,3 @@ conditions:
 
     assert len(rows) == 1
     assert rows[0]["id"] == 8
-
-
-
-
-
-
-
-
-

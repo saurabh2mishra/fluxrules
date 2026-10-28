@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import (
@@ -40,12 +40,12 @@ class Rule(Base):
     evaluation_mode: Mapped[str | None] = mapped_column(String, nullable=True, default="stateless")
     current_version: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
-        onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        default=lambda: datetime.now(UTC).replace(tzinfo=None),
+        onupdate=lambda: datetime.now(UTC).replace(tzinfo=None),
     )
     created_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
 
@@ -70,7 +70,7 @@ class RuleVersion(Base):
     action: Mapped[str] = mapped_column(Text, nullable=False)
     rule_metadata: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None)
     )
     created_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
 

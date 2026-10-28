@@ -41,7 +41,7 @@ rule = Rule(
 
 - `action` - What to do when the rule matches
 
-- `priority` - Execution order (higher = runs first)
+- `priority` - Execution order (higher = runs first). All matching rules fire; priority only orders them. Ties are currently broken by rule ID (highest first), which is not a guaranteed contract, so use distinct priorities if order matters. Same-group, same-priority rules raise a validation warning.
 
 **See:** [examples/18_unified_rule.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py)
 

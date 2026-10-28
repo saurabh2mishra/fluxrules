@@ -36,6 +36,7 @@ class TestSerializeRule:
 
     def _call(self, rule):
         from fluxrules.api.routes.rules import serialize_rule
+
         return serialize_rule(rule)
 
     def test_conditions_dict_passed_through(self):
@@ -54,7 +55,9 @@ class TestSerializeRule:
         assert "condition_dsl" not in result
 
     def test_rule_metadata_none_passes_through(self):
-        result = self._call(_orm_rule(conditions={"type": "exists", "field": "x"}, rule_metadata=None))
+        result = self._call(
+            _orm_rule(conditions={"type": "exists", "field": "x"}, rule_metadata=None)
+        )
         assert result["rule_metadata"] is None
 
     def test_rule_metadata_string_is_decoded(self):
@@ -70,6 +73,7 @@ class TestRuleToPayload:
 
     def _call(self, rule):
         from fluxrules.api.services.rule_validation_service import RuleValidationService
+
         return RuleValidationService._rule_to_payload(rule)
 
     def test_conditions_dict_passed_through(self):

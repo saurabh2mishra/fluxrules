@@ -1,5 +1,6 @@
 import io
 import json
+from datetime import UTC
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile
@@ -718,7 +719,7 @@ def review_parked_conflict(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     parked = db.query(ConflictedRule).filter(ConflictedRule.id == parked_id).first()
     if not parked:
@@ -727,7 +728,7 @@ def review_parked_conflict(
     if action == "dismiss":
         parked.status = "dismissed"
         parked.reviewed_by = current_user.id
-        parked.reviewed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        parked.reviewed_at = datetime.now(UTC).replace(tzinfo=None)
         parked.review_notes = notes
         db.commit()
         return {
@@ -750,7 +751,7 @@ def resolve_parked_conflict(
     current_user: User = Depends(get_current_user),
 ):
     import hashlib
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     parked = db.query(ConflictedRule).filter(ConflictedRule.id == parked_id).first()
     if not parked:
@@ -763,9 +764,7 @@ def resolve_parked_conflict(
         )
 
     original_condition = (
-        json.loads(parked.conditions)
-        if isinstance(parked.conditions, str)
-        else parked.conditions
+        json.loads(parked.conditions) if isinstance(parked.conditions, str) else parked.conditions
     )
     modified_condition = (
         modified_rule.conditions
@@ -851,7 +850,7 @@ def resolve_parked_conflict(
 
     parked.status = "approved"
     parked.reviewed_by = current_user.id
-    parked.reviewed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    parked.reviewed_at = datetime.now(UTC).replace(tzinfo=None)
     parked.review_notes = notes or "Resolved with modifications"
     db.commit()
 

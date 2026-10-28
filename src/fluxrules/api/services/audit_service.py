@@ -3,7 +3,7 @@
 import hashlib
 import hmac
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -15,7 +15,7 @@ logger = logging.getLogger("fluxrules.audit")
 
 def _utcnow() -> datetime:
     # Naive UTC - matches what SQLAlchemy's DateTime column returns after a DB round-trip.
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def _compute_integrity_hash(

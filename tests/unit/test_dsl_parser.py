@@ -1,4 +1,4 @@
-"""DSL parser tests """
+"""DSL parser tests"""
 
 from fluxrules.domain.conditions.expression_parser import ConditionParser
 

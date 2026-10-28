@@ -74,9 +74,7 @@ def rule_from_dict(data: dict[str, Any]) -> EngineRule:
         group=str(data.get("group", "")),
         description=str(data.get("description", "")),
         enabled=bool(data.get("enabled", True)),
-        conditions=data.get("conditions")
-        if isinstance(data.get("conditions"), dict)
-        else None,
+        conditions=data.get("conditions") if isinstance(data.get("conditions"), dict) else None,
     )
 
 

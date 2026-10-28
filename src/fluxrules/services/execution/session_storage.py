@@ -13,7 +13,7 @@ import threading
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -65,7 +65,7 @@ class MemorySessionStorageBackend(SessionStorageBackend):
         self._lock = threading.RLock()
 
     def _now(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def create_session(
         self, session_id: str, metadata: dict[str, Any] | None = None
@@ -149,7 +149,7 @@ class RedisSessionStorageBackend(SessionStorageBackend):
         return f"{self._prefix}:{session_id}"
 
     def _now(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def _decode(self, raw: Any) -> SessionRecord | None:
         if raw is None:

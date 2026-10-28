@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -32,7 +32,7 @@ class ConflictedRule(Base):
     # Who tried to create it
     submitted_by: Mapped[int | None] = mapped_column(Integer)
     submitted_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None), index=True
     )
 
     # Review status: pending, approved, dismissed

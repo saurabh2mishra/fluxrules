@@ -12,6 +12,7 @@ Covers:
 
 import time
 import uuid
+from datetime import UTC
 
 import pytest
 from fastapi.testclient import TestClient
@@ -277,7 +278,7 @@ class TestAuditIntegrity:
 
     def test_pre_feature_rows_pass_verification(self):
         """Rows without a hash (created before this feature) should pass."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from fluxrules.api.models.audit import AuditLog
         from fluxrules.api.services.audit_service import verify_audit_integrity
@@ -286,7 +287,7 @@ class TestAuditIntegrity:
             action_type="legacy",
             entity_type="rule",
             details="old row",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             integrity_hash=None,
         )
         assert verify_audit_integrity(log) is True
@@ -343,7 +344,7 @@ class TestAuditRetention:
             db.close()
 
     def test_retention_purges_old_rows(self):
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from fluxrules.api.config import settings
         from fluxrules.api.models.audit import AuditLog
@@ -361,7 +362,7 @@ class TestAuditRetention:
                 entity_id=1,
                 user_id=1,
                 details="ancient",
-                timestamp=datetime.now(timezone.utc) - timedelta(days=60),
+                timestamp=datetime.now(UTC) - timedelta(days=60),
             )
             db.add(old)
             # And a recent one.
@@ -533,11 +534,11 @@ class TestPerformance:
 
     def test_integrity_hash_performance(self):
         """Audit hash computation should be fast (< 1ms per row)."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from fluxrules.api.services.audit_service import _compute_integrity_hash
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         start = time.time()
         iterations = 10_000
         for i in range(iterations):

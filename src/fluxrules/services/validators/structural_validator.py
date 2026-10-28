@@ -101,7 +101,9 @@ class StructuralValidator(Validator):
 
         return result
 
-    def _validate_conditions_structure(self, condition: dict[str, Any], result: ValidationResult) -> None:
+    def _validate_conditions_structure(
+        self, condition: dict[str, Any], result: ValidationResult
+    ) -> None:
         """Validate DSL structure recursively."""
         if "type" not in condition:
             result.add_error(

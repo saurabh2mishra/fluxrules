@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -89,7 +89,7 @@ class EvaluationSession:
             execution_id=self.execution_id,
             ruleset_id=self.ruleset_id,
             facts=self.facts.copy(),
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             metadata=self.metadata.copy(),
         )
         return snapshot.to_json()

@@ -4,7 +4,7 @@ This page gets you from nothing to a working rule in a few minutes.
 
 ## Prerequisites
 
-- Python 3.10 or newer
+- Python 3.11 or newer (3.10 and older are not supported; see [Installation](installation.md#requirements))
 - uv (recommended) or pip
 
 ## Install with uv

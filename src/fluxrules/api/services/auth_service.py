@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -30,9 +30,9 @@ def authenticate_user(db: Session, username: str, password: str) -> User | None:
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc).replace(tzinfo=None) + expires_delta
+        expire = datetime.now(UTC).replace(tzinfo=None) + expires_delta
     else:
-        expire = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=15)
+        expire = datetime.now(UTC).replace(tzinfo=None) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, get_secret_key(), algorithm=settings.ALGORITHM)
     return encoded_jwt

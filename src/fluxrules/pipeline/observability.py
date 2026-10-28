@@ -119,6 +119,7 @@ class MetricsHook:
     """Observability hook that records into a :class:`PipelineMetrics`.
 
     Example:
+        >>> from fluxrules.pipeline import FactPipeline, Flatten
         >>> metrics = PipelineMetrics()
         >>> pipeline = FactPipeline([Flatten()], hooks=[MetricsHook(metrics)])
         >>> pipeline({"a": {"b": 1}})

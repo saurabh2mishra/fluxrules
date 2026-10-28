@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import create_engine
@@ -187,8 +187,8 @@ class TestOrmRuleToDomain:
             name="Ts",
             conditions={"type": "and", "children": []},
             action="",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         db_session.add(orm)
         db_session.commit()

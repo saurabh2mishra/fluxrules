@@ -10,6 +10,9 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **v1.0.0** (2026) - First stable release
+  - Documented equal-priority ordering (rule ID, highest first; not a guaranteed
+    contract)
 - **v0.2.0** (2026) - Fluent condition DSL
   - `F("amount") > 5000` expressions build the same condition dicts the engine
     already accepts, combined with `&`, `|` and `~`

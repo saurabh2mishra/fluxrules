@@ -9,7 +9,7 @@ participating, you are expected to uphold it.
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - [uv](https://docs.astral.sh/uv/) **0.8.0 or newer**
 
 FluxRules uses the revision-2 `uv.lock` format. Older uv versions fail before

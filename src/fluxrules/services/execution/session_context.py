@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fluxrules.services.execution.agenda import Agenda
@@ -56,7 +56,7 @@ class SessionContext:
 
     def __post_init__(self) -> None:
         if self.created_at.tzinfo is None:
-            self.created_at = self.created_at.replace(tzinfo=timezone.utc)
+            self.created_at = self.created_at.replace(tzinfo=UTC)
         self._destroyed = False
         self._fact_sizes: dict[str, int] = {
             fact_id: self._estimate_fact_size(record.payload)
@@ -152,7 +152,7 @@ class SessionContext:
 
     def is_expired(self) -> bool:
         expires_at = self.created_at + timedelta(seconds=self.ttl_seconds)
-        return datetime.now(timezone.utc) >= expires_at
+        return datetime.now(UTC) >= expires_at
 
     def destroy(self) -> None:
         if self._destroyed:

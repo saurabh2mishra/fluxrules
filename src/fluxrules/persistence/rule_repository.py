@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -114,7 +114,7 @@ class RuleRepository:
             elif hasattr(orm_rule, key):
                 setattr(orm_rule, key, value)
 
-        orm_rule.updated_at = datetime.now(timezone.utc)
+        orm_rule.updated_at = datetime.now(UTC)
         self.db.commit()
         self.db.refresh(orm_rule)
         return orm_rule_to_domain(orm_rule)

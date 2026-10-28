@@ -10,7 +10,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 __all__ = [
@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-class ErrorAction(str, Enum):
+class ErrorAction(StrEnum):
     """What to do when a transform raises.
 
     Members:

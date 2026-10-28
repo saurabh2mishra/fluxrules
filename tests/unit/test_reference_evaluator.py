@@ -63,10 +63,13 @@ def test_reference_evaluator_declines_stateful_node(caplog) -> None:
                 actions=("alert",),
                 priority=1,
                 group="g",
-                conditions={"type": "sequence", "steps": [
-                    {"type": "condition", "field": "x", "op": ">", "value": 0},
-                    {"type": "condition", "field": "y", "op": ">", "value": 0},
-                ]},
+                conditions={
+                    "type": "sequence",
+                    "steps": [
+                        {"type": "condition", "field": "x", "op": ">", "value": 0},
+                        {"type": "condition", "field": "y", "op": ">", "value": 0},
+                    ],
+                },
             ),
         ),
     )

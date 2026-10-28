@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -14,7 +14,7 @@ class TestSessionContext:
         session = SessionContext(
             session_id="s-1",
             group="fraud",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             ttl_seconds=300,
             config={"max_facts": 10, "memory_budget_bytes": 10_000},
         )
@@ -40,7 +40,7 @@ class TestSessionContext:
         session = SessionContext(
             session_id="s-2",
             group="fraud",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             ttl_seconds=300,
             config={"max_facts": 10, "memory_budget_bytes": 120},
         )
@@ -58,7 +58,7 @@ class TestSessionContext:
         assert stats.memory_bytes <= stats.memory_budget_bytes
 
     def test_ttl_expiration_behavior(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired = SessionContext(
             session_id="s-expired",
             group="fraud",

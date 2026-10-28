@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, Session, mapped_column
@@ -26,9 +26,7 @@ class EvaluationResultORM(Base):
     fired_rules: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     actions: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     trace: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc)
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class ExecutionRepository:

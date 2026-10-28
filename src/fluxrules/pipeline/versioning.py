@@ -12,7 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 
-class ChangeType(str, Enum):
+class ChangeType(StrEnum):
     """Classification of the difference between two pipeline versions."""
 
     IDENTICAL = "identical"

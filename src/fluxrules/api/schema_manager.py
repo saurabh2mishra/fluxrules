@@ -1,7 +1,7 @@
 """Schema version tracking and Alembic migration-safety utilities."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
@@ -49,7 +49,7 @@ def get_recorded_version(engine: Engine) -> str | None:
 
 def stamp_version(engine: Engine, version: str, description: str = "") -> None:
     _ensure_meta_table(engine)
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     with engine.begin() as conn:
         conn.execute(
             text(

@@ -51,7 +51,11 @@ class CodeBlock:
 
         first_lines = [line.strip() for line in self.source.splitlines()]
         for line in first_lines:
-            if line.startswith("# python skip") or line.startswith("# doctest: skip") or line.startswith("# doctest: +SKIP"):
+            if (
+                line.startswith("# python skip")
+                or line.startswith("# doctest: skip")
+                or line.startswith("# doctest: +SKIP")
+            ):
                 return True
         return False
 

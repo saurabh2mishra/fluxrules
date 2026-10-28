@@ -60,8 +60,7 @@ class FactValidator:
         >>> FactValidator.validate("MyTransform", None)
         Traceback (most recent call last):
             ...
-        fluxrules.pipeline.validators.InvalidFactError: 'MyTransform' produced
-        an invalid fact: result must be a dict (got NoneType)
+        fluxrules.pipeline.validators.InvalidFactError: 'MyTransform' produced an invalid fact: result must be a dict (got NoneType)
     """
 
     @staticmethod

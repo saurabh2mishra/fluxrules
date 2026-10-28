@@ -91,8 +91,7 @@ def test_all_unfilterable_set_bypasses_alpha() -> None:
 def test_alpha_disabled_flag_never_engages() -> None:
     """``alpha_prefilter=False`` keeps the A/B switch fully off (P1.1 step 5)."""
     rules = [
-        Rule(id=i, name=f"r{i}", conditions=_leaf("x", ">", i), persist=False)
-        for i in range(100)
+        Rule(id=i, name=f"r{i}", conditions=_leaf("x", ">", i), persist=False) for i in range(100)
     ]
     engine = PhreakEngine(alpha_prefilter=False)
     engine.load_rules(rules)
@@ -112,10 +111,7 @@ def test_engage_decision_recomputed_on_reload() -> None:
 
     # First: filterable ⇒ engages.
     engine.load_rules(
-        [
-            Rule(id=i, name=f"r{i}", conditions=_leaf("a", ">", i), persist=False)
-            for i in range(20)
-        ]
+        [Rule(id=i, name=f"r{i}", conditions=_leaf("a", ">", i), persist=False) for i in range(20)]
     )
     assert engine._alpha_engage is True
     engine.evaluate({"a": 5})

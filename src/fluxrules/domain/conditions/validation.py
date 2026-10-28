@@ -43,7 +43,9 @@ def validate_conditions(dsl: dict[str, Any], *, path: str = "root") -> None:
         ConditionValidationError: If the DSL is invalid.
     """
     if not isinstance(dsl, dict):
-        raise ConditionValidationError(f"DSL node at '{path}' must be a dict, got {type(dsl).__name__}")
+        raise ConditionValidationError(
+            f"DSL node at '{path}' must be a dict, got {type(dsl).__name__}"
+        )
 
     node_type = dsl.get("type")
     if node_type is None:
@@ -184,7 +186,9 @@ def _validate_accumulate(dsl: dict[str, Any], path: str) -> None:
     _check_extra_keys(dsl, _ACCUMULATE_KEYS, "accumulate", path)
 
     if "function" not in dsl:
-        raise ConditionValidationError(f"ACCUMULATE node at '{path}' missing required 'function' key")
+        raise ConditionValidationError(
+            f"ACCUMULATE node at '{path}' missing required 'function' key"
+        )
     if dsl["function"] not in _VALID_ACCUMULATE_FUNCS:
         raise ConditionValidationError(
             f"Invalid accumulate function '{dsl['function']}' at '{path}'. "
