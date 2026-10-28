@@ -1,5 +1,18 @@
 # Installation
 
+## Requirements
+
+- **Python 3.11 or newer.** FluxRules 1.0.0 is tested on Python 3.11 and 3.12.
+- Python 3.10 and older are not supported. On those versions pip will not install
+  FluxRules 1.0.0 and reports that no matching distribution was found. Upgrade
+  Python, or pin `fluxrules<1.0` to stay on the last release that supported 3.10.
+
+Check your version before installing:
+
+```bash
+python --version  # must print 3.11 or higher
+```
+
 ## Install from PyPI
 
 The simplest way to add FluxRules to your project:
@@ -52,7 +65,4 @@ uv add 'fluxrules[all]'
 python -c "import fluxrules; print(fluxrules.__version__)"
 ```
 
-## Requirements
-
-- Python 3.11 or later
 

@@ -316,7 +316,7 @@ python examples/00_getting_started.py
 
 ### Python Version Issues
 
-FluxRules requires Python 3.11+. Check your version:
+FluxRules requires Python 3.11 or newer; 3.10 and older are not supported. Check your version:
 ```bash
 python --version  # Should be 3.11 or higher
 ```

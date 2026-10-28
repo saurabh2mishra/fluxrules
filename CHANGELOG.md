@@ -16,10 +16,17 @@ First stable release.
 - **Python 3.10 support.** `requires-python` is now `>=3.11`. Python 3.10 reached
   end of life in October 2026, and security fixes for `dnspython` and `filelock`
   are only published for Python 3.11 and newer, so 3.10 could not pass the
-  dependency audit.
+  dependency audit. On Python 3.10 pip will not install 1.0.0; pin
+  `fluxrules<1.0` to stay on the last release that supported it.
 
 ### Changed
 
+- `ChangeType`, `CompositionOperator`, `ErrorAction`, `FindingKind` and
+  `ListStrategy` are now `enum.StrEnum`. Comparisons, value lookups and
+  serialization are unchanged, but `str(member)` and f-strings now give the value
+  (`"skip"`) rather than `"ErrorAction.SKIP"`.
+- Code targets Python 3.11: `datetime.UTC` replaces `timezone.utc`, and the
+  pre-3.10 entry-point fallback in plugin discovery is removed.
 - Bumped transitive dependencies (`dnspython`, `filelock`, `msgpack`,
   `opentelemetry-*`) to patched releases.
 - **Docs.** Documented that rules with equal priority are currently ordered by
