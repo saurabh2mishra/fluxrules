@@ -10,6 +10,9 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **v1.0.2** (2026) - Packaging cleanup
+  - Python 3.13 and 3.14 support; SPDX license metadata; working README links on
+    PyPI; `dev` and `docs` moved from extras to dependency groups
 - **v1.0.1** (2026) - CLI install hint
   - Running `fluxrules` without the `cli` extra prints
     `pip install 'fluxrules[cli]'` instead of a `ModuleNotFoundError`

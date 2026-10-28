@@ -2,15 +2,13 @@
 
 ## Supported Versions
 
-FluxRules is pre-1.0 and unpublished (`0.0.x`). Security fixes are applied to the
-latest development line; there are no long-term-support branches yet.
+Security fixes are released on the latest `1.x` version; there are no
+long-term-support branches. Upgrade to the newest release to receive fixes.
 
 | Version | Supported |
 |---------|-----------|
-| `0.0.x` | :white_check_mark: (current development line) |
-| `< 0.0.1` | :x: |
-
-When `1.0` is released this table will be updated with the LTS policy.
+| `1.x` (latest) | :white_check_mark: |
+| `< 1.0` | :x: |
 
 ## Reporting a Vulnerability
 
