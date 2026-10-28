@@ -675,3 +675,61 @@ def test_rules_database_starts_clean_for_each_test(auth_token):
     resp = client.get("/api/v1/rules", headers=headers)
     assert resp.status_code == 200
     assert resp.json() == []
+
+
+def test_dismiss_parked_conflict(auth_token):
+    """PUT /conflicts/parked/{id}?action=dismiss marks the parked rule reviewed."""
+    client = TestClient(app)
+    headers = auth_headers(auth_token)
+
+    def _rule(name, priority, value, action):
+        return {
+            "name": name,
+            "description": name,
+            "group": "dismiss_grp",
+            "priority": priority,
+            "enabled": True,
+            "conditions": {
+                "type": "condition",
+                "field": "dismiss_metric",
+                "op": ">=",
+                "value": value,
+            },
+            "action": action,
+        }
+
+    assert (
+        client.post(
+            "/api/v1/rules", json=_rule("DismissBase", 80, 500, "a"), headers=headers
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            "/api/v1/rules", json=_rule("DismissOverlap", 81, 600, "b"), headers=headers
+        ).status_code
+        == 400
+    )
+
+    parked = client.get("/api/v1/rules/conflicts/parked?status=pending", headers=headers).json()
+    parked_id = next(p["id"] for p in parked if p["name"] == "DismissOverlap")
+
+    bad = client.put(f"/api/v1/rules/conflicts/parked/{parked_id}?action=approve", headers=headers)
+    assert bad.status_code == 400
+
+    resp = client.put(
+        f"/api/v1/rules/conflicts/parked/{parked_id}?action=dismiss&notes=not+needed",
+        headers=headers,
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "dismissed"
+
+    dismissed = client.get(
+        "/api/v1/rules/conflicts/parked?status=dismissed", headers=headers
+    ).json()
+    entry = next(p for p in dismissed if p["id"] == parked_id)
+    assert entry["reviewed_at"] is not None
+    assert entry["review_notes"] == "not needed"
+
+    missing = client.put("/api/v1/rules/conflicts/parked/999999?action=dismiss", headers=headers)
+    assert missing.status_code == 404
