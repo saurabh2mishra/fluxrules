@@ -88,7 +88,7 @@ def activations_from_result(
     base_params = {"facts": facts} if facts is not None else {}
 
     if fired and len(fired) == len(actions):
-        for rid, action in zip(fired, actions):
+        for rid, action in zip(fired, actions, strict=True):
             if action:
                 activations.append(Activation(action=action, params=dict(base_params), rule_id=rid))
     else:
