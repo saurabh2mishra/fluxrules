@@ -669,3 +669,28 @@ class TestModelShapes:
         engine.load_rules([_rule(F("total") > 5)])
         assert engine.evaluate(Basket(price=2, qty=3)).fired_rules == [1]
         assert _rule(fields(Basket).total > 5).conditions == _rule(F("total") > 5).conditions
+
+    def test_other_model_with_computed_field_validates_against_strict_schema(self):
+        class StrictBasket(BaseModel):
+            model_config = ConfigDict(extra="forbid")
+
+            price: float
+            qty: int
+
+        engine = PhreakEngine(fact_schema=StrictBasket, validate_facts="normalize")
+        engine.load_rules([_rule(F("price") > 1)])
+        # Basket has a computed "total"; it is output, not validation input.
+        assert engine.evaluate(Basket(price=2, qty=3)).fired_rules == [1]
+
+    def test_computed_fields_left_out_on_older_pydantic(self, monkeypatch):
+        from fluxrules.facts import _dump_without_computed
+
+        real_dump = Basket.model_dump
+
+        def old_model_dump(self, **kwargs):
+            if "exclude_computed_fields" in kwargs:  # added in newer Pydantic
+                raise TypeError("unexpected keyword argument")
+            return real_dump(self, **kwargs)
+
+        monkeypatch.setattr(Basket, "model_dump", old_model_dump)
+        assert _dump_without_computed(Basket(price=2, qty=3)) == {"price": 2.0, "qty": 3}

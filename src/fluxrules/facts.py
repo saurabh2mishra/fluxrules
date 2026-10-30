@@ -152,22 +152,41 @@ def _nested_models(annotation: Any) -> tuple[list[type], bool]:
 _SCALARS = (str, int, float, bool, type(None))
 
 
-def _plain(value: Any) -> Any:
-    """Convert models nested inside containers to plain dicts (not flattened)."""
+def _plain(value: Any, *, computed: bool = True) -> Any:
+    """Convert models nested inside containers to plain dicts (not flattened).
+
+    With ``computed=False``, Pydantic computed fields are left out: they are
+    derived output, and validation input must not carry them.
+    """
     if isinstance(value, _SCALARS):
         return value
     kind = _instance_kind(value)
     if kind == "pydantic":
-        return value.model_dump(by_alias=False)
+        if computed:
+            return value.model_dump(by_alias=False)
+        return _dump_without_computed(value)
     if kind is not None:
-        return {n: _plain(getattr(value, n)) for n in _instance_field_names(_cls(value), kind)}
+        return {
+            n: _plain(getattr(value, n), computed=computed)
+            for n in _instance_field_names(_cls(value), kind)
+        }
     if isinstance(value, list):
-        return [_plain(v) for v in value]
+        return [_plain(v, computed=computed) for v in value]
     if isinstance(value, tuple):
-        return tuple(_plain(v) for v in value)
+        return tuple(_plain(v, computed=computed) for v in value)
     if isinstance(value, dict):
-        return {k: _plain(v) for k, v in value.items()}
+        return {k: _plain(v, computed=computed) for k, v in value.items()}
     return value
+
+
+def _dump_without_computed(model: Any) -> dict[str, Any]:
+    """``model_dump`` without computed fields, at every nesting level when supported."""
+    try:
+        return model.model_dump(by_alias=False, exclude_computed_fields=True)
+    except TypeError:
+        # Pydantic before 2.12: leave out this model's own computed fields.
+        computed = set(getattr(type(model), "model_computed_fields", {}))
+        return model.model_dump(by_alias=False, exclude=computed or None)
 
 
 def _mentions_model(annotation: Any) -> bool:
@@ -598,8 +617,9 @@ class _FactIntake:
             raw = facts
         elif _instance_kind(facts) is not None:
             # Nested, not flattened: the schema validates nested models, and
-            # the result is flattened below.
-            raw = _plain(facts)
+            # the result is flattened below. Computed fields are output, not
+            # input, so they are left out.
+            raw = _plain(facts, computed=False)
         else:
             raw = to_fact_dict(facts)
         try:
