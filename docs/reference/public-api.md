@@ -65,7 +65,13 @@ From `fluxrules.facts`:
 - `fields(Model)` - Checked field references: `fields(Customer).age >= 18` builds the same condition as `F("age") >= 18`, and a field the model lacks raises `UnknownFieldError`.
 - `lenient_aliases()` - Pydantic alias generator accepting snake_case, camelCase, PascalCase, kebab-case and all-lowercase spellings of each field.
 - `to_fact_dict(facts)` - Model or mapping to the flat fact dict.
-- `schema_info(Model) → FactSchemaInfo` - The flat field paths a rule may reference.
+- `schema_info(Model) → FactSchemaInfo` - The flat field paths a rule may reference. `check_rules(rules)` raises on the first unknown field; `unknown_fields(rules)` returns every one as an `UnknownFieldError` (with `.rule`, `.field`, `.suggestion` and `.summary`).
+- `load_schema(spec, base_dir=None) → type` - Import a model class from `"package.module:Class"` or `"path/to/models.py:Class"`. See [Check rule files in CI](../typed-facts.md#check-rule-files-in-ci).
+
+From `fluxrules.adapters.loaders`:
+
+- `load_rules_from_yaml(path, fact_schema=None)` - Rule mappings from a YAML file, checked against `fact_schema` or the file's own `fact_schema` key.
+- `read_rule_file(path) → RuleFile` - A JSON or YAML rule file as `rules` plus its optional `fact_schema` import string.
 - `QuarantinedFact` - Entry in `engine.quarantined_facts` (`facts`, `error`).
 
 ## Domain Models

@@ -24,11 +24,15 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import importlib
+import importlib.util
 import logging
+import sys
 import types
 import typing
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from fluxrules.domain.errors import UnknownFieldError
@@ -40,6 +44,7 @@ __all__ = [
     "QuarantinedFact",
     "fields",
     "lenient_aliases",
+    "load_schema",
     "schema_info",
     "to_fact_dict",
 ]
@@ -291,6 +296,18 @@ class FactSchemaInfo:
         Accepts the same rule shapes as ``load_rules`` (``Rule`` objects or
         dicts). Raises on the first unknown field, in rule order.
         """
+        for error in self._iter_unknown(rules):
+            raise error
+
+    def unknown_fields(self, rules: Iterable[Any]) -> list[UnknownFieldError]:
+        """Every unknown field referenced by *rules*, in rule order.
+
+        Like :meth:`check_rules` but collects instead of raising, so a CI check
+        can report all problems at once.
+        """
+        return list(self._iter_unknown(rules))
+
+    def _iter_unknown(self, rules: Iterable[Any]) -> Iterator[UnknownFieldError]:
         from fluxrules.domain.unified_rule import Rule
         from fluxrules.engine.infrastructure.global_rule_repository import normalize_rule
 
@@ -298,7 +315,10 @@ class FactSchemaInfo:
             canonical = rule if isinstance(rule, Rule) else normalize_rule(rule)
             label = canonical.name or (str(canonical.id) if canonical.id is not None else None)
             for field in referenced_fields(getattr(canonical, "conditions", None)):
-                self.check_field(field, rule=label)
+                if field not in self.fields and field not in self.parents:
+                    yield UnknownFieldError.for_field(
+                        field, self.name, sorted(self.known), rule=label
+                    )
 
 
 @functools.lru_cache(maxsize=256)
@@ -318,6 +338,83 @@ def schema_info(model: type) -> FactSchemaInfo:
     parents: set[str] = set()
     _describe(model, kind, "", leaves, parents, seen=(model,))
     return FactSchemaInfo(model=model, kind=kind, fields=leaves, parents=frozenset(parents))
+
+
+def load_schema(spec: str, *, base_dir: str | Path | None = None) -> type:
+    """Import a fact schema class named by an import string.
+
+    Two forms, as used by ``fluxrules validate --schema`` and the
+    ``fact_schema:`` key in rule files and ``fluxrules.yaml``:
+
+    - ``"package.module:Class"`` imports the module. The current directory (and
+      *base_dir*) are searched too, so a project's own modules work without
+      installing the project.
+    - ``"path/to/models.py:Class"`` loads the file directly. A relative path is
+      resolved against *base_dir* (the directory of the file that names the
+      schema), else the current directory.
+
+    Importing runs the module's code, so only name schemas from trusted files.
+
+    Raises:
+        ImportError: when the string is malformed or the module, file or class
+            cannot be found.
+        TypeError: when the class is not a supported model class.
+    """
+    target, sep, attr = spec.rpartition(":")
+    if not sep or not target or not attr:
+        raise ImportError(
+            f"fact schema {spec!r} must look like 'package.module:Class' or "
+            "'path/to/models.py:Class'"
+        )
+    base = Path(base_dir) if base_dir is not None else Path.cwd()
+
+    if target.endswith(".py") or "/" in target or "\\" in target:
+        path = Path(target)
+        if not path.is_absolute():
+            path = base / path
+        if not path.is_file():
+            raise ImportError(f"fact schema file not found: {path}")
+        module = _import_file(path)
+    else:
+        search = [p for p in dict.fromkeys((str(Path.cwd()), str(base))) if p not in sys.path]
+        sys.path[:0] = search
+        try:
+            module = importlib.import_module(target)
+        except ImportError as exc:
+            raise ImportError(f"cannot import fact schema module {target!r}: {exc}") from exc
+        finally:
+            for entry in search:
+                sys.path.remove(entry)
+
+    model = getattr(module, attr, None)
+    if model is None:
+        raise ImportError(f"{target!r} has no class {attr!r}")
+    schema_info(model)  # raises TypeError for an unsupported class
+    return model
+
+
+def _import_file(path: Path) -> types.ModuleType:
+    """Import a Python file as a module, registered under a path-unique name."""
+    path = path.resolve()
+    name = f"_fluxrules_schema_{path.stem}_{abs(hash(str(path))):x}"
+    if name in sys.modules:
+        return sys.modules[name]
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load fact schema file {path}")
+    module = importlib.util.module_from_spec(spec)
+    # Registered before running: dataclasses and Pydantic resolve annotations
+    # through sys.modules. The file's directory is importable for its siblings.
+    sys.modules[name] = module
+    sys.path.insert(0, str(path.parent))
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        del sys.modules[name]
+        raise
+    finally:
+        sys.path.remove(str(path.parent))
+    return module
 
 
 def _describe(

@@ -20,6 +20,9 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
     just case variants, and unflattened nested facts
   - `EngineConfig.missing_field` and `MissingFieldNotWarning`: `NOT` over a
     missing field stops firing in 2.0; opt in now with `"unknown"`
+  - `fluxrules validate --schema` checks JSON/YAML rule files against a model
+    in CI; the schema can also be named in the rule file or `fluxrules.yaml`
+  - `fact_pipeline=` runs a `FactPipeline` inside `evaluate()`
 - **v1.0.2** (2026) - Packaging cleanup
   - Python 3.13 and 3.14 support; SPDX license metadata; working README links on
     PyPI; `dev` and `docs` moved from extras to dependency groups

@@ -222,6 +222,14 @@ class UnknownFieldError(InvalidRuleError, AttributeError):
 
     code = "UNKNOWN_FACT_FIELD"
 
+    # Set by ``for_field``: the unknown field, the rule naming it, the schema,
+    # the suggested field (or None), and the message without the field list.
+    field: str | None = None
+    rule: str | None = None
+    schema_name: str | None = None
+    suggestion: str | None = None
+    summary: str = ""
+
     @classmethod
     def for_field(
         cls,
@@ -239,10 +247,14 @@ class UnknownFieldError(InvalidRuleError, AttributeError):
         close = same_shape or difflib.get_close_matches(field, list(known), n=1, cutoff=0.6)
         hint = f" Did you mean '{close[0]}'?" if close else ""
         where = f"Rule '{rule}' references" if rule else "Reference to"
-        return cls(
-            f"{where} unknown field '{field}' (not in fact schema {schema_name}).{hint} "
-            f"Known fields: {sorted(known)}"
-        )
+        summary = f"{where} unknown field '{field}' (not in fact schema {schema_name}).{hint}"
+        error = cls(f"{summary} Known fields: {sorted(known)}")
+        error.field = field
+        error.rule = rule
+        error.schema_name = schema_name
+        error.suggestion = close[0] if close else None
+        error.summary = summary
+        return error
 
 
 class FactValidationError(FluxRulesError, ValueError):

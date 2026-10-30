@@ -232,6 +232,106 @@ assert rejected.facts == {"userAge": "abc"}
 Whether unknown keys are allowed is the model's choice: Pydantic ignores them
 by default and rejects them with `model_config = ConfigDict(extra="forbid")`.
 
+## Check rule files in CI
+
+Rules kept in JSON or YAML files can be checked against the model before they
+reach an engine. `fluxrules validate` (from `pip install 'fluxrules[cli]'`)
+reports every field the model lacks, not only the first:
+
+```bash
+fluxrules validate rules/payments.yaml --schema myapp.models:Payment
+```
+
+```json
+{
+  "valid": false,
+  "issues": [
+    "Rule 'large_payment_new_account' references unknown field 'account.ageDays' (not in fact schema Payment). Did you mean 'account.age_days'?"
+  ],
+  "schemas": [
+    {"file": "rules/payments.yaml", "fact_schema": "myapp.models:Payment", "source": "--schema"}
+  ]
+}
+```
+
+The command exits `0` when the rules are valid, `1` when it finds an issue
+(an unknown field or a structural problem such as a duplicate id), and `2` when
+a rule file or the schema cannot be loaded. Pass several files at once
+(`fluxrules validate rules/*.yaml ...`); issues are then prefixed with their
+file.
+
+### Naming the schema
+
+A schema is named by an import string, in one of two forms:
+
+| Form | Example | Loads |
+|---|---|---|
+| Module | `myapp.models:Payment` | `Payment` from the module `myapp.models`. The current directory is searched too, so a project's own modules work without installing the project. |
+| File | `models/payment.py:Payment` | `Payment` from that file. A relative path is resolved against the directory of the file that names it. |
+
+Importing runs the module's code, so name schemas only from files you trust.
+
+### Where the schema comes from
+
+The first of these that is present applies:
+
+1. `--schema` on the command line.
+2. A `fact_schema` key in the rule file. The rules then go under `rules`:
+
+    ```yaml
+    fact_schema: myapp.models:Payment
+    rules:
+      - id: 1
+        name: large_payment_new_account
+        action: review
+        conditions:
+          type: condition
+          field: account.age_days
+          op: "<"
+          value: 14
+    ```
+
+3. A `fact_schema` key in the project config: `--config PATH`, else
+   `$FLUXRULES_CONFIG_FILE`, else `fluxrules.yaml` (or `.yml` / `.json`, or the
+   same under `config/`) in the current directory. `fluxrules init` writes it
+   commented out:
+
+    ```yaml
+    # fact_schema: myapp.models:Order
+    ```
+
+A rule file with its own `fact_schema` keeps its rules tied to that model, so
+moving or renaming the model class means updating those files. Prefer the
+config key when every rule file uses the same model.
+
+`fluxrules evaluate` takes the same `--schema` and `--config` options and the
+same file keys. Rules naming an unknown field are refused, and
+`--validate-facts normalize|strict` validates the event as `validate_facts`
+does:
+
+```bash
+fluxrules evaluate rules/payments.yaml event.json --validate-facts normalize
+```
+
+### From Python
+
+`load_rules_from_yaml` checks a rule file's own `fact_schema` when it loads the
+file, and raises `UnknownFieldError` on the first unknown field. Pass
+`fact_schema=` (a class or an import string) to use a different model:
+
+```python
+# python skip
+from fluxrules.adapters.loaders.yaml_loader import load_rules_from_yaml
+from fluxrules.facts import load_schema, schema_info
+
+rows = load_rules_from_yaml("rules/payments.yaml", fact_schema=Payment)
+
+# Every problem at once, as the CLI does:
+info = schema_info(load_schema("myapp.models:Payment"))
+for error in info.unknown_fields(rows):
+    print(error.rule, error.field, error.suggestion)
+```
+
 ## Without a schema
 
 Even with no schema, the engine reports key-style mismatches. A rule on

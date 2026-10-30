@@ -72,9 +72,33 @@ rule = Rule.model_validate_yaml(
 This rejects empty logic, unknown operators, malformed condition tree structure, and
 conflicting action fields at the authoring boundary.
 
+## Check rules against a fact schema
+
+A YAML file can name the model its rules are written against. The rules then
+go under `rules`:
+
+```yaml
+fact_schema: myapp.models:Payment
+rules:
+  - id: 7
+    name: high_value
+    action: review
+    conditions:
+      type: condition
+      field: amount
+      op: ">"
+      value: 100
+```
+
+`load_rules_from_yaml` then raises `UnknownFieldError` for a rule that names a
+field `Payment` lacks, and `fluxrules validate rules.yaml` lists every such
+field. The schema can also come from `--schema` or from `fact_schema` in
+`fluxrules.yaml`. See [Check rule files in CI](typed-facts.md#check-rule-files-in-ci).
+
 ## Operational guidance
 
-Store YAML rule files in version control, validate them in CI, and record the
+Store YAML rule files in version control, validate them in CI
+(`fluxrules validate rules/*.yaml`), and record the
 generated rule-set version used by a deployment. The loader does not execute
 action handlers; evaluation returns action names and the application or action
 dispatcher owns side effects.

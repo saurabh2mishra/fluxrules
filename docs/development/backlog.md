@@ -9,7 +9,8 @@ it is aimed at and why it is waiting. When an item ships, move it to
 Shipped in 1.1.0: model input for every engine, `fact_schema=` with load-time
 rule checks, `fluxrules.facts.fields()` and `lenient_aliases()`, opt-in
 `validate_facts` / `on_invalid`, key-style-insensitive `FieldNotFoundError`, and
-`EngineConfig.missing_field` with `MissingFieldNotWarning`. See
+`EngineConfig.missing_field` with `MissingFieldNotWarning`, and schema checks
+for JSON/YAML rule files in `fluxrules validate` and `load_rules_from_yaml`. See
 [Typed Facts](../typed-facts.md) and
 [Missing fields and NOT](../conditions.md#missing-fields-and-not).
 
@@ -38,13 +39,13 @@ rule needs, instead of evaluating the condition as `False`.
 other schemas' fields, so it needs scoping (per rule, per domain or via
 `fact_schema`) before it is useful. Phase 3 of the typed-facts plan.
 
-### `fluxrules check-rules --schema` CLI command
+### Check database rules against a fact schema
 
-**What:** Check YAML and database rules against a fact schema in CI, using
-`fluxrules.facts.schema_info(...).check_rules(...)`, which already exists.
+**What:** Extend `fluxrules validate --schema` to rules stored through the
+persistence layer, as it already does for JSON and YAML rule files.
 
-**Why waiting:** Needs a way to name a model class from the command line
-(`module:Class`) and a decision on exit codes and output format. Phase 3.
+**Why waiting:** The CLI has no way to point at a database yet (URL option or
+the configured persistence layer); that needs deciding first.
 
 ### Schema export for rule-authoring UIs
 

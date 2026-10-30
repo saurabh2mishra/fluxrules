@@ -39,6 +39,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `FactPipeline` (or any dict-to-dict callable) to each fact before
   `validate_facts` and discovery, so callers no longer run the pipeline by hand.
   A fact the pipeline drops returns an empty result; `assert_fact` is not piped.
+- **Schema checks for rule files and the CLI.** `fluxrules validate` takes
+  `--schema` and reports every field the model lacks, with a "did you mean"
+  hint. The schema is named by an import string (`myapp.models:Payment` or
+  `models.py:Payment`) and comes from `--schema`, else a `fact_schema` key in
+  the rule file (rules then go under `rules`), else `fact_schema` in
+  `fluxrules.yaml` (`--config` to choose the file; `fluxrules init` writes it
+  commented out). `fluxrules evaluate` takes the same options plus
+  `--validate-facts`. `load_rules_from_yaml(path, fact_schema=...)` checks on
+  load. New `fluxrules.facts.load_schema()`, `FactSchemaInfo.unknown_fields()`,
+  `fluxrules.adapters.loaders.read_rule_file()`, and structured attributes on
+  `UnknownFieldError`.
+- **CLI reads YAML rule files.** `validate` and `evaluate` accept `.yaml` /
+  `.yml` as well as `.json`, and `validate` accepts several files.
 - **`EngineConfig.missing_field`** (`None` | `"false"` | `"unknown"`) sets how
   `NOT` treats a field missing from the fact. `"unknown"` uses SQL NULL-style
   three-valued logic, so `~(F("blocked") == True)` no longer fires on a fact
@@ -56,6 +69,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`fluxrules validate` exits 1 when it finds an issue** (it exited 0 even
+  when `valid` was `false`), and 2 when a rule file or schema cannot be loaded,
+  so it can gate CI. The JSON output gains a `schemas` list.
+- **`fluxrules evaluate` reports engine errors cleanly.** A `FieldNotFoundError`
+  or other FluxRules error prints one line to stderr and exits 1 instead of a
+  traceback.
 - **`FieldNotFoundError` catches key-style mismatches, not only case.** A rule
   on `userAge` against a fact with `user_age`, `user-age` or `UserAge` now
   raises instead of silently not matching. Names are compared after removing
