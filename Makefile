@@ -23,11 +23,11 @@ dev: check-uv
 	$(UV) run pre-commit install
 
 lint: check-uv
-	$(UV) run ruff check src/ tests/
+	$(UV) run ruff check src/ tests/ examples/
 
 format: check-uv
-	$(UV) run ruff format src/ tests/
-	$(UV) run ruff check --fix src/ tests/
+	$(UV) run ruff format src/ tests/ examples/
+	$(UV) run ruff check --fix src/ tests/ examples/
 
 test: check-uv
 	$(UV) run pytest tests/ -v -m "not performance"
