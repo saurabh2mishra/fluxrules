@@ -260,58 +260,11 @@ a rule file or the schema cannot be loaded. Pass several files at once
 (`fluxrules validate rules/*.yaml ...`); issues are then prefixed with their
 file.
 
-### Naming the schema
-
-A schema is named by an import string, in one of two forms:
-
-| Form | Example | Loads |
-|---|---|---|
-| Module | `myapp.models:Payment` | `Payment` from the module `myapp.models`. The current directory is searched too, so a project's own modules work without installing the project. |
-| File | `models/payment.py:Payment` | `Payment` from that file. A relative path is resolved against the directory of the file that names it. |
-
-Importing runs the module's code, so name schemas only from files you trust.
-
-### Where the schema comes from
-
-The first of these that is present applies:
-
-1. `--schema` on the command line.
-2. A `fact_schema` key in the rule file. The rules then go under `rules`:
-
-    ```yaml
-    fact_schema: myapp.models:Payment
-    rules:
-      - id: 1
-        name: large_payment_new_account
-        action: review
-        conditions:
-          type: condition
-          field: account.age_days
-          op: "<"
-          value: 14
-    ```
-
-3. A `fact_schema` key in the project config: `--config PATH`, else
-   `$FLUXRULES_CONFIG_FILE`, else `fluxrules.yaml` (or `.yml` / `.json`, or the
-   same under `config/`) in the current directory. `fluxrules init` writes it
-   commented out:
-
-    ```yaml
-    # fact_schema: myapp.models:Order
-    ```
-
-A rule file with its own `fact_schema` keeps its rules tied to that model, so
-moving or renaming the model class means updating those files. Prefer the
-config key when every rule file uses the same model.
-
-`fluxrules evaluate` takes the same `--schema` and `--config` options and the
-same file keys. Rules naming an unknown field are refused, and
-`--validate-facts normalize|strict` validates the event as `validate_facts`
-does:
-
-```bash
-fluxrules evaluate rules/payments.yaml event.json --validate-facts normalize
-```
+The schema is named by an import string, `myapp.models:Payment` (a module) or
+`models/payment.py:Payment` (a file), and comes from `--schema`, else a
+`fact_schema` key in the rule file, else `fact_schema` in `fluxrules.yaml`.
+`fluxrules evaluate` takes the same options plus `--validate-facts`. See
+[CLI](cli.md#fact-schemas) for the forms, the lookup order and the exit codes.
 
 ### From Python
 

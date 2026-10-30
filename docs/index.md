@@ -38,6 +38,7 @@ The package source is in `src/fluxrules`, and examples are in `examples/`.
 - [Getting Started](getting-started.md)
 - [Installation](installation.md)
 - [Quickstart](quickstart.md)
+- [From Fact to Action](fact-to-action.md)
 - [Architecture](architecture.md)
 - [Usage Overview](usage/index.md)
 - [Advanced Capabilities](usage/advanced-capabilities.md)

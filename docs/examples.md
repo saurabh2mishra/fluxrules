@@ -199,7 +199,7 @@ python examples/10_pluggable_engines.py
 **File:** `examples/11_cli_usage.py`
 
 Use FluxRules from the command line. Learn:
-- `fluxrules validate rules.json`
+- `fluxrules validate rules.json` (also YAML, and `--schema` to check fields; see [CLI](cli.md))
 - `fluxrules evaluate rules.json fact.json --format json`
 - The JSON rule and fact files the CLI reads
 - Running the CLI in-process with Typer's `CliRunner`

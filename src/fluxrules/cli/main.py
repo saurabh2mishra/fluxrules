@@ -270,7 +270,7 @@ def serve(
     port: int = typer.Option(8000, help="Bind port"),
     reload: bool = typer.Option(False, help="Enable auto-reload"),
 ) -> None:
-    """Start the FluxRules API server (requires fluxrules[api])."""
+    """Start the FluxRules API server (needs the api extra)."""
     try:
         import uvicorn
 

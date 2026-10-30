@@ -38,7 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`fact_pipeline=` on `PhreakEngine` / `BaseEngine`.** `evaluate()` applies a
   `FactPipeline` (or any dict-to-dict callable) to each fact before
   `validate_facts` and discovery, so callers no longer run the pipeline by hand.
-  A fact the pipeline drops returns an empty result; `assert_fact` is not piped.
+  A model instance skips the pipeline. A fact the pipeline drops returns an
+  empty result; `assert_fact` is not piped.
 - **Schema checks for rule files and the CLI.** `fluxrules validate` takes
   `--schema` and reports every field the model lacks, with a "did you mean"
   hint. The schema is named by an import string (`myapp.models:Payment` or
@@ -65,7 +66,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [example 31](examples/31_typed_facts.py); the
   [Fact Pipeline](docs/fact-pipeline.md) guide now says when to use a pipeline
   and when to use typed facts; new
-  [backlog](docs/development/backlog.md) page for designed-but-unshipped work.
+  [backlog](docs/development/backlog.md) page for designed-but-unshipped work;
+  new [From Fact to Action](docs/fact-to-action.md) page with a diagram of
+  every stage a fact passes through; new [CLI](docs/cli.md) reference; the
+  [YAML Rules](docs/yaml-rules.md) guide covers the `fact_schema` file form.
+  The docs site renders Mermaid diagrams.
 
 ### Changed
 

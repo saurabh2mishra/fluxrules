@@ -123,7 +123,9 @@ result = engine.evaluate(raw_fact)  # normalized, then evaluated
 
 - Any callable that takes and returns a fact dict works, not only a
   `FactPipeline`.
-- A model passed to `evaluate()` is converted to a dict first, then piped.
+- The pipeline runs on dict (and other mapping) input. A model instance is
+  already structured, so it skips the pipeline and goes straight to conversion
+  and validation.
 - A fact the pipeline drops (`Filter`, or a transform whose error policy skips
   the record) returns an empty result. Other pipeline errors propagate.
 - With `fact_schema=` and `validate_facts`, the pipeline runs first and its
