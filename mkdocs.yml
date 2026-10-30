@@ -71,6 +71,7 @@ nav:
     - Fact Pipeline: fact-pipeline.md
     - Cross-Fact Rules: cross-fact-rules.md
     - Nested Facts: nested-facts.md
+    - Typed Facts: typed-facts.md
     - Validation Framework: validation-framework.md
     - Working Memory: working-memory.md
     - Extension Points: extension-points.md
@@ -100,6 +101,7 @@ nav:
     - Overview: development/index.md
     - Contributing: contributing.md
     - Testing: development/testing.md
+    - Backlog: development/backlog.md
   - Security: security.md
   - Troubleshooting: troubleshooting.md
   - Changelog: changelog.md

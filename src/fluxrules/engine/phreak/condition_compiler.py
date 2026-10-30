@@ -27,6 +27,7 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any, Protocol
 
+from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
 from fluxrules.engine.operators import evaluate_operator
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ def _compile(
         inner = condition.get("condition")
         if inner is not None:
             child = _compile(inner, flags, fallback_factory, leaf_compiler)
-            return lambda facts: not child(facts)
+            return _guard_not(condition, lambda facts: not child(facts), flags, fallback_factory)
         inner_list = condition.get("conditions") or []
         if inner_list:
             compiled = [_compile(c, flags, fallback_factory, leaf_compiler) for c in inner_list]
@@ -119,7 +120,7 @@ def _compile(
                         return False
                 return True
 
-            return _not_any
+            return _guard_not(condition, _not_any, flags, fallback_factory)
         return _const(True)
 
     if ctype == "exists":
@@ -141,6 +142,42 @@ def _compile(
 
     # Unknown node type: interpreter returns False here.
     return _const(False)
+
+
+def _guard_not(
+    condition: dict[str, Any],
+    plain: CompiledCondition,
+    flags: _Flags,
+    fallback_factory: Callable[[dict[str, Any]], CompiledCondition] | None,
+) -> CompiledCondition:
+    """Wrap a compiled ``not`` with the configured missing-field semantics.
+
+    With ``missing_field="false"`` the plain closure is returned untouched.
+    Otherwise the wrapper only does extra work when the ``not`` fires and a
+    field under it is missing (see :mod:`fluxrules.domain.conditions.missing_fields`).
+    """
+    mode = getattr(flags, "missing_field", None)
+    if mode == "false":
+        return plain
+    state = NotState(condition)
+    if not state.fields:
+        return plain
+
+    def _leaf(node: dict[str, Any], facts: dict[str, Any]) -> bool:
+        return _compile_leaf(node, flags)(facts)
+
+    def _other(node: dict[str, Any], facts: dict[str, Any]) -> bool:
+        if fallback_factory is None:
+            return False
+        return fallback_factory(node)(facts)
+
+    def _not(facts: dict[str, Any]) -> bool:
+        result = plain(facts)
+        if not result or state.warned:
+            return result
+        return resolve_not(state, result, facts, mode, leaf=_leaf, other=_other, empty=True)
+
+    return _not
 
 
 def _compile_leaf(condition: dict[str, Any], flags: _Flags) -> CompiledCondition:

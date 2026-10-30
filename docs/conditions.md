@@ -205,27 +205,40 @@ Dict equivalent:
 ```
 
 Use `exists()` when a field might legitimately be absent - `condition` nodes
-raise `FieldNotFoundError` if the field is a case variant of a present key
-(e.g. `Amount` vs `amount`). `exists()` never raises.
+raise `FieldNotFoundError` if a present key is the same field in another key
+style (e.g. `Amount` vs `amount`, `userAge` vs `user_age`). `exists()` never
+raises.
 
 ---
 
 ## What to keep in mind when authoring rules
 
-### Field names are exact and case-sensitive
+### Field names are exact
 
-`F("Amount")` and `F("amount")` are different fields. If a fact arrives with
-`{"amount": 5000}` and the condition says `F("Amount")`, the rule raises a
-`FieldNotFoundError` because the field is a case variant of a present key.
-For genuinely different schemas (multi-domain rulesets), absent fields that are
-not a case variant of any present key return `False` silently, which is the
-correct behaviour.
+`F("Amount")`, `F("amount")` and `F("user_age")` / `F("userAge")` are
+different fields: the engine reads the exact key. When the condition's field is
+missing but the fact carries the same name in another key style, the engine
+raises `FieldNotFoundError` instead of quietly not matching. Key styles are
+compared after removing `_`, `-`, `.` and spaces and ignoring case, so
+`Amount` / `amount`, `userAge` / `user_age` / `user-age` / `UserAge` all count.
+A dotted field such as `user.age` against an unflattened `{"user": {...}}`
+raises too, with a hint to flatten the fact (see [Nested Facts](nested-facts.md)).
+
+For genuinely different schemas (multi-domain rulesets), absent fields with no
+look-alike key return `False`, which is the correct behaviour. Numbered
+families stay distinct: `field_0` is not a look-alike of `field_10`.
 
 ```python
-# Fact: {"amount": 5000}
-F("Amount") > 1000   # raises FieldNotFoundError - did you mean 'amount'?
-F("amount") > 1000   # evaluates correctly
+# python skip - the first two lines deliberately raise to show the check
+# Fact: {"amount": 5000, "user_age": 30}
+F("Amount") > 1000    # raises FieldNotFoundError - did you mean 'amount'?
+F("userAge") >= 18    # raises FieldNotFoundError - did you mean 'user_age'?
+F("amount") > 1000    # evaluates correctly
 ```
+
+To catch these before any fact arrives, give the engine a
+[fact schema](typed-facts.md): `load_rules` then rejects any rule field the
+model lacks.
 
 ### Operator precedence: always use parentheses
 
@@ -251,6 +264,51 @@ intentionally optional, guard it with `exists()`:
 # Only fires if "promo_code" is present AND matches
 F("promo_code").exists() & (F("promo_code") == "SUMMER24")
 ```
+
+### Missing fields and NOT
+
+A condition on a missing field is `False`, so `NOT` over it is `True`:
+`~(F("blocked") == True)` fires on a fact with no `blocked` key. That is rarely
+what the rule means, and a key sent under another name (`is_blocked`) lets the
+rule through silently.
+
+`EngineConfig.missing_field` sets how `NOT` treats a missing field:
+
+| `missing_field` | `~(F("blocked") == True)` on `{"amount": 1}` | Notes |
+|---|---|---|
+| `None` (default) | fires, and emits `MissingFieldNotWarning` once | 1.x behaviour with a heads-up |
+| `"false"` | fires | 1.x behaviour, no warning |
+| `"unknown"` | does not fire | the 2.0 default |
+
+With `"unknown"` a missing field is *unknown*, as SQL treats `NULL`: `NOT` of
+unknown is unknown, `AND` / `OR` follow three-valued logic, and a rule fires
+only when its condition is definitely true. `exists()` is never unknown, so it
+is the way to test for absence on purpose:
+
+```python
+from fluxrules import EngineConfig, F, Rule
+from fluxrules.engine.phreak import PhreakEngine
+
+engine = PhreakEngine(config=EngineConfig(missing_field="unknown"))
+engine.load_rules(
+    [
+        Rule(id=1, name="not_blocked", conditions=~(F("blocked") == True), action="allow"),  # noqa: E712
+        # Explicit: "blocked is absent, or present and not True"
+        Rule(
+            id=2,
+            name="not_blocked_or_absent",
+            conditions=~F("blocked").exists() | ~(F("blocked") == True),  # noqa: E712
+            action="allow",
+        ),
+    ]
+)
+assert engine.evaluate({"amount": 1}).fired_rules == [2]
+assert sorted(engine.evaluate({"blocked": False}).fired_rules) == [1, 2]
+```
+
+The setting applies to `PhreakEngine` (interpreted and compiled) and to
+`fluxrules.evaluate()`, which reads the process-wide config
+(`fluxrules.engine.configuration.set_config`).
 
 ### Value types must match
 

@@ -47,6 +47,22 @@ class EngineConfig:
     parallel_threshold: int = 1_000_000_000  # Effectively sequential by default
     parallel_workers: int = 4  # Thread pool size for parallel evaluation (opt-in)
 
+    # How a NOT treats a field missing from the fact.
+    # "false": a missing field makes its condition False, so NOT over it fires
+    #   (the 1.x behaviour).
+    # "unknown": a missing field is unknown (SQL NULL-style); NOT of unknown is
+    #   unknown and the rule does not fire.
+    # None (default): behave as "false", but emit a one-time
+    #   MissingFieldNotWarning when a NOT fires only because a field was
+    #   missing. The default becomes "unknown" in 2.0.
+    missing_field: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.missing_field not in (None, "false", "unknown"):
+            raise ValueError(
+                f"missing_field must be None, 'false' or 'unknown', got {self.missing_field!r}"
+            )
+
 
 # Module-level default (can be replaced by API layer)
 _default_config = EngineConfig()

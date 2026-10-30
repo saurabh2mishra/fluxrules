@@ -46,15 +46,47 @@ class BaseEngine(ABC):
     working memory, token propagator, agenda - is shared.
     """
 
+    # Class-level defaults so subclasses that skip ``BaseEngine.__init__`` keep
+    # working: no schema, no per-fact validation.
+    _fact_schema_info: Any = None
+    _fact_intake: Any = None
+
     def __init__(
         self,
         max_rules: int = 50_000,
         *,
         deployment_config: object | None = None,
         id_generator: object | None = None,
+        fact_schema: type | None = None,
+        validate_facts: str = "off",
+        on_invalid: str = "raise",
     ) -> None:
         from fluxrules.engine.configuration import get_config
+        from fluxrules.facts import (
+            ON_INVALID_MODES,
+            VALIDATE_FACTS_MODES,
+            _FactIntake,
+            schema_info,
+        )
         from fluxrules.utils.id_generators import RuleIDGenerator
+
+        # Typed facts. ``fact_schema`` checks rule fields at load time (no
+        # per-fact cost); ``validate_facts`` adds opt-in per-fact validation and
+        # normalization before discovery.
+        if validate_facts not in VALIDATE_FACTS_MODES:
+            raise ValueError(
+                f"validate_facts must be one of {VALIDATE_FACTS_MODES}, got {validate_facts!r}"
+            )
+        if on_invalid not in ON_INVALID_MODES:
+            raise ValueError(f"on_invalid must be one of {ON_INVALID_MODES}, got {on_invalid!r}")
+        if validate_facts != "off" and fact_schema is None:
+            raise ValueError(f"validate_facts={validate_facts!r} requires fact_schema=")
+        self._fact_schema_info = schema_info(fact_schema) if fact_schema is not None else None
+        self._fact_intake = (
+            _FactIntake(self._fact_schema_info, validate_facts, on_invalid)
+            if self._fact_schema_info is not None and validate_facts != "off"
+            else None
+        )
 
         # Working-memory high-water mark (P2.3): configurable via EngineConfig so
         # operators can tune the leak watchdog without code changes.
@@ -95,7 +127,13 @@ class BaseEngine(ABC):
         one type.
 
         Populates rule_repository, segment_network, and field_index.
+
+        Raises:
+            UnknownFieldError: when the engine has a ``fact_schema`` and a rule
+                references a field the schema lacks. Nothing is loaded.
         """
+        if self._fact_schema_info is not None:
+            self._fact_schema_info.check_rules(rules)
         self.rule_repository.add_rules(rules)
         self.segment_network.add_rules(rules)
         self.field_index.build_from_rules(rules)
@@ -124,8 +162,18 @@ class BaseEngine(ABC):
 
     # Fact management
 
-    def assert_fact(self, fact: dict[str, Any]) -> str:
-        """Assert a fact into unified working memory. Returns fact_id."""
+    def assert_fact(self, fact: Any) -> str:
+        """Assert a fact into unified working memory. Returns fact_id.
+
+        A model is converted with :func:`fluxrules.facts.to_fact_dict`, as in
+        :meth:`evaluate`. It is not validated against ``fact_schema``: working
+        memory is not read by ``evaluate``, and ``validate_facts`` applies only
+        to ``evaluate``.
+        """
+        if type(fact) is not dict:
+            from fluxrules.facts import to_fact_dict
+
+            fact = to_fact_dict(fact)
         return self.working_memory.assert_fact(fact)
 
     def retract_fact(self, fact_id: str) -> None:
@@ -172,9 +220,24 @@ class BaseEngine(ABC):
 
     # Public evaluation API
 
+    @property
+    def fact_schema(self) -> type | None:
+        """The model class rules are checked against, or ``None``."""
+        info = self._fact_schema_info
+        return info.model if info is not None else None
+
+    @property
+    def quarantined_facts(self) -> list[Any]:
+        """Facts rejected under ``on_invalid="quarantine"`` (oldest first, bounded).
+
+        Each entry is a :class:`fluxrules.facts.QuarantinedFact` holding the
+        original input and the :class:`~fluxrules.domain.errors.FactValidationError`.
+        """
+        return list(self._fact_intake.quarantine) if self._fact_intake is not None else []
+
     def evaluate(
         self,
-        facts: dict[str, Any],
+        facts: Any,
         filters: EvaluationFilter | None = None,
         *,
         strict_facts: bool = False,
@@ -185,13 +248,40 @@ class BaseEngine(ABC):
         specific strategy; everything else is shared.
 
         Args:
-            facts: Input fact mapping to evaluate.
+            facts: Input facts: a flat ``dict``, or a Pydantic model, dataclass,
+                attrs class or msgspec ``Struct`` (converted with
+                :func:`fluxrules.facts.to_fact_dict`; nested models become
+                dotted keys). With ``validate_facts`` enabled, a dict is first
+                validated against ``fact_schema``.
             filters: Optional rule filter constraints.
             strict_facts: When ``True``, perform a structural pre-flight check
                 (dict type, string keys, flat values) before discovery.
                 Defaults to ``False`` to keep hot-path overhead off unless
                 explicitly requested.
+
+        Raises:
+            FactValidationError: when validation is on, the fact is invalid and
+                ``on_invalid="raise"``. With ``"skip"`` or ``"quarantine"`` the
+                fact is dropped and an empty result is returned.
         """
+        if self._fact_intake is not None:
+            admitted = self._fact_intake.admit(facts)
+            if admitted is None:
+                return EvaluationResult(engine_type=type(self).__name__)
+            facts = admitted
+        elif type(facts) is not dict:
+            from fluxrules.facts import to_fact_dict
+
+            try:
+                facts = to_fact_dict(facts)
+            except TypeError:
+                if strict_facts:
+                    # Report through the structural contract (InvalidFactError).
+                    from fluxrules.pipeline.validators import FactValidator
+
+                    FactValidator.validate("engine.evaluate", facts)
+                raise
+
         if strict_facts:
             from fluxrules.pipeline.validators import FactValidator
 

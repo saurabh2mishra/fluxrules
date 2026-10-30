@@ -12,6 +12,7 @@ FluxRules is a lightweight Python library for defining and managing business rul
 - Evaluate a ruleset against facts using the top-level Python API.
 - Run rule evaluation through FluxRules’ Phreak engine in stateless or streaming mode.
 - Validate rulesets before evaluation.
+- Pass facts as plain dicts or typed models (Pydantic, dataclasses, attrs, msgspec), and check rules against a fact schema when they load. See [Typed Facts](https://saurabh2mishra.github.io/fluxrules/typed-facts/).
 - Retrieve evaluation explanations
 - Use optional HTTP endpoints for evaluation, validation, explanations, and health checks.
 

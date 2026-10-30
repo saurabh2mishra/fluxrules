@@ -4,7 +4,12 @@
 
 ---
 
-FluxRules engines evaluate flat dictionaries. Use the `Flatten` transform to work with nested fact structures.
+FluxRules engines evaluate flat dictionaries. Use the `Flatten` transform to work with nested fact structures,
+or pass a model: nested models are flattened for you (see [From a model](#from-a-model)).
+
+A dotted rule field such as `user.profile.country` checked against an
+unflattened fact (`{"user": {...}}`) raises `FieldNotFoundError` with a hint to
+flatten, rather than silently not matching.
 
 ## Nested fact structure
 
@@ -92,6 +97,42 @@ result = engine.evaluate(flat)
 ```
 
 ---
+
+## From a model
+
+When facts arrive as Pydantic models, dataclasses, attrs classes or msgspec
+structs, pass them to the engine directly. Nested models become dotted keys,
+the same shape `Flatten()` produces:
+
+```python
+from pydantic import BaseModel
+
+from fluxrules import F, Rule, to_fact_dict
+from fluxrules.engine.phreak import PhreakEngine
+
+
+class Profile(BaseModel):
+    country: str
+    tier: str
+
+
+class User(BaseModel):
+    id: str
+    profile: Profile
+
+
+user = User(id="user_123", profile=Profile(country="US", tier="premium"))
+assert to_fact_dict(user)["profile.country"] == "US"
+
+model_engine = PhreakEngine()
+model_engine.load_rules(
+    [Rule(id=1, name="us_premium", conditions=F("profile.tier") == "premium", action="flag")]
+)
+assert model_engine.evaluate(user).fired_rules == [1]
+```
+
+Plain `dict` values inside a model are kept as values, not flattened. See
+[Typed Facts](typed-facts.md) for checking rules against the model.
 
 ## Next Steps
 

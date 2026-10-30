@@ -6,6 +6,7 @@ Setup, testing, and contributing to FluxRules.
 
 - **[Contributing](../contributing.md)** - Contribution guidelines
 - **[Testing](testing.md)** - Running tests locally
+- **[Backlog](backlog.md)** - Designed but not yet shipped work
 
 ## Setup
 

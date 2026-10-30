@@ -40,7 +40,8 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 From `fluxrules`:
 
 - `evaluate(rules, facts) → EvaluationResult` - Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. 
-- `facts` may be a plain python `dict`, a Pydantic v2/v1 model, or any object with `model_dump()` / `dict()`.
+- `facts` may be a plain python `dict` or a model: a Pydantic v2 model, dataclass, attrs class or msgspec `Struct` (a Pydantic v1 model is converted with `.dict()`). Nested models become dotted keys (`customer.age`). See [Typed Facts](../typed-facts.md).
+- `to_fact_dict(facts) → dict` - The conversion `evaluate()` and every engine apply to non-dict facts.
 - `validate(rules) → list[str]` - Validate rules and return issues; accepts the same shapes as `evaluate`
 - `explain(execution_id: str) → dict[str, object]` - Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
@@ -48,8 +49,22 @@ From `fluxrules`:
 
 From `fluxrules.engine`:
 
-- `PhreakEngine` (the single production engine, lazy evaluation) - stateless (default) and streaming modes
-- `BaseEngine` (abstract base for custom engines)
+- `PhreakEngine` (the single production engine, lazy evaluation) - stateless (default) and streaming modes.
+  `evaluate()` accepts a dict or a model. Optional typed-fact keywords:
+  `fact_schema=` (check rule fields when rules load), `validate_facts="off" | "normalize" | "strict"`
+  and `on_invalid="raise" | "skip" | "quarantine"`; rejected facts are listed in `engine.quarantined_facts`.
+  See [Typed Facts](../typed-facts.md).
+- `BaseEngine` (abstract base for custom engines); takes the same typed-fact keywords.
+
+## Typed Facts
+
+From `fluxrules.facts`:
+
+- `fields(Model)` - Checked field references: `fields(Customer).age >= 18` builds the same condition as `F("age") >= 18`, and a field the model lacks raises `UnknownFieldError`.
+- `lenient_aliases()` - Pydantic alias generator accepting snake_case, camelCase, PascalCase, kebab-case and all-lowercase spellings of each field.
+- `to_fact_dict(facts)` - Model or mapping to the flat fact dict.
+- `schema_info(Model) → FactSchemaInfo` - The flat field paths a rule may reference.
+- `QuarantinedFact` - Entry in `engine.quarantined_facts` (`facts`, `error`).
 
 ## Domain Models
 
@@ -99,7 +114,9 @@ except FluxRulesError as exc:
 | `UnknownOperatorError` | `FluxRulesError` | `UNKNOWN_OPERATOR` | A condition names an operator that does not exist |
 | `CyclicDependencyError` | `FluxRulesError` | `CYCLIC_DEPENDENCY` | Rule dependencies form a cycle |
 | `ConditionValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `conditions` tree fails strict validation |
-| `FieldNotFoundError` | `FluxRulesError` | `FIELD_NOT_FOUND` | A condition's field is a case variant of a key in the fact, for example `Amount` against `amount` |
+| `FieldNotFoundError` | `FluxRulesError` | `FIELD_NOT_FOUND` | A condition's field is missing but a key in the fact is the same name in another key style (`Amount` / `amount`, `userAge` / `user_age`, `user-age`), or the field is a dotted path into a nested value that was not flattened |
+| `UnknownFieldError` | `InvalidRuleError`, `AttributeError` | `UNKNOWN_FACT_FIELD` | A rule names a field the engine's `fact_schema` lacks (raised by `load_rules`), or `fields(Model)` is asked for one |
+| `FactValidationError` | `FluxRulesError`, `ValueError` | `FACT_VALIDATION_ERROR` | With `validate_facts` on and `on_invalid="raise"`, a fact fails validation; `.errors` holds each field location and error code |
 | `EmptyRuleLogicError` | `InvalidRuleError` | `EMPTY_RULE_LOGIC` | A rule with no condition logic would be stored |
 | `LossyConditionRebuildError` | `InvalidRuleError` | `LOSSY_CONDITION_REBUILD` | A condition tree would be rebuilt from a lossy `.conditions` view |
 
@@ -120,6 +137,14 @@ from fluxrules import LossyConditionViewWarning
 
 warnings.simplefilter("error", LossyConditionViewWarning)
 ```
+
+### `MissingFieldNotWarning`
+
+A `FutureWarning` emitted once per `NOT` condition when it fires only because a
+field it tests is missing from the fact. In 2.0 such a `NOT` will not fire.
+Choose the behaviour now with `EngineConfig(missing_field=...)`: `"unknown"`
+adopts the 2.0 behaviour, `"false"` keeps the 1.x behaviour and silences the
+warning. See [Conditions](../conditions.md#missing-fields-and-not).
 
 ## Version
 

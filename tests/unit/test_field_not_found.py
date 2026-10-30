@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from fluxrules import F, FieldNotFoundError, Rule, evaluate
+from fluxrules import F, FieldNotFoundError, MissingFieldNotWarning, Rule, evaluate
+from fluxrules.domain.errors import canonical_field_name, is_field_typo
 from fluxrules.engine.phreak import PhreakEngine
 
 
@@ -97,9 +98,12 @@ class TestEvaluateRaisesOnMissingField:
 
     def test_not_does_not_raise_for_unrelated_absent_field(self):
         # "blocked" has no resemblance to "name" - absent field returns False,
-        # so ~False = True and the rule fires without an error
+        # so ~False = True and the rule fires without an error. Under the
+        # default missing_field=None it also warns that 2.0 will not fire it
+        # (see test_missing_field_semantics.py).
         rule = _rule(~(F("blocked") == True))  # noqa: E712
-        result = evaluate(rule, {"name": "Alice"})
+        with pytest.warns(MissingFieldNotWarning):
+            result = evaluate(rule, {"name": "Alice"})
         assert rule.id in result.fired_rules
 
 
@@ -177,3 +181,69 @@ class TestPhreakEngineRaises:
         engine = self._engine_with(rule)
         result = engine.evaluate({"amount": 10, "country": "US"})
         assert rule.id in result.fired_rules
+
+
+# ---------------------------------------------------------------------------
+# Key-style variants (snake / camel / kebab / Pascal) raise like case variants
+# ---------------------------------------------------------------------------
+
+
+_KEY_STYLES = ["user_age", "userAge", "UserAge", "user-age", "userage", "USER_AGE"]
+
+
+class TestKeyStyleVariants:
+    @pytest.mark.parametrize("key", _KEY_STYLES)
+    def test_canonical_form_is_shared(self, key):
+        assert canonical_field_name(key) == "userage"
+
+    @pytest.mark.parametrize("rule_field", _KEY_STYLES)
+    @pytest.mark.parametrize("fact_key", _KEY_STYLES)
+    def test_is_field_typo_matches_every_style(self, rule_field, fact_key):
+        if rule_field == fact_key:
+            pytest.skip("exact match is not a typo")
+        assert is_field_typo(rule_field, {fact_key: 30})
+
+    @pytest.mark.parametrize(
+        ("rule_field", "fact_key"),
+        [("field_0", "field_10"), ("line_1", "line_2"), ("score", "amount"), ("a_b", "a_c")],
+    )
+    def test_different_fields_are_not_typos(self, rule_field, fact_key):
+        assert not is_field_typo(rule_field, {fact_key: 1})
+
+    @pytest.mark.parametrize("compile_conditions", [False, True])
+    @pytest.mark.parametrize("fact_key", ["user_age", "user-age", "UserAge"])
+    def test_phreak_raises_for_snake_vs_camel(self, compile_conditions, fact_key):
+        engine = PhreakEngine(compile_conditions=compile_conditions)
+        engine.load_rules([_rule(F("userAge") >= 18)])
+        with pytest.raises(FieldNotFoundError, match=f"Did you mean '{fact_key}'"):
+            engine.evaluate({fact_key: 30})
+
+    def test_evaluate_raises_for_snake_vs_camel(self):
+        with pytest.raises(FieldNotFoundError, match="Did you mean 'user_age'"):
+            evaluate(_rule(F("userAge") >= 18), {"user_age": 30})
+
+    def test_numbered_family_still_silent_on_engine(self):
+        engine = PhreakEngine()
+        engine.load_rules([_rule(F("field_0") == 1)])
+        assert engine.evaluate({"field_10": 1}).fired_rules == []
+
+    def test_hint_prefers_same_shape_key_over_close_spelling(self):
+        err = FieldNotFoundError.for_field("userAge", {"user_age": 1, "userAgent": "x"})
+        assert "Did you mean 'user_age'" in str(err)
+
+
+class TestUnflattenedNestedFacts:
+    def test_dotted_rule_against_nested_dict_raises_with_flatten_hint(self):
+        with pytest.raises(FieldNotFoundError, match="flatten"):
+            evaluate(_rule(F("user.age") >= 18), {"user": {"age": 30}})
+
+    def test_engine_dotted_rule_against_nested_dict_raises(self):
+        engine = PhreakEngine()
+        engine.load_rules([_rule(F("user.age") >= 18)])
+        with pytest.raises(FieldNotFoundError, match="'user' holds a nested value"):
+            engine.evaluate({"user": {"age": 30}})
+
+    def test_dotted_rule_with_scalar_parent_is_silent(self):
+        engine = PhreakEngine()
+        engine.load_rules([_rule(F("user.age") >= 18)])
+        assert engine.evaluate({"user": "alice"}).fired_rules == []

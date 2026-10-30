@@ -5,6 +5,10 @@ Audit 04 (M1) noted an ambiguity: FluxRules supports nested *condition trees*
 condition leaf reads a fact by exact key via ``facts.get(field)``. Nested input
 must be pre-flattened (for example to dotted keys) before evaluation.
 
+Since 1.1.0 an unflattened nested value is reported instead of silently not
+matching: a rule on ``user.profile.age`` against ``{"user": {...}}`` raises
+``FieldNotFoundError`` with a hint to flatten the fact.
+
 These tests pin that contract so documentation and implementation cannot
 silently drift apart.
 """
@@ -13,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from fluxrules import Rule
+from fluxrules import FieldNotFoundError, Rule
 from fluxrules.engine.phreak import PhreakEngine
 
 
@@ -47,7 +51,15 @@ def test_flattened_dotted_key_matches(cls):
 
 @pytest.mark.parametrize("cls", [PhreakEngine])
 def test_nested_dict_is_not_traversed(cls):
-    """A nested dict is not traversed: the dotted field is simply absent."""
+    """A nested dict is not traversed, and the unflattened fact is reported."""
     engine = _engine(cls, "user.profile.age")
     # The value lives inside a nested dict, not under the exact dotted key.
-    assert engine.evaluate({"user": {"profile": {"age": 25}}}).fired_rules == []
+    with pytest.raises(FieldNotFoundError, match="flatten"):
+        engine.evaluate({"user": {"profile": {"age": 25}}})
+
+
+@pytest.mark.parametrize("cls", [PhreakEngine])
+def test_unrelated_absent_dotted_field_stays_silent(cls):
+    """A dotted field whose parent is absent is just absent: no error."""
+    engine = _engine(cls, "user.profile.age")
+    assert engine.evaluate({"order": 1}).fired_rules == []

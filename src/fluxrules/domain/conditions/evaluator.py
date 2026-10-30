@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
 from fluxrules.domain.errors import LossyConditionRebuildError
 from fluxrules.domain.predicates import evaluate_operator
 
@@ -118,6 +119,10 @@ def has_logic(conditions: dict | list) -> bool:
     return any(has_logic(child) for child in children)
 
 
+def _eval_present_leaf(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
+    return evaluate_operator(dsl.get("op", "=="), facts[dsl.get("field", "")], dsl.get("value"))
+
+
 class UnsupportedConditionTreeNodeError(ValueError):
     """A DSL node needs engine state this evaluator does not have."""
 
@@ -160,13 +165,23 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
         return all(results) if logic == "AND" else any(results)
 
     if ctype == "not":
-        inner = dsl.get("condition") or dsl.get("child")
-        if inner:
-            return not evaluate_conditions(inner, facts)
-        inner_list = dsl.get("conditions") or dsl.get("children") or []
-        if inner_list:
-            return not any(evaluate_conditions(child, facts) for child in inner_list)
-        return False
+        state = NotState(dsl)
+        if state.child is None:
+            return False
+        plain = not evaluate_conditions(state.child, facts)
+        if not plain:
+            return False
+        from fluxrules.engine.configuration import get_config
+
+        return resolve_not(
+            state,
+            plain,
+            facts,
+            get_config().missing_field,
+            leaf=_eval_present_leaf,
+            other=evaluate_conditions,
+            empty=False,
+        )
 
     if ctype == "exists":
         field = dsl.get("field")

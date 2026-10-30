@@ -46,8 +46,40 @@ python -m fluxrules.api.app --port 8001
    result = engine.evaluate({"value": 7500})   # ❌ Won't match
    ```
 
+   If the fact carries the field under another key style (`user_age` for a
+   rule on `userAge`), evaluation raises `FieldNotFoundError` naming the key
+   it found. Rename the rule field, or declare a
+   [fact schema](typed-facts.md) with `lenient_aliases()` and
+   `validate_facts="normalize"` so incoming keys are renamed for you.
+
 3. **Check operator:** Verify operator spelling and case
    - Valid: `"=="`, `"!="`, `">"`, `"<"`, `"in"`, `"contains"`
+
+## A NOT rule fires unexpectedly, or warns `MissingFieldNotWarning`
+
+**Problem:** A rule such as `~(F("blocked") == True)` fires for facts that do
+not carry `blocked` at all, and a `MissingFieldNotWarning` is logged.
+
+**Cause:** A missing field makes its condition `False`, so `NOT` over it is
+`True`. From 2.0 such a `NOT` will not fire.
+
+**Solutions:**
+- Opt in to the 2.0 behaviour now: `EngineConfig(missing_field="unknown")`.
+- If firing on absence is intended, say so with `~F("blocked").exists() | ~(F("blocked") == True)`
+  and set `missing_field="false"` to silence the warning.
+
+See [Missing fields and NOT](conditions.md#missing-fields-and-not).
+
+## `UnknownFieldError` from `load_rules`
+
+**Problem:** `load_rules` raises `UnknownFieldError: Rule '...' references unknown field ...`.
+
+**Cause:** The engine was built with `fact_schema=Model` and a rule names a
+field the model does not have. Nothing was loaded.
+
+**Solution:** Fix the rule field (the message suggests the closest name), or
+add the field to the model. Nested models are addressed with dotted paths
+(`customer.age`).
 
 ## High latency
 

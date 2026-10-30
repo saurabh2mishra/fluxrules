@@ -10,6 +10,16 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **v1.1.0** (2026) - Typed facts and missing-field fixes
+  - Engines accept Pydantic models, dataclasses, attrs classes and msgspec
+    structs; nested models become dotted keys
+  - `fact_schema=` checks rule fields against a model when rules load;
+    `fields(Model)` gives checked field references; `lenient_aliases()` and
+    opt-in `validate_facts` normalize incoming key styles
+  - `FieldNotFoundError` now catches `userAge` / `user_age` / `user-age`, not
+    just case variants, and unflattened nested facts
+  - `EngineConfig.missing_field` and `MissingFieldNotWarning`: `NOT` over a
+    missing field stops firing in 2.0; opt in now with `"unknown"`
 - **v1.0.2** (2026) - Packaging cleanup
   - Python 3.13 and 3.14 support; SPDX license metadata; working README links on
     PyPI; `dev` and `docs` moved from extras to dependency groups

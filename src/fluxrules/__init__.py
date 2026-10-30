@@ -37,11 +37,14 @@ from fluxrules.domain.errors import (
     CorruptStoredRuleError,
     CyclicDependencyError,
     EmptyRuleLogicError,
+    FactValidationError,
     FieldNotFoundError,
     FluxRulesError,
     InvalidRuleError,
     LossyConditionRebuildError,
     LossyConditionViewWarning,
+    MissingFieldNotWarning,
+    UnknownFieldError,
     UnknownOperatorError,
 )
 from fluxrules.domain.field import Condition, F, Field
@@ -59,6 +62,7 @@ from fluxrules.engine import (
 from fluxrules.engine.configuration import EngineConfig
 from fluxrules.engine.operator_registry import OperatorRegistry, register_operator
 from fluxrules.engine.phreak import PhreakEngine
+from fluxrules.facts import to_fact_dict
 from fluxrules.initialization import (
     initialize_fluxrules,
     initialize_persistence,
@@ -82,17 +86,8 @@ Rules = Ruleset | Rule | Iterable[Rule]
 
 
 def _coerce_facts(facts: object) -> dict[str, Any]:
-    """Return *facts* as a plain dict, accepting Pydantic models too."""
-    if isinstance(facts, dict):
-        return facts
-    if hasattr(facts, "model_dump"):  # Pydantic v2
-        return facts.model_dump()
-    if hasattr(facts, "dict"):  # Pydantic v1
-        return facts.dict()
-    raise TypeError(
-        f"facts must be a dict or a Pydantic model, got {type(facts).__name__}. "
-        "Convert your object to a dict first."
-    )
+    """Return *facts* as a flat dict, accepting models too (see ``to_fact_dict``)."""
+    return to_fact_dict(facts)
 
 
 def _as_ruleset(rules: Rules, *, group: str = "default") -> Ruleset:
@@ -132,8 +127,9 @@ def evaluate(rules: Rules, facts: object) -> EvaluationResult:
         result = evaluate(rule, {"age": 30})
         result.fired_rules  # the rules that matched
 
-    *facts* may be a plain ``dict``, a Pydantic model, or any object with a
-    ``model_dump()`` / ``dict()`` method.
+    *facts* may be a plain ``dict`` or a model: a Pydantic model, dataclass,
+    attrs class or msgspec ``Struct``. Nested models become dotted keys
+    (``customer.age``); see :func:`fluxrules.facts.to_fact_dict`.
 
     Returns:
         An :class:`EvaluationResult` whose ``fired_rules`` lists what matched.
@@ -180,6 +176,7 @@ __all__ = [
     "EvaluationResult",
     "EvaluationService",
     "F",
+    "FactValidationError",
     "Field",
     "FieldNotFoundError",
     "FluxRulesError",
@@ -187,6 +184,7 @@ __all__ = [
     "InvalidRuleError",
     "LossyConditionRebuildError",
     "LossyConditionViewWarning",
+    "MissingFieldNotWarning",
     "OperatorRegistry",
     "PersistenceService",
     "PhreakEngine",
@@ -197,6 +195,7 @@ __all__ = [
     "RuleService",
     "Rules",
     "Ruleset",
+    "UnknownFieldError",
     "UnknownOperatorError",
     "ValidationIssue",
     "ValidationService",

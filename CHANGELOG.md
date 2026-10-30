@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - Unreleased
+
+### Added
+
+- **Typed facts.** Every engine and `fluxrules.evaluate()` accept a Pydantic v2
+  model, dataclass, attrs class or msgspec `Struct` as the fact, converted by
+  the new `fluxrules.to_fact_dict()`. Nested models become dotted keys
+  (`customer.age`), the same shape as the `Flatten` transform. Before this,
+  `PhreakEngine.evaluate()` raised `AttributeError` on a model even though
+  `fluxrules.evaluate()` accepted one.
+- **`fact_schema=` on `PhreakEngine` / `BaseEngine`.** `load_rules` checks every
+  field each rule references against the model and raises the new
+  `UnknownFieldError` (code `UNKNOWN_FACT_FIELD`) with a "did you mean" hint
+  before anything is loaded. Checked once per load; evaluation pays nothing.
+- **`fluxrules.facts`** module: `fields(Model)` for checked field references
+  (`fields(Order).customer.age >= 18`), `lenient_aliases()` (a Pydantic alias
+  generator accepting snake_case, camelCase, PascalCase, kebab-case and
+  all-lowercase keys), `schema_info()` and `to_fact_dict()`.
+- **Opt-in per-fact validation.** `validate_facts="normalize" | "strict"`
+  validates each dict against `fact_schema` before discovery, renaming aliased
+  keys and (in `"normalize"`) coercing values. `on_invalid="raise" | "skip" |
+  "quarantine"` sets the policy for invalid facts; `raise` raises the new
+  `FactValidationError` (code `FACT_VALIDATION_ERROR`) with the validator's
+  per-field errors, and quarantined facts are kept in
+  `engine.quarantined_facts`. Default `"off"`. Costs roughly 2-4 µs per fact
+  when on; converting a model costs roughly 1-2 µs; plain dicts pay nothing.
+- **`assert_fact` accepts models** and converts them like `evaluate` does (no
+  validation).
+- **`EngineConfig.missing_field`** (`None` | `"false"` | `"unknown"`) sets how
+  `NOT` treats a field missing from the fact. `"unknown"` uses SQL NULL-style
+  three-valued logic, so `~(F("blocked") == True)` no longer fires on a fact
+  without `blocked`. Applies to the PHREAK interpreter, compiled conditions and
+  `fluxrules.evaluate()`.
+- **`MissingFieldNotWarning`** (a `FutureWarning`), emitted once per `NOT`
+  condition under the default `missing_field=None` when it fires only because a
+  field was missing. Set `missing_field="false"` to keep the 1.x behaviour
+  without the warning.
+- New guide: [Typed Facts](docs/typed-facts.md); new
+  [backlog](docs/development/backlog.md) page for designed-but-unshipped work.
+
+### Changed
+
+- **`FieldNotFoundError` catches key-style mismatches, not only case.** A rule
+  on `userAge` against a fact with `user_age`, `user-age` or `UserAge` now
+  raises instead of silently not matching. Names are compared after removing
+  `_`, `-`, `.` and spaces and ignoring case; numbered families such as
+  `field_0` / `field_10` are still distinct. The "did you mean" hint prefers the
+  same-shape key.
+- **Unflattened nested facts are reported.** A dotted rule field such as
+  `user.age` against `{"user": {"age": 30}}` raises `FieldNotFoundError` with a
+  hint to flatten, instead of silently not matching.
+- **`fluxrules.evaluate()` with a nested Pydantic model** now flattens the
+  nested model to dotted keys (`{"customer.age": 30}`) instead of passing a
+  nested dict (`{"customer": {"age": 30}}`) that no rule could read.
+- **Faster evaluation when facts lack rule fields.** The per-leaf typo check in
+  `PhreakEngine` duplicated the per-fact field scan and is removed; on a
+  300-rule benchmark with absent fields, evaluation is about 25-35% faster.
+
+### Deprecated
+
+- **`NOT` firing on a missing field.** In 2.0 `missing_field` will default to
+  `"unknown"`. Rules that rely on `NOT` matching absence should use
+  `~F("x").exists()`.
+
 ## [1.0.2] - 2026-10-28
 
 ### Added

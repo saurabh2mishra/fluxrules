@@ -110,7 +110,7 @@ Use the health endpoint for readiness checks:
 
 ```bash
 curl http://localhost:8000/health
-# {"status": "healthy", "version": "1.0.2"}
+# {"status": "healthy", "version": "1.1.0"}
 ```
 
 Add to Docker/K8s liveness probes:
