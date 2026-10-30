@@ -79,3 +79,33 @@ dependency. Remove the fallback branch and the stale install hint, and consider
 building them on `fluxrules.facts`.
 
 **Why waiting:** Cosmetic; no behaviour change.
+
+## Batch evaluation
+
+### `engine.evaluate_batch()` with full results and engine options
+
+**What:** A method on the engine that evaluates many facts and returns one full
+`EvaluationResult` per fact (fired rules, actions, explanations, grouping by
+domain and tag, latency), in input order:
+
+```python
+results = engine.evaluate_batch(rows)              # one process
+results = engine.evaluate_batch(rows, workers=8)   # eight processes
+```
+
+With `workers=1` it loops over `evaluate()`. With more workers, each worker
+process rebuilds an engine from this engine's own rules and settings, so
+`fact_schema`, `validate_facts`, `on_invalid`, `fact_pipeline` and
+`EngineConfig` apply exactly as they do to `evaluate()`. Facts quarantined in
+the workers are gathered into the calling engine's `quarantined_facts`.
+`fluxrules.engine.runtime.evaluate_batch_parallel` becomes a thin wrapper that
+keeps returning fired-rule ids, so existing callers keep working.
+
+**Why waiting:** Today's `evaluate_batch_parallel` builds a plain
+`PhreakEngine(streaming_mode=...)` in each worker, so it ignores every other
+engine option, and it returns only fired-rule ids. Fixing that changes the
+engine's public API and its multiprocessing behaviour, so it needs its own PR,
+review and performance run. Open points: settings must be picklable to reach
+worker processes (a `Filter` with a lambda is not), which needs a clear early
+error; and sending full results back costs more than id lists, which should be
+measured before adding any ids-only option.
