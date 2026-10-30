@@ -28,14 +28,8 @@ def build_operator_rich_rule() -> Rule:
             & (F("chargeback_ratio") >= 0.1)
             & (F("payment_method").isin(["crypto", "prepaid_card"]))
             & (F("tags").contains("manual_review_candidate"))
-            & (
-                (F("country").isin(["NG", "SN", "GH"]))
-                | (F("ip_risk_score") >= 70)
-            )
-            & (
-                (F("device_age_days") < 7)
-                | (F("account_age_days") < 14)
-            )
+            & ((F("country").isin(["NG", "SN", "GH"])) | (F("ip_risk_score") >= 70))
+            & ((F("device_age_days") < 7) | (F("account_age_days") < 14))
             & ~(F("email_domain").ends_with("trusted.example"))
         ),
         action="manual_review",
@@ -55,9 +49,7 @@ def main() -> None:
 
     for fact in SHARED_FACTS:
         result = engine.evaluate(fact)
-        print(
-            f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}"
-        )
+        print(f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}")
 
 
 if __name__ == "__main__":

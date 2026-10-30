@@ -1,8 +1,8 @@
 """Batch 3 example: fact storage over shared use case."""
 
-from fluxrules.engine.phreak import PhreakEngine
-
 from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
+
+from fluxrules.engine.phreak import PhreakEngine
 
 
 def main() -> None:
@@ -19,10 +19,7 @@ def main() -> None:
 
     for fact in SHARED_FACTS:
         result = engine.evaluate(fact)
-        print(
-            f"fact_id={fact['fact_id']} amount={fact['amount']} "
-            f"matched={result.fired_rules}"
-        )
+        print(f"fact_id={fact['fact_id']} amount={fact['amount']} matched={result.fired_rules}")
 
     print(f"\nProcessed {len(SHARED_FACTS)} facts from fact store.")
 

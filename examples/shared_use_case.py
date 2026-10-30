@@ -110,8 +110,7 @@ def build_shared_rules() -> list[Rule]:
             name="triage_for_step_up_auth",
             domain="risk_ops",
             tags=frozenset(["tier_1", "step_up", "identity"]),
-            conditions=base
-            & ((F("customer_tier") == "standard") | (F("currency") == "USD")),
+            conditions=base & ((F("customer_tier") == "standard") | (F("currency") == "USD")),
             action="step_up_auth",
             priority=15,
         ),

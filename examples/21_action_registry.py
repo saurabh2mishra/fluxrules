@@ -18,7 +18,9 @@ from shared_use_case import SHARED_FACTS, USE_CASE_NAME
 from fluxrules.plugins.actions import action, action_registry
 
 
-@action(name="notify_risk_team", description="Post to the risk team channel", category="notifications")
+@action(
+    name="notify_risk_team", description="Post to the risk team channel", category="notifications"
+)
 def notify_risk_team(fact_id: str, reason: str = "rule fired") -> dict:
     return {"notified": "risk-team", "fact_id": fact_id, "reason": reason}
 
@@ -53,7 +55,9 @@ def main() -> None:
     notifications = action_registry.get_actions_by_category("notifications")
     print(f"\nIn category 'notifications': {sorted(a.name for a in notifications)}")
 
-    print(f"\nParameters of notify_risk_team: {action_registry.get_action_signature('notify_risk_team')}")
+    print(
+        f"\nParameters of notify_risk_team: {action_registry.get_action_signature('notify_risk_team')}"
+    )
 
     fact = SHARED_FACTS[0]
     print(f"\nRun handlers for {fact['fact_id']}:")

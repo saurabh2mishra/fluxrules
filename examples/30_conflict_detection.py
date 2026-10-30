@@ -1,9 +1,8 @@
 """Batch 4 example: conflict detection and rule analysis over shared use case."""
 
-from fluxrules.engine.phreak import PhreakEngine
-from fluxrules.services.compilation.rule_compiler import RuleCompiler
-
 from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
+
+from fluxrules.engine.phreak import PhreakEngine
 
 
 def main() -> None:

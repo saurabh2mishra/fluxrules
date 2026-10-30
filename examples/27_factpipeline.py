@@ -65,7 +65,9 @@ def main() -> None:
     normalize = clean >> validate
 
     fact = normalize(PARTNER_EVENT)
-    print(f"\nnormalized fact: amount={fact['amount']!r} chargeback_ratio={fact['chargeback_ratio']!r}")
+    print(
+        f"\nnormalized fact: amount={fact['amount']!r} chargeback_ratio={fact['chargeback_ratio']!r}"
+    )
     print(f"                 currency={fact['currency']!r} (filled in by Defaults)")
 
     engine = PhreakEngine()
@@ -117,6 +119,7 @@ def main() -> None:
             f"1.0.0 -> {new.version} ({what}): {diff.change_type.value}, "
             f"added outputs={sorted(diff.added_outputs)}"
         )
+
 
 if __name__ == "__main__":
     main()
