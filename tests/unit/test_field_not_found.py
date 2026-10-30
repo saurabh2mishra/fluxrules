@@ -322,3 +322,72 @@ class TestNotStateIsBuiltOnce:
         for _ in range(5):
             engine.evaluate({"a": 2})  # "b" missing: the NOT takes the slow path
         assert sorted(calls) == ["a"]
+
+
+class TestSecondReviewEngine:
+    @pytest.mark.parametrize("compile_conditions", [False, True])
+    def test_typo_inside_exists_condition_raises(self, compile_conditions):
+        engine = PhreakEngine(compile_conditions=compile_conditions)
+        # A dict rule reaches the engine without Rule validation.
+        engine.load_rules(
+            [
+                {
+                    "id": 1,
+                    "name": "t",
+                    "action": "x",
+                    "conditions": {
+                        "type": "exists",
+                        "condition": {
+                            "type": "condition",
+                            "field": "Amount",
+                            "op": ">",
+                            "value": 5,
+                        },
+                    },
+                }
+            ]
+        )
+        with pytest.raises(FieldNotFoundError, match="Did you mean 'amount'"):
+            engine.evaluate({"amount": 10})
+
+    def test_not_state_is_kept_when_mode_changes_after_load(self):
+        from fluxrules.engine.configuration import EngineConfig
+
+        config = EngineConfig(missing_field="false")
+        engine = PhreakEngine(config=config)
+        engine.load_rules([_rule(~(F("blocked") == True))])  # noqa: E712
+        states_before = dict(engine._not_states)
+        assert states_before  # built at load whatever the mode
+        config.missing_field = "unknown"
+        for _ in range(3):
+            assert engine.evaluate({"amount": 1}).fired_rules == []
+        assert engine._not_states == states_before
+
+    def test_domain_not_cache_rebuilds_when_child_is_replaced(self):
+        from fluxrules.domain.conditions import evaluator
+
+        node = {
+            "type": "not",
+            "condition": {"type": "condition", "field": "a", "op": "==", "value": 1},
+        }
+        first = evaluator._not_state(node)
+        node["condition"] = {"type": "condition", "field": "b", "op": "==", "value": 1}
+        second = evaluator._not_state(node)
+        assert second is not first
+        assert second.fields == ("b",)
+
+    def test_domain_not_cache_is_bounded(self, monkeypatch):
+        from fluxrules.domain.conditions import evaluator
+
+        monkeypatch.setattr(evaluator, "_NOT_STATES_MAX", 3)
+        nodes = [
+            {
+                "type": "not",
+                "condition": {"type": "condition", "field": f"f{i}", "op": "==", "value": 1},
+            }
+            for i in range(5)
+        ]
+        for node in nodes:
+            evaluator._not_state(node)
+        assert len(evaluator._NOT_STATES) <= 3
+        assert evaluator._NOT_STATES.get(id(nodes[-1]))[0] is nodes[-1]

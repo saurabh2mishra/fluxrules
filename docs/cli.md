@@ -137,8 +137,6 @@ The class can be a Pydantic model, dataclass, attrs class, msgspec `Struct` or
 (`account.age_days`). `--validate-facts` needs a schema Pydantic can validate:
 a Pydantic model, dataclass or `TypedDict`.
 
-Importing runs the module's code, so name schemas only in files you trust.
-
 ### Where the schema comes from
 
 For each rule file, the first of these that is present applies:
@@ -148,9 +146,32 @@ For each rule file, the first of these that is present applies:
 3. `fact_schema` in the config file: `--config PATH`, else
    `$FLUXRULES_CONFIG_FILE`, else the first of `fluxrules.yaml`,
    `fluxrules.yml`, `fluxrules.json`, `config/fluxrules.yaml`,
-   `config/fluxrules.yml`, `config/fluxrules.json` in the current directory.
+   `config/fluxrules.yml`, `config/fluxrules.json`, `~/.fluxrules.yaml` and
+   `/etc/fluxrules/config.yaml`. These are the same places `DeploymentConfig`
+   looks. A `.yaml` or `.yml` file is read as YAML, anything else as JSON.
+
+The config file is read only when neither `--schema` nor the rule file names a
+schema. A config file found automatically that cannot be read (for example
+because PyYAML is not installed) is skipped with a note; a file passed with
+`--config` must be readable.
 
 With none of them, `validate` runs only the structural checks.
+
+### Trusting a schema named in a file
+
+Loading a schema imports its module, and importing runs that module's code. A
+schema you name yourself, with `--schema` or in a file you pass with
+`--config`, is always loaded. A schema named inside a rule file, or in a
+config file found automatically, is loaded only when you add `--trust-schema`:
+
+```bash
+fluxrules validate rules/*.yaml --trust-schema
+```
+
+Without it, the command stops with exit code `2` and says which file named
+which schema, so running `validate` on rule files from someone else never runs
+their code by surprise. In CI, where the rule files and the models live in your
+own repository, pass `--trust-schema` or name the schema with `--schema`.
 
 ```yaml
 # fluxrules.yaml

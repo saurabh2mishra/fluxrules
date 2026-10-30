@@ -112,3 +112,25 @@ class TestEngineFactPipeline:
         engine = _engine(fact_pipeline=lambda fact: calls.append(fact) or fact)
         engine.assert_fact({"amount": 1})
         assert calls == []
+
+
+def test_filtered_fact_is_not_replaced_by_a_fallback_policy():
+    from fluxrules.pipeline.error_policy import ErrorAction
+
+    policy = ErrorPolicy(
+        default=ErrorAction.FALLBACK, fallback_factory=lambda fact, err: {"amount": 9999}
+    )
+    pipeline = FactPipeline([Filter(lambda fact: fact.get("ok"))], error_policy=policy)
+    assert _engine(fact_pipeline=pipeline).evaluate({"amount": 5000, "ok": False}).fired_rules == []
+
+
+def test_filtered_fact_is_not_retried():
+    from fluxrules.pipeline.error_policy import ErrorAction
+
+    calls = []
+    policy = ErrorPolicy(default=ErrorAction.RETRY, max_retries=3)
+    pipeline = FactPipeline(
+        [Filter(lambda fact: calls.append(fact) or fact.get("ok"))], error_policy=policy
+    )
+    assert _engine(fact_pipeline=pipeline).evaluate({"amount": 5000, "ok": False}).fired_rules == []
+    assert len(calls) == 1

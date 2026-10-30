@@ -127,7 +127,9 @@ result = engine.evaluate(raw_fact)  # normalized, then evaluated
   already structured, so it skips the pipeline and goes straight to conversion
   and validation.
 - A fact the pipeline drops (`Filter`, or a transform whose error policy skips
-  the record) returns an empty result. Other pipeline errors propagate.
+  the record) returns an empty result. A `Filter` drop is a decision, not an
+  error, so the error policy never retries it or replaces it with a fallback.
+  Other pipeline errors propagate.
 - With `fact_schema=` and `validate_facts`, the pipeline runs first and its
   output is validated.
 - `assert_fact()` does not run the pipeline.

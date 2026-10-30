@@ -118,6 +118,9 @@ How the check reads the model:
   the field itself is accepted too.
 - A field typed `Any` or `object` accepts any dotted path below it, because a
   model stored there is flattened like any other.
+- A model that refers to itself (`child: Node | None`) is flattened to any
+  depth, so any dotted path below that field is accepted (`child.v`,
+  `child.child.v`).
 - Computed fields (`@computed_field`) are fields like any other.
 
 ## Write rules with checked field references
@@ -277,14 +280,17 @@ file.
 The schema is named by an import string, `myapp.models:Payment` (a module) or
 `models/payment.py:Payment` (a file), and comes from `--schema`, else a
 `fact_schema` key in the rule file, else `fact_schema` in `fluxrules.yaml`.
-`fluxrules evaluate` takes the same options plus `--validate-facts`. See
-[CLI](cli.md#fact-schemas) for the forms, the lookup order and the exit codes.
+`fluxrules evaluate` takes the same options plus `--validate-facts`. A schema
+named inside a file is loaded only with `--trust-schema`, because loading it
+runs its code. See [CLI](cli.md#fact-schemas) for the forms, the lookup order
+and the exit codes.
 
 ### From Python
 
 `load_rules_from_yaml` checks a rule file's own `fact_schema` when it loads the
-file, and raises `UnknownFieldError` on the first unknown field. Pass
-`fact_schema=` (a class or an import string) to use a different model:
+file (with `trust_schema=True`, since loading the schema runs its code), and
+raises `UnknownFieldError` on the first unknown field. Pass `fact_schema=` (a
+class or an import string) to choose the model yourself:
 
 ```python
 # python skip

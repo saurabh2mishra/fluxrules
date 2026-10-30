@@ -30,7 +30,7 @@ from fluxrules.adapters.loaders.rule_file import read_rule_file
 
 
 def load_rules_from_yaml(
-    path: str, *, fact_schema: type | str | None = None
+    path: str, *, fact_schema: type | str | None = None, trust_schema: bool = False
 ) -> list[dict[str, Any]]:
     """Load rules from a YAML file.
 
@@ -39,6 +39,9 @@ def load_rules_from_yaml(
         fact_schema: Model class, or import string (``"myapp.models:Payment"``
             or ``"models.py:Payment"``), to check every rule field against.
             Defaults to the file's own ``fact_schema`` key, if it has one.
+        trust_schema: Allow importing a schema the file names itself.
+            Importing runs that module's code, so it is refused by default; pass
+            ``True`` only for files you trust, or pass ``fact_schema`` instead.
 
     Returns:
         A list of rule dicts ready to pass to ``RuleEngine.add_rules()``.
@@ -47,11 +50,19 @@ def load_rules_from_yaml(
         ImportError: When ``pyyaml`` is not installed, or the schema cannot be
             imported.
         UnknownFieldError: When a rule names a field the schema lacks.
+        ValueError: When the file names a ``fact_schema`` and neither
+            ``fact_schema`` nor ``trust_schema=True`` is given.
     """
     from fluxrules.facts import load_schema, schema_info
 
     document = read_rule_file(path)
     schema = fact_schema if fact_schema is not None else document.fact_schema
+    if fact_schema is None and document.fact_schema is not None and not trust_schema:
+        raise ValueError(
+            f"{path} names fact_schema {document.fact_schema!r}. Loading it imports and "
+            "runs that module's code. Pass trust_schema=True if you trust this file, "
+            "or pass fact_schema= yourself."
+        )
     if schema is not None:
         # A string from the file resolves relative to the file's directory.
         model = (

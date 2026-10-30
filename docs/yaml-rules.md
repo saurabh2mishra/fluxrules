@@ -126,9 +126,19 @@ fact schema Payment). Did you mean 'amount'? Known fields: [...]
 | Module | `myapp.models:Payment` | `Payment` from the module `myapp.models`; the current directory is searched |
 | File | `models.py:Payment` | `Payment` from that file, resolved against the YAML file's directory |
 
-Importing runs the module's code, so name schemas only in rule files you trust.
-A file that names a schema is tied to that import path: moving or renaming the
-model class means updating the file.
+Loading the schema imports its module, which runs that module's code. So
+`load_rules_from_yaml` loads a schema the file names only when you say you
+trust the file:
+
+```python
+# python skip
+rows = load_rules_from_yaml("rules.yaml", trust_schema=True)
+```
+
+Without `trust_schema=True` it raises `ValueError` naming the file and the
+schema. Passing `fact_schema=` yourself needs no flag, because then you chose
+the model. A file that names a schema is tied to that import path: moving or
+renaming the model class means updating the file.
 
 ### From Python
 
@@ -171,7 +181,8 @@ fluxrules validate rules/*.yaml --schema myapp.models:Payment
 `fluxrules validate` reads YAML and JSON rule files, reports every unknown
 field with a hint, and exits `1` when it finds one, so it can gate CI. The
 schema comes from `--schema`, else the file's `fact_schema`, else `fact_schema`
-in `fluxrules.yaml`. See [CLI](cli.md).
+in `fluxrules.yaml`. A schema named inside a file is loaded only with
+`--trust-schema`. See [CLI](cli.md#trusting-a-schema-named-in-a-file).
 
 ## Operational guidance
 

@@ -218,7 +218,9 @@ class TestSchemaInfo:
         Node.model_rebuild()
         info = schema_info(Node)
         assert "value" in info.fields
-        assert "parent" in info.fields
+        # The recursive field is a nested model; any path below it is accepted.
+        assert "parent" in info.parents and "parent" in info.open_paths
+        info.check_field("parent.parent.value")
 
 
 class TestFactSchemaLoadCheck:
@@ -820,3 +822,52 @@ class TestIntakeShapes:
 
         nested = _nest_dotted({"a.b": 1, "customer.age": 2}, frozenset({"customer"}))
         assert nested == {"a.b": 1, "customer": {"age": 2}}
+
+
+class TreeNode(BaseModel):
+    v: int
+    child: TreeNode | None = None
+
+
+@dataclasses.dataclass
+class DcCustomer:
+    age: int
+
+
+class TypedOrder(TypedDict):
+    customer: DcCustomer
+
+
+class TestSecondReview:
+    def test_validation_does_not_modify_the_callers_input(self):
+        engine = PhreakEngine(fact_schema=Order, validate_facts="normalize")
+        engine.load_rules([_rule(F("customer.country") == "NG")])
+        inner = {"user_age": 30}
+        fact = {"amount": 1, "customer": inner, "customer.country": "NG"}
+        assert engine.evaluate(fact).fired_rules == [1]
+        assert inner == {"user_age": 30}
+        assert fact == {"amount": 1, "customer": {"user_age": 30}, "customer.country": "NG"}
+
+    def test_self_referencing_model_accepts_paths_below_it(self):
+        engine = PhreakEngine(fact_schema=TreeNode)
+        engine.load_rules([_rule(F("child.v") > 1), _rule(F("child.child.v") > 1, rid=2)])
+        tree = TreeNode(v=1, child=TreeNode(v=2, child=TreeNode(v=3)))
+        assert sorted(engine.evaluate(tree).fired_rules) == [1, 2]
+
+    def test_self_referencing_model_refuses_the_model_path(self):
+        with pytest.raises(UnknownFieldError, match="nested model"):
+            PhreakEngine(fact_schema=TreeNode).load_rules([_rule(F("child").exists())])
+
+    def test_strict_typeddict_with_nested_dataclass(self):
+        engine = PhreakEngine(fact_schema=TypedOrder, validate_facts="strict")
+        engine.load_rules([_rule(F("customer").exists())])
+        assert engine.evaluate({"customer": {"age": 3}}).fired_rules == [1]
+
+    def test_typeddict_with_unresolvable_annotation(self):
+        namespace: dict[str, Any] = {}
+        exec(
+            "from typing_extensions import TypedDict\n"
+            "class Later(TypedDict):\n    item: 'NotDefinedYet'\n",
+            namespace,
+        )
+        assert "item" in schema_info(namespace["Later"]).fields

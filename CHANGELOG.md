@@ -56,6 +56,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `UnknownFieldError`.
 - **CLI reads YAML rule files.** `validate` and `evaluate` accept `.yaml` /
   `.yml` as well as `.json`, and `validate` accepts several files.
+- **`--trust-schema` / `trust_schema=True`.** A fact schema named inside a rule
+  file, or in a config file found automatically, is imported only with this
+  flag, because importing runs the module's code. Schemas named with
+  `--schema`, `--config` or `fact_schema=` need no flag.
+- **`fluxrules.config.deployment.find_config_file()` and
+  `read_config_file()`**, shared by `DeploymentConfig` and the CLI, so both
+  find the same config file in the same places.
 - **`EngineConfig.missing_field`** (`None` | `"false"` | `"unknown"`) sets how
   `NOT` treats a field missing from the fact. `"unknown"` uses SQL NULL-style
   three-valued logic, so `~(F("blocked") == True)` no longer fires on a fact

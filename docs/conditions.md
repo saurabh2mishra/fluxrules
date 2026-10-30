@@ -385,7 +385,8 @@ assert sorted(engine.evaluate({"blocked": False}).fired_rules) == [1, 2]
 
 The setting applies to `PhreakEngine` (interpreted and compiled) and to
 `fluxrules.evaluate()`, which reads the process-wide config
-(`fluxrules.engine.configuration.set_config`).
+(`fluxrules.engine.configuration.set_config`). Set it before `load_rules`:
+compiled conditions read it when they are compiled.
 
 ### Value types must match
 

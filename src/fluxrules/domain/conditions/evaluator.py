@@ -17,6 +17,7 @@ wrong answer dressed up as a non-match.
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from typing import Any
 
 from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
@@ -130,19 +131,34 @@ class UnsupportedConditionTreeNodeError(ValueError):
 # NotState per ``not`` node, so the subtree walk runs once per node and the
 # default mode's "warn once" flag survives between calls. Keyed by id; the node
 # is stored with its state, which keeps it alive (so the id cannot be reused)
-# and lets a lookup confirm it is the same object. Bounded: cleared when full.
-_NOT_STATES: dict[int, tuple[dict[str, Any], NotState]] = {}
+# and lets a lookup confirm it is the same object. A cached state is rebuilt if
+# the node's child was replaced since. Least recently used entries are evicted
+# one at a time once the cache is full, so its memory stays bounded.
+_NOT_STATES: OrderedDict[int, tuple[dict[str, Any], Any, NotState]] = OrderedDict()
 _NOT_STATES_MAX = 4096
 
 
+def _raw_child(node: dict[str, Any]) -> Any:
+    """The object a ``not`` node stores as its child, compared by identity."""
+    for key in ("condition", "child", "conditions", "children"):
+        value = node.get(key)
+        if value:
+            return value
+    return None
+
+
 def _not_state(node: dict[str, Any]) -> NotState:
-    cached = _NOT_STATES.get(id(node))
-    if cached is not None and cached[0] is node:
-        return cached[1]
-    if len(_NOT_STATES) >= _NOT_STATES_MAX:
-        _NOT_STATES.clear()
+    key = id(node)
+    raw = _raw_child(node)
+    cached = _NOT_STATES.get(key)
+    if cached is not None and cached[0] is node and cached[1] is raw:
+        _NOT_STATES.move_to_end(key)
+        return cached[2]
     state = NotState(node)
-    _NOT_STATES[id(node)] = (node, state)
+    _NOT_STATES[key] = (node, raw, state)
+    _NOT_STATES.move_to_end(key)
+    while len(_NOT_STATES) > _NOT_STATES_MAX:
+        _NOT_STATES.popitem(last=False)
     return state
 
 

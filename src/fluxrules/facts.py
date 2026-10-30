@@ -103,7 +103,10 @@ def _field_names(tp: type, kind: str) -> list[str]:
         return [a.name for a in tp.__attrs_attrs__]  # type: ignore[attr-defined]
     if kind == "msgspec":
         return list(tp.__struct_fields__)  # type: ignore[attr-defined]
-    return list(typing.get_type_hints(tp))
+    try:
+        return list(typing.get_type_hints(tp))
+    except Exception:  # unresolvable forward references: names only
+        return list(getattr(tp, "__annotations__", {}))
 
 
 def _field_types(tp: type, kind: str) -> dict[str, Any]:
@@ -489,7 +492,13 @@ def _describe(
         path = f"{prefix}{name}"
         # TypedDict values arrive as plain dicts and are not flattened.
         models, plain = _nested_models(annotation) if kind != "typeddict" else ([], True)
+        # A model that refers back to itself (child: Node | None) is flattened
+        # to any depth, so any dotted path below the field is accepted.
+        recursive = [m for m in models if m in seen]
         models = [m for m in models if m not in seen]
+        if recursive:
+            parents.add(path)
+            open_paths.add(path)
         for nested in models:
             # Every model a union allows contributes its fields under the path.
             parents.add(path)
@@ -502,7 +511,7 @@ def _describe(
                 open_paths,
                 (*seen, nested),
             )
-        if plain or not models:
+        if plain or not (models or recursive):
             leaves[path] = annotation
         if kind != "typeddict" and _is_open(annotation):
             open_paths.add(path)
@@ -745,18 +754,26 @@ def _nest_dotted(facts: Mapping[str, Any], parents: frozenset[str]) -> Mapping[s
     if not parents or not any(isinstance(k, str) and "." in k for k in facts):
         return facts
     out: dict[str, Any] = {}
+    # Dicts created here, which are safe to write into. A dict from the input
+    # is copied before anything is added, so the caller's data never changes.
+    # Each one is referenced from ``out``, so its id cannot be reused.
+    owned: set[int] = set()
     for key, value in facts.items():
         if isinstance(key, str) and "." in key and key.split(".", 1)[0] in parents:
             node = out
             *heads, leaf = key.split(".")
             for head in heads:
                 child = node.get(head)
-                if not isinstance(child, dict):
-                    child = node[head] = dict(child) if isinstance(child, Mapping) else {}
+                if not (isinstance(child, dict) and id(child) in owned):
+                    child = dict(child) if isinstance(child, Mapping) else {}
+                    owned.add(id(child))
+                    node[head] = child
                 node = child
             node[leaf] = value
-        elif isinstance(out.get(key), dict) and isinstance(value, Mapping):
-            out[key] = {**value, **out[key]}  # dotted keys win over a nested copy
+        elif id(out.get(key)) in owned and isinstance(value, Mapping):
+            merged = {**value, **out[key]}  # dotted keys win over a nested copy
+            owned.add(id(merged))
+            out[key] = merged
         else:
             out[key] = value
     return out
@@ -816,6 +833,17 @@ def _build_mirror(model: type) -> type:
             }
             if overrides:
                 return create_model(model.__name__, __base__=model, **overrides)  # type: ignore[call-overload,no-any-return]
+        if kind == "typeddict":
+            from typing_extensions import TypedDict
+
+            try:
+                hints = typing.get_type_hints(model, include_extras=True)
+            except Exception:
+                return model
+            mirrored = {name: _mirror_annotation(t) for name, t in hints.items()}
+            return TypedDict(  # type: ignore[operator,no-any-return]
+                model.__name__, mirrored, total=getattr(model, "__total__", True)
+            )
         return model
     finally:
         _MIRRORING.discard(model)
@@ -833,12 +861,15 @@ def _has_dataclass(annotation: Any, seen: frozenset[Any] = frozenset()) -> bool:
         return any(
             _has_dataclass(info.annotation, seen) for info in annotation.model_fields.values()
         )
+    if kind == "typeddict":
+        seen = seen | {annotation}
+        return any(_has_dataclass(t, seen) for t in _field_types(annotation, kind).values())
     return any(_has_dataclass(arg, seen) for arg in typing.get_args(annotation))
 
 
 def _mirror_annotation(annotation: Any) -> Any:
     """*annotation* with every dataclass replaced by its strict mirror."""
-    if _model_kind(annotation) in ("dataclass", "pydantic"):
+    if _model_kind(annotation) in ("dataclass", "pydantic", "typeddict"):
         return _strict_mirror(annotation)
     origin = typing.get_origin(annotation)
     args = typing.get_args(annotation)
@@ -852,7 +883,8 @@ def _mirror_annotation(annotation: Any) -> Any:
     if origin is typing.Union or origin is types.UnionType:
         return typing.Union[mirrored]  # noqa: UP007
     try:
-        return origin[mirrored]  # type: ignore[index]
+        # One-argument forms such as NotRequired[X] do not accept a tuple.
+        return origin[mirrored if len(mirrored) > 1 else mirrored[0]]  # type: ignore[index]
     except TypeError:
         return annotation
 

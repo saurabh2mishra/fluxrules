@@ -235,22 +235,7 @@ class DeploymentConfig:
         path : str | Path
             Path to ``fluxrules.yaml`` / ``fluxrules.json``.
         """
-        path = str(path)
-        with open(path) as fh:
-            if path.endswith((".yaml", ".yml")):
-                try:
-                    import yaml  # type: ignore[import-untyped]
-
-                    data = yaml.safe_load(fh) or {}
-                except ImportError:
-                    raise ImportError(
-                        "PyYAML is required to load YAML config files. "
-                        "Install it with: pip install pyyaml"
-                    )
-            else:
-                data = json.load(fh)
-
-        cfg = cls.from_dict(data)
+        cfg = cls.from_dict(read_config_file(path))
         cfg.detected_from = "file"
         return cfg
 
@@ -303,27 +288,11 @@ class DeploymentConfig:
         4. Kubernetes detection (``HOSTNAME`` pattern)
         5. Sensible defaults
         """
-        # Explicit config file path
-        config_file = os.getenv("FLUXRULES_CONFIG_FILE")
-        if config_file and os.path.isfile(config_file):
+        # FLUXRULES_CONFIG_FILE, else the default file locations
+        config_file = find_config_file()
+        if config_file is not None:
             logger.info("Loading configuration from file: %s", config_file)
             return cls.from_file(config_file)
-
-        # Search default file locations
-        default_locations = [
-            Path("fluxrules.yaml"),
-            Path("fluxrules.yml"),
-            Path("fluxrules.json"),
-            Path("config/fluxrules.yaml"),
-            Path("config/fluxrules.yml"),
-            Path("config/fluxrules.json"),
-            Path.home() / ".fluxrules.yaml",
-            Path("/etc/fluxrules/config.yaml"),
-        ]
-        for location in default_locations:
-            if location.is_file():
-                logger.info("Loading configuration from default location: %s", location)
-                return cls.from_file(str(location))
 
         # Environment variables
         if os.getenv("FLUXRULES_DEPLOYMENT_TYPE") or os.getenv("FLUXRULES_MAX_RULES"):
@@ -353,3 +322,60 @@ class DeploymentConfig:
             f"type={self.deployment_type!r}, max_rules={self.max_rules:,}, "
             f"instances={self.instance_count}, regions={self.region_count})"
         )
+
+
+# Config file discovery, shared by DeploymentConfig and the CLI
+
+
+def config_file_locations() -> list[Path]:
+    """Default config file locations, searched in this order."""
+    return [
+        Path("fluxrules.yaml"),
+        Path("fluxrules.yml"),
+        Path("fluxrules.json"),
+        Path("config/fluxrules.yaml"),
+        Path("config/fluxrules.yml"),
+        Path("config/fluxrules.json"),
+        Path.home() / ".fluxrules.yaml",
+        Path("/etc/fluxrules/config.yaml"),
+    ]
+
+
+def find_config_file() -> Path | None:
+    """The config file FluxRules uses, or ``None``.
+
+    ``$FLUXRULES_CONFIG_FILE`` if it names an existing file, else the first
+    existing file in :func:`config_file_locations`.
+    """
+    env = os.getenv("FLUXRULES_CONFIG_FILE")
+    if env and os.path.isfile(env):
+        return Path(env)
+    return next((path for path in config_file_locations() if path.is_file()), None)
+
+
+def read_config_file(path: str | Path) -> dict[str, Any]:
+    """Parse a config file: YAML for ``.yaml`` / ``.yml``, JSON otherwise.
+
+    Raises:
+        ImportError: for a YAML file when PyYAML is not installed.
+        ValueError: when the file is not valid YAML or JSON.
+    """
+    path = Path(path)
+    with open(path) as fh:
+        if path.suffix.lower() in (".yaml", ".yml"):
+            try:
+                import yaml  # type: ignore[import-untyped]
+            except ImportError:
+                raise ImportError(
+                    "PyYAML is required to load YAML config files. "
+                    "Install it with: pip install pyyaml"
+                ) from None
+            try:
+                data = yaml.safe_load(fh) or {}
+            except yaml.YAMLError as exc:
+                raise ValueError(f"invalid YAML in {path}: {exc}") from exc
+        else:
+            data = json.load(fh)
+    if not isinstance(data, dict):
+        raise ValueError(f"{path} must hold a mapping of settings")
+    return data

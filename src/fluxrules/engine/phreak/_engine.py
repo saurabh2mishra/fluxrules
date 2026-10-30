@@ -56,9 +56,10 @@ def _collect_condition_fields(conditions: Any, out: set[str]) -> None:
     """Collect every ``condition``-leaf field name in a tree into *out*.
 
     Walks ``and`` / ``or`` / ``group`` / ``composite`` / ``not`` nodes and
-    gathers the ``field`` of each ``condition`` leaf. ``exists`` nodes are
-    deliberately skipped: an exists node tests presence and must never raise
-    ``FieldNotFoundError`` for an absent field. The result is computed once per
+    gathers the ``field`` of each ``condition`` leaf. The ``field`` of an
+    ``exists`` node is skipped: it tests presence and must never raise
+    ``FieldNotFoundError`` for an absent field. The condition inside
+    ``exists(condition=...)`` is collected like any other. The result is computed once per
     rule at load time and drives per-fact typo detection (see
     ``_candidate_rule_ids``), so detection costs O(distinct fields) per fact
     instead of O(rules x tree).
@@ -83,7 +84,14 @@ def _collect_condition_fields(conditions: Any, out: set[str]) -> None:
         for child in conditions.get("conditions") or conditions.get("children") or []:
             _collect_condition_fields(child, out)
         return
-    # exists and unknown types: contribute no typo-checkable field.
+    if ctype == "exists":
+        # The exists field itself tests presence and never raises, but the
+        # condition inside exists(condition=...) is an ordinary condition.
+        inner = conditions.get("condition")
+        if inner:
+            _collect_condition_fields(inner, out)
+        return
+    # Unknown types contribute no typo-checkable field.
 
 
 def _collect_not_states(node: Any, out: dict[int, NotState]) -> None:
@@ -659,10 +667,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # Per-NOT-node missing-field state for the interpreter, keyed by node
         # identity. The rule repository keeps every node alive, so ids are
         # stable until the next load rebuilds this map.
+        # Built whatever the mode, so a mode changed after loading never makes
+        # the interpreter rebuild a NotState per fact.
         self._not_states = {}
-        if getattr(self._config, "missing_field", None) != "false":
-            for rule in self.rule_repository.rules.values():
-                _collect_not_states(getattr(rule, "conditions", None), self._not_states)
+        for rule in self.rule_repository.rules.values():
+            _collect_not_states(getattr(rule, "conditions", None), self._not_states)
 
         # (Re)build the in-memory alpha pre-filter from the current
         # rule set. Done once per load, never per fact.
@@ -1420,7 +1429,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 return plain
             state = self._not_states.get(id(condition))
             if state is None:
-                state = NotState(condition)
+                state = self._not_states[id(condition)] = NotState(condition)
             elif state.warned:
                 return plain
             return resolve_not(
