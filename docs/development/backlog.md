@@ -89,6 +89,7 @@ building them on `fluxrules.facts`.
 domain and tag, latency), in input order:
 
 ```python
+# python skip: proposed API, not implemented yet
 results = engine.evaluate_batch(rows)              # one process
 results = engine.evaluate_batch(rows, workers=8)   # eight processes
 ```
