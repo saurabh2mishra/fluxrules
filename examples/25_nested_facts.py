@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from shared_use_case import USE_CASE_NAME
 
-from fluxrules import F, Rule
+from fluxrules import F, FieldNotFoundError, Rule
 from fluxrules.engine.phreak import PhreakEngine
 from fluxrules.pipeline import FactPipeline, Flatten
 
@@ -56,10 +56,12 @@ def main() -> None:
         print(f"{event['event_id']} flat: {flat}")
         print(f"  matched={result.fired_rules} actions={result.actions}")
 
-    # A nested fact passed without flattening has no "payment.amount" key, so
-    # the rule cannot match it.
-    unflattened = engine.evaluate(NESTED_EVENTS[0])
-    print(f"\ntxn-001 without Flatten -> matched={unflattened.fired_rules}")
+    # A nested fact passed without flattening has no "payment.amount" key. The
+    # engine reports this instead of quietly not matching.
+    try:
+        engine.evaluate(NESTED_EVENTS[0])
+    except FieldNotFoundError as exc:
+        print(f"\ntxn-001 without Flatten -> FieldNotFoundError: {exc}")
 
 
 if __name__ == "__main__":
