@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when on; converting a model costs roughly 1-2 µs; plain dicts pay nothing.
 - **`assert_fact` accepts models** and converts them like `evaluate` does (no
   validation).
+- **`fact_pipeline=` on `PhreakEngine` / `BaseEngine`.** `evaluate()` applies a
+  `FactPipeline` (or any dict-to-dict callable) to each fact before
+  `validate_facts` and discovery, so callers no longer run the pipeline by hand.
+  A fact the pipeline drops returns an empty result; `assert_fact` is not piped.
 - **`EngineConfig.missing_field`** (`None` | `"false"` | `"unknown"`) sets how
   `NOT` treats a field missing from the fact. `"unknown"` uses SQL NULL-style
   three-valued logic, so `~(F("blocked") == True)` no longer fires on a fact
@@ -44,7 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   condition under the default `missing_field=None` when it fires only because a
   field was missing. Set `missing_field="false"` to keep the 1.x behaviour
   without the warning.
-- New guide: [Typed Facts](docs/typed-facts.md); new
+- New guide: [Typed Facts](docs/typed-facts.md) and runnable
+  [example 31](examples/31_typed_facts.py); the
+  [Fact Pipeline](docs/fact-pipeline.md) guide now says when to use a pipeline
+  and when to use typed facts; new
   [backlog](docs/development/backlog.md) page for designed-but-unshipped work.
 
 ### Changed

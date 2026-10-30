@@ -53,8 +53,10 @@ From `fluxrules.engine`:
   `evaluate()` accepts a dict or a model. Optional typed-fact keywords:
   `fact_schema=` (check rule fields when rules load), `validate_facts="off" | "normalize" | "strict"`
   and `on_invalid="raise" | "skip" | "quarantine"`; rejected facts are listed in `engine.quarantined_facts`.
-  See [Typed Facts](../typed-facts.md).
-- `BaseEngine` (abstract base for custom engines); takes the same typed-fact keywords.
+  See [Typed Facts](../typed-facts.md). `fact_pipeline=` applies a `FactPipeline`
+  (or any dict-to-dict callable) to each fact in `evaluate()` before validation;
+  see [Fact Pipeline](../fact-pipeline.md#using-pipelines-with-engines).
+- `BaseEngine` (abstract base for custom engines); takes the same typed-fact and `fact_pipeline=` keywords.
 
 ## Typed Facts
 

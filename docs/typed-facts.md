@@ -20,6 +20,10 @@ FluxRules and get three things in return:
 Everything is opt-in. Engines without a `fact_schema` behave as before, and
 plain dicts stay the fastest input.
 
+No model for your facts, or need enrichment and composed stages? Use a
+[fact pipeline](fact-pipeline.md#pipeline-or-typed-facts) instead, or alongside
+via `fact_pipeline=`.
+
 !!! note "What a schema can and cannot promise"
     A schema guarantees that **rules agree with the model**: that is checked
     completely when rules load. It cannot guarantee that **incoming data agrees
@@ -237,6 +241,7 @@ the key it found, instead of quietly not matching. See
 
 ## Next Steps
 
+- **Example** - See [Example 31: Typed Facts](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py) for a runnable walkthrough: model input, load-time rule checks, `fields()`, key normalization, quarantine, and `fact_pipeline=`
 - [Conditions](conditions.md) - including [missing fields and NOT](conditions.md#missing-fields-and-not)
 - [Nested Facts](nested-facts.md)
 - [Fact Pipeline](fact-pipeline.md) - transforms and loaders for raw input

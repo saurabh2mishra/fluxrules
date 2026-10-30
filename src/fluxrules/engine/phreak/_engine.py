@@ -269,6 +269,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         fact_schema: type | None = None,
         validate_facts: str = "off",
         on_invalid: str = "raise",
+        fact_pipeline: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ) -> None:
         """Initialize PhreakEngine.
 
@@ -386,12 +387,18 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 logs a warning and returns an empty result; ``"quarantine"``
                 also returns an empty result and keeps the fact in
                 :attr:`quarantined_facts`.
+            fact_pipeline: Optional callable, usually a
+                :class:`fluxrules.pipeline.FactPipeline`, applied to each fact
+                dict in :meth:`evaluate` before ``validate_facts``. A fact the
+                pipeline drops returns an empty result. Not applied to
+                :meth:`assert_fact`.
         """
         super().__init__(
             max_rules=max_rules,
             fact_schema=fact_schema,
             validate_facts=validate_facts,
             on_invalid=on_invalid,
+            fact_pipeline=fact_pipeline,
         )
         self._config = config or get_config()
         self._streaming_mode = streaming_mode

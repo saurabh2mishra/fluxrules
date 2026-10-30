@@ -164,6 +164,7 @@ Get heterogeneous facts (JSON, CSV, streams) into the engine cleanly.
 | **28** | `28_factpipeline_tier1.py` | Tiered pipeline architecture | 15 min |
 | **29** | `29_custom_transforms.py` | Writing your own transform stages | 15 min |
 | **30** | `30_conflict_detection.py` | ⭐ **Rule health**: conflicts, coverage gaps, shadowed rules | 15 min |
+| **31** | `31_typed_facts.py` | ⭐ **Typed facts**: Pydantic models, `fact_schema=`, key normalization, quarantine, `fact_pipeline=` | 15 min |
 
 ---
 

@@ -522,6 +522,24 @@ Analyze rule coverage and conflicts. Learn:
 python examples/30_conflict_detection.py
 ```
 
+### Example 31: Typed Facts
+**File:** [`examples/31_typed_facts.py`](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py)
+
+Use a Pydantic model as the fact. Learn:
+- Evaluating model instances directly (nested models become dotted keys)
+- Rejecting rules with unknown fields at load time (`fact_schema=`)
+- Checked field references with `fields(Model)`
+- Normalizing key styles and types (`validate_facts="normalize"`)
+- Raising or quarantining invalid facts (`on_invalid=`)
+- Running a fact pipeline before validation (`fact_pipeline=`)
+
+**Key Concepts:** Typed Facts, Fact Validation, Fact Pipeline
+
+**Run it:**
+```bash
+python examples/31_typed_facts.py
+```
+
 ---
 
 ## Running All Examples

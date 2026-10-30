@@ -14,6 +14,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from fluxrules.engine.infrastructure import (
@@ -50,6 +51,7 @@ class BaseEngine(ABC):
     # working: no schema, no per-fact validation.
     _fact_schema_info: Any = None
     _fact_intake: Any = None
+    _fact_pipeline: Callable[[dict[str, Any]], dict[str, Any]] | None = None
 
     def __init__(
         self,
@@ -60,6 +62,7 @@ class BaseEngine(ABC):
         fact_schema: type | None = None,
         validate_facts: str = "off",
         on_invalid: str = "raise",
+        fact_pipeline: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ) -> None:
         from fluxrules.engine.configuration import get_config
         from fluxrules.facts import (
@@ -87,6 +90,8 @@ class BaseEngine(ABC):
             if self._fact_schema_info is not None and validate_facts != "off"
             else None
         )
+        # Fact pipeline: reshapes each fact in ``evaluate`` before validation.
+        self._fact_pipeline = fact_pipeline
 
         # Working-memory high-water mark (P2.3): configurable via EngineConfig so
         # operators can tune the leak watchdog without code changes.
@@ -251,8 +256,9 @@ class BaseEngine(ABC):
             facts: Input facts: a flat ``dict``, or a Pydantic model, dataclass,
                 attrs class or msgspec ``Struct`` (converted with
                 :func:`fluxrules.facts.to_fact_dict`; nested models become
-                dotted keys). With ``validate_facts`` enabled, a dict is first
-                validated against ``fact_schema``.
+                dotted keys). With ``fact_pipeline`` set, the fact dict is first
+                passed through it. With ``validate_facts`` enabled, the dict is
+                then validated against ``fact_schema``.
             filters: Optional rule filter constraints.
             strict_facts: When ``True``, perform a structural pre-flight check
                 (dict type, string keys, flat values) before discovery.
@@ -263,7 +269,24 @@ class BaseEngine(ABC):
             FactValidationError: when validation is on, the fact is invalid and
                 ``on_invalid="raise"``. With ``"skip"`` or ``"quarantine"`` the
                 fact is dropped and an empty result is returned.
+
+        A fact the pipeline drops (a ``Filter`` / ``DropFact``, or a transform
+        whose error policy skips the record) also returns an empty result.
+        Any other pipeline error propagates.
         """
+        if self._fact_pipeline is not None:
+            from fluxrules.pipeline.core import _SkipRecord
+            from fluxrules.pipeline.transforms.composed import DropFact
+
+            if type(facts) is not dict:
+                from fluxrules.facts import to_fact_dict
+
+                facts = to_fact_dict(facts)
+            try:
+                facts = self._fact_pipeline(facts)
+            except (_SkipRecord, DropFact):
+                return EvaluationResult(engine_type=type(self).__name__)
+
         if self._fact_intake is not None:
             admitted = self._fact_intake.admit(facts)
             if admitted is None:
