@@ -573,7 +573,14 @@ class _FactIntake:
 
         if isinstance(facts, self._info.model) and self._info.kind != "typeddict":
             return to_fact_dict(facts)  # already a validated instance
-        raw = facts if isinstance(facts, Mapping) else to_fact_dict(facts)
+        if isinstance(facts, Mapping):
+            raw = facts
+        elif _instance_kind(facts) is not None:
+            # Nested, not flattened: the schema validates nested models, and
+            # the result is flattened below.
+            raw = _plain(facts)
+        else:
+            raw = to_fact_dict(facts)
         try:
             validated = self._adapter.validate_python(raw, strict=self._strict)
         except ValidationError as exc:

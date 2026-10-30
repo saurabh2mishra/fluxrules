@@ -452,6 +452,21 @@ class TestFactEntryPaths:
         with pytest.raises(FactValidationError, match="user_age"):
             engine.evaluate(OtherShape(user_age="abc"))
 
+    def test_nested_other_model_is_validated_before_flattening(self):
+        @dataclasses.dataclass
+        class CustomerShape:
+            user_age: str
+
+        @dataclasses.dataclass
+        class OrderShape:
+            amount: str
+            customer: CustomerShape
+
+        engine = PhreakEngine(fact_schema=Order, validate_facts="normalize")
+        engine.load_rules([_rule(F("customer.user_age") >= 18)])
+        shaped = OrderShape(amount="10", customer=CustomerShape(user_age="40"))
+        assert engine.evaluate(shaped).fired_rules == [1]
+
     def test_non_dict_mapping_into_validating_engine(self):
         assert _validating().evaluate(MappingProxyType({"userAge": 40})).fired_rules == [1]
 

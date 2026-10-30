@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import dataclasses
+from types import MappingProxyType
 
 import pytest
 from pydantic import BaseModel
@@ -18,9 +18,8 @@ class Payment(BaseModel):
     amount: float
 
 
-@dataclasses.dataclass
-class RawPayment:
-    amount: str
+class Order(BaseModel):
+    payment: Payment
 
 
 def _engine(**kwargs) -> PhreakEngine:
@@ -57,9 +56,28 @@ class TestEngineFactPipeline:
         engine = _engine(fact_pipeline=lambda fact: {**fact, "amount": float(fact["amount"])})
         assert engine.evaluate({"amount": "2000"}).fired_rules == [1]
 
-    def test_model_input_is_converted_then_piped(self):
+    def test_model_input_skips_pipeline(self):
+        calls = []
+        engine = _engine(fact_pipeline=lambda fact: calls.append(fact) or fact)
+        assert engine.evaluate(Payment(user_id="u1", amount=2000)).fired_rules == [1]
+        assert calls == []
+
+    def test_mapping_input_is_piped(self):
         engine = _engine(fact_pipeline=FactPipeline([FieldType({"amount": float})]))
-        assert engine.evaluate(RawPayment(amount="2000")).fired_rules == [1]
+        assert engine.evaluate(MappingProxyType({"amount": "2000"})).fired_rules == [1]
+
+    def test_nested_schema_instance_with_pipeline_and_validation(self):
+        engine = PhreakEngine(
+            fact_schema=Order,
+            validate_facts="normalize",
+            fact_pipeline=FactPipeline([Defaults({"channel": "web"})]),
+        )
+        engine.load_rules(
+            [Rule(id=1, name="big", conditions=F("payment.amount") > 1000, action="review")]
+        )
+        order = Order(payment=Payment(user_id="u1", amount=5000))
+        assert engine.evaluate(order).fired_rules == [1]
+        assert engine.evaluate({"payment": {"user_id": "u1", "amount": "5000"}}).fired_rules == [1]
 
     def test_filtered_fact_returns_empty_result(self):
         pipeline = FactPipeline([Filter(lambda fact: fact.get("country") != "XX")])

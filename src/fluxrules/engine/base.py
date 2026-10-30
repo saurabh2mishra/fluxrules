@@ -14,7 +14,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any
 
 from fluxrules.engine.infrastructure import (
@@ -256,9 +256,10 @@ class BaseEngine(ABC):
             facts: Input facts: a flat ``dict``, or a Pydantic model, dataclass,
                 attrs class or msgspec ``Struct`` (converted with
                 :func:`fluxrules.facts.to_fact_dict`; nested models become
-                dotted keys). With ``fact_pipeline`` set, the fact dict is first
-                passed through it. With ``validate_facts`` enabled, the dict is
-                then validated against ``fact_schema``.
+                dotted keys). With ``fact_pipeline`` set, a dict (or other
+                mapping) is first passed through it; a model skips it. With
+                ``validate_facts`` enabled, the fact is then validated against
+                ``fact_schema``.
             filters: Optional rule filter constraints.
             strict_facts: When ``True``, perform a structural pre-flight check
                 (dict type, string keys, flat values) before discovery.
@@ -274,16 +275,14 @@ class BaseEngine(ABC):
         whose error policy skips the record) also returns an empty result.
         Any other pipeline error propagates.
         """
-        if self._fact_pipeline is not None:
+        # The pipeline cleans raw input, so it runs on dicts and other
+        # mappings; a model instance is already structured and skips it.
+        if self._fact_pipeline is not None and isinstance(facts, Mapping):
             from fluxrules.pipeline.core import _SkipRecord
             from fluxrules.pipeline.transforms.composed import DropFact
 
-            if type(facts) is not dict:
-                from fluxrules.facts import to_fact_dict
-
-                facts = to_fact_dict(facts)
             try:
-                facts = self._fact_pipeline(facts)
+                facts = self._fact_pipeline(facts if type(facts) is dict else dict(facts))
             except (_SkipRecord, DropFact):
                 return EvaluationResult(engine_type=type(self).__name__)
 

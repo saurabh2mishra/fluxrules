@@ -117,7 +117,7 @@ def _seed_namespace(block, namespace: dict[str, object], rel: str) -> None:
             continue
         try:
             exec(
-                compile(ast.Module([node], []), f"{rel}:{block.line}", "exec"),
+                compile(ast.Module([node], []), f"{rel}:{block.line}", "exec", dont_inherit=True),
                 namespace,
             )
         except Exception:
@@ -150,7 +150,10 @@ def test_doc_snippets_execute(path: Path, tmp_path: Path, doc_sandbox_db: Path, 
                 _seed_namespace(block, namespace, rel)
                 continue
             try:
-                exec(compile(block.source, f"{rel}:{block.line}", "exec"), namespace)
+                # dont_inherit: run snippets as a reader would, without this
+                # module's ``from __future__ import annotations``.
+                code = compile(block.source, f"{rel}:{block.line}", "exec", dont_inherit=True)
+                exec(code, namespace)
             except Exception as exc:
                 pytest.fail(f"{rel}:{block.line} failed to execute: {type(exc).__name__}: {exc}")
     finally:

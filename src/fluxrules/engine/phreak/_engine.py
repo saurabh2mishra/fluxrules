@@ -389,9 +389,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 :attr:`quarantined_facts`.
             fact_pipeline: Optional callable, usually a
                 :class:`fluxrules.pipeline.FactPipeline`, applied to each fact
-                dict in :meth:`evaluate` before ``validate_facts``. A fact the
-                pipeline drops returns an empty result. Not applied to
-                :meth:`assert_fact`.
+                dict in :meth:`evaluate` before ``validate_facts``. A model
+                instance skips it. A fact the pipeline drops returns an empty
+                result. Not applied to :meth:`assert_fact`.
         """
         super().__init__(
             max_rules=max_rules,
