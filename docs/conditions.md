@@ -1,15 +1,15 @@
 # Conditions & Rule Authoring
 
 A rule's `conditions` field defines when the rule fires. FluxRules gives you
-three ways to author conditions, the same condition tree on the wire for all
-three, and a set of tools to validate before you deploy.
+four ways to author conditions, the same condition tree on the wire for all
+four, and a set of tools to validate before you deploy.
 
 Start with [Authoring Rules](authoring-rules.md) for how to choose between them.
 This page is the reference: every operator and every validation tool.
 
 ---
 
-## Three ways to write conditions
+## Four ways to write conditions
 
 ### 1. F DSL - recommended for Python code
 
@@ -140,6 +140,72 @@ rule = (
 ```
 
 `.condition()` accepts both an `F` expression and a raw dict.
+
+### 4. Checked field references with `fields(Model)`
+
+When your facts have a model, such as a Pydantic class, you can name fields
+through the model instead of typing them as strings. `fields(Model)` gives an
+object whose attributes are the model's fields:
+
+```python
+from pydantic import BaseModel
+
+from fluxrules import F, Rule
+from fluxrules.facts import fields
+
+
+class Account(BaseModel):
+    age_days: int
+    country: str
+
+
+class Payment(BaseModel):
+    amount: float
+    account: Account
+
+
+p = fields(Payment)
+
+rule = Rule(
+    name="block_high_risk_country",
+    conditions=p.account.country.isin(["NG", "RU"]) & (p.amount > 1000),
+    action="block",
+)
+```
+
+Read the condition piece by piece:
+
+- `p.amount` is the same as `F("amount")`.
+- `p.account.country` is the same as `F("account.country")`. A nested model
+  becomes a dotted field name, which is how the engine sees nested facts.
+- `.isin(["NG", "RU"])` and `> 1000` are the ordinary `F` operators, so every
+  operator on this page works here too.
+- `&` joins the two parts with AND. The comparison is wrapped in parentheses,
+  as with `F`. The `isin(...)` call needs none, because a method call binds
+  before `&`.
+
+The rule stores the same condition tree as one written with `F`:
+
+```python
+written_with_f = F("account.country").isin(["NG", "RU"]) & (F("amount") > 1000)
+assert rule.conditions == Rule(name="same", conditions=written_with_f, action="block").conditions
+```
+
+The difference is when a typo is caught. `F("acount.country")` is accepted and
+the rule never matches. `p.acount` raises `UnknownFieldError` on that line, and
+the message suggests `account`:
+
+```python
+from fluxrules import UnknownFieldError
+
+try:
+    p.acount  # noqa: B018
+except UnknownFieldError as exc:
+    assert "Did you mean 'account'?" in str(exc)
+```
+
+`dir(p.account)` lists the fields, so an editor can offer them as you type. See
+[Typed Facts](typed-facts.md#write-rules-with-checked-field-references).
 
 ---
 
