@@ -28,20 +28,20 @@ result = engine.evaluate({"amount": 1500, "currency": "USD"})
 print(result.fired_rules)  # auto-generated rule ID
 ```
 
-✅ **Why the F DSL?**
+**Why the F DSL?**
 - Write conditions as real Python, not raw dicts
 - Full IDE autocompletion and type checking
 - Precedence errors caught at write-time, not run-time
 - YAML authoring is still supported - the dict format is the wire format
 - Composes naturally: `&`, `|`, `~` for AND / OR / NOT
 
-👉 **See [18_unified_rule.py](18_unified_rule.py) for comprehensive Pydantic Rule examples**
-👉 **Read the [Pydantic Rule Guide](../docs/pydantic-rule-guide.md) for the full reference**
-👉 **Unsure which `Rule` to use? [Rule Types](../docs/rule-types.md) answers it in 30 seconds**
+**See [18_unified_rule.py](18_unified_rule.py) for comprehensive Pydantic Rule examples**
+**Read the [Pydantic Rule Guide](../docs/pydantic-rule-guide.md) for the full reference**
+**Unsure which `Rule` to use? [Rule Types](../docs/rule-types.md) answers it in 30 seconds**
 
 ---
 
-## 🎯 Quick Start
+## Quick Start
 
 ```bash
 cd /path/to/fluxrules
@@ -53,13 +53,13 @@ python examples/18_unified_rule.py
 python examples/00_getting_started.py
 ```
 
-### 📚 Learning Path
+### Learning Path
 
 **New to FluxRules?** Start with the [Learning Path Guide](../docs/examples.md) for a structured progression through all concepts and examples.
 
 ---
 
-## 📚 Learning Path
+## Learning Path
 
 **Recommended:** Start with the Core Concepts group, then jump to example **18** (Pydantic Rule) to learn the simplified approach.
 
@@ -70,24 +70,24 @@ Complete the examples **in order** within each group to build a solid foundation
 Each group has corresponding comprehensive documentation guides. Use these alongside the examples for deeper understanding:
 
 **Core Concepts**
-- 📖 [Simple Conditions Guide](../docs/conditions.md) - Master all 10 operators
-- 📖 [Complex Conditions Guide](../docs/complex-conditions.md) - AND/OR logic and nesting
-- 📖 [Domain & Tags Organization](../docs/domains-and-tags.md) - Organize at scale
+- [Simple Conditions Guide](../docs/conditions.md) - Master all 10 operators
+- [Complex Conditions Guide](../docs/complex-conditions.md) - AND/OR logic and nesting
+- [Domain & Tags Organization](../docs/domains-and-tags.md) - Organize at scale
 
 **Data Management**
-- 📖 [Working Memory Guide](../docs/working-memory.md) - Stateful rule evaluation
-- 📖 [Sessions & State Management](../docs/sessions.md) - Long-running workflows
-- 📖 [YAML Rules](../docs/yaml-rules.md) - Rules as configuration
+- [Working Memory Guide](../docs/working-memory.md) - Stateful rule evaluation
+- [Sessions & State Management](../docs/sessions.md) - Long-running workflows
+- [YAML Rules](../docs/yaml-rules.md) - Rules as configuration
 
 **Engine & Architecture**
-- 📖 [Engine Comparison Guide](../docs/engine-comparison.md) - Choose the right engine
+- [Engine Comparison Guide](../docs/engine-comparison.md) - Choose the right engine
 
 **Integration & DevOps**
-- 📖 [REST API Server Guide](../docs/rest-api.md) - Deploy as a microservice
+- [REST API Server Guide](../docs/rest-api.md) - Deploy as a microservice
 
 **Advanced Techniques**
-- 📖 [Rule Builder API](../docs/rule-builder.md) - Fluent programming interface
-- 📖 [Troubleshooting Guide](../docs/troubleshooting.md) - Common issues and solutions
+- [Rule Builder API](../docs/rule-builder.md) - Fluent programming interface
+- [Troubleshooting Guide](../docs/troubleshooting.md) - Common issues and solutions
 
 ---
 
@@ -168,7 +168,7 @@ Get heterogeneous facts (JSON, CSV, streams) into the engine cleanly.
 
 ---
 
-## 🚀 Running Examples
+## Running Examples
 
 ### Run a Single Example
 ```bash
@@ -196,7 +196,7 @@ python examples/00_getting_started.py > output.txt 2>&1
 
 ---
 
-## 🎓 Learning Recommendations by Role
+## Learning Recommendations by Role
 
 ### For Beginners (First Time Users)
 1. **Start:** `00_getting_started.py` (5 min)
@@ -240,7 +240,7 @@ Focus on throughput, latency, and scalability:
 
 ---
 
-## 📋 Topics by Use Case
+## Topics by Use Case
 
 ### Fraud Detection
 Examples demonstrating fraud detection patterns:
@@ -277,7 +277,7 @@ Examples for real-time event processing:
 
 ---
 
-## ✅ Pre-Production Checklist
+## Pre-Production Checklist
 
 Before deploying FluxRules to production:
 
@@ -295,7 +295,7 @@ Before deploying FluxRules to production:
 
 ---
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Example Won't Run
 
@@ -331,7 +331,7 @@ For help choosing the right engine and optimizing performance:
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### Core Documentation
 - **[Main README](../README.md)** - Project overview and features
@@ -364,7 +364,7 @@ For help choosing the right engine and optimizing performance:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Found an issue in the examples? Help us improve!
 
@@ -387,6 +387,6 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-**Happy Rule Building! 🎉**
+**Happy Rule Building!**
 
 Start with `00_getting_started.py` and progress at your own pace. All examples are self-contained and can run independently once you understand the basics.

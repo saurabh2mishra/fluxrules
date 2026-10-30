@@ -94,9 +94,9 @@ dsl = (F("amount") > 5000).to_dict()
 
 try:
     validate_conditions(dsl)
-    print("✅ Conditions are valid")
+    print("✓ Conditions are valid")
 except ConditionValidationError as e:
-    print(f"❌ Invalid conditions: {e}")
+    print(f"✗ Invalid conditions: {e}")
 ```
 
 Invalid DSLs raise `ConditionValidationError`. See [Validation Framework](validation-framework.md) for details.

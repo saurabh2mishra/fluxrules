@@ -23,7 +23,7 @@ def main() -> None:
         priority=100,
     )
 
-    print(f"✅ Rule created:")
+    print(f"✓ Rule created:")
     print(f"  id={rule.id}")
     print(f"  name={rule.name}")
     print(f"  domain={rule.domain}")

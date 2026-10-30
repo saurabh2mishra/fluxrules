@@ -22,9 +22,9 @@ def main() -> None:
     for rule in rules:
         try:
             validate_conditions(rule.conditions)
-            print(f"✅ Rule {rule.id}: valid DSL")
+            print(f"✓ Rule {rule.id}: valid DSL")
         except ConditionValidationError as e:
-            print(f"❌ Rule {rule.id}: {e}")
+            print(f"✗ Rule {rule.id}: {e}")
 
     print()
 

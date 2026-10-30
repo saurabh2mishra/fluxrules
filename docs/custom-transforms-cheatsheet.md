@@ -8,10 +8,10 @@ Quick reference for your question: **"What happens if a user wants to pass his o
 
 | Scenario | What Happens | Solution |
 |----------|----------------|----------|
-| **Plain function** | ❌ `AttributeError: 'function' has no attribute 'metadata'` | Wrap in a `Transform` class |
-| **Plain class** (no `Transform` base) | ❌ `AttributeError: object has no attribute 'metadata'` | Inherit from `Transform` |
-| **Class inheriting from `Transform`** | ✅ Works! Used as-is in the pipeline | Just implement `__call__` and `metadata` |
-| **Function inside a `Transform` class** | ✅ Works! Best practice for small transforms | Implement `__call__` that uses the function |
+| **Plain function** | ✗ `AttributeError: 'function' has no attribute 'metadata'` | Wrap in a `Transform` class |
+| **Plain class** (no `Transform` base) | ✗ `AttributeError: object has no attribute 'metadata'` | Inherit from `Transform` |
+| **Class inheriting from `Transform`** | ✓ Works! Used as-is in the pipeline | Just implement `__call__` and `metadata` |
+| **Function inside a `Transform` class** | ✓ Works! Best practice for small transforms | Implement `__call__` that uses the function |
 
 ---
 
@@ -23,11 +23,11 @@ from fluxrules.pipeline import FactPipeline, Flatten, Rename, FieldType, Default
 # Your original code:
 normalize = FactPipeline(
     [
-        Flatten(),  # ✅ Built-in (inherits from Transform)
-        Rename({"user_id": ["user.id", "userId"]}),  # ✅ Built-in (inherits from Transform)
-        FieldType({"amount": float}),  # ✅ Built-in (inherits from Transform)
-        Defaults({"country": "US"}),  # ✅ Built-in (inherits from Transform)
-        Require(["user_id", "amount"]),  # ✅ Built-in (inherits from Transform)
+        Flatten(),  # ✓ Built-in (inherits from Transform)
+        Rename({"user_id": ["user.id", "userId"]}),  # ✓ Built-in (inherits from Transform)
+        FieldType({"amount": float}),  # ✓ Built-in (inherits from Transform)
+        Defaults({"country": "US"}),  # ✓ Built-in (inherits from Transform)
+        Require(["user_id", "amount"]),  # ✓ Built-in (inherits from Transform)
     ],
     name="normalize",
 )
@@ -37,31 +37,31 @@ normalize = FactPipeline(
 
 ```python
 # python skip
-# ❌ THIS WON'T WORK - Plain function
+# ✗ THIS WON'T WORK - Plain function
 def my_flatten(fact):
     return {k.replace("_", "."): v for k, v in fact.items()}
 
 
 normalize = FactPipeline(
-    [  # ❌ THIS WON'T WORK - Plain function
-        my_flatten,  # ❌ AttributeError: 'function' has no attribute 'metadata'
+    [  # ✗ THIS WON'T WORK - Plain function
+        my_flatten,  # ✗ AttributeError: 'function' has no attribute 'metadata'
     ]
 )
 
 
-# ❌ THIS WON'T WORK - Plain class
+# ✗ THIS WON'T WORK - Plain class
 class MyFlatten:
     def __call__(self, fact):
         return {k.replace("_", "."): v for k, v in fact.items()}
 
 
 normalize = FactPipeline(
-    [  # ❌ THIS WON'T WORK - Plain class
-        MyFlatten(),  # ❌ AttributeError: 'MyFlatten' object has no attribute 'metadata'
+    [  # ✗ THIS WON'T WORK - Plain class
+        MyFlatten(),  # ✗ AttributeError: 'MyFlatten' object has no attribute 'metadata'
     ]
 )
 
-# ✅ THIS WORKS - Transform class
+# ✓ THIS WORKS - Transform class
 from fluxrules.pipeline import Transform, TransformMetadata
 
 
@@ -75,8 +75,8 @@ class MyFlatten(Transform):
 
 
 normalize = FactPipeline(
-    [  # ✅ THIS WORKS - Transform class
-        MyFlatten(),  # ✅ Works!
+    [  # ✓ THIS WORKS - Transform class
+        MyFlatten(),  # ✓ Works!
         Flatten(),
         Require(["user_id", "amount"]),
     ]
@@ -209,7 +209,7 @@ So **FactPipeline only accepts things that `isinstance(..., Transform)` returns 
 
 ```python
 # python skip
-# ❌ WRONG
+# ✗ WRONG
 class MyTransform(Transform):
     def __call__(self, fact):
         return fact
@@ -222,7 +222,7 @@ pipeline = FactPipeline([MyTransform()])
 # AttributeError: 'MyTransform' object has no attribute 'metadata'
 
 
-# ✅ CORRECT
+# ✓ CORRECT
 class MyTransform(Transform):
     def __call__(self, fact):
         return fact
@@ -238,7 +238,7 @@ pipeline = FactPipeline([MyTransform()])  # Works!
 ### Mistake 2: Mutating the input fact
 
 ```python
-# ❌ WRONG: Modifies the input
+# ✗ WRONG: Modifies the input
 class BadTransform(Transform):
     def __call__(self, fact):
         fact["new_field"] = "value"  # ← Mutates input!
@@ -249,7 +249,7 @@ class BadTransform(Transform):
 # because the original fact is already modified
 
 
-# ✅ CORRECT: Create a copy
+# ✓ CORRECT: Create a copy
 class GoodTransform(Transform):
     def __call__(self, fact):
         out = dict(fact)  # ← Create a copy
@@ -267,13 +267,13 @@ each one in its own `FactPipeline` first.
 transform_a = MyClass()
 transform_b = MyClass()
 
-# ✅ CORRECT: Chain transforms directly
+# ✓ CORRECT: Chain transforms directly
 pipeline = transform_a >> transform_b
 
-# ✅ ALSO CORRECT: Pass them as a list
+# ✓ ALSO CORRECT: Pass them as a list
 pipeline = FactPipeline([transform_a, transform_b])
 
-# 😕 UNNECESSARY: Works, but verbose - no need to wrap each transform
+# UNNECESSARY: Works, but verbose - no need to wrap each transform
 pipeline = FactPipeline([transform_a]) >> FactPipeline([transform_b])
 ```
 

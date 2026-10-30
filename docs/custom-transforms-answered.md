@@ -16,7 +16,7 @@ This document directly answers your question about what happens when you want to
 
 ```python
 # python skip
-# ❌ This will FAIL
+# ✗ This will FAIL
 from fluxrules.pipeline import FactPipeline
 
 
@@ -34,7 +34,7 @@ normalize = FactPipeline([my_flatten])
 
 ```python
 # python skip
-# ❌ This will FAIL
+# ✗ This will FAIL
 from fluxrules.pipeline import FactPipeline
 
 
@@ -52,7 +52,7 @@ normalize = FactPipeline([MyFlatten()])
 ### 3. **Classes Inheriting from Transform Work Perfectly**
 
 ```python
-# ✅ This WORKS
+# ✓ This WORKS
 from fluxrules.pipeline import FactPipeline, Flatten, Require, Transform, TransformMetadata
 
 
@@ -313,11 +313,11 @@ normalize = FactPipeline(
 The check is: `isinstance(thing, Transform)`
 
 That's why:
-- ✅ All `Transform` subclasses work (built-in or custom)
-- ❌ Plain functions fail
-- ❌ Plain classes fail (unless they inherit from `Transform`)
-- ❌ Strings fail
-- ❌ Generic callables fail
+- ✓ All `Transform` subclasses work (built-in or custom)
+- ✗ Plain functions fail
+- ✗ Plain classes fail (unless they inherit from `Transform`)
+- ✗ Strings fail
+- ✗ Generic callables fail
 
 ---
 
@@ -327,7 +327,7 @@ That's why:
 
 ```python
 # python skip
-# ❌ Wrong: AttributeError on execution
+# ✗ Wrong: AttributeError on execution
 class MyTransform(Transform):
     def __call__(self, fact):
         return fact
@@ -335,7 +335,7 @@ class MyTransform(Transform):
     # Missing: @property metadata
 
 
-# ✅ Right: Always provide metadata
+# ✓ Right: Always provide metadata
 class MyTransform(Transform):
     def __call__(self, fact):
         return fact
@@ -348,14 +348,14 @@ class MyTransform(Transform):
 ### Pitfall 2: Mutating the Input Fact
 
 ```python
-# ❌ Wrong: Causes hard-to-debug issues with retries/error policies
+# ✗ Wrong: Causes hard-to-debug issues with retries/error policies
 class BadTransform(Transform):
     def __call__(self, fact):
         fact["new_field"] = "value"  # MUTATES INPUT!
         return fact
 
 
-# ✅ Right: Always create a copy
+# ✓ Right: Always create a copy
 class GoodTransform(Transform):
     def __call__(self, fact):
         out = dict(fact)  # Create copy FIRST
@@ -366,13 +366,13 @@ class GoodTransform(Transform):
 ### Pitfall 3: Not Handling Missing Fields
 
 ```python
-# ❌ Wrong: Crashes if field is missing
+# ✗ Wrong: Crashes if field is missing
 class BadTransform(Transform):
     def __call__(self, fact):
         return {**fact, "upper": fact["name"].upper()}  # KeyError if no "name"
 
 
-# ✅ Right: Check for field existence
+# ✓ Right: Check for field existence
 class GoodTransform(Transform):
     def __call__(self, fact):
         if "name" not in fact:
@@ -392,13 +392,13 @@ its own `FactPipeline` first.
 my_transform = MyClass()  # inherits from Transform
 another = AnotherClass()  # inherits from Transform
 
-# ✅ Right: Chain transforms directly
+# ✓ Right: Chain transforms directly
 pipeline = my_transform >> another
 
-# ✅ Also fine: pass them as a list
+# ✓ Also fine: pass them as a list
 pipeline = FactPipeline([my_transform, another])
 
-# 😕 Unnecessary: works, but verbose
+# Unnecessary: works, but verbose
 pipeline = FactPipeline([my_transform]) >> FactPipeline([another])
 ```
 
@@ -527,16 +527,16 @@ for dead in loader.dead_letter:
 
 ## TL;DR
 
-✅ **You CAN create your own transforms**
+✓ **You CAN create your own transforms**
 - Inherit from `Transform`
 - Implement `__call__` and `metadata`
 - Use them in FactPipeline just like built-in transforms
 
-❌ **You CANNOT use plain functions or generic classes**
+✗ **You CANNOT use plain functions or generic classes**
 - FactPipeline requires `isinstance(thing, Transform)` to be `True`
 - Anything else will raise `AttributeError: 'object' has no attribute 'metadata'`
 
-🎯 **Best practices**
+**Best practices**
 - Always copy facts before modifying: `out = dict(fact)`
 - Always implement `metadata` property
 - Raise `ValueError` for validation errors, `KeyError` for transient failures

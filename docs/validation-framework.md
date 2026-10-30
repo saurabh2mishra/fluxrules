@@ -40,9 +40,9 @@ rule = Rule(
 # Validate the condition tree
 try:
     validate_conditions(rule.conditions)
-    print("✅ Rule is valid")
+    print("✓ Rule is valid")
 except ConditionValidationError as e:
-    print(f"❌ Validation error: {e}")
+    print(f"✗ Validation error: {e}")
 ```
 
 ### Common Validation Errors
@@ -55,7 +55,7 @@ build valid nodes, so a hand-written dictionary is how an invalid one appears.
 invalid_dsl = {
     "type": "condition",
     "field": "amount",
-    "op": "__unknown__",  # ❌ Not in VALID_OPERATORS
+    "op": "__unknown__",  # ✗ Not in VALID_OPERATORS
     "value": 100
 }
 # Raises: ConditionValidationError: '__unknown__' is not a valid operator
@@ -68,7 +68,7 @@ impossible_dsl = {
     "op": "AND",
     "children": [
         {"type": "condition", "field": "age", "op": ">", "value": 18},
-        {"type": "condition", "field": "age", "op": "<", "value": 18}  # ❌ Impossible
+        {"type": "condition", "field": "age", "op": "<", "value": 18}  # ✗ Impossible
     ]
 }
 # Note: validate_conditions validates structure; dead-rule detection is on the roadmap
@@ -79,7 +79,7 @@ impossible_dsl = {
 invalid_condition = {
     "type": "condition",
     "field": "amount"
-    # ❌ Missing 'op' and 'value'
+    # ✗ Missing 'op' and 'value'
 }
 # Raises: ConditionValidationError: missing required 'op' key
 ```
@@ -185,10 +185,10 @@ rule = Rule(
 )
 
 issues = validate([rule])
-assert issues == []  # ✅ Passes
+assert issues == []  # ✓ Passes
 
 # Or validate the underlying condition tree directly
-validate_conditions(rule.conditions)  # ✅ Passes
+validate_conditions(rule.conditions)  # ✓ Passes
 ```
 
 See [Example 04: Validation](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py) for complete working code.
@@ -210,7 +210,7 @@ try:
     validate_conditions({
         "type": "condition",
         "field": "amount",
-        "op": "is_greater_than",  # ❌ Not a valid operator
+        "op": "is_greater_than",  # ✗ Not a valid operator
         "value": 100
     })
 except ConditionValidationError as e:
@@ -224,7 +224,7 @@ try:
     validate_conditions({
         "type": "condition",
         "field": "amount"
-        # ❌ Missing 'op' and 'value'
+        # ✗ Missing 'op' and 'value'
     })
 except ConditionValidationError as e:
     print(e)  # "Condition missing required 'op' key"
@@ -270,16 +270,16 @@ aliases `eq`, `ne`, `gt`, `gte`, `lt` and `lte` in dictionary and YAML rules.
 ## Limitations
 
 **What validation covers:**
-- ✅ condition tree syntax and structure
-- ✅ Operator validity
-- ✅ Required fields
-- ✅ Type checking (values match operator expectations)
+- ✓ condition tree syntax and structure
+- ✓ Operator validity
+- ✓ Required fields
+- ✓ Type checking (values match operator expectations)
 
 **What validation does NOT cover:**
-- ❌ Semantic logic (does your business rule make sense?)
-- ❌ Dead rule detection (rules that can never match)
-- ❌ Rule conflicts (multiple rules matching same input)
-- ❌ Coverage gaps (uncovered input spaces)
+- ✗ Semantic logic (does your business rule make sense?)
+- ✗ Dead rule detection (rules that can never match)
+- ✗ Rule conflicts (multiple rules matching same input)
+- ✗ Coverage gaps (uncovered input spaces)
 
 For advanced validation, use manual review or rule analysis tools (see [Rule Analysis](rule-analysis.md)).
 

@@ -78,7 +78,7 @@ class TestValidationEnforcer:
 
         summary = ValidationEnforcer.get_report_summary(result, rule_name="Test Rule")
 
-        assert "✅" in summary
+        assert "✓" in summary
         assert "No issues" in summary
 
     def test_get_report_summary_with_errors(self):
@@ -89,7 +89,7 @@ class TestValidationEnforcer:
 
         summary = ValidationEnforcer.get_report_summary(result, rule_name="Test Rule")
 
-        assert "❌" in summary
+        assert "✗" in summary
         assert "2 error" in summary
 
     def test_get_report_summary_with_warnings(self):
@@ -99,7 +99,7 @@ class TestValidationEnforcer:
 
         summary = ValidationEnforcer.get_report_summary(result, rule_name="Test Rule")
 
-        assert "⚠️" in summary
+        assert "⚠" in summary
         assert "1 warning" in summary
 
     def test_get_report_summary_mixed_issues(self):
@@ -110,8 +110,8 @@ class TestValidationEnforcer:
 
         summary = ValidationEnforcer.get_report_summary(result, rule_name="Test Rule")
 
-        assert "❌" in summary
-        assert "⚠️" in summary
+        assert "✗" in summary
+        assert "⚠" in summary
         assert "1 error" in summary
         assert "1 warning" in summary
 

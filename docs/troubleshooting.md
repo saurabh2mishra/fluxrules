@@ -42,8 +42,8 @@ python -m fluxrules.api.app --port 8001
    )
    
    # Fact must have "amount"
-   result = engine.evaluate({"amount": 7500})  # ✅ Works
-   result = engine.evaluate({"value": 7500})   # ❌ Won't match
+   result = engine.evaluate({"amount": 7500})  # ✓ Works
+   result = engine.evaluate({"value": 7500})   # ✗ Won't match
    ```
 
    If the fact carries the field under another key style (`user_age` for a

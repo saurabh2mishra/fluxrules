@@ -63,7 +63,7 @@ def initialize_persistence(
         manager.create_all_tables()
 
         logger.info(
-            f"✅ Persistence layer initialized: env={config.env}, db={config.db_url[:50]}..."
+            f"✓ Persistence layer initialized: env={config.env}, db={config.db_url[:50]}..."
         )
 
     except Exception as e:
@@ -102,7 +102,7 @@ def initialize_fluxrules(
     else:
         logger.info("Persistence layer disabled (in-memory mode)")
 
-    logger.info("✅ FluxRules initialized successfully")
+    logger.info("✓ FluxRules initialized successfully")
 
 
 __all__ = [
