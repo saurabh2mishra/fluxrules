@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   field each rule references against the model and raises the new
   `UnknownFieldError` (code `UNKNOWN_FACT_FIELD`) with a "did you mean" hint
   before anything is loaded. Checked once per load; evaluation pays nothing.
+  A nested model is not a field (facts hold its fields as dotted keys), so a
+  rule naming one is refused with a hint to use one of its fields. Unions of
+  models, `Annotated`, computed fields and `Any` fields are understood.
 - **`fluxrules.facts`** module: `fields(Model)` for checked field references
   (`fields(Order).customer.age >= 18`), `lenient_aliases()` (a Pydantic alias
   generator accepting snake_case, camelCase, PascalCase, kebab-case and
@@ -80,12 +83,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`fluxrules evaluate` reports engine errors cleanly.** A `FieldNotFoundError`
   or other FluxRules error prints one line to stderr and exits 1 instead of a
   traceback.
-- **`FieldNotFoundError` catches key-style mismatches, not only case.** A rule
-  on `userAge` against a fact with `user_age`, `user-age` or `UserAge` now
-  raises instead of silently not matching. Names are compared after removing
-  `_`, `-`, `.` and spaces and ignoring case; numbered families such as
-  `field_0` / `field_10` are still distinct. The "did you mean" hint prefers the
-  same-shape key.
+- **`FieldNotFoundError` catches key-style mismatches when the engine has a
+  `fact_schema`.** A rule on `user_age` against a fact with `userAge`,
+  `user-age` or `UserAge` raises instead of silently not matching. Without a
+  schema only case variants raise, as before, because one ruleset may serve
+  facts that spell a field differently. `.` is always significant, and
+  numbered families such as `field_0` / `field_10` stay distinct. The "did you
+  mean" hint prefers the same-shape key.
 - **Unflattened nested facts are reported.** A dotted rule field such as
   `user.age` against `{"user": {"age": 30}}` raises `FieldNotFoundError` with a
   hint to flatten, instead of silently not matching.

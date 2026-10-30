@@ -163,13 +163,25 @@ def _guard_not(
     if not state.fields:
         return plain
 
+    # Closures for nodes under this NOT, compiled on first use and reused. The
+    # nodes belong to the rule's condition tree, which outlives this closure,
+    # so their ids are stable.
+    leaves: dict[int, CompiledCondition] = {}
+    others: dict[int, CompiledCondition] = {}
+
     def _leaf(node: dict[str, Any], facts: dict[str, Any]) -> bool:
-        return _compile_leaf(node, flags)(facts)
+        fn = leaves.get(id(node))
+        if fn is None:
+            fn = leaves[id(node)] = _compile_leaf(node, flags)
+        return fn(facts)
 
     def _other(node: dict[str, Any], facts: dict[str, Any]) -> bool:
         if fallback_factory is None:
             return False
-        return fallback_factory(node)(facts)
+        fn = others.get(id(node))
+        if fn is None:
+            fn = others[id(node)] = fallback_factory(node)
+        return fn(facts)
 
     def _not(facts: dict[str, Any]) -> bool:
         result = plain(facts)

@@ -305,14 +305,18 @@ class FactSchemaInfo:
             ``"typeddict"``.
         fields: flat field path -> annotation, for every leaf field. Nested
             models contribute dotted paths (``customer.age``).
-        parents: dotted prefixes of nested models (``customer``). Valid in a
-            rule (for example ``F("customer").exists()``) but not leaves.
+        parents: dotted prefixes of nested models (``customer``). They are not
+            fields: a nested model is flattened into its own fields, so a fact
+            never has a ``customer`` key. A rule naming one is refused.
+        open_paths: fields typed ``Any`` or ``object``. A model held there is
+            flattened too, so any dotted path below one is accepted.
     """
 
     model: type
     kind: str
     fields: Mapping[str, Any]
     parents: frozenset[str]
+    open_paths: frozenset[str] = frozenset()
 
     @property
     def name(self) -> str:
@@ -324,9 +328,20 @@ class FactSchemaInfo:
         return frozenset(self.fields) | self.parents
 
     def check_field(self, field: str, *, rule: str | None = None) -> None:
-        """Raise :class:`UnknownFieldError` unless *field* is in the schema."""
-        if field not in self.fields and field not in self.parents:
-            raise UnknownFieldError.for_field(field, self.name, sorted(self.known), rule=rule)
+        """Raise :class:`UnknownFieldError` unless a rule may reference *field*."""
+        error = self._problem(field, rule)
+        if error is not None:
+            raise error
+
+    def _problem(self, field: str, rule: str | None) -> UnknownFieldError | None:
+        if field in self.fields:
+            return None
+        if any(field.startswith(f"{path}.") for path in self.open_paths):
+            return None
+        if field in self.parents:
+            children = sorted(f for f in self.fields if f.startswith(f"{field}."))
+            return UnknownFieldError.for_parent(field, self.name, children, rule=rule)
+        return UnknownFieldError.for_field(field, self.name, sorted(self.known), rule=rule)
 
     def check_rules(self, rules: Iterable[Any]) -> None:
         """Check every field referenced by *rules* against this schema.
@@ -353,10 +368,9 @@ class FactSchemaInfo:
             canonical = rule if isinstance(rule, Rule) else normalize_rule(rule)
             label = canonical.name or (str(canonical.id) if canonical.id is not None else None)
             for field in referenced_fields(getattr(canonical, "conditions", None)):
-                if field not in self.fields and field not in self.parents:
-                    yield UnknownFieldError.for_field(
-                        field, self.name, sorted(self.known), rule=label
-                    )
+                error = self._problem(field, label)
+                if error is not None:
+                    yield error
 
 
 @functools.lru_cache(maxsize=256)
@@ -374,8 +388,15 @@ def schema_info(model: type) -> FactSchemaInfo:
         )
     leaves: dict[str, Any] = {}
     parents: set[str] = set()
-    _describe(model, kind, "", leaves, parents, seen=(model,))
-    return FactSchemaInfo(model=model, kind=kind, fields=leaves, parents=frozenset(parents))
+    open_paths: set[str] = set()
+    _describe(model, kind, "", leaves, parents, open_paths, seen=(model,))
+    return FactSchemaInfo(
+        model=model,
+        kind=kind,
+        fields=leaves,
+        parents=frozenset(parents),
+        open_paths=frozenset(open_paths),
+    )
 
 
 def load_schema(spec: str, *, base_dir: str | Path | None = None) -> type:
@@ -461,6 +482,7 @@ def _describe(
     prefix: str,
     leaves: dict[str, Any],
     parents: set[str],
+    open_paths: set[str],
     seen: tuple[type, ...],
 ) -> None:
     for name, annotation in _field_types(tp, kind).items():
@@ -471,9 +493,31 @@ def _describe(
         for nested in models:
             # Every model a union allows contributes its fields under the path.
             parents.add(path)
-            _describe(nested, _model_kind(nested), f"{path}.", leaves, parents, (*seen, nested))  # type: ignore[arg-type]
+            _describe(
+                nested,
+                _model_kind(nested),  # type: ignore[arg-type]
+                f"{path}.",
+                leaves,
+                parents,
+                open_paths,
+                (*seen, nested),
+            )
         if plain or not models:
             leaves[path] = annotation
+        if kind != "typeddict" and _is_open(annotation):
+            open_paths.add(path)
+
+
+def _is_open(annotation: Any) -> bool:
+    """Whether a field may hold any value, so a model in it is flattened too."""
+    if annotation is Any or annotation is object:
+        return True
+    origin = typing.get_origin(annotation)
+    if origin is typing.Annotated:
+        return _is_open(typing.get_args(annotation)[0])
+    if origin is typing.Union or origin is types.UnionType:
+        return any(_is_open(arg) for arg in typing.get_args(annotation))
+    return False
 
 
 def referenced_fields(conditions: Any) -> list[str]:
@@ -507,13 +551,20 @@ def _walk_fields(node: Any, out: list[str]) -> None:
 
 
 class _FieldRefs:
-    """Attribute access over a schema that returns checked ``F`` references."""
+    """Attribute access over a schema that returns checked ``F`` references.
 
-    __slots__ = ("_info", "_prefix")
+    A nested model returns another ``_FieldRefs`` for its fields. It is not a
+    field itself, so comparing it or calling ``.exists()`` on it raises with a
+    hint, unless the path can also hold a plain value (``Person | str``), in
+    which case it works like ``F(path)``.
+    """
 
-    def __init__(self, info: FactSchemaInfo, prefix: str) -> None:
+    __slots__ = ("_info", "_prefix", "_leaf")
+
+    def __init__(self, info: FactSchemaInfo, prefix: str, leaf: bool = False) -> None:
         self._info = info
         self._prefix = prefix
+        self._leaf = leaf
 
     def __getattr__(self, name: str) -> Any:
         if name.startswith("__"):
@@ -522,9 +573,44 @@ class _FieldRefs:
 
         path = f"{self._prefix}{name}"
         if path in self._info.parents:
-            return _FieldRefs(self._info, f"{path}.")
+            return _FieldRefs(self._info, f"{path}.", leaf=path in self._info.fields)
+        if self._prefix and path not in self._info.fields and _is_field_member(name):
+            # An F method such as exists() or isin() on this nested model.
+            return getattr(self._as_field(), name)
         self._info.check_field(path)
         return F(path)
+
+    def _as_field(self) -> Any:
+        from fluxrules.domain.field import F
+
+        own = self._prefix[:-1]
+        if not own:
+            raise TypeError(f"fields({self._info.name}) is not a field; use one of its fields")
+        if not self._leaf:
+            error = self._info._problem(own, None)
+            assert error is not None  # a pure parent is never a field
+            raise error
+        return F(own)
+
+    def __eq__(self, other: object) -> Any:  # type: ignore[override]
+        return self._as_field() == other
+
+    def __ne__(self, other: object) -> Any:  # type: ignore[override]
+        return self._as_field() != other
+
+    def __lt__(self, other: Any) -> Any:
+        return self._as_field() < other
+
+    def __le__(self, other: Any) -> Any:
+        return self._as_field() <= other
+
+    def __gt__(self, other: Any) -> Any:
+        return self._as_field() > other
+
+    def __ge__(self, other: Any) -> Any:
+        return self._as_field() >= other
+
+    __hash__ = object.__hash__
 
     def __getitem__(self, name: str) -> Any:
         return self.__getattr__(name)
@@ -559,6 +645,13 @@ def fields(model: type) -> Any:
         c.agee  # UnknownFieldError: ... Did you mean 'age'?
     """
     return _FieldRefs(schema_info(model), "")
+
+
+def _is_field_member(name: str) -> bool:
+    """Whether *name* is a public method or attribute of ``F`` (such as ``exists``)."""
+    from fluxrules.domain.field import F
+
+    return not name.startswith("_") and hasattr(F, name)
 
 
 # Per-fact validation (engine intake)
@@ -600,8 +693,11 @@ class _FactIntake:
         from pydantic import TypeAdapter
 
         self._info = info
-        self._adapter: Any = TypeAdapter(info.model)
         self._strict = validate_facts == "strict"
+        # Strict mode only accepts dataclass instances, never dicts, so a schema
+        # containing dataclasses is validated through a Pydantic stand-in.
+        model = _strict_mirror(info.model) if self._strict else info.model
+        self._adapter: Any = TypeAdapter(model)
         self._on_invalid = on_invalid
         self.quarantine: deque[QuarantinedFact] = deque(maxlen=quarantine_size)
 
@@ -611,10 +707,13 @@ class _FactIntake:
 
         from fluxrules.domain.errors import FactValidationError
 
-        if isinstance(facts, self._info.model) and self._info.kind != "typeddict":
+        # TypedDict classes do not support isinstance, so check the kind first.
+        if self._info.kind != "typeddict" and isinstance(facts, self._info.model):
             return to_fact_dict(facts)  # already a validated instance
         if isinstance(facts, Mapping):
-            raw = facts
+            # Flat dotted keys (the engine's own shape, or Flatten output) are
+            # nested again so the schema can validate them.
+            raw = _nest_dotted(facts, self._info.parents)
         elif _instance_kind(facts) is not None:
             # Nested, not flattened: the schema validates nested models, and
             # the result is flattened below. Computed fields are output, not
@@ -634,6 +733,128 @@ class _FactIntake:
                 logger.warning("Skipping invalid fact: %s", error)
             return None
         return to_fact_dict(validated)
+
+
+def _nest_dotted(facts: Mapping[str, Any], parents: frozenset[str]) -> Mapping[str, Any]:
+    """Turn flat dotted keys into nested dicts where the path is a nested model.
+
+    ``{"customer.age": 30}`` becomes ``{"customer": {"age": 30}}`` when
+    ``customer`` is a nested model in the schema. Other keys are left as they
+    are. Returns *facts* itself when there is nothing to nest.
+    """
+    if not parents or not any(isinstance(k, str) and "." in k for k in facts):
+        return facts
+    out: dict[str, Any] = {}
+    for key, value in facts.items():
+        if isinstance(key, str) and "." in key and key.split(".", 1)[0] in parents:
+            node = out
+            *heads, leaf = key.split(".")
+            for head in heads:
+                child = node.get(head)
+                if not isinstance(child, dict):
+                    child = node[head] = dict(child) if isinstance(child, Mapping) else {}
+                node = child
+            node[leaf] = value
+        elif isinstance(out.get(key), dict) and isinstance(value, Mapping):
+            out[key] = {**value, **out[key]}  # dotted keys win over a nested copy
+        else:
+            out[key] = value
+    return out
+
+
+# Finished mirrors by class, and classes being mirrored right now (so a
+# self-referencing dataclass stops recursing instead of looping).
+_MIRRORS: dict[type, type] = {}
+_MIRRORING: set[type] = set()
+
+
+def _strict_mirror(model: type) -> type:
+    """A Pydantic model to validate *model* in strict mode, if it needs one.
+
+    Pydantic's strict mode accepts only dataclass instances, never dicts, for a
+    dataclass, so a fact dict could never pass. This builds a Pydantic model
+    with the same fields, types and defaults, mirroring nested dataclasses too.
+    Models without dataclasses are returned unchanged.
+    """
+    cached = _MIRRORS.get(model)
+    if cached is not None:
+        return cached
+    if model in _MIRRORING or not _has_dataclass(model):
+        return model
+    mirror = _build_mirror(model)
+    _MIRRORS[model] = mirror
+    return mirror
+
+
+def _build_mirror(model: type) -> type:
+    from pydantic import Field as PydanticField
+    from pydantic import create_model
+
+    kind = _model_kind(model)
+    _MIRRORING.add(model)
+    try:
+        if kind == "dataclass":
+            hints = typing.get_type_hints(model, include_extras=True)
+            definitions: dict[str, Any] = {}
+            for f in dataclasses.fields(model):
+                annotation = _mirror_annotation(hints.get(f.name, Any))
+                if f.default is not dataclasses.MISSING:
+                    definitions[f.name] = (annotation, f.default)
+                elif f.default_factory is not dataclasses.MISSING:
+                    definitions[f.name] = (
+                        annotation,
+                        PydanticField(default_factory=f.default_factory),
+                    )
+                else:
+                    definitions[f.name] = (annotation, ...)
+            return create_model(model.__name__, **definitions)  # type: ignore[call-overload,no-any-return]
+        if kind == "pydantic":
+            overrides = {
+                name: (_mirror_annotation(info.annotation), info)
+                for name, info in model.model_fields.items()  # type: ignore[attr-defined]
+                if _has_dataclass(info.annotation)
+            }
+            if overrides:
+                return create_model(model.__name__, __base__=model, **overrides)  # type: ignore[call-overload,no-any-return]
+        return model
+    finally:
+        _MIRRORING.discard(model)
+
+
+def _has_dataclass(annotation: Any, seen: frozenset[Any] = frozenset()) -> bool:
+    """Whether a type is, or contains, a dataclass (through fields and type arguments)."""
+    if annotation in seen:
+        return False
+    kind = _model_kind(annotation)
+    if kind == "dataclass":
+        return True
+    if kind == "pydantic":
+        seen = seen | {annotation}
+        return any(
+            _has_dataclass(info.annotation, seen) for info in annotation.model_fields.values()
+        )
+    return any(_has_dataclass(arg, seen) for arg in typing.get_args(annotation))
+
+
+def _mirror_annotation(annotation: Any) -> Any:
+    """*annotation* with every dataclass replaced by its strict mirror."""
+    if _model_kind(annotation) in ("dataclass", "pydantic"):
+        return _strict_mirror(annotation)
+    origin = typing.get_origin(annotation)
+    args = typing.get_args(annotation)
+    if not args or origin is typing.Literal:
+        return annotation
+    if origin is typing.Annotated:
+        return typing.Annotated[(_mirror_annotation(args[0]), *args[1:])]  # type: ignore[valid-type]
+    mirrored = tuple(_mirror_annotation(arg) for arg in args)
+    if mirrored == args:
+        return annotation
+    if origin is typing.Union or origin is types.UnionType:
+        return typing.Union[mirrored]  # noqa: UP007
+    try:
+        return origin[mirrored]  # type: ignore[index]
+    except TypeError:
+        return annotation
 
 
 # Pydantic alias generator

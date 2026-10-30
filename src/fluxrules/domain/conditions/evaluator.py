@@ -127,6 +127,25 @@ class UnsupportedConditionTreeNodeError(ValueError):
     """A DSL node needs engine state this evaluator does not have."""
 
 
+# NotState per ``not`` node, so the subtree walk runs once per node and the
+# default mode's "warn once" flag survives between calls. Keyed by id; the node
+# is stored with its state, which keeps it alive (so the id cannot be reused)
+# and lets a lookup confirm it is the same object. Bounded: cleared when full.
+_NOT_STATES: dict[int, tuple[dict[str, Any], NotState]] = {}
+_NOT_STATES_MAX = 4096
+
+
+def _not_state(node: dict[str, Any]) -> NotState:
+    cached = _NOT_STATES.get(id(node))
+    if cached is not None and cached[0] is node:
+        return cached[1]
+    if len(_NOT_STATES) >= _NOT_STATES_MAX:
+        _NOT_STATES.clear()
+    state = NotState(node)
+    _NOT_STATES[id(node)] = (node, state)
+    return state
+
+
 def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
     """Evaluate a ``conditions`` tree against a flat fact dict.
 
@@ -165,7 +184,7 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
         return all(results) if logic == "AND" else any(results)
 
     if ctype == "not":
-        state = NotState(dsl)
+        state = _not_state(dsl)
         if state.child is None:
             return False
         plain = not evaluate_conditions(state.child, facts)
@@ -173,11 +192,14 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
             return False
         from fluxrules.engine.configuration import get_config
 
+        mode = get_config().missing_field
+        if mode == "false" or (mode is None and state.warned):
+            return True
         return resolve_not(
             state,
             plain,
             facts,
-            get_config().missing_field,
+            mode,
             leaf=_eval_present_leaf,
             other=evaluate_conditions,
             empty=False,

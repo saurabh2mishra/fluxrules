@@ -367,3 +367,68 @@ class TestCliEvaluate:
 def test_init_writes_commented_fact_schema(tmp_path: Path) -> None:
     runner.invoke(app, ["init", "--dir", str(tmp_path)])
     assert "# fact_schema: myapp.models:Order" in (tmp_path / "fluxrules.yaml").read_text()
+
+
+class TestCliConfigAndErrors:
+    def test_config_not_read_when_schema_is_given(self, project: Path) -> None:
+        (project / "fluxrules.yaml").write_text("fact_schema: [not: valid\n")
+        path = _yaml(project / "rules.yaml", [_rule("amount")])
+        result = runner.invoke(app, ["validate", str(path), "--schema", "shop_models:Payment"])
+        assert result.exit_code == 0
+        assert "Ignoring" not in result.stderr
+
+    def test_unreadable_implicit_config_is_ignored_with_a_note(self, project: Path) -> None:
+        (project / "fluxrules.yaml").write_text("fact_schema: [not: valid\n")
+        path = _yaml(project / "rules.yaml", [_rule("amount")])
+        result = runner.invoke(app, ["validate", str(path)])
+        assert result.exit_code == 0
+        assert "Ignoring fluxrules.yaml" in result.stderr
+
+    def test_implicit_config_without_pyyaml_is_ignored(
+        self, project: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        (project / "fluxrules.yaml").write_text("fact_schema: shop_models:Payment\n")
+        rules = project / "rules.json"
+        rules.write_text(json.dumps([_rule("amount")]))
+        monkeypatch.setitem(sys.modules, "yaml", None)  # PyYAML not installed
+        result = runner.invoke(app, ["validate", str(rules)])
+        assert result.exit_code == 0
+        assert "Ignoring fluxrules.yaml" in result.stderr
+
+    def test_unreadable_explicit_config_fails(self, project: Path) -> None:
+        (project / "conf.yaml").write_text("fact_schema: [not: valid\n")
+        path = _yaml(project / "rules.yaml", [_rule("amount")])
+        result = runner.invoke(app, ["validate", str(path), "--config", "conf.yaml"])
+        assert result.exit_code == 2
+        assert "cannot read config file" in result.stderr
+
+    def test_schema_module_with_syntax_error_exits_two(self, project: Path) -> None:
+        (project / "broken.py").write_text("class Payment(:\n")
+        path = _yaml(project / "rules.yaml", [_rule("amount")])
+        result = runner.invoke(app, ["validate", str(path), "--schema", "broken.py:Payment"])
+        assert result.exit_code == 2
+        assert "SyntaxError" in result.stderr
+
+    def test_engine_that_cannot_take_the_schema_exits_two(self, project: Path) -> None:
+        (project / "attrs_like.py").write_text(
+            "class _F:\n    def __init__(self, name):\n        self.name = name\n\n"
+            "class Thing:\n    __attrs_attrs__ = (_F('amount'),)\n"
+            "    __annotations__ = {'amount': int}\n"
+        )
+        rules = _yaml(project / "rules.yaml", [_rule("amount")])
+        event = project / "event.json"
+        event.write_text(json.dumps({"amount": 5}))
+        result = runner.invoke(
+            app,
+            [
+                "evaluate",
+                str(rules),
+                str(event),
+                "--schema",
+                "attrs_like.py:Thing",
+                "--validate-facts",
+                "normalize",
+            ],
+        )
+        assert result.exit_code == 2
+        assert "Cannot build engine" in result.stderr

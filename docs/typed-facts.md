@@ -106,6 +106,20 @@ checked.load_rules(
 `Struct` or `TypedDict`. One engine checks against one schema, so keep rules
 for different fact shapes in different engines.
 
+How the check reads the model:
+
+- A nested model is flattened into its fields, so rules name those fields
+  (`customer.user_age`). The model itself is not a field: a rule on `customer`
+  is refused with a hint, because a fact never has a `customer` key. To test
+  whether a nested model is set, use one of its fields:
+  `F("customer.user_age").exists()`.
+- A field that can hold several models (`owner: Person | Company`) accepts the
+  fields of each. If it can also hold a plain value (`contact: Person | str`),
+  the field itself is accepted too.
+- A field typed `Any` or `object` accepts any dotted path below it, because a
+  model stored there is flattened like any other.
+- Computed fields (`@computed_field`) are fields like any other.
+
 ## Write rules with checked field references
 
 `fields(Model)` catches the typo even earlier, at the line that writes the
@@ -169,7 +183,7 @@ or a `TypedDict` (from `typing_extensions` on Python 3.11).
 
 | Input to `evaluate()` | `validate_facts="off"` (default) | `validate_facts="normalize"` / `"strict"` |
 |---|---|---|
-| `dict` | Used as-is | Validated against `fact_schema`, then flattened |
+| `dict` | Used as-is | Validated against `fact_schema`, then flattened. Flat dotted keys (`customer.user_age`) are accepted too. |
 | Instance of `fact_schema` | Converted with `to_fact_dict` | Already valid: converted, not re-validated |
 | Any other model (Pydantic, dataclass, attrs, msgspec) | Converted with `to_fact_dict` | Converted, then validated against `fact_schema` |
 | Other `Mapping` (e.g. `MappingProxyType`) | Copied to a `dict` | Validated against `fact_schema`, then flattened |
@@ -287,10 +301,11 @@ for error in info.unknown_fields(rows):
 
 ## Without a schema
 
-Even with no schema, the engine reports key-style mismatches. A rule on
-`userAge` against a fact carrying `user_age` raises `FieldNotFoundError` naming
-the key it found, instead of quietly not matching. See
-[Field names are exact](conditions.md#field-names-are-exact).
+With no schema, the engine still reports case mismatches: a rule on `Amount`
+against a fact carrying `amount` raises `FieldNotFoundError`. Other key styles
+(`userAge` against `user_age`) are reported only with a schema, because without
+one the engine cannot tell a typo from a second kind of fact that spells the
+field differently. See [Field names are exact](conditions.md#field-names-are-exact).
 
 ## Next Steps
 

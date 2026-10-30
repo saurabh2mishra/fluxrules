@@ -240,11 +240,20 @@ class TestFactSchemaLoadCheck:
             engine.load_rules([good, bad])
         assert len(engine.rule_repository) == 0
 
-    def test_exists_and_parent_paths_are_checked_too(self):
+    def test_exists_fields_are_checked_too(self):
         engine = PhreakEngine(fact_schema=Order)
-        engine.load_rules([_rule(F("customer").exists())])
+        engine.load_rules([_rule(F("customer.user_age").exists())])
         with pytest.raises(UnknownFieldError):
             engine.load_rules([_rule(F("cust").exists(), rid=2)])
+
+    def test_nested_model_path_is_refused_with_a_hint(self):
+        # A nested model is flattened into its fields, so "customer" is never a
+        # key and a rule on it could never match.
+        engine = PhreakEngine(fact_schema=Order)
+        with pytest.raises(UnknownFieldError, match="nested model") as info:
+            engine.load_rules([_rule(F("customer").exists())])
+        assert "F('customer.blocked').exists()" in str(info.value)
+        assert info.value.suggestion == "customer.blocked"
 
     def test_dict_rules_are_checked(self):
         engine = PhreakEngine(fact_schema=Order)
@@ -547,11 +556,9 @@ class TestFactEntryPaths:
 
     def test_top_level_evaluate_has_no_schema_validation(self):
         # fluxrules.evaluate converts models but has no fact_schema: an aliased
-        # key is not renamed, so the key-style check reports it.
-        from fluxrules import FieldNotFoundError
-
-        with pytest.raises(FieldNotFoundError, match="userAge"):
-            evaluate(_rule(F("user_age") >= 18), {"userAge": 40})
+        # key is not renamed, and without a schema a key-style variant is not
+        # treated as a typo, so the rule simply does not match.
+        assert evaluate(_rule(F("user_age") >= 18), {"userAge": 40}).fired_rules == []
 
 
 class TestConversionDetails:
@@ -694,3 +701,122 @@ class TestModelShapes:
 
         monkeypatch.setattr(Basket, "model_dump", old_model_dump)
         assert _dump_without_computed(Basket(price=2, qty=3)) == {"price": 2.0, "qty": 3}
+
+
+# ---------------------------------------------------------------------------
+# Review fixes: parent references, open fields, intake shapes
+# ---------------------------------------------------------------------------
+
+
+class Anything(BaseModel):
+    x: Any = None
+
+
+class TestParentReferences:
+    def test_fields_parent_exists_raises_with_hint(self):
+        with pytest.raises(UnknownFieldError, match="nested model"):
+            fields(Order).customer.exists()
+
+    def test_fields_parent_comparison_raises_instead_of_returning_bool(self):
+        with pytest.raises(UnknownFieldError, match="nested model"):
+            fields(Order).customer == None  # noqa: B015, E711
+
+    def test_fields_child_of_parent_still_works(self):
+        assert (
+            _rule(fields(Order).customer.user_age >= 18).conditions
+            == _rule(F("customer.user_age") >= 18).conditions
+        )
+
+    def test_union_with_plain_value_compares_as_a_field(self):
+        assert (
+            _rule(fields(Account).contact == "bob").conditions
+            == _rule(F("contact") == "bob").conditions
+        )
+        assert (
+            _rule(fields(Account).contact.age > 1).conditions
+            == _rule(F("contact.age") > 1).conditions
+        )
+
+    def test_unknown_fields_reports_parent(self):
+        errors = schema_info(Order).unknown_fields([_rule(F("customer") == 1)])
+        assert [e.field for e in errors] == ["customer"]
+
+
+class TestOpenFields:
+    def test_any_field_accepts_dotted_paths(self):
+        info = schema_info(Anything)
+        assert "x" in info.open_paths
+        engine = PhreakEngine(fact_schema=Anything)
+        engine.load_rules([_rule(F("x.user_age") >= 18)])
+        assert engine.evaluate(Anything(x=Customer(user_age=30))).fired_rules == [1]
+
+    def test_any_field_is_still_a_leaf(self):
+        engine = PhreakEngine(fact_schema=Anything)
+        engine.load_rules([_rule(F("x") == 5)])
+        assert engine.evaluate(Anything(x=5)).fired_rules == [1]
+
+
+class TypedPayload(TypedDict):
+    amount: int
+
+
+@dataclasses.dataclass
+class DcInner:
+    age: int
+
+
+@dataclasses.dataclass
+class DcOuter:
+    count: int
+    inner: DcInner
+    tag: str = "t"
+
+
+class ModelWithDataclass(BaseModel):
+    inner: DcInner
+
+
+class TestIntakeShapes:
+    def test_typeddict_schema_validates(self):
+        engine = PhreakEngine(fact_schema=TypedPayload, validate_facts="normalize")
+        engine.load_rules([_rule(F("amount") > 1)])
+        assert engine.evaluate({"amount": "5"}).fired_rules == [1]
+
+    def test_strict_dataclass_schema_accepts_dicts(self):
+        engine = PhreakEngine(fact_schema=DcOuter, validate_facts="strict")
+        engine.load_rules([_rule(F("inner.age") > 1)])
+        assert engine.evaluate({"count": 1, "inner": {"age": 5}}).fired_rules == [1]
+        assert engine.evaluate(DcOuter(count=1, inner=DcInner(age=5))).fired_rules == [1]
+
+    def test_strict_dataclass_schema_stays_strict(self):
+        engine = PhreakEngine(fact_schema=DcOuter, validate_facts="strict")
+        engine.load_rules([_rule(F("count") > 0)])
+        with pytest.raises(FactValidationError, match="count"):
+            engine.evaluate({"count": "1", "inner": {"age": 5}})
+
+    def test_strict_pydantic_schema_with_nested_dataclass(self):
+        engine = PhreakEngine(fact_schema=ModelWithDataclass, validate_facts="strict")
+        engine.load_rules([_rule(F("inner.age") > 1)])
+        assert engine.evaluate({"inner": {"age": 5}}).fired_rules == [1]
+
+    def test_flat_dotted_fact_validates_against_nested_schema(self):
+        engine = PhreakEngine(fact_schema=Order, validate_facts="normalize")
+        engine.load_rules([_rule(F("customer.user_age") >= 18)])
+        assert engine.evaluate({"amount": 1, "customer.user_age": "30"}).fired_rules == [1]
+
+    def test_flatten_pipeline_then_validation(self):
+        from fluxrules.pipeline import FactPipeline, Flatten
+
+        engine = PhreakEngine(
+            fact_schema=Order,
+            validate_facts="normalize",
+            fact_pipeline=FactPipeline([Flatten()]),
+        )
+        engine.load_rules([_rule(F("customer.user_age") >= 18)])
+        assert engine.evaluate({"amount": 1, "customer": {"userAge": 30}}).fired_rules == [1]
+
+    def test_nesting_keeps_keys_that_are_not_nested_models(self):
+        from fluxrules.facts import _nest_dotted
+
+        nested = _nest_dotted({"a.b": 1, "customer.age": 2}, frozenset({"customer"}))
+        assert nested == {"a.b": 1, "customer": {"age": 2}}

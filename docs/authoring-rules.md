@@ -147,11 +147,13 @@ F("amount") > 5000 & F("country") == "US"       # wrong
 ```
 
 **Field names are exact.** `F("Amount")` and `F("amount")` are different fields,
-and so are `F("userAge")` and `F("user_age")`. If a fact has `user_age` and a
-rule asks for `userAge` (or `Amount` against `amount`), FluxRules raises
-`FieldNotFoundError` and suggests the right name, instead of quietly never
-matching. A field that is simply not in the fact, with no look-alike key,
-returns `False`. That keeps rulesets that serve different kinds of facts working.
+and so are `F("userAge")` and `F("user_age")`. If a rule asks for `Amount` and
+the fact has `amount`, FluxRules raises `FieldNotFoundError` and suggests the
+right name, instead of quietly never matching. With a
+[fact schema](typed-facts.md), it does the same for other key styles
+(`userAge` against `user_age`). A field that is simply not in the fact, with no
+look-alike key, returns `False`. That keeps rulesets that serve different kinds
+of facts working.
 
 **Write rules against a model when you have one.** `fields(Customer).age >= 18`
 builds the same condition as `F("age") >= 18`, but a misspelt field fails when
@@ -184,7 +186,8 @@ There are four layers, from earliest to latest:
 3. **When rules load.** An engine built with `fact_schema=Model` raises
    `UnknownFieldError` for any rule field the model lacks, and loads nothing.
 4. **While evaluating.** `FieldNotFoundError` flags a field name whose key is in
-   the fact in another key style (`Amount` / `amount`, `userAge` / `user_age`).
+   the fact in another case (`Amount` / `amount`), or, with a fact schema, in
+   another key style (`userAge` / `user_age`).
 
 ```python
 from fluxrules import F, Rule, validate

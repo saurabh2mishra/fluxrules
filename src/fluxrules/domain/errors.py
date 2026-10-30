@@ -113,18 +113,22 @@ class LossyConditionRebuildError(InvalidRuleError):
     code = "LOSSY_CONDITION_REBUILD"
 
 
-_SEPARATORS = str.maketrans("", "", "_-. ")
+# Word separators a key style may use. "." is not one of them: it separates
+# levels of nesting, so "user.name" and "username" are different fields.
+_SEPARATORS = str.maketrans("", "", "_- ")
 
 
-def canonical_field_name(name: str) -> str:
-    """Return the shape-insensitive form of a field name.
+def canonical_field_name(name: str, *, styles: bool = True) -> str:
+    """Return the comparable form of a field name.
 
-    Drops ``_``, ``-``, ``.`` and spaces and lowercases the rest, so
-    ``userAge``, ``user_age``, ``user-age``, ``UserAge`` and ``userage`` all map
-    to ``userage``. Two names with the same canonical form are the same field
-    written in a different key style.
+    With ``styles=True`` it drops ``_``, ``-`` and spaces and lowercases the
+    rest, so ``userAge``, ``user_age``, ``user-age``, ``UserAge`` and
+    ``userage`` all map to ``userage``: the same field in a different key
+    style. With ``styles=False`` it only lowercases, so only case variants
+    (``Amount`` / ``amount``) match. ``.`` is always kept, because it separates
+    levels of nesting.
     """
-    return name.translate(_SEPARATORS).lower()
+    return (name.translate(_SEPARATORS) if styles else name).lower()
 
 
 def _unflattened_parent(field: str, facts: dict) -> str | None:
@@ -143,15 +147,19 @@ def _unflattened_parent(field: str, facts: dict) -> str | None:
     return None
 
 
-def is_field_typo(field: str, facts: dict) -> bool:
+def is_field_typo(field: str, facts: dict, *, styles: bool = False) -> bool:
     """Return True when *field* is absent from *facts* but a present key is the
-    same field written in another key style, or *field* points into a nested
-    value that was never flattened.
+    same field spelled differently, or *field* points into a nested value that
+    was never flattened.
 
-    Key styles are compared through :func:`canonical_field_name`, so
-    ``Amount`` / ``amount``, ``userAge`` / ``user_age`` and ``user-age`` all
-    count. The comparison is exact equality after stripping separators and
-    case, not a fuzzy match. Close-spelling (difflib) matching is deliberately
+    By default only case differs (``Amount`` / ``amount``). With
+    ``styles=True`` key styles count too (``userAge`` / ``user_age`` /
+    ``user-age``). Engines pass ``styles=True`` only when they have a fact
+    schema: then every rule field is known to be real, so a look-alike key can
+    only be a mismatch. Without a schema, one ruleset may serve several fact
+    shapes that spell a field differently, and treating those as typos would
+    reject valid facts. The comparison is exact equality through
+    :func:`canonical_field_name`, not a fuzzy match. Close-spelling (difflib) matching is deliberately
     NOT used to decide this: field families such as ``field_0`` / ``field_10``
     or ``line_1`` / ``line_2`` resemble each other closely, so a fuzzy match
     would raise on legitimately different fields in multi-schema or
@@ -163,8 +171,8 @@ def is_field_typo(field: str, facts: dict) -> bool:
     """
     if _unflattened_parent(field, facts) is not None:
         return True
-    canonical = canonical_field_name(field)
-    return any(canonical_field_name(str(k)) == canonical for k in facts)
+    canonical = canonical_field_name(field, styles=styles)
+    return any(canonical_field_name(str(k), styles=styles) == canonical for k in facts)
 
 
 class FieldNotFoundError(FluxRulesError):
@@ -172,9 +180,10 @@ class FieldNotFoundError(FluxRulesError):
 
     A ``condition`` node whose field is not a key in the incoming fact dict
     previously returned ``False`` silently. When a present key is the same
-    field in another key style (``Amount`` vs ``amount``, ``userAge`` vs
-    ``user_age``), or the field is a dotted path into a nested value that was
-    not flattened, this error is raised so the mismatch surfaces immediately.
+    field in another case (``Amount`` vs ``amount``), or in another key style
+    when the engine has a fact schema (``userAge`` vs ``user_age``), or the
+    field is a dotted path into a nested value that was not flattened, this
+    error is raised so the mismatch surfaces immediately.
     Fields with no look-alike present are treated as legitimately absent
     (different fact schema) and return ``False`` as before. The error message
     offers a "Did you mean" suggestion, which is advisory only and does not
@@ -253,6 +262,35 @@ class UnknownFieldError(InvalidRuleError, AttributeError):
         error.rule = rule
         error.schema_name = schema_name
         error.suggestion = close[0] if close else None
+        error.summary = summary
+        return error
+
+    @classmethod
+    def for_parent(
+        cls,
+        field: str,
+        schema_name: str,
+        children: "list[str] | tuple[str, ...]",
+        *,
+        rule: str | None = None,
+    ) -> "UnknownFieldError":
+        """Build the error for a nested model named as if it were a field.
+
+        A nested model is flattened into its own fields, so a fact never has a
+        key for the model itself, and a rule on it could never match.
+        """
+        example = children[0] if children else f"{field}.<field>"
+        where = f"Rule '{rule}' references" if rule else "Reference to"
+        summary = (
+            f"{where} '{field}', which is a nested model in fact schema {schema_name}, "
+            f"not a field. Use one of its fields, such as '{example}'. To test whether "
+            f"it is set, use F('{example}').exists()."
+        )
+        error = cls(summary)
+        error.field = field
+        error.rule = rule
+        error.schema_name = schema_name
+        error.suggestion = example if children else None
         error.summary = summary
         return error
 

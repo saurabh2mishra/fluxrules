@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import BaseModel
 
 from fluxrules import F, FieldNotFoundError, MissingFieldNotWarning, Rule, evaluate
 from fluxrules.domain.errors import canonical_field_name, is_field_typo
@@ -184,43 +185,82 @@ class TestPhreakEngineRaises:
 
 
 # ---------------------------------------------------------------------------
-# Key-style variants (snake / camel / kebab / Pascal) raise like case variants
+# Key-style variants: only with a fact schema; case variants always
 # ---------------------------------------------------------------------------
 
 
 _KEY_STYLES = ["user_age", "userAge", "UserAge", "user-age", "userage", "USER_AGE"]
 
 
+class _Person(BaseModel):
+    user_age: int
+
+
 class TestKeyStyleVariants:
     @pytest.mark.parametrize("key", _KEY_STYLES)
-    def test_canonical_form_is_shared(self, key):
-        assert canonical_field_name(key) == "userage"
+    def test_canonical_form_is_shared_with_styles(self, key):
+        assert canonical_field_name(key, styles=True) == "userage"
+
+    def test_canonical_form_without_styles_only_lowercases(self):
+        assert canonical_field_name("User_Age", styles=False) == "user_age"
+
+    def test_dot_is_significant(self):
+        assert canonical_field_name("user.name") != canonical_field_name("username")
+        assert not is_field_typo("user.name", {"username": "x"}, styles=True)
 
     @pytest.mark.parametrize("rule_field", _KEY_STYLES)
     @pytest.mark.parametrize("fact_key", _KEY_STYLES)
-    def test_is_field_typo_matches_every_style(self, rule_field, fact_key):
+    def test_is_field_typo_matches_every_style_when_asked(self, rule_field, fact_key):
         if rule_field == fact_key:
             pytest.skip("exact match is not a typo")
-        assert is_field_typo(rule_field, {fact_key: 30})
+        assert is_field_typo(rule_field, {fact_key: 30}, styles=True)
+
+    def test_is_field_typo_matches_case_only_by_default(self):
+        assert is_field_typo("userAge", {"userage": 30})
+        assert not is_field_typo("userAge", {"user_age": 30})
 
     @pytest.mark.parametrize(
         ("rule_field", "fact_key"),
         [("field_0", "field_10"), ("line_1", "line_2"), ("score", "amount"), ("a_b", "a_c")],
     )
     def test_different_fields_are_not_typos(self, rule_field, fact_key):
-        assert not is_field_typo(rule_field, {fact_key: 1})
+        assert not is_field_typo(rule_field, {fact_key: 1}, styles=True)
 
     @pytest.mark.parametrize("compile_conditions", [False, True])
-    @pytest.mark.parametrize("fact_key", ["user_age", "user-age", "UserAge"])
-    def test_phreak_raises_for_snake_vs_camel(self, compile_conditions, fact_key):
-        engine = PhreakEngine(compile_conditions=compile_conditions)
-        engine.load_rules([_rule(F("userAge") >= 18)])
+    @pytest.mark.parametrize("fact_key", ["userAge", "user-age", "UserAge"])
+    def test_phreak_with_schema_raises_for_style_variant(self, compile_conditions, fact_key):
+        engine = PhreakEngine(compile_conditions=compile_conditions, fact_schema=_Person)
+        engine.load_rules([_rule(F("user_age") >= 18)])
         with pytest.raises(FieldNotFoundError, match=f"Did you mean '{fact_key}'"):
             engine.evaluate({fact_key: 30})
 
-    def test_evaluate_raises_for_snake_vs_camel(self):
-        with pytest.raises(FieldNotFoundError, match="Did you mean 'user_age'"):
-            evaluate(_rule(F("userAge") >= 18), {"user_age": 30})
+    @pytest.mark.parametrize("compile_conditions", [False, True])
+    def test_phreak_without_schema_allows_style_variants(self, compile_conditions):
+        # One ruleset serving two fact shapes that spell the id differently.
+        engine = PhreakEngine(compile_conditions=compile_conditions)
+        engine.load_rules(
+            [
+                Rule(id=1, name="a", conditions=F("user_id") > 0, action="x"),
+                Rule(id=2, name="b", conditions=F("userId") > 0, action="y"),
+            ]
+        )
+        assert engine.evaluate({"user_id": 1}).fired_rules == [1]
+        assert engine.evaluate({"userId": 1}).fired_rules == [2]
+
+    @pytest.mark.parametrize("compile_conditions", [False, True])
+    def test_phreak_without_schema_still_raises_for_case_variant(self, compile_conditions):
+        engine = PhreakEngine(compile_conditions=compile_conditions)
+        engine.load_rules([_rule(F("userAge") >= 18)])
+        with pytest.raises(FieldNotFoundError, match="Did you mean 'USERAGE'"):
+            engine.evaluate({"USERAGE": 30})
+
+    def test_evaluate_without_schema_allows_style_variant(self):
+        assert evaluate(_rule(F("userAge") >= 18), {"user_age": 30}).fired_rules == []
+
+    def test_dotted_rule_with_unrelated_flat_key_is_silent(self):
+        engine = PhreakEngine()
+        engine.load_rules([_rule(F("user.name") == "x")])
+        assert engine.evaluate({"username": "x"}).fired_rules == []
 
     def test_numbered_family_still_silent_on_engine(self):
         engine = PhreakEngine()
@@ -247,3 +287,38 @@ class TestUnflattenedNestedFacts:
         engine = PhreakEngine()
         engine.load_rules([_rule(F("user.age") >= 18)])
         assert engine.evaluate({"user": "alice"}).fired_rules == []
+
+
+class TestExistsField:
+    def test_exists_field_itself_never_raises(self):
+        engine = PhreakEngine()
+        engine.load_rules([_rule(F("Amount").exists())])
+        assert engine.evaluate({"amount": 5}).fired_rules == []
+
+
+class TestNotStateIsBuiltOnce:
+    def test_domain_evaluator_reuses_not_state(self):
+        from fluxrules.domain.conditions import evaluator
+
+        rule = _rule(~(F("blocked") == True))  # noqa: E712
+        node = rule.conditions
+        first = evaluator._not_state(node)
+        evaluate(rule, {"amount": 1})
+        assert evaluator._not_state(node) is first
+
+    def test_compiled_not_compiles_each_leaf_once(self, monkeypatch):
+        from fluxrules.engine.configuration import EngineConfig
+        from fluxrules.engine.phreak import condition_compiler
+
+        engine = PhreakEngine(config=EngineConfig(missing_field="unknown"), compile_conditions=True)
+        engine.load_rules([_rule(~((F("a") == 1) & (F("b") == 2)))])
+        calls = []
+        real = condition_compiler._compile_leaf
+        monkeypatch.setattr(
+            condition_compiler,
+            "_compile_leaf",
+            lambda node, flags: calls.append(node.get("field")) or real(node, flags),
+        )
+        for _ in range(5):
+            engine.evaluate({"a": 2})  # "b" missing: the NOT takes the slow path
+        assert sorted(calls) == ["a"]

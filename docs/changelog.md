@@ -16,8 +16,9 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
   - `fact_schema=` checks rule fields against a model when rules load;
     `fields(Model)` gives checked field references; `lenient_aliases()` and
     opt-in `validate_facts` normalize incoming key styles
-  - `FieldNotFoundError` now catches `userAge` / `user_age` / `user-age`, not
-    just case variants, and unflattened nested facts
+  - With a fact schema, `FieldNotFoundError` catches `userAge` / `user_age` /
+    `user-age`, not just case variants; it also reports unflattened nested
+    facts
   - `EngineConfig.missing_field` and `MissingFieldNotWarning`: `NOT` over a
     missing field stops firing in 2.0; opt in now with `"unknown"`
   - `fluxrules validate --schema` checks JSON/YAML rule files against a model

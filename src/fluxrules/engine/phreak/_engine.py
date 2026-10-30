@@ -470,6 +470,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # ``load_rules`` so ``evaluate`` before load is well-defined.
         # Stored as ``(field, canonical_field_name(field))`` pairs.
         self._typo_candidate_fields: tuple[tuple[str, str], ...] = ()
+        # Whether key styles count as look-alikes (set at load: only with a
+        # fact schema).
+        self._typo_styles = False
 
         # NotState per ``not`` node (by id), built at load; see
         # fluxrules.domain.conditions.missing_fields.
@@ -643,8 +646,14 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             conditions = getattr(rule, "conditions", None)
             if conditions:
                 _collect_condition_fields(conditions, _typo_fields)
+        # Key styles (userAge / user_age) count as look-alikes only with a fact
+        # schema: then every rule field is known to be real. Without one, a
+        # ruleset may serve fact shapes that spell a field differently, so only
+        # case variants count.
+        self._typo_styles = self._fact_schema_info is not None
         self._typo_candidate_fields = tuple(
-            (fld, canonical_field_name(fld)) for fld in sorted(_typo_fields)
+            (fld, canonical_field_name(fld, styles=self._typo_styles))
+            for fld in sorted(_typo_fields)
         )
 
         # Per-NOT-node missing-field state for the interpreter, keyed by node
@@ -817,8 +826,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
         # Typo detection: raise FieldNotFoundError for any condition-leaf field
         # that is absent from the fact while a present key is the same field in
-        # another key style (``Amount`` / ``amount``, ``userAge`` / ``user_age``),
-        # or that is a dotted path into an unflattened nested value. Scanning the
+        # another case (``Amount`` / ``amount``), or another key style when the
+        # engine has a fact schema (``userAge`` / ``user_age``), or that is a
+        # dotted path into an unflattened nested value. Scanning the
         # precomputed union of leaf fields once per fact is O(distinct fields) -
         # it does not rescan pruned rules - and is order-independent, so the same
         # ruleset raises the same error regardless of AND/OR/NOT shape or alpha
@@ -833,7 +843,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 if fld in facts:
                     continue
                 if canonical_keys is None:
-                    canonical_keys = {canonical_field_name(str(k)) for k in facts}
+                    canonical_keys = {
+                        canonical_field_name(str(k), styles=self._typo_styles) for k in facts
+                    }
                 if canonical in canonical_keys or ("." in fld and is_field_typo(fld, facts)):
                     raise FieldNotFoundError.for_field(fld, facts)
 

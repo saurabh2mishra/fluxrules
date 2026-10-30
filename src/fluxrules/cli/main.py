@@ -75,7 +75,13 @@ def _load_rules(path: str) -> list:
 
 
 def _config_schema(config: str | None) -> tuple[str, Path, str] | None:
-    """The config file's ``fact_schema``: (import string, its directory, source label)."""
+    """The config file's ``fact_schema``: (import string, its directory, source label).
+
+    A file named with --config must be readable. A file found automatically
+    is optional: if it cannot be read (for example PyYAML is not installed),
+    a note is printed and it is treated as having no fact_schema.
+    """
+    explicit = config is not None
     if config is not None:
         if not Path(config).is_file():
             raise _fail(f"Config file not found: {config}")
@@ -86,6 +92,12 @@ def _config_schema(config: str | None) -> tuple[str, Path, str] | None:
         if found is None:
             return None
         path = Path(found)
+
+    def problem(message: str) -> None:
+        if explicit:
+            raise _fail(message)
+        err_console.print(f"Ignoring {path}: {message}", style="dim", markup=False)
+
     try:
         with open(path) as f:
             if path.suffix.lower() == ".json":
@@ -94,22 +106,42 @@ def _config_schema(config: str | None) -> tuple[str, Path, str] | None:
                 import yaml  # type: ignore[import]
 
                 data = yaml.safe_load(f)
-    except (OSError, ImportError, ValueError) as exc:
-        raise _fail(f"Cannot read config file {path}: {exc}") from None
+    except Exception as exc:  # unreadable file, bad YAML/JSON, PyYAML missing
+        problem(f"cannot read config file {path}: {exc}")
+        return None
     spec = data.get("fact_schema") if isinstance(data, dict) else None
     if spec is None:
         return None
     if not isinstance(spec, str):
-        raise _fail(f"{path}: fact_schema must be an import string such as 'myapp.models:Order'")
+        problem(f"{path}: fact_schema must be an import string such as 'myapp.models:Order'")
+        return None
     return spec, path.parent, f"config {path}"
+
+
+class _ConfigSchema:
+    """The config file's fact_schema, read only when a command first needs it."""
+
+    def __init__(self, config: str | None) -> None:
+        self._config = config
+        self._read = False
+        self._value: tuple[str, Path, str] | None = None
+
+    def get(self) -> tuple[str, Path, str] | None:
+        if not self._read:
+            self._value = _config_schema(self._config)
+            self._read = True
+        return self._value
 
 
 def _resolve_schema(
     flag: str | None,
     document: Any,
-    config_schema: tuple[str, Path, str] | None,
+    config: _ConfigSchema,
 ) -> _Schema | None:
-    """Pick the schema: --schema, else the rule file's, else the config's."""
+    """Pick the schema: --schema, else the rule file's, else the config's.
+
+    The config file is read only when neither of the first two names one.
+    """
     from fluxrules.facts import load_schema
 
     if flag is not None:
@@ -120,14 +152,17 @@ def _resolve_schema(
             document.path.parent,
             f"rule file {document.path}",
         )
-    elif config_schema is not None:
-        spec, base, source = config_schema
     else:
-        return None
+        config_schema = config.get()
+        if config_schema is None:
+            return None
+        spec, base, source = config_schema
     try:
         return _Schema(model=load_schema(spec, base_dir=base), spec=spec, source=source)
-    except (ImportError, TypeError) as exc:
-        raise _fail(f"Cannot load fact schema {spec!r} (from {source}): {exc}") from None
+    except Exception as exc:  # importing user code can raise anything
+        raise _fail(
+            f"Cannot load fact schema {spec!r} (from {source}): {type(exc).__name__}: {exc}"
+        ) from None
 
 
 @app.command()
@@ -161,13 +196,18 @@ def evaluate(
         raise _fail(f"--validate-facts must be one of {', '.join(VALIDATE_FACTS_MODES)}")
 
     document, loaded = _read_rules(rules)
-    resolved = _resolve_schema(schema, document, _config_schema(config))
+    resolved = _resolve_schema(schema, document, _ConfigSchema(config))
     if validate_facts != "off" and resolved is None:
         raise _fail("--validate-facts needs a fact schema (--schema, or fact_schema in a file)")
     engine_kwargs = (
         {"fact_schema": resolved.model, "validate_facts": validate_facts} if resolved else {}
     )
-    rule_engine = get_engine(engine, **engine_kwargs)
+    try:
+        rule_engine = get_engine(engine, **engine_kwargs)
+    except (TypeError, ValueError) as exc:
+        # e.g. --validate-facts with an attrs schema, or a custom engine that
+        # does not take fact_schema.
+        raise _fail(f"Cannot build engine {engine!r} with this fact schema: {exc}") from None
     try:
         rule_engine.load_rules(loaded)
     except UnknownFieldError as exc:
@@ -237,7 +277,7 @@ def validate(
     from fluxrules.facts import schema_info
     from fluxrules.services.validation_service import ValidationService
 
-    config_schema = _config_schema(config)
+    config_schema = _ConfigSchema(config)
     issues: list[str] = []
     schemas: list[dict[str, str | None]] = []
     for path in rules:

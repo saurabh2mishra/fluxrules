@@ -271,9 +271,9 @@ Dict equivalent:
 ```
 
 Use `exists()` when a field might legitimately be absent. A `condition` node
-raises `FieldNotFoundError` if a present key is the same field in another key
-style (e.g. `Amount` vs `amount`, `userAge` vs `user_age`). `exists()` never
-raises.
+raises `FieldNotFoundError` if a present key is the same field spelled
+differently (see [Field names are exact](#field-names-are-exact)). `exists()`
+never raises.
 
 ---
 
@@ -282,29 +282,40 @@ raises.
 ### Field names are exact
 
 `F("Amount")`, `F("amount")` and `F("user_age")` / `F("userAge")` are
-different fields: the engine reads the exact key. When the condition's field is
-missing but the fact carries the same name in another key style, the engine
-raises `FieldNotFoundError` instead of quietly not matching. Key styles are
-compared after removing `_`, `-`, `.` and spaces and ignoring case, so
-`Amount` / `amount`, `userAge` / `user_age` / `user-age` / `UserAge` all count.
-A dotted field such as `user.age` against an unflattened `{"user": {...}}`
-raises too, with a hint to flatten the fact (see [Nested Facts](nested-facts.md)).
+different fields: the engine reads the exact key. When a rule's field is
+missing from a fact but the fact has a key that looks like the same field, the
+engine raises `FieldNotFoundError` instead of quietly not matching. What counts
+as a look-alike depends on whether the engine has a
+[fact schema](typed-facts.md):
 
-For genuinely different schemas (multi-domain rulesets), absent fields with no
-look-alike key return `False`, which is the correct behaviour. Numbered
-families stay distinct: `field_0` is not a look-alike of `field_10`.
+| Engine | Look-alikes that raise | Example |
+|---|---|---|
+| No schema | Case only | `Amount` against `amount` |
+| `fact_schema=Model` | Case and key style: `_`, `-` and spaces are ignored | `user_age` against `userAge`, `user-age` or `UserAge` |
+
+Without a schema, one ruleset may serve several kinds of facts that spell a
+field differently (`user_id` from one system, `userId` from another). The
+engine cannot tell that apart from a typo, so it only treats case as a typo.
+With a schema, every rule field is checked against the model when the rules
+load, so a key in another style can only be a mismatch.
+
+In both cases a `.` is significant, because it separates levels of nesting:
+`user.name` is never a look-alike of `username`. A dotted field such as
+`user.age` against an unflattened `{"user": {...}}` raises too, with a hint to
+flatten the fact (see [Nested Facts](nested-facts.md)). A field that is absent
+with no look-alike returns `False`. Numbered families stay distinct: `field_0`
+is not a look-alike of `field_10`.
 
 ```python
-# python skip: the first two lines deliberately raise to show the check
-# Fact: {"amount": 5000, "user_age": 30}
+# python skip: the first line deliberately raises to show the check
+# Fact: {"amount": 5000, "user_age": 30}, engine without a schema
 F("Amount") > 1000    # raises FieldNotFoundError: did you mean 'amount'?
-F("userAge") >= 18    # raises FieldNotFoundError: did you mean 'user_age'?
+F("userAge") >= 18    # no match (with a schema it would raise)
 F("amount") > 1000    # evaluates correctly
 ```
 
-To catch these before any fact arrives, give the engine a
-[fact schema](typed-facts.md): `load_rules` then rejects any rule field the
-model lacks.
+A schema also catches these before any fact arrives: `load_rules` rejects any
+rule field the model lacks.
 
 ### Operator precedence: always use parentheses
 

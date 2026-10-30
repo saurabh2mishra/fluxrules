@@ -46,11 +46,13 @@ python -m fluxrules.api.app --port 8001
    result = engine.evaluate({"value": 7500})   # ✗ Won't match
    ```
 
-   If the fact carries the field under another key style (`user_age` for a
-   rule on `userAge`), evaluation raises `FieldNotFoundError` naming the key
-   it found. Rename the rule field, or declare a
-   [fact schema](typed-facts.md) with `lenient_aliases()` and
-   `validate_facts="normalize"` so incoming keys are renamed for you.
+   If the fact carries the field in another case (`amount` for a rule on
+   `Amount`), evaluation raises `FieldNotFoundError` naming the key it found.
+   Another key style (`user_age` for a rule on `userAge`) raises only when the
+   engine has a [fact schema](typed-facts.md); without one the rule just does
+   not match. Rename the rule field, or declare a fact schema with
+   `lenient_aliases()` and `validate_facts="normalize"` so incoming keys are
+   renamed for you.
 
 3. **Check operator:** Verify operator spelling and case
    - Valid: `"=="`, `"!="`, `">"`, `"<"`, `"in"`, `"contains"`
