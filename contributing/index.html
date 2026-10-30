@@ -2756,8 +2756,8 @@
 git<span class="w"> </span>clone<span class="w"> </span>https://github.com/saurabh2mishra/fluxrules.git
 <span class="nb">cd</span><span class="w"> </span>fluxrules
 
-<span class="c1"># Install with dev extras</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
+<span class="c1"># Install with the dev dependency group (pip &gt;= 25.1)</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w"> </span>--group<span class="w"> </span>dev
 
 <span class="c1"># Run tests</span>
 pytest<span class="w"> </span>tests/<span class="w"> </span>-v

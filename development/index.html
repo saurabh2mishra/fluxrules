@@ -2695,30 +2695,26 @@ clean sync resolves the latest versions allowed by the ranges declared in
 <span class="c1"># (including pytest-xdist for `pytest -n auto`), and wires up pre-commit hooks.</span>
 make<span class="w"> </span>dev
 
-<span class="c1"># Equivalent explicit command:</span>
-uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>docs
+<span class="c1"># Equivalent explicit command (dev group is installed by default):</span>
+uv<span class="w"> </span>sync<span class="w"> </span>--group<span class="w"> </span>docs
 </code></pre></div>
-<p>The first <code>uv sync</code> writes a local <code>uv.lock</code>. Because that file is gitignored,
-it stays on your machine and is not shared; a teammate's clean sync may resolve
-slightly newer patch versions within the same ranges. If you want a byte-pinned,
-strictly reproducible environment, generate and keep your own lock, then pass
-<code>--locked</code> on subsequent syncs so uv fails fast when <code>pyproject.toml</code> drifts:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>lock<span class="w">                                        </span><span class="c1"># create uv.lock locally</span>
-uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>docs<span class="w"> </span>--locked<span class="w">      </span><span class="c1"># reuse it exactly</span>
+<p><code>uv.lock</code> is committed, so every contributor and CI resolve the same versions.
+Pass <code>--locked</code> to fail fast when <code>pyproject.toml</code> and the lock have drifted:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--group<span class="w"> </span>docs<span class="w"> </span>--locked<span class="w">      </span><span class="c1"># use uv.lock exactly; error if it is stale</span>
 </code></pre></div>
 <h3 id="private-index-offline-mirrors">Private index / offline mirrors<a class="headerlink" href="#private-index-offline-mirrors" title="Permanent link">&para;</a></h3>
 <p>By default uv resolves packages from PyPI. Behind a corporate mirror, point uv
 (and pip fallbacks) at your index before syncing:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">UV_INDEX_URL</span><span class="o">=</span><span class="s2">"https://your-mirror/simple/"</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">PIP_INDEX_URL</span><span class="o">=</span><span class="s2">"https://your-mirror/simple/"</span>
-uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>docs
+uv<span class="w"> </span>sync<span class="w"> </span>--group<span class="w"> </span>docs
 </code></pre></div>
 <p>Use <code>--offline</code> to resolve entirely from uv's local cache when the network is
 unavailable.</p>
 <h3 id="library-only-install">Library-only install<a class="headerlink" href="#library-only-install" title="Permanent link">&para;</a></h3>
 <p>To use FluxRules as a dependency (no dev tooling):</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>fluxrules<span class="w">            </span><span class="c1"># from PyPI</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span><span class="w">          </span><span class="c1"># editable, with dev extras</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w"> </span>--group<span class="w"> </span>dev<span class="w">     </span><span class="c1"># editable, with dev tooling (pip &gt;= 25.1)</span>
 </code></pre></div>
 <h2 id="development-workflow">Development Workflow<a class="headerlink" href="#development-workflow" title="Permanent link">&para;</a></h2>
 <ol>
