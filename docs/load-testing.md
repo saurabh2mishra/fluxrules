@@ -5,9 +5,9 @@ This document addresses production scalability concerns: **Can PHREAK handle mil
 > **How to read these numbers.** Throughput and daily-capacity figures below come
 > from the **realistic-rule benchmark** (`tests/performance/perf_realistic_rules.py`),
 > measured on a **pre-loaded** engine (the per-request reload defect was fixed in
-> the P0 trust work - the engine is built once and hot-swapped, never rebuilt per
+> the P0 trust work: the engine is built once and hot-swapped, never rebuilt per
 > fact). They are **measured, not extrapolated** from idealized batch throughput.
-> Your numbers depend on your rules' selectivity - **measure your real set** with
+> Your numbers depend on your rules' selectivity, so **measure your real set** with
 > the harness before sizing.
 
 ---
@@ -24,9 +24,9 @@ is **horizontal** (more processes/pods), not a single magic thread.
  per process** at 10K-100K rules, depending on selectivity. Run the harness for
  your set: `python tests/performance/perf_realistic_rules.py`.
 - **Daily volume (one process):** reported as **measured sustained throughput ×
- 86,400 s** with the method stated - typically **single-digit to low-tens of
+ 86,400 s** with the method stated. That is typically **single-digit to low-tens of
  millions/day** per process on realistic rules. (No "billions/day single-thread"
- claim - that was idealized batch math and has been removed.)
+ claim: that was idealized batch math and has been removed.)
 - **For tens-to-hundreds of millions daily:** deploy N processes/pods behind a
  queue (Kafka, Redis Streams) with sticky routing for any streaming state.
 - **Honest worst case:** if most rules test **one low-selectivity field that
@@ -69,7 +69,7 @@ A pinned, machine-stamped result is committed at
 --json benchmarks/<date>.json`). It streams **1,000,000 facts** through a
 **pre-loaded 1,000-rule** engine (memory-flat via a fact generator) and records
 p50/p95/p99, throughput, peak RSS, the alpha-on-vs-off **correctness parity**
-check, plus a process-pool scaling run - so the "millions/day" and "horizontal
+check, plus a process-pool scaling run, so the "millions/day" and "horizontal
 scaling" claims are backed by a reproducible artifact, not extrapolation.
 
 Measured on the environment stamped in the artifact
@@ -77,9 +77,9 @@ Measured on the environment stamped in the artifact
 
 | Run | Result |
 |-----|--------|
-| Streaming - 1,000 rules × 1,000,000 facts | p50 **0.89 ms** / p95 **1.12 ms** / p99 **1.25 ms**; **1,107 facts/s**; peak RSS **77.2 MiB** |
+| Streaming, 1,000 rules × 1,000,000 facts | p50 **0.89 ms** / p95 **1.12 ms** / p99 **1.25 ms**; **1,107 facts/s**; peak RSS **77.2 MiB** |
 | Correctness parity (alpha on vs off) | **0 mismatches / 100,000 facts** |
-| Horizontal scaling - 400,000 facts, 8 workers | **6.39× speedup**, 889 facts/s/core, fired-facts parity **OK** (400,000 == 400,000) |
+| Horizontal scaling, 400,000 facts, 8 workers | **6.39× speedup**, 889 facts/s/core, fired-facts parity **OK** (400,000 == 400,000) |
 
 The alpha layer pruned **84.1%** of candidates on this selective set. These are
 this machine's numbers; regenerate on your target hardware before sizing.
@@ -111,14 +111,14 @@ reference evaluator while scaling to 50K rules.
 ### Single-process capacity (measured, not extrapolated)
 
 Per-fact cost is **linear in the number of surviving candidate rules**, not the
-total rule count - the always-on alpha pre-filter drops rules whose necessary
+total rule count. The always-on alpha pre-filter drops rules whose necessary
 conditions provably fail before any per-rule evaluation. So capacity depends on
 your rules' **selectivity**, which is why we measure rather than assert a single
 number.
 
 **Methodology (§7):**
 
-1. Build the engine **once** (production uses a versioned hot-swap holder - no
+1. Build the engine **once** (production uses a versioned hot-swap holder, with no
  per-request reload).
 2. Warm up, then time **each** fact individually; report **p50/p95/p99**, not
  just a mean.
@@ -143,7 +143,7 @@ Single process, realistic rules:
 ### Adversarial caveat (the honest worst case)
 
 If most rules test **one low-selectivity field that every fact carries**, the
-alpha pre-filter cannot prune - every fact reaches **O(rules)** per-rule
+alpha pre-filter cannot prune, so every fact reaches **O(rules)** per-rule
 evaluations. The harness measures this directly:
 
 ```
@@ -152,7 +152,7 @@ python tests/performance/perf_realistic_rules.py --adversarial
 
 Plan capacity for **this** number, not the selective best case, if your rule set
 looks like that. (FluxRules is a high-throughput **single-fact** matcher; cross-
-fact joins/temporal correlation are out of scope - see
+fact joins/temporal correlation are out of scope; see
 [Engine Scope & Limits](engine-scope-and-limits.md).)
 
 ### Multi-core scaling
@@ -197,7 +197,7 @@ For **millions of facts daily** (1-10M/day):
               └──────────────────┘
 ```
 
-**Capacity (illustrative - substitute your measured per-process number):**
+**Capacity (illustrative; substitute your measured per-process number):**
 - N processes × (your measured facts/sec) = aggregate facts/sec
 - aggregate facts/sec × 86,400 = facts/day
 - Scaling is ~linear in processes for stateless evaluation; verify with
@@ -482,10 +482,10 @@ Before deploying PHREAK to handle millions of facts:
 
 ### Roadmap
 
-- [ ] **v2.1** - Distributed load testing suite (Kafka integration)
-- [ ] **v2.2** - Redis-backed rule network caching (cross-process sharing)
-- [ ] **v3.0** - Truth Maintenance System (TMS) for stateful rulesets
-- [ ] **v4.0** - Complex Event Processing (CEP) for temporal reasoning
+- [ ] **v2.1**: Distributed load testing suite (Kafka integration)
+- [ ] **v2.2**: Redis-backed rule network caching (cross-process sharing)
+- [ ] **v3.0**: Truth Maintenance System (TMS) for stateful rulesets
+- [ ] **v4.0**: Complex Event Processing (CEP) for temporal reasoning
 
 ---
 
@@ -506,10 +506,10 @@ Before deploying PHREAK to handle millions of facts:
 
 ## References & Further Reading
 
-- [Benchmarks](benchmarks.md) - Full benchmark results
-- [Algorithm Fidelity](algorithm-fidelity.md) - PHREAK vs. reference evaluator equivalence
-- [Custom Engines](custom-engines.md) - Building engines for specialized workloads
-- [Deployment Patterns](deployment.md) - How to deploy FluxRules in production
+- [Benchmarks](benchmarks.md): Full benchmark results
+- [Algorithm Fidelity](algorithm-fidelity.md): PHREAK vs. reference evaluator equivalence
+- [Custom Engines](custom-engines.md): Building engines for specialized workloads
+- [Deployment Patterns](deployment.md): How to deploy FluxRules in production
 
 ---
 

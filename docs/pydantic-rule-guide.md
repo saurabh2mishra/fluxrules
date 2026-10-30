@@ -30,8 +30,8 @@ rule = Rule(
 
 | Field | Type | Required | Default | Notes |
 |-------|------|----------|---------|-------|
-| `name` | `str` | Yes | - | Human-readable rule name |
-| `conditions` | `dict` | Yes | - | Rule logic (condition tree format) |
+| `name` | `str` | Yes | none | Human-readable rule name |
+| `conditions` | `dict` | Yes | none | Rule logic (condition tree format) |
 | `domain` | `str` | No | `"default"` | Organizational grouping |
 | `tags` | `frozenset[str]` | No | `frozenset()` | Search/filter keywords |
 | `action` | `str \| tuple[str, ...]` | No | `None` | Action(s) when rule fires |
@@ -172,6 +172,6 @@ restored = Rule(**json.loads(rule_json))
 
 ## Next Steps
 
-- **Conditions** - See [Conditions](conditions.md) for condition operators
-- **Validation** - See [Validation Framework](validation-framework.md) for condition validation
-- **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations
+- **Conditions**: See [Conditions](conditions.md) for condition operators
+- **Validation**: See [Validation Framework](validation-framework.md) for condition validation
+- **Rule Lifecycle**: See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations

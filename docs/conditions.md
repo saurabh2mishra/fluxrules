@@ -11,7 +11,7 @@ This page is the reference: every operator and every validation tool.
 
 ## Four ways to write conditions
 
-### 1. F DSL - recommended for Python code
+### 1. F DSL (recommended for Python code)
 
 Write conditions as natural Python expressions using the `F` helper. Each
 expression compiles to a condition dict the engine accepts; you never touch
@@ -27,14 +27,14 @@ rule = Rule(
     action="review",
 )
 
-# AND - both must hold
+# AND: both must hold
 rule = Rule(
     name="high_value_us",
     conditions=(F("amount") > 5000) & (F("country") == "US"),
     action="review",
 )
 
-# OR - either suffices
+# OR: either suffices
 rule = Rule(
     name="risky_origin",
     conditions=(F("country").isin(["NG", "SN"])) | (F("ip_risk_score") >= 70),
@@ -64,20 +64,20 @@ rule = Rule(
 )
 ```
 
-**Operator precedence warning** - Python's `&` and `|` bind more tightly than
+**Operator precedence warning.** Python's `&` and `|` bind more tightly than
 comparisons like `>`, `<`, `==`. Always wrap each individual condition in
 parentheses:
 
 ```python
-# python skip - the second line deliberately raises to show the trap
+# python skip: the second line deliberately raises to show the trap
 # Correct
 (F("amount") > 5000) & (F("country") == "US")
 
-# Wrong - & binds before ==, raising a TypeError at runtime
+# Wrong: & binds before ==, raising a TypeError at runtime
 F("amount") > 5000 & F("country") == "US"
 ```
 
-### 2. Dict / YAML - for config-driven rules
+### 2. Dict / YAML (for config-driven rules)
 
 The dict format is the wire and storage format. Use it when rules come from a
 database, YAML file, or API response.
@@ -121,7 +121,7 @@ and loads back from YAML the same way. One difference in shape: `a & b & c`
 nests as `(a & b) & c`, where a hand-written dict usually has one flat group of
 three. Both give the same results.
 
-### 3. RuleBuilder - fluent step-by-step construction
+### 3. RuleBuilder (fluent, step by step)
 
 `RuleBuilder` chains method calls and validates each step. Useful when building
 rules programmatically where you want to catch errors early.
@@ -247,7 +247,7 @@ Both sides are coerced to strings before matching.
 |---|---|---|
 | `F("x").starts_with("adm")` | `"starts_with"` | `str(x).startswith(...)` |
 | `F("x").ends_with(".com")` | `"ends_with"` | `str(x).endswith(...)` |
-| `F("x").regex("^4[0-9]{12}")` | `"regex"` | `re.search(pattern, str(x))` - matches anywhere in the string, so add `^` to anchor at the start |
+| `F("x").regex("^4[0-9]{12}")` | `"regex"` | `re.search(pattern, str(x))`. It matches anywhere in the string, so add `^` to anchor at the start |
 
 ### Boolean composition (F DSL)
 
@@ -270,8 +270,8 @@ Dict equivalent:
 {"type": "exists", "field": "email"}
 ```
 
-Use `exists()` when a field might legitimately be absent - `condition` nodes
-raise `FieldNotFoundError` if a present key is the same field in another key
+Use `exists()` when a field might legitimately be absent. A `condition` node
+raises `FieldNotFoundError` if a present key is the same field in another key
 style (e.g. `Amount` vs `amount`, `userAge` vs `user_age`). `exists()` never
 raises.
 
@@ -295,10 +295,10 @@ look-alike key return `False`, which is the correct behaviour. Numbered
 families stay distinct: `field_0` is not a look-alike of `field_10`.
 
 ```python
-# python skip - the first two lines deliberately raise to show the check
+# python skip: the first two lines deliberately raise to show the check
 # Fact: {"amount": 5000, "user_age": 30}
-F("Amount") > 1000    # raises FieldNotFoundError - did you mean 'amount'?
-F("userAge") >= 18    # raises FieldNotFoundError - did you mean 'user_age'?
+F("Amount") > 1000    # raises FieldNotFoundError: did you mean 'amount'?
+F("userAge") >= 18    # raises FieldNotFoundError: did you mean 'user_age'?
 F("amount") > 1000    # evaluates correctly
 ```
 
@@ -312,11 +312,11 @@ Python evaluates `&` and `|` before `>`, `<`, `==`. The rule is simple: wrap
 every individual `F(...)` comparison in its own parentheses before composing:
 
 ```python
-# python skip - the unsafe line deliberately raises to show the trap
-# safe - each leaf is wrapped
+# python skip: the unsafe line deliberately raises to show the trap
+# safe: each leaf is wrapped
 (F("amount") > 5000) & (F("country") == "US")
 
-# unsafe - raises TypeError
+# unsafe: raises TypeError
 F("amount") > 5000 & F("country") == "US"
 ```
 
@@ -390,9 +390,9 @@ F("tags").contains("vip")  # list field → scalar value to find in it
 ### `isin` takes a list, not positional args
 
 ```python
-# python skip - the second line deliberately raises to show the trap
+# python skip: the second line deliberately raises to show the trap
 F("country").isin(["NG", "SN", "GH"])   # correct
-F("country").isin("NG", "SN", "GH")    # wrong - TypeError
+F("country").isin("NG", "SN", "GH")    # wrong: TypeError
 ```
 
 ### Combining AND chains cleanly
@@ -420,7 +420,7 @@ exposes an explicit validate step for bulk checks before deployment.
 Invalid conditions are caught when you build the `Rule`:
 
 ```python
-# python skip - this block deliberately raises to show the validation error
+# python skip: this block deliberately raises to show the validation error
 from fluxrules import F, Rule
 
 Rule(
@@ -434,7 +434,7 @@ Rule(
 Missing required keys, unknown operators, and malformed tree shapes all raise
 `ConditionValidationError` immediately.
 
-### `validate()` - check a batch without evaluating
+### `validate()`: check a batch without evaluating
 
 ```python
 from fluxrules import F, Rule, validate
@@ -452,8 +452,8 @@ else:
     print("All rules valid")
 ```
 
-`validate()` returns a list of human-readable strings - empty means all rules
-passed. Use it in CI before deploying a new ruleset.
+`validate()` returns a list of human-readable strings. An empty list means all
+rules passed. Use it in CI before deploying a new ruleset.
 
 ### `FieldNotFoundError` at evaluation time
 
@@ -523,10 +523,10 @@ The dict / YAML format uses these node shapes:
 
 | Node type | Required keys | Optional keys |
 |---|---|---|
-| `condition` | `type`, `field`, `op`, `value` | - |
+| `condition` | `type`, `field`, `op`, `value` | none |
 | `group` / `and` / `or` | `type`, `children` (or `conditions`) | `op` (default `AND`) |
-| `not` | `type`, `condition` | - |
-| `exists` | `type`, `field` | - |
+| `not` | `type`, `condition` | none |
+| `exists` | `type`, `field` | none |
 
 Accepted aliases: `"and"`, `"or"`, `"not"`, `"exists"`, `"group"`, `"composite"`.
 
@@ -534,9 +534,9 @@ Accepted aliases: `"and"`, `"or"`, `"not"`, `"exists"`, `"group"`, `"composite"`
 
 ## Next steps
 
-- **[Complex Conditions](complex-conditions.md)** - AND/OR/NOT deep-dive with
+- **[Complex Conditions](complex-conditions.md)**: AND/OR/NOT deep-dive with
   more examples
-- **[Validation Framework](validation-framework.md)** - CI integration and
+- **[Validation Framework](validation-framework.md)**: CI integration and
   custom validators
-- **[YAML Rules](yaml-rules.md)** - rules as configuration files
-- **[Rule Builder](rule-builder.md)** - `RuleBuilder` fluent API reference
+- **[YAML Rules](yaml-rules.md)**: rules as configuration files
+- **[Rule Builder](rule-builder.md)**: `RuleBuilder` fluent API reference

@@ -8,7 +8,7 @@ FluxRules provides everything needed for production rule engines.
 
 ## The Essentials
 
-- **One Engine**: [PhreakEngine](concepts.md) - a single lazy, agenda-driven engine with stateless (default) and streaming modes
+- **One Engine**: [PhreakEngine](concepts.md), a single lazy, agenda-driven engine with stateless (default) and streaming modes
 - **Complex Logic**: [AND/OR/NOT boolean logic](complex-conditions.md) with deep, arbitrary nesting
 - **Rule Organization**: [Domains and Tags](domains-and-tags.md) for categorization and filtering
 - **Priority-Based Execution**: Higher priority rules fire first when multiple match
@@ -50,7 +50,7 @@ print(f"Latency: {result.latency_ms}ms")  # [execution time]
 - Debugging (understand rule behavior)
 - User transparency (explain approvals/denials)
 
-**Source:** `src/fluxrules/domain/models.py` - `EvaluationResult` class
+**Source:** the `EvaluationResult` class in `src/fluxrules/domain/models.py`
 
 ---
 
@@ -153,6 +153,6 @@ facts, run the harness described in [Load Testing](load-testing.md).
 
 ## Next Steps
 
-- **[Getting Started](quickstart.md)** - Create your first rule
-- **[Concepts](concepts.md)** - Understand engines and evaluation
-- **[Examples](examples.md)** - Working code demonstrations
+- **[Getting Started](quickstart.md)**: Create your first rule
+- **[Concepts](concepts.md)**: Understand engines and evaluation
+- **[Examples](examples.md)**: Working code demonstrations

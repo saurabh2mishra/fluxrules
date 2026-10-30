@@ -28,7 +28,7 @@ The validation system catches errors early with clear error messages.
 from fluxrules.domain.conditions.validation import validate_conditions, ConditionValidationError
 from fluxrules.domain import Rule
 
-# Define a rule - F DSL is the recommended authoring format
+# Define a rule: F DSL is the recommended authoring format
 from fluxrules import F
 
 rule = Rule(
@@ -259,7 +259,7 @@ aliases `eq`, `ne`, `gt`, `gte`, `lt` and `lte` in dictionary and YAML rules.
 
 ## When Validation Happens
 
-- **Explicit call**: `validate_conditions(dsl)` - synchronous, raises on error
+- **Explicit call**: `validate_conditions(dsl)`, synchronous, raises on error
 - **Rule creation**: Rules are structurally validated on instantiation
 - **Engine load**: No automatic validation (`engine.load_rules()` assumes pre-validated rules)
 - **REST API** (if enabled): Automatic validation before saving
@@ -287,7 +287,7 @@ For advanced validation, use manual review or rule analysis tools (see [Rule Ana
 
 ## Next Steps
 
-- **[Complex Conditions](complex-conditions.md)** - Nested AND/OR/NOT logic
-- **[Conditions Reference](conditions.md)** - All operators explained
-- **[Error Handling](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/14_error_handling.py)** - Catch validation errors in code
-- **[Examples 04 & 14](examples.md)** - Working validation examples
+- **[Complex Conditions](complex-conditions.md)**: Nested AND/OR/NOT logic
+- **[Conditions Reference](conditions.md)**: All operators explained
+- **[Error Handling](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/14_error_handling.py)**: Catch validation errors in code
+- **[Examples 04 & 14](examples.md)**: Working validation examples

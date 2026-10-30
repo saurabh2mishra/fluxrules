@@ -212,8 +212,8 @@ The same rules can live in a YAML file that names `fact_schema`, and
 
 ## Next Steps
 
-- [Typed Facts](typed-facts.md) - schemas, validation and checked field references
-- [Fact Pipeline](fact-pipeline.md) - transforms for raw input
-- [CLI](cli.md) - validate and evaluate rule files from the command line
-- [Architecture](architecture.md) - how the rule network is built
-- [Example 31: Typed Facts](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py) - the same ideas as a runnable script
+- [Typed Facts](typed-facts.md): schemas, validation and checked field references
+- [Fact Pipeline](fact-pipeline.md): transforms for raw input
+- [CLI](cli.md): validate and evaluate rule files from the command line
+- [Architecture](architecture.md): how the rule network is built
+- [Example 31: Typed Facts](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py): the same ideas as a runnable script

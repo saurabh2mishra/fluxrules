@@ -37,31 +37,31 @@ normalize = FactPipeline(
 
 ```python
 # python skip
-# ✗ THIS WON'T WORK - Plain function
+# ✗ THIS WON'T WORK: Plain function
 def my_flatten(fact):
     return {k.replace("_", "."): v for k, v in fact.items()}
 
 
 normalize = FactPipeline(
-    [  # ✗ THIS WON'T WORK - Plain function
+    [  # ✗ THIS WON'T WORK: Plain function
         my_flatten,  # ✗ AttributeError: 'function' has no attribute 'metadata'
     ]
 )
 
 
-# ✗ THIS WON'T WORK - Plain class
+# ✗ THIS WON'T WORK: Plain class
 class MyFlatten:
     def __call__(self, fact):
         return {k.replace("_", "."): v for k, v in fact.items()}
 
 
 normalize = FactPipeline(
-    [  # ✗ THIS WON'T WORK - Plain class
+    [  # ✗ THIS WON'T WORK: Plain class
         MyFlatten(),  # ✗ AttributeError: 'MyFlatten' object has no attribute 'metadata'
     ]
 )
 
-# ✓ THIS WORKS - Transform class
+# ✓ THIS WORKS: Transform class
 from fluxrules.pipeline import Transform, TransformMetadata
 
 
@@ -75,7 +75,7 @@ class MyFlatten(Transform):
 
 
 normalize = FactPipeline(
-    [  # ✓ THIS WORKS - Transform class
+    [  # ✓ THIS WORKS: Transform class
         MyFlatten(),  # ✓ Works!
         Flatten(),
         Require(["user_id", "amount"]),
@@ -273,7 +273,7 @@ pipeline = transform_a >> transform_b
 # ✓ ALSO CORRECT: Pass them as a list
 pipeline = FactPipeline([transform_a, transform_b])
 
-# UNNECESSARY: Works, but verbose - no need to wrap each transform
+# UNNECESSARY: Works, but verbose: no need to wrap each transform
 pipeline = FactPipeline([transform_a]) >> FactPipeline([transform_b])
 ```
 
@@ -397,6 +397,6 @@ fact = enhanced_normalize({"user": {"id": "u_1"}, "amount": "1500"})
 - **Must pass:** Classes that inherit from `Transform` and implement `__call__` + `metadata`
 
 For detailed patterns and examples, see:
-- **[Custom Transforms Guide](custom-transforms.md)** - Comprehensive patterns and best practices
-- **[Example 29: Custom Transforms](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/29_custom_transforms.py)** - Real-world working examples
-- **[FactPipeline Documentation](fact-pipeline.md)** - Full framework overview
+- **[Custom Transforms Guide](custom-transforms.md)**: Comprehensive patterns and best practices
+- **[Example 29: Custom Transforms](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/29_custom_transforms.py)**: Real-world working examples
+- **[FactPipeline Documentation](fact-pipeline.md)**: Full framework overview

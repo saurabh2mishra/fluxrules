@@ -280,15 +280,15 @@ First stable release.
 
 ### Added
 
-- **Multi-condition benchmarks** — 6 new scenarios (flat and selective AND trees,
+- **Multi-condition benchmarks**: 6 new scenarios (flat and selective AND trees,
   3–8 conditions/rule) and 3 streaming mode scenarios (unchanged-facts O(1)
   short-circuit, 5–6x speedup) added to `tests/performance/test_benchmark.py`.
-- **README `## How it works` section** — evaluation pipeline, Phreak-borrowed
+- **README `## How it works` section**: evaluation pipeline, Phreak-borrowed
   mechanisms, intentional omissions, and stateless vs. streaming guidance.
-- **`compile_conditions` user documentation** — `PhreakEngine.__init__` docstring
+- **`compile_conditions` user documentation**: `PhreakEngine.__init__` docstring
   now explains when to enable (3+ selective AND conditions → 20–40% gain) and the
   trade-off on single-condition rules (≈0.90x).
-- **Agenda gap documented** — `# NOTE:` comments in `agenda.py` and `_engine.py`
+- **Agenda gap documented**: `# NOTE:` comments in `agenda.py` and `_engine.py`
   explain that `add_activation`/`next_activation` are never called from the main
   evaluation path.
 
@@ -314,7 +314,7 @@ First stable release.
   `save_rule`, `update_rule`, and `delete_rule` each accessed the `db` property
   multiple times. Because a plain `sessionmaker` returns a new `Session` on every
   call, `commit()` and `refresh()` operated on an empty second session rather than
-  the one that received the ORM object — silently producing no row and falling back
+  the one that received the ORM object, silently producing no row and falling back
   to a local ID. Each write method now captures `self.db` once at entry.
 
 ### Added
@@ -329,13 +329,13 @@ First stable release.
 
 ### Changed
 
-- **`docs/persistence.md`** — new section "Using a different SQL provider"
+- **`docs/persistence.md`**: new section "Using a different SQL provider"
   with a FastAPI + PostgreSQL example, the adapter priority order, and a note
   that the ServiceFactory path requires schema migrations to be run separately
   (e.g. via Alembic) since it does not call `create_all_tables()`.
-- **`docs/dependency-injection.md`** — new "ServiceFactory and persistence"
+- **`docs/dependency-injection.md`**: new "ServiceFactory and persistence"
   section linking the DI setup to the `persist=True` behaviour.
-- **`docs/architecture.md`** — replaced the ASCII system-architecture sketch
+- **`docs/architecture.md`**: replaced the ASCII system-architecture sketch
   with the official diagram (`docs/images/system_architecture.png`).
 
 ## [0.1.1] - 2026-10-07
@@ -345,10 +345,10 @@ First stable release.
 First release intended for publication. The changes below tighten the public
 API surface so that one concept has one name and one type. `0.0.1` was never
 published, so these are breaking relative to an unreleased baseline only and
-carry no deprecation shims — carrying a shim for `matched_rule_ids` was
+carry no deprecation shims. Carrying a shim for `matched_rule_ids` was
 rejected precisely because the name's meaning was the defect.
 
-### Changed — breaking
+### Changed (breaking)
 
 - **One `EvaluationResult`.** There were two classes of that name: the domain
   one, whose `matched_rule_ids` meant *the rules that fired*, and the engine
@@ -368,7 +368,7 @@ rejected precisely because the name's meaning was the defect.
   default `True` meant importing a module that defined rules opened a
   connection and created a `.db` file, then swallowed any failure as a log
   warning. Persist explicitly with the new `Rule.save()` or `persist=True`.
-  The redundant `except Exception` around persistence is gone —
+  The redundant `except Exception` around persistence is gone:
   `PersistenceManager.persist_rule` already degrades to a local ID, so anything
   escaping it is a real fault.
 - **`RuleBuilder.build()` returns `Rule`**, not the internal `EngineRule`, so a
@@ -400,7 +400,7 @@ rejected precisely because the name's meaning was the defect.
 
 ### Added
 
-- `Rule.save()` — explicit persistence for a rule built in memory.
+- `Rule.save()`: explicit persistence for a rule built in memory.
 - `RuleBuilder`, `ConditionBuilder`, and the `Rules` input alias are exported
   from the top-level `fluxrules` namespace.
 - `RuleBuilder.build_engine_rule()` for the internal `EngineRule` shape.
@@ -417,23 +417,23 @@ evaluation modes.
 
 ### Added
 
-- Core evaluation API — `evaluate()`, `validate()`, `explain()` over a typed
+- Core evaluation API: `evaluate()`, `validate()`, `explain()` over a typed
   `Ruleset` of rules, with a curated public `__all__` and a shipped `py.typed`
   marker.
 - PHREAK engine (`PhreakEngine`): lazy, agenda-driven evaluation in stateless
   (default) and streaming modes. Correctness is checked against the
   dependency-free `ReferenceEvaluator` oracle and by stateless/streaming parity.
-- Condition operators — 13 distinct operators plus 6 word aliases: `==`/`eq`,
+- Condition operators: 13 distinct operators plus 6 word aliases: `==`/`eq`,
   `!=`/`ne`, `>`/`gt`, `>=`/`gte`, `<`/`lt`, `<=`/`lte`, `in`, `not_in`,
   `contains`, `not_contains`, `starts_with`, `ends_with`, `regex`; combined with
   arbitrary AND/OR/NOT nesting.
-- Extensibility — public `register_engine()` / `unregister_engine()` (a custom
+- Extensibility: public `register_engine()` / `unregister_engine()` (a custom
   `BaseEngine` becomes selectable via `get_engine()`, the HTTP API, and the CLI
   `--engine` flag; the built-in engine is protected), registries for custom
   operators/actions/transforms/validators, entry-point auto-discovery
   (`fluxrules.plugins.discovery.load_plugins`), and a public conformance kit
   (`fluxrules.testing.assert_engine_contract`).
-- Fact pipeline — `Flatten`, `Rename`, `Defaults`, `Require`, `FieldType`, and
+- Fact pipeline: `Flatten`, `Rename`, `Defaults`, `Require`, `FieldType`, and
   user-defined transforms.
 - Validation framework (structure, conflicts, dead/redundant rules) and an audit
   trail with integrity hashing.

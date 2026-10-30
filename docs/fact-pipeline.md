@@ -6,10 +6,10 @@
 
 A Fact Pipeline transforms facts before rule evaluation. Use pipelines to:
 
-1. **Normalize** - Convert nested structures to flat dicts
-2. **Enrich** - Add computed fields
-3. **Validate** - Ensure required fields exist
-4. **Type coerce** - Convert string values to proper types
+1. **Normalize**: Convert nested structures to flat dicts
+2. **Enrich**: Add computed fields
+3. **Validate**: Ensure required fields exist
+4. **Type coerce**: Convert string values to proper types
 
 ## Pipeline or typed facts?
 
@@ -154,7 +154,7 @@ for normalized_fact in loader:
 
 ## Next Steps
 
-- **Custom Transforms** - See [Custom Transforms](custom-transforms.md) for building domain-specific transforms
-- **Typed facts** - See [Example 31: Typed Facts](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py) for a pipeline combined with `fact_schema=` through `fact_pipeline=`
-- **Example** - See [Example 27: FactPipeline](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/27_factpipeline.py) for complete example
-- **Fact Store** - See [Persistence](persistence.md) for storing enriched facts
+- **Custom Transforms**: See [Custom Transforms](custom-transforms.md) for building domain-specific transforms
+- **Typed facts**: See [Example 31: Typed Facts](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py) for a pipeline combined with `fact_schema=` through `fact_pipeline=`
+- **Example**: See [Example 27: FactPipeline](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/27_factpipeline.py) for complete example
+- **Fact Store**: See [Persistence](persistence.md) for storing enriched facts

@@ -128,7 +128,7 @@ try:
 except UnknownFieldError as exc:
     assert "Did you mean 'customer.country'" in str(exc)
 
-print(dir(o.customer))  # ['blocked', 'country', 'user_age'] - IDE-style discovery
+print(dir(o.customer))  # ['blocked', 'country', 'user_age']: IDE-style discovery
 ```
 
 Rules built this way serialize to the usual condition dict, so they store and
@@ -294,7 +294,7 @@ the key it found, instead of quietly not matching. See
 
 ## Next Steps
 
-- **Example** - See [Example 31: Typed Facts](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py) for a runnable walkthrough: model input, load-time rule checks, `fields()`, key normalization, quarantine, and `fact_pipeline=`
-- [Conditions](conditions.md) - including [missing fields and NOT](conditions.md#missing-fields-and-not)
+- **Example**: See [Example 31: Typed Facts](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py) for a runnable walkthrough: model input, load-time rule checks, `fields()`, key normalization, quarantine, and `fact_pipeline=`
+- [Conditions](conditions.md): including [missing fields and NOT](conditions.md#missing-fields-and-not)
 - [Nested Facts](nested-facts.md)
-- [Fact Pipeline](fact-pipeline.md) - transforms and loaders for raw input
+- [Fact Pipeline](fact-pipeline.md): transforms and loaders for raw input

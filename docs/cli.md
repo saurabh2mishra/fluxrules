@@ -187,7 +187,7 @@ Starts the HTTP API with uvicorn. See [REST API](rest-api.md).
 
 ## Next Steps
 
-- [From Fact to Action](fact-to-action.md) - where these checks sit in the evaluation flow
-- [Typed Facts](typed-facts.md#check-rule-files-in-ci) - the same checks from Python
-- [YAML Rules](yaml-rules.md) - the rule file format
-- [Example 11: CLI Usage](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/11_cli_usage.py) - running the CLI from a script
+- [From Fact to Action](fact-to-action.md): where these checks sit in the evaluation flow
+- [Typed Facts](typed-facts.md#check-rule-files-in-ci): the same checks from Python
+- [YAML Rules](yaml-rules.md): the rule file format
+- [Example 11: CLI Usage](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/11_cli_usage.py): running the CLI from a script

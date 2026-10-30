@@ -384,7 +384,7 @@ class GoodTransform(Transform):
 
 ### Pitfall 4: Over-wrapping Transforms in FactPipeline
 
-Transforms compose directly with `>>` and `|` - no need to wrap each one in
+Transforms compose directly with `>>` and `|`, so there is no need to wrap each one in
 its own `FactPipeline` first.
 
 ```python
@@ -404,7 +404,7 @@ pipeline = FactPipeline([my_transform]) >> FactPipeline([another])
 
 `>>` only works when both sides inherit from `Transform` (or are
 `FactPipeline`s). A plain function or bare class doesn't define `>>` and will
-raise `TypeError` - the fix is to make it a `Transform` subclass, not to wrap
+raise `TypeError`. The fix is to make it a `Transform` subclass, not to wrap
 it in a `FactPipeline`.
 
 

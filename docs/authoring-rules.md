@@ -141,7 +141,7 @@ and `==`, so without parentheses the expression means something else and usually
 fails with a `TypeError`.
 
 ```python
-# python skip - the second line deliberately raises to show the trap
+# python skip: the second line deliberately raises to show the trap
 (F("amount") > 5000) & (F("country") == "US")   # correct
 F("amount") > 5000 & F("country") == "US"       # wrong
 ```
@@ -220,8 +220,8 @@ same ruleset. When you do want to switch, the mapping is mechanical:
 
 ## Next steps
 
-- **[Conditions](conditions.md)** - every operator, with F and dictionary forms
-- **[Complex Conditions](complex-conditions.md)** - AND, OR, NOT and nesting
-- **[Rule Builder](rule-builder.md)** - the step-by-step API
-- **[YAML Rules](yaml-rules.md)** - rules as files
-- **[Rule Types](rule-types.md)** - `Rule` and the other rule models
+- **[Conditions](conditions.md)**: every operator, with F and dictionary forms
+- **[Complex Conditions](complex-conditions.md)**: AND, OR, NOT and nesting
+- **[Rule Builder](rule-builder.md)**: the step-by-step API
+- **[YAML Rules](yaml-rules.md)**: rules as files
+- **[Rule Types](rule-types.md)**: `Rule` and the other rule models

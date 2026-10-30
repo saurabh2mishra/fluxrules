@@ -39,17 +39,17 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
 
 From `fluxrules`:
 
-- `evaluate(rules, facts) → EvaluationResult` - Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. 
+- `evaluate(rules, facts) → EvaluationResult`: Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. 
 - `facts` may be a plain python `dict` or a model: a Pydantic v2 model, dataclass, attrs class or msgspec `Struct` (a Pydantic v1 model is converted with `.dict()`). Nested models become dotted keys (`customer.age`). See [Typed Facts](../typed-facts.md).
-- `to_fact_dict(facts) → dict` - The conversion `evaluate()` and every engine apply to non-dict facts.
-- `validate(rules) → list[str]` - Validate rules and return issues; accepts the same shapes as `evaluate`
-- `explain(execution_id: str) → dict[str, object]` - Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
+- `to_fact_dict(facts) → dict`: The conversion `evaluate()` and every engine apply to non-dict facts.
+- `validate(rules) → list[str]`: Validate rules and return issues; accepts the same shapes as `evaluate`
+- `explain(execution_id: str) → dict[str, object]`: Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
 ## Engines
 
 From `fluxrules.engine`:
 
-- `PhreakEngine` (the single production engine, lazy evaluation) - stateless (default) and streaming modes.
+- `PhreakEngine` (the single production engine, lazy evaluation): stateless (default) and streaming modes.
   `evaluate()` accepts a dict or a model. Optional typed-fact keywords:
   `fact_schema=` (check rule fields when rules load), `validate_facts="off" | "normalize" | "strict"`
   and `on_invalid="raise" | "skip" | "quarantine"`; rejected facts are listed in `engine.quarantined_facts`.
@@ -62,28 +62,28 @@ From `fluxrules.engine`:
 
 From `fluxrules.facts`:
 
-- `fields(Model)` - Checked field references: `fields(Customer).age >= 18` builds the same condition as `F("age") >= 18`, and a field the model lacks raises `UnknownFieldError`.
-- `lenient_aliases()` - Pydantic alias generator accepting snake_case, camelCase, PascalCase, kebab-case and all-lowercase spellings of each field.
-- `to_fact_dict(facts)` - Model or mapping to the flat fact dict.
-- `schema_info(Model) → FactSchemaInfo` - The flat field paths a rule may reference. `check_rules(rules)` raises on the first unknown field; `unknown_fields(rules)` returns every one as an `UnknownFieldError` (with `.rule`, `.field`, `.suggestion` and `.summary`).
-- `load_schema(spec, base_dir=None) → type` - Import a model class from `"package.module:Class"` or `"path/to/models.py:Class"`. See [Check rule files in CI](../typed-facts.md#check-rule-files-in-ci).
+- `fields(Model)`: Checked field references: `fields(Customer).age >= 18` builds the same condition as `F("age") >= 18`, and a field the model lacks raises `UnknownFieldError`.
+- `lenient_aliases()`: Pydantic alias generator accepting snake_case, camelCase, PascalCase, kebab-case and all-lowercase spellings of each field.
+- `to_fact_dict(facts)`: Model or mapping to the flat fact dict.
+- `schema_info(Model) → FactSchemaInfo`: The flat field paths a rule may reference. `check_rules(rules)` raises on the first unknown field; `unknown_fields(rules)` returns every one as an `UnknownFieldError` (with `.rule`, `.field`, `.suggestion` and `.summary`).
+- `load_schema(spec, base_dir=None) → type`: Import a model class from `"package.module:Class"` or `"path/to/models.py:Class"`. See [Check rule files in CI](../typed-facts.md#check-rule-files-in-ci).
 
 From `fluxrules.adapters.loaders`:
 
-- `load_rules_from_yaml(path, fact_schema=None)` - Rule mappings from a YAML file, checked against `fact_schema` or the file's own `fact_schema` key.
-- `read_rule_file(path) → RuleFile` - A JSON or YAML rule file as `rules` plus its optional `fact_schema` import string.
-- `QuarantinedFact` - Entry in `engine.quarantined_facts` (`facts`, `error`).
+- `load_rules_from_yaml(path, fact_schema=None)`: Rule mappings from a YAML file, checked against `fact_schema` or the file's own `fact_schema` key.
+- `read_rule_file(path) → RuleFile`: A JSON or YAML rule file as `rules` plus its optional `fact_schema` import string.
+- `QuarantinedFact`: Entry in `engine.quarantined_facts` (`facts`, `error`).
 
 ## Domain Models
 
 From `fluxrules`:
 
-- `Rule` - Pydantic v2 model: `id`, `name`, `domain`, `tags`, `conditions`, `action`, `actions`, `priority`, `enabled`, `persist`
-- `F` (alias of `Field`) and `Condition` - The recommended way to write `conditions`: `(F("amount") > 5000) & (F("country") == "US")`. See [Authoring Rules](../authoring-rules.md).
-- `RuleBuilder` - Fluent authoring; `RuleBuilder.build()` returns a `Rule`. `RuleBuilder.condition()` accepts an `F` expression or a dictionary.
-- `ConditionBuilder` - Deprecated in favor of `F`; it will be removed in a future release.
-- `Ruleset` - Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
-- `EvaluationResult` - The single result type for every evaluation path.
+- `Rule`: Pydantic v2 model: `id`, `name`, `domain`, `tags`, `conditions`, `action`, `actions`, `priority`, `enabled`, `persist`
+- `F` (alias of `Field`) and `Condition`: the recommended way to write `conditions`: `(F("amount") > 5000) & (F("country") == "US")`. See [Authoring Rules](../authoring-rules.md).
+- `RuleBuilder`: Fluent authoring; `RuleBuilder.build()` returns a `Rule`. `RuleBuilder.condition()` accepts an `F` expression or a dictionary.
+- `ConditionBuilder`: Deprecated in favor of `F`; it will be removed in a future release.
+- `Ruleset`: Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
+- `EvaluationResult`: The single result type for every evaluation path.
   `fired_rules` is what matched; `actions` are the collected actions. Also
   carries `candidate_rule_ids` (what discovery considered, always a superset of
   `fired_rules`), `ruleset_group`, `trace`, `execution_id`, `latency_ms`,
@@ -96,11 +96,11 @@ From `fluxrules`:
 
 From `fluxrules.services`:
 
-- `RuleService.create()` - Factory for rule management
-- `ValidationService()` - Validate rules and conditions
-- `EvaluationService()` - Core evaluation
-- `PersistenceService()` - Database operations
-- `AuditService()` - Track rule executions
+- `RuleService.create()`: Factory for rule management
+- `ValidationService()`: Validate rules and conditions
+- `EvaluationService()`: Core evaluation
+- `PersistenceService()`: Database operations
+- `AuditService()`: Track rule executions
 
 ## Error Hierarchy
 
@@ -135,7 +135,7 @@ may be reworded; **codes will not change**.
 
 A `UserWarning` (not an error) emitted when reading `.conditions` on a rule
 whose logic uses `OR`/`NOT`/nesting. The leaves are still returned, but the
-boolean structure is not in the result - see
+boolean structure is not in the result; see
 [Rule Types](../rule-types.md). To turn it into a hard failure:
 
 ```python
