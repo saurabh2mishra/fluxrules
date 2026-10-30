@@ -109,7 +109,11 @@ def _field_names(tp: type, kind: str) -> list[str]:
 def _field_types(tp: type, kind: str) -> dict[str, Any]:
     names = _field_names(tp, kind)
     if kind == "pydantic":
-        return {n: tp.model_fields[n].annotation for n in names}  # type: ignore[attr-defined]
+        types_ = {n: tp.model_fields[n].annotation for n in names}  # type: ignore[attr-defined]
+        # Computed fields are in model_dump(), so rules may reference them.
+        for n, computed in getattr(tp, "model_computed_fields", {}).items():
+            types_[n] = computed.return_type
+        return types_
     try:
         hints = typing.get_type_hints(tp)
     except Exception:  # unresolvable forward references: treat as untyped
@@ -117,16 +121,29 @@ def _field_types(tp: type, kind: str) -> dict[str, Any]:
     return {n: hints.get(n, Any) for n in names}
 
 
-def _nested_model(annotation: Any) -> type | None:
-    """Return the model class an annotation holds, unwrapping ``Optional``."""
+def _nested_models(annotation: Any) -> tuple[list[type], bool]:
+    """The model classes a field can hold, and whether it can hold a plain value.
+
+    Unwraps ``Annotated`` and unions, so ``Optional[Annotated[Customer, ...]]``
+    gives ``[Customer]`` and ``Person | Company`` gives both. ``None`` in a
+    union is not a plain value: a ``None`` field stays a key either way.
+    """
     if _model_kind(annotation) not in (None, "typeddict"):
-        return annotation
+        return [annotation], False
     origin = typing.get_origin(annotation)
+    if origin is typing.Annotated:
+        return _nested_models(typing.get_args(annotation)[0])
     if origin is typing.Union or origin is types.UnionType:
-        args = [a for a in typing.get_args(annotation) if a is not type(None)]
-        if len(args) == 1:
-            return _nested_model(args[0])
-    return None
+        models: list[type] = []
+        plain = False
+        for arg in typing.get_args(annotation):
+            if arg is type(None):
+                continue
+            arg_models, arg_plain = _nested_models(arg)
+            models.extend(m for m in arg_models if m not in models)
+            plain = plain or arg_plain
+        return models, plain
+    return [], True
 
 
 # Instance -> flat dict
@@ -141,7 +158,7 @@ def _plain(value: Any) -> Any:
         return value
     kind = _instance_kind(value)
     if kind == "pydantic":
-        return value.model_dump()
+        return value.model_dump(by_alias=False)
     if kind is not None:
         return {n: _plain(getattr(value, n)) for n in _instance_field_names(_cls(value), kind)}
     if isinstance(value, list):
@@ -200,7 +217,7 @@ def _flatten_pydantic(obj: Any, dumped: dict[str, Any], prefix: str, out: dict[s
 
 def _flatten_into(obj: Any, kind: str, prefix: str, out: dict[str, Any]) -> None:
     if kind == "pydantic":
-        _flatten_pydantic(obj, obj.model_dump(), prefix, out)
+        _flatten_pydantic(obj, obj.model_dump(by_alias=False), prefix, out)
         return
     for name in _instance_field_names(_cls(obj), kind):
         value = getattr(obj, name)
@@ -233,7 +250,9 @@ def to_fact_dict(facts: Any) -> dict[str, Any]:
         return facts
     kind = _instance_kind(facts)
     if kind == "pydantic":
-        dumped = facts.model_dump()
+        # by_alias=False: keys are field names, which rules use, even when the
+        # model sets serialize_by_alias.
+        dumped = facts.model_dump(by_alias=False)
         if not _model_valued_fields(_cls(facts)):
             return dumped  # flat model: the dump is already the fact dict
         out: dict[str, Any] = {}
@@ -427,12 +446,14 @@ def _describe(
 ) -> None:
     for name, annotation in _field_types(tp, kind).items():
         path = f"{prefix}{name}"
-        nested = _nested_model(annotation)
         # TypedDict values arrive as plain dicts and are not flattened.
-        if nested is not None and kind != "typeddict" and nested not in seen:
+        models, plain = _nested_models(annotation) if kind != "typeddict" else ([], True)
+        models = [m for m in models if m not in seen]
+        for nested in models:
+            # Every model a union allows contributes its fields under the path.
             parents.add(path)
             _describe(nested, _model_kind(nested), f"{path}.", leaves, parents, (*seen, nested))  # type: ignore[arg-type]
-        else:
+        if plain or not models:
             leaves[path] = annotation
 
 

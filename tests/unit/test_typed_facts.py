@@ -5,10 +5,11 @@ from __future__ import annotations
 import dataclasses
 from collections import OrderedDict
 from types import MappingProxyType
-from typing import Any
+from typing import Annotated, Any, Optional
 
 import pytest
 from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import Field as PydanticField
 from typing_extensions import TypedDict
 
 from fluxrules import (
@@ -588,3 +589,83 @@ class TestConversionDetails:
             items: list[OtherShape]
 
         assert to_fact_dict(Bag(items=[OtherShape(user_age="1")])) == {"items": [{"user_age": "1"}]}
+
+
+# ---------------------------------------------------------------------------
+# Model shapes: serialization aliases, Annotated, unions, computed fields
+# ---------------------------------------------------------------------------
+
+
+class AliasedCustomer(BaseModel):
+    model_config = ConfigDict(serialize_by_alias=True)
+
+    user_age: int = PydanticField(alias="userAge")
+
+
+class AliasedOrder(BaseModel):
+    model_config = ConfigDict(serialize_by_alias=True)
+
+    order_total: float = PydanticField(alias="orderTotal")
+    customer: AliasedCustomer
+
+
+class Person(BaseModel):
+    age: int
+
+
+class Company(BaseModel):
+    employees: int
+
+
+class Account(BaseModel):
+    owner: Person | Company
+    backup: Optional[Annotated[Person, "metadata"]] = None  # noqa: UP045
+    contact: Person | str = "none"
+
+
+class Basket(BaseModel):
+    price: float
+    qty: int
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def total(self) -> float:
+        return self.price * self.qty
+
+
+class TestModelShapes:
+    def test_serialize_by_alias_still_gives_field_names(self):
+        order = AliasedOrder(orderTotal=5, customer=AliasedCustomer(userAge=30))
+        assert to_fact_dict(order) == {"order_total": 5.0, "customer.user_age": 30}
+        engine = PhreakEngine(fact_schema=AliasedOrder)
+        engine.load_rules([_rule(F("customer.user_age") >= 18)])
+        assert engine.evaluate(order).fired_rules == [1]
+
+    def test_union_of_models_describes_every_branch(self):
+        info = schema_info(Account)
+        assert {"owner.age", "owner.employees"} <= set(info.fields)
+        assert "owner" in info.parents and "owner" not in info.fields
+
+    def test_rules_on_either_union_branch_load_and_fire(self):
+        engine = PhreakEngine(fact_schema=Account)
+        engine.load_rules(
+            [_rule(F("owner.age") >= 18, 1, "adult"), _rule(F("owner.employees") > 100, 2, "big")]
+        )
+        assert engine.evaluate(Account(owner=Person(age=40))).fired_rules == [1]
+        assert engine.evaluate(Account(owner=Company(employees=500))).fired_rules == [2]
+
+    def test_optional_annotated_model_is_a_parent(self):
+        info = schema_info(Account)
+        assert "backup.age" in info.fields and "backup" in info.parents
+        assert to_fact_dict(Account(owner=Person(age=1), backup=Person(age=2)))["backup.age"] == 2
+
+    def test_model_or_plain_value_is_both_leaf_and_parent(self):
+        info = schema_info(Account)
+        assert "contact" in info.fields and "contact.age" in info.fields
+
+    def test_computed_field_is_in_the_schema(self):
+        assert "total" in schema_info(Basket).fields
+        engine = PhreakEngine(fact_schema=Basket)
+        engine.load_rules([_rule(F("total") > 5)])
+        assert engine.evaluate(Basket(price=2, qty=3)).fired_rules == [1]
+        assert _rule(fields(Basket).total > 5).conditions == _rule(F("total") > 5).conditions
