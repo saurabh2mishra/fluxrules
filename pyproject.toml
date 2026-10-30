@@ -1,14 +1,15 @@
 [build-system]
-requires = ["hatchling>=1.25.0"]
+requires = ["hatchling>=1.27.0"]
 build-backend = "hatchling.build"
 
 [project]
 name = "fluxrules"
-version = "1.0.1"
-description = "A light-weight Business Rule Engine"
+version = "1.0.2"
+description = "A lightweight business rule engine for Python"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "Saurabh Mishra", email = "saurabh2.mishra@gmail.com" },
   { name = "FluxRules Contributors" },
@@ -17,11 +18,12 @@ keywords = ["rules-engine", "rule-evaluation", "business-rules", "phreak", "infe
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
@@ -37,6 +39,13 @@ Documentation = "https://saurabh2mishra.github.io/fluxrules/"
 Changelog = "https://github.com/saurabh2mishra/fluxrules/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/saurabh2mishra/fluxrules/issues"
 
+[dependency-groups]
+# Contributor tooling (PEP 735). Not published as extras, so
+# `pip install fluxrules[dev]` is not a thing users can trip over.
+# `uv sync` installs the `dev` group by default; add `--group docs` for the docs site.
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "pytest-cov>=4.0", "pytest-xdist>=3.6", "hypothesis>=6.100", "httpx>=0.27", "httpx2>=0.1", "ruff==0.16.6", "mypy>=1.11", "bandit>=1.7", "pip-audit>=2.7", "sqlalchemy>=2.0", "alembic>=1.13", "redis>=5.0", "fastapi>=0.142.1, <1.0", "starlette>=1.3.1, <2.0", "uvicorn>=0.30", "pydantic>=2.8", "pydantic-settings>=2.14.0", "PyJWT[crypto]>=2.10.1", "pyyaml>=6.0", "bcrypt>=4.0", "email-validator>=2.0", "mkdocs>=1.5", "mkdocs-material>=9.4", "mkdocstrings[python]>=0.24", "typer>=0.12", "click>=8.0", "rich>=13.0", "opentelemetry-api>=1.26", "opentelemetry-sdk>=1.26", "prometheus-client>=0.25.0", "python-multipart>=0.0.27"]
+docs = ["mkdocs>=1.5", "mkdocs-material>=9.4", "mkdocstrings[python]>=0.24"]
+
 [project.scripts]
 fluxrules = "fluxrules.cli:run"
 
@@ -50,9 +59,21 @@ redis = ["redis>=5.0"]
 otel = ["opentelemetry-api>=1.26", "opentelemetry-sdk>=1.26"]
 yaml = ["pyyaml>=6.0"]
 cli = ["typer>=0.12", "click>=8.0", "rich>=13.0"]
-docs = ["mkdocs>=1.5", "mkdocs-material>=9.4", "mkdocstrings[python]>=0.24"]
 all = ["fastapi>=0.142.1,<1.0", "starlette>=1.3.1,<2.0", "uvicorn>=0.30", "pydantic>=2.8", "pydantic-settings>=2.14.0", "python-multipart>=0.0.20", "PyJWT[crypto]>=2.10.1", "bcrypt>=4.0", "email-validator>=2.0", "prometheus-client>=0.25.0", "sqlalchemy>=2.0", "alembic>=1.13", "redis>=5.0", "opentelemetry-api>=1.26", "opentelemetry-sdk>=1.26", "pyyaml>=6.0", "typer>=0.12", "click>=8.0", "rich>=13.0"]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "pytest-cov>=4.0", "pytest-xdist>=3.6", "hypothesis>=6.100", "httpx>=0.27", "httpx2>=0.1", "ruff==0.16.6", "mypy>=1.11", "bandit>=1.7", "pip-audit>=2.7", "sqlalchemy>=2.0", "alembic>=1.13", "redis>=5.0", "fastapi>=0.142.1,<1.0", "starlette>=1.3.1,<2.0", "uvicorn>=0.30", "pydantic>=2.8", "pydantic-settings>=2.14.0", "PyJWT[crypto]>=2.10.1", "pyyaml>=6.0", "bcrypt>=4.0", "email-validator>=2.0", "mkdocs>=1.5", "mkdocs-material>=9.4", "mkdocstrings[python]>=0.24", "typer>=0.12", "click>=8.0", "rich>=13.0"]
+
+[tool.hatch.build.targets.sdist]
+# Ship what is needed to build, test and read the project; leave out CI and
+# local-dev scaffolding.
+exclude = [
+  "/.github",
+  "/scripts",
+  "/uv.lock",
+  "/docker-compose.yml",
+  "/Makefile",
+  "/site",
+  "/dist",
+  "*.db",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fluxrules"]
@@ -160,15 +181,6 @@ exclude_lines = [
     "class .*\\(Protocol\\):",
 ]
 precision = 2
-
-[dependency-groups]
-dev = [
-    "opentelemetry-api>=1.26",
-    "opentelemetry-sdk>=1.26",
-    "prometheus-client>=0.25.0",
-    "pydantic-settings>=2.14.0",
-    "python-multipart>=0.0.27",
-]
 
 [tool.uv]
 # The committed uv.lock uses lockfile revision 2, which is read only by uv

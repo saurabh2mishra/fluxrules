@@ -36,19 +36,15 @@ cd fluxrules
 # (including pytest-xdist for `pytest -n auto`), and wires up pre-commit hooks.
 make dev
 
-# Equivalent explicit command:
-uv sync --extra dev --extra docs
+# Equivalent explicit command (dev group is installed by default):
+uv sync --group docs
 ```
 
-The first `uv sync` writes a local `uv.lock`. Because that file is gitignored,
-it stays on your machine and is not shared; a teammate's clean sync may resolve
-slightly newer patch versions within the same ranges. If you want a byte-pinned,
-strictly reproducible environment, generate and keep your own lock, then pass
-`--locked` on subsequent syncs so uv fails fast when `pyproject.toml` drifts:
+`uv.lock` is committed, so every contributor and CI resolve the same versions.
+Pass `--locked` to fail fast when `pyproject.toml` and the lock have drifted:
 
 ```bash
-uv lock                                        # create uv.lock locally
-uv sync --extra dev --extra docs --locked      # reuse it exactly
+uv sync --group docs --locked      # use uv.lock exactly; error if it is stale
 ```
 
 ### Private index / offline mirrors
@@ -59,7 +55,7 @@ By default uv resolves packages from PyPI. Behind a corporate mirror, point uv
 ```bash
 export UV_INDEX_URL="https://your-mirror/simple/"
 export PIP_INDEX_URL="https://your-mirror/simple/"
-uv sync --extra dev --extra docs
+uv sync --group docs
 ```
 
 Use `--offline` to resolve entirely from uv's local cache when the network is
@@ -71,7 +67,7 @@ To use FluxRules as a dependency (no dev tooling):
 
 ```bash
 pip install fluxrules            # from PyPI
-pip install -e ".[dev]"          # editable, with dev extras
+pip install -e . --group dev     # editable, with dev tooling (pip >= 25.1)
 ```
 
 
