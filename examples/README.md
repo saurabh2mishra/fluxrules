@@ -6,7 +6,7 @@ Welcome! This directory contains **comprehensive, practical examples** demonstra
 
 ---
 
-## ⭐ Recommended: Start with Pydantic Rule (Simplified Approach)
+## Recommended: Start with Pydantic Rule (Simplified Approach)
 
 **NEW!** FluxRules now recommends the simplified **Pydantic Rule** approach for creating rules:
 
@@ -97,7 +97,7 @@ Master the basics before moving on.
 
 | # | Example | Focus | Time |
 |---|---------|-------|------|
-| **18** | `18_unified_rule.py` | ⭐ **Pydantic Rule** - Simplified rule creation (RECOMMENDED) | 10 min |
+| **18** | `18_unified_rule.py` | Pydantic Rule - Simplified rule creation (RECOMMENDED) | 10 min |
 | **00** | `00_getting_started.py` | 3-step process: Create → Define → Evaluate | 5 min |
 | **01** | `01_conditions.py` | Master all operators (==, !=, in, regex, etc.) | 10 min |
 | **02** | `02_complex_conditions.py` | AND/OR logic & nested conditions | 10 min |
@@ -160,11 +160,11 @@ Get heterogeneous facts (JSON, CSV, streams) into the engine cleanly.
 | **24** | `24_cross_fact_joins.py` | Cross-fact joins across working memory | 10 min |
 | **25** | `25_nested_facts.py` | Flatten nested facts to dot notation | 10 min |
 | **26** | `26_fact_loader.py` | Batch-load raw records with FactLoader and a dead-letter list | 15 min |
-| **27** | `27_factpipeline.py` | ⭐ **FactPipeline framework** (transforms, composition, observability, versioning) | 15 min |
+| **27** | `27_factpipeline.py` | FactPipeline framework (transforms, composition, observability, versioning) | 15 min |
 | **28** | `28_factpipeline_tier1.py` | Tiered pipeline architecture | 15 min |
 | **29** | `29_custom_transforms.py` | Writing your own transform stages | 15 min |
-| **30** | `30_conflict_detection.py` | ⭐ **Rule health**: conflicts, coverage gaps, shadowed rules | 15 min |
-| **31** | `31_typed_facts.py` | ⭐ **Typed facts**: Pydantic models, `fact_schema=`, key normalization, quarantine, `fact_pipeline=` | 15 min |
+| **30** | `30_conflict_detection.py` | Rule health: conflicts, coverage gaps, shadowed rules | 15 min |
+| **31** | `31_typed_facts.py` | Typed facts: Pydantic models, `fact_schema=`, key normalization, quarantine, `fact_pipeline=` | 15 min |
 
 ---
 
