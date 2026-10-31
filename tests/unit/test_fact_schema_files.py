@@ -480,3 +480,49 @@ class TestSharedConfigLookup:
         path = tmp_path / "settings.conf"
         path.write_text(json.dumps({"fact_schema": "m:X"}))
         assert read_config_file(path) == {"fact_schema": "m:X"}
+
+
+class TestConfigAndRuleFileEdges:
+    def test_config_without_fact_schema_means_no_schema(self, project: Path) -> None:
+        (project / "fluxrules.yaml").write_text("max_rules: 10\n")
+        path = _yaml(project / "rules.yaml", [_rule("anything")])
+        result, payload = _validate(str(path))
+        assert result.exit_code == 0
+        assert payload["schemas"][0]["fact_schema"] is None
+
+    def test_found_config_with_non_string_schema_is_ignored(self, project: Path) -> None:
+        (project / "fluxrules.yaml").write_text("fact_schema: [1, 2]\n")
+        path = _yaml(project / "rules.yaml", [_rule("anything")])
+        result = runner.invoke(app, ["validate", str(path)])
+        assert result.exit_code == 0
+        assert "fact_schema must be an import string" in result.stderr
+
+    def test_config_is_read_once_for_several_files(
+        self, project: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import fluxrules.cli.main as cli
+
+        calls = []
+        real = cli._config_schema
+        monkeypatch.setattr(cli, "_config_schema", lambda c: calls.append(c) or real(c))
+        a = _yaml(project / "a.yaml", [_rule("x")])
+        b = _yaml(project / "b.yaml", [_rule("y", "r2", 2)])
+        assert runner.invoke(app, ["validate", str(a), str(b)]).exit_code == 0
+        assert calls == [None]
+
+    def test_yaml_rule_file_without_pyyaml(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        path = tmp_path / "rules.yaml"
+        path.write_text("- id: 1\n")
+        monkeypatch.setitem(sys.modules, "yaml", None)
+        with pytest.raises(ImportError, match="pyyaml is required"):
+            read_rule_file(path)
+
+    def test_config_file_must_hold_a_mapping(self, tmp_path: Path) -> None:
+        from fluxrules.config.deployment import read_config_file
+
+        path = tmp_path / "fluxrules.yaml"
+        path.write_text("- just\n- a list\n")
+        with pytest.raises(ValueError, match="must hold a mapping"):
+            read_config_file(path)

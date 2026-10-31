@@ -826,25 +826,24 @@ def _build_mirror(model: type) -> type:
                     definitions[f.name] = (annotation, ...)
             return create_model(model.__name__, **definitions)  # type: ignore[call-overload,no-any-return]
         if kind == "pydantic":
+            # _has_dataclass(model) held, so at least one field needs mirroring.
             overrides = {
                 name: (_mirror_annotation(info.annotation), info)
                 for name, info in model.model_fields.items()  # type: ignore[attr-defined]
                 if _has_dataclass(info.annotation)
             }
-            if overrides:
-                return create_model(model.__name__, __base__=model, **overrides)  # type: ignore[call-overload,no-any-return]
+            return create_model(model.__name__, __base__=model, **overrides)  # type: ignore[call-overload,no-any-return]
         if kind == "typeddict":
             from typing_extensions import TypedDict
 
-            try:
-                hints = typing.get_type_hints(model, include_extras=True)
-            except Exception:
-                return model
+            # These hints resolved already: _has_dataclass read them to get here.
+            hints = typing.get_type_hints(model, include_extras=True)
             mirrored = {name: _mirror_annotation(t) for name, t in hints.items()}
             return TypedDict(  # type: ignore[operator,no-any-return]
                 model.__name__, mirrored, total=getattr(model, "__total__", True)
             )
-        return model
+        # Only dataclass, Pydantic and TypedDict schemas can contain a dataclass.
+        raise AssertionError(f"cannot mirror {model!r} of kind {kind!r}")
     finally:
         _MIRRORING.discard(model)
 
