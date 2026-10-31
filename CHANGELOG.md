@@ -7,7 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`engine.evaluate_batch(facts, workers=None)`.** Evaluates many facts and
+  returns one full `EvaluationResult` per fact (fired rules, actions,
+  explanations, grouping by domain and tag, latency), in input order, exactly
+  as a loop over `evaluate()` would. With `workers=N` the facts are spread over
+  `N` processes. Each worker rebuilds the engine from its own settings, so
+  `fact_schema`, `validate_facts`, `on_invalid`, `fact_pipeline`,
+  `compile_conditions` and the `EngineConfig` all apply. Facts quarantined in
+  workers are added to the calling engine's `quarantined_facts`, and with
+  `on_invalid="raise"` the error for the earliest invalid fact is raised.
+  Settings that cannot be pickled (a lambda in a pipeline), streaming mode,
+  and a bad `workers` value fail early with a clear message. Returning full
+  results costs about 4 to 6% more than fired-rule ids alone
+  (`tests/performance/perf_parallel.py`).
+- `FactValidationError` now survives pickling with its `schema_name` and
+  `errors`.
+
 ### Changed
+
+- `fluxrules.engine.runtime.evaluate_batch_parallel` is now built on the same
+  code as `evaluate_batch`. Its signature and results are unchanged; it still
+  builds a default engine and returns fired-rule ids.
 
 - **`PhreakEngine` copies its `EngineConfig` when it is created.** Before,
   the engine shared the caller's config object (or the process-wide one). A

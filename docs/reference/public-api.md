@@ -56,7 +56,13 @@ From `fluxrules.engine`:
   See [Typed Facts](../typed-facts.md). `fact_pipeline=` applies a `FactPipeline`
   (or any dict-to-dict callable) to each fact in `evaluate()` before validation;
   see [Fact Pipeline](../fact-pipeline.md#using-pipelines-with-engines).
+  `evaluate_batch(facts, workers=None)` evaluates many facts and returns one
+  `EvaluationResult` per fact, in input order; `workers=N` spreads them over `N`
+  processes, each rebuilt with the engine's settings. See
+  [Many facts at once](../usage/python-api.md#many-facts-at-once).
+  The engine keeps its own copy of the `EngineConfig` it is created with.
 - `BaseEngine` (abstract base for custom engines); takes the same typed-fact and `fact_pipeline=` keywords.
+  `evaluate_batch` works with `workers=1`; override `_clone_settings()` to allow more.
 
 ## Typed Facts
 

@@ -14,7 +14,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from typing import TYPE_CHECKING, Any
 
 from fluxrules.engine.infrastructure import (
@@ -355,6 +355,95 @@ class BaseEngine(ABC):
 
     def evaluate_all(self, facts: dict[str, Any]) -> EvaluationResult:
         return self.evaluate(facts, filters=None)
+
+    # Batch evaluation
+
+    def evaluate_batch(
+        self,
+        facts: Iterable[Any],
+        *,
+        workers: int | None = None,
+    ) -> list[EvaluationResult]:
+        """Evaluate many facts and return one result per fact, in input order.
+
+        The results are the same as calling :meth:`evaluate` on each fact in
+        turn: every engine option (``fact_schema``, ``validate_facts``,
+        ``on_invalid``, ``fact_pipeline``, the ``EngineConfig``, ...) applies.
+
+        Args:
+            facts: Any iterable of facts that :meth:`evaluate` accepts.
+            workers: ``None`` or ``1`` evaluates in this process. A larger
+                number spreads the facts over that many worker processes, each
+                with an engine rebuilt from this engine's settings and rules.
+                It is capped to the number of facts.
+
+        Raises:
+            ValueError: ``workers`` is not a positive integer; or, with
+                ``workers > 1``, the engine is in streaming mode, or a setting
+                or rule cannot be pickled to reach the workers.
+            NotImplementedError: ``workers > 1`` on an engine that cannot be
+                rebuilt in a worker (see :meth:`_clone_settings`).
+            FactValidationError: a fact is invalid and ``on_invalid="raise"``.
+                With workers, the error for the earliest such fact is raised,
+                as a loop would.
+
+        Facts rejected under ``on_invalid="quarantine"`` inside workers are
+        added to this engine's :attr:`quarantined_facts`, in input order.
+        """
+        if workers is not None and (
+            isinstance(workers, bool) or not isinstance(workers, int) or workers < 1
+        ):
+            raise ValueError(f"workers must be None or a positive integer, got {workers!r}")
+        facts = list(facts)
+        if workers is None or workers == 1:
+            return [self.evaluate(fact) for fact in facts]
+
+        from fluxrules.engine.runtime.worker_pool import check_picklable
+
+        engine_class, settings = self._clone_settings()
+        if settings.get("streaming_mode"):
+            raise ValueError(
+                "evaluate_batch with workers > 1 does not support streaming_mode=True: "
+                "streaming keeps state between facts, which worker processes would split. "
+                "Use workers=1."
+            )
+        rules = list(self.rule_repository.rules.values())
+        check_picklable(settings, rules)
+        if len(facts) < 2:
+            return [self.evaluate(fact) for fact in facts]
+        return self._evaluate_in_workers(engine_class, settings, rules, facts, workers)
+
+    def _evaluate_in_workers(
+        self,
+        engine_class: type,
+        settings: dict[str, Any],
+        rules: list[Any],
+        facts: list[Any],
+        workers: int,
+    ) -> list[EvaluationResult]:
+        """Run the batch in worker processes and merge quarantine and errors back."""
+        from fluxrules.engine.runtime.worker_pool import run_sharded
+
+        outcome = run_sharded(engine_class, settings, rules, facts, workers)
+        if self._fact_intake is not None:
+            self._fact_intake.quarantine.extend(outcome.quarantined)
+        if outcome.error is not None:
+            raise outcome.error
+        return outcome.results
+
+    def _clone_settings(self) -> tuple[type, dict[str, Any]]:
+        """Return ``(engine_class, kwargs)`` that rebuild this engine in a worker.
+
+        :meth:`evaluate_batch` with ``workers > 1`` builds
+        ``engine_class(**kwargs)`` in each worker process and loads this
+        engine's rules into it. A custom engine can override this to support
+        workers; by default it is not supported.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} cannot be rebuilt in worker processes, so "
+            "evaluate_batch supports only workers=1 for it. Override _clone_settings() "
+            "to return (engine_class, constructor_kwargs) to enable workers."
+        )
 
     # Configuration
 

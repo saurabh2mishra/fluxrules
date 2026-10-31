@@ -43,7 +43,7 @@ class EngineConfig:
     # sequential on identical work. The pool is kept opt-in (lower this
     # threshold) only for workloads dominated by I/O-bound custom actions; for
     # true multi-core scaling use the process-based
-    # fluxrules.engine.runtime.evaluate_batch_parallel helper instead.
+    # engine.evaluate_batch(facts, workers=N) instead.
     parallel_threshold: int = 1_000_000_000  # Effectively sequential by default
     parallel_workers: int = 4  # Thread pool size for parallel evaluation (opt-in)
 

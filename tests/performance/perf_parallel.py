@@ -1,7 +1,10 @@
 """Process-based parallel evaluation benchmark.
 
-Measures REAL multi-core speedup using ``evaluate_batch_parallel`` (process
-pool), unlike the in-thread simulation in ``perf_massive_scale.py``.
+Measures REAL multi-core speedup using ``engine.evaluate_batch(workers=N)`` and
+the older ``evaluate_batch_parallel`` (both process pools), unlike the
+in-thread simulation in ``perf_massive_scale.py``. ``evaluate_batch`` returns
+full ``EvaluationResult`` objects; ``evaluate_batch_parallel`` returns only
+fired rule ids, so the gap between the two is the cost of full results.
 
 Python's GIL prevents threads from parallelizing CPU-bound condition
 evaluation, so true throughput scaling requires processes. This script shards
@@ -86,18 +89,25 @@ def main() -> None:
     for workers in worker_counts:
         start = time.perf_counter()
         parallel = evaluate_batch_parallel(rules, facts, num_workers=workers, streaming_mode=False)
-        par_elapsed = time.perf_counter() - start
-        par_tp = n_facts / par_elapsed
-        speedup = single_elapsed / par_elapsed
+        ids_elapsed = time.perf_counter() - start
+
+        start = time.perf_counter()
+        full = engine.evaluate_batch(facts, workers=workers)
+        full_elapsed = time.perf_counter() - start
 
         # Correctness check: parallel must equal single-process results.
-        identical = [set(r) for r in parallel] == baseline
+        identical = [set(r) for r in parallel] == baseline and [
+            set(r.fired_rules) for r in full
+        ] == baseline
         status = "✓ identical" if identical else "✗ MISMATCH"
 
         print(f"  {workers} workers:")
-        _print("    Throughput", f"{par_tp:,.0f}", "facts/sec")
-        _print("    Speedup vs single", f"{speedup:.2f}x")
-        _print("    10M facts extrapolated", f"{10_000_000 / par_tp / 3600:.2f}", "hours")
+        _print("    evaluate_batch_parallel (ids)", f"{n_facts / ids_elapsed:,.0f}", "facts/sec")
+        _print("    evaluate_batch (full results)", f"{n_facts / full_elapsed:,.0f}", "facts/sec")
+        _print("    Speedup vs single (full results)", f"{single_elapsed / full_elapsed:.2f}x")
+        _print(
+            "    Full results cost vs ids", f"{(full_elapsed / ids_elapsed - 1) * 100:+.0f}", "%"
+        )
         _print("    Result correctness", status)
         print()
 

@@ -37,7 +37,7 @@ assert engine.evaluate({"amount": 1}).fired_rules == []
 
 This keeps every part of the engine in agreement. Rules compiled with
 `compile_conditions=True` and rules run by the interpreter always use the
-same settings.
+same settings, and so do the worker processes of `evaluate_batch`.
 
 ## Strict Fact Validation
 

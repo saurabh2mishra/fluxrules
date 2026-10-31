@@ -159,7 +159,32 @@ fact joins/temporal correlation are out of scope; see
 
 Python's GIL serializes CPU-bound condition evaluation within a process, so
 multi-core throughput comes from **processes**, not threads. Use
-`evaluate_batch_parallel` (one engine per worker process):
+`engine.evaluate_batch(facts, workers=N)`. It starts `N` worker processes, and
+each one rebuilds your engine with the same settings and rules:
+
+```python
+from fluxrules import F, Rule
+from fluxrules.engine.phreak import PhreakEngine
+
+
+def main() -> None:
+    engine = PhreakEngine()
+    engine.load_rules([Rule(id=1, name="big", conditions=F("amount") > 1000, action="review")])
+    facts = [{"amount": n} for n in range(0, 5000, 500)]
+    results = engine.evaluate_batch(facts, workers=4)
+    print(sum(1 for r in results if r.fired_rules), "facts matched")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+The `if __name__ == "__main__":` guard matters. On macOS and Windows, each
+worker process imports your script again, and without the guard it would start
+the batch again. See [Many facts at once](usage/python-api.md#many-facts-at-once)
+for the full rules.
+
+The benchmark harness measures parallel throughput:
 
 ```
 python tests/performance/perf_realistic_rules.py --parallel --workers 8

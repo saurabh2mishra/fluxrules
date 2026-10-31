@@ -318,6 +318,11 @@ class FactValidationError(FluxRulesError, ValueError):
         )
         super().__init__(f"Fact failed validation against {schema_name}: {details}")
 
+    def __reduce__(self) -> tuple[Any, ...]:
+        # Rebuild from the constructor arguments so the error survives pickling
+        # (evaluate_batch sends it back from worker processes).
+        return (type(self), (self.schema_name, self.errors))
+
 
 class EmptyRuleLogicError(InvalidRuleError):
     """Raised when a rule would be stored with no condition logic at all.

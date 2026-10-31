@@ -416,6 +416,23 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # load_rules would split the two paths (and never reach batch workers).
         self._config = copy.copy(config or get_config())
         self._streaming_mode = streaming_mode
+        # Everything needed to rebuild this engine in a worker process
+        # (evaluate_batch with workers > 1). Metrics stay in this process: the
+        # parent records each worker result's latency itself.
+        self._settings: dict[str, Any] = {
+            "max_rules": max_rules,
+            "config": self._config,
+            "streaming_mode": streaming_mode,
+            "alpha_prefilter": alpha_prefilter,
+            "compile_conditions": compile_conditions,
+            "strict_scope": strict_scope,
+            "strict_discovery": strict_discovery,
+            "enable_metrics": False,
+            "fact_schema": fact_schema,
+            "validate_facts": validate_facts,
+            "on_invalid": on_invalid,
+            "fact_pipeline": fact_pipeline,
+        }
 
         # Single-fact boundary enforcement (P0.3). When True, ``load_rules``
         # raises on rule shapes that imply cross-fact / temporal semantics the
@@ -759,6 +776,30 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         if self._metrics is not None:
             self._metrics.record_latency_ms(result.latency_ms)
         return result
+
+    def _clone_settings(self) -> tuple[type, dict[str, Any]]:
+        """Constructor arguments that rebuild this engine in a worker process."""
+        if type(self).__init__ is not PhreakEngine.__init__:
+            raise NotImplementedError(
+                f"{type(self).__name__} has its own __init__, so evaluate_batch cannot "
+                "rebuild it in worker processes. Use workers=1, or override "
+                "_clone_settings() to return (engine_class, constructor_kwargs)."
+            )
+        return type(self), dict(self._settings)
+
+    def _evaluate_in_workers(
+        self,
+        engine_class: type,
+        settings: dict[str, Any],
+        rules: list[Any],
+        facts: list[Any],
+        workers: int,
+    ) -> list[Any]:
+        results = super()._evaluate_in_workers(engine_class, settings, rules, facts, workers)
+        if self._metrics is not None:
+            for result in results:
+                self._metrics.record_latency_ms(result.latency_ms)
+        return results
 
     # Single discovery path (P1.2)
 
