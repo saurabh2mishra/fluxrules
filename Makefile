@@ -1,4 +1,4 @@
-.PHONY: help check-uv install dev lint format test test-fast test-full test-perf test-sequential test-cov type-check docs docs-serve clean build publish
+.PHONY: help check-uv install dev lint format test test-fast test-full test-perf test-examples test-sequential test-cov type-check docs docs-serve clean build publish
 
 UV = env -u VIRTUAL_ENV uv
 
@@ -23,11 +23,11 @@ dev: check-uv
 	$(UV) run pre-commit install
 
 lint: check-uv
-	$(UV) run ruff check src/ tests/
+	$(UV) run ruff check src/ tests/ examples/
 
 format: check-uv
-	$(UV) run ruff format src/ tests/
-	$(UV) run ruff check --fix src/ tests/
+	$(UV) run ruff format src/ tests/ examples/
+	$(UV) run ruff check --fix src/ tests/ examples/
 
 test: check-uv
 	$(UV) run pytest tests/ -v -m "not performance"
@@ -40,6 +40,9 @@ test-full: check-uv
 
 test-perf: check-uv
 	$(UV) run pytest tests/ -m performance -p no:xdist -v
+
+test-examples: check-uv
+	$(UV) run pytest tests/examples -q
 
 test-sequential: check-uv
 	$(UV) run pytest tests/ -v --tb=short

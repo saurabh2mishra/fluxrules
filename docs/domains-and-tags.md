@@ -285,6 +285,6 @@ print(f"Matched: {result.fired_rules}")
 
 ## Next Steps
 
-- **[Complex Conditions](complex-conditions.md)** - AND/OR/NOT boolean logic for rules
-- **[Custom Actions](custom-actions.md)** - Execute custom code when rules match
-- **[Examples 03](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/03_domains_and_tags.py)** - Working code example
+- **[Complex Conditions](complex-conditions.md)**: AND/OR/NOT boolean logic for rules
+- **[Custom Actions](custom-actions.md)**: Execute custom code when rules match
+- **[Examples 03](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/03_domains_and_tags.py)**: Working code example

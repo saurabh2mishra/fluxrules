@@ -4,8 +4,9 @@ Setup, testing, and contributing to FluxRules.
 
 ## Quick Start
 
-- **[Contributing](../contributing.md)** - Contribution guidelines
-- **[Testing](testing.md)** - Running tests locally
+- **[Contributing](../contributing.md)**: Contribution guidelines
+- **[Testing](testing.md)**: Running tests locally
+- **[Backlog](backlog.md)**: Designed but not yet shipped work
 
 ## Setup
 

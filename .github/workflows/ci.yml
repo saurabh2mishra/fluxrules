@@ -39,7 +39,7 @@ jobs:
         run: uv sync --group docs
 
       - name: Ruff
-        run: uv run ruff check src/ tests/
+        run: uv run ruff check src/ tests/ examples/
 
       - name: Mypy
         run: uv run mypy src/fluxrules --ignore-missing-imports
@@ -48,7 +48,10 @@ jobs:
         run: uv run pytest tests/contract/test_quickstart_contract.py -q
 
       - name: Non-performance test suite
-        run: uv run pytest tests/ -q -m "not performance" ${{ matrix.python-version == '3.12' && '--cov=src/fluxrules --cov-report=xml' || '' }}
+        run: uv run pytest tests/ -q -m "not performance" --ignore=tests/examples ${{ matrix.python-version == '3.12' && '--cov=src/fluxrules --cov-report=xml' || '' }}
+
+      - name: Example scripts
+        run: uv run pytest tests/examples -q
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'

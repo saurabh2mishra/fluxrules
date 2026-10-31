@@ -50,16 +50,10 @@ class ReferenceEvaluator(EnginePort):
     """
 
     def evaluate(self, ruleset: Ruleset, facts: dict[str, object]) -> EvaluationResult:
-        # Coerce Pydantic / dataclass-like models to plain dict
-        if hasattr(facts, "model_dump"):  # Pydantic v2
-            facts = facts.model_dump()
-        elif hasattr(facts, "dict"):  # Pydantic v1
-            facts = facts.dict()
-        elif not isinstance(facts, dict):
-            raise TypeError(
-                f"facts must be a dict or a Pydantic model, got {type(facts).__name__}. "
-                "Convert your object to a dict first, e.g. vars(obj) or obj.__dict__."
-            )
+        # Models (Pydantic, dataclass, attrs, msgspec) become a flat dict.
+        from fluxrules.facts import to_fact_dict
+
+        facts = to_fact_dict(facts)
         matched: list[EngineRule] = []
         trace: list[dict[str, object]] = []
         engine_rules = [_as_engine_rule(rule) for rule in ruleset.rules]

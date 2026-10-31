@@ -19,6 +19,8 @@ import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
+from fluxrules.domain.errors import FieldNotFoundError, canonical_field_name, is_field_typo
 from fluxrules.engine.base import BaseEngine
 from fluxrules.engine.configuration import EngineConfig, get_config
 from fluxrules.engine.infrastructure.bitmask_linker import BitMaskLinker
@@ -54,9 +56,10 @@ def _collect_condition_fields(conditions: Any, out: set[str]) -> None:
     """Collect every ``condition``-leaf field name in a tree into *out*.
 
     Walks ``and`` / ``or`` / ``group`` / ``composite`` / ``not`` nodes and
-    gathers the ``field`` of each ``condition`` leaf. ``exists`` nodes are
-    deliberately skipped: an exists node tests presence and must never raise
-    ``FieldNotFoundError`` for an absent field. The result is computed once per
+    gathers the ``field`` of each ``condition`` leaf. The ``field`` of an
+    ``exists`` node is skipped: it tests presence and must never raise
+    ``FieldNotFoundError`` for an absent field. The condition inside
+    ``exists(condition=...)`` is collected like any other. The result is computed once per
     rule at load time and drives per-fact typo detection (see
     ``_candidate_rule_ids``), so detection costs O(distinct fields) per fact
     instead of O(rules x tree).
@@ -81,7 +84,30 @@ def _collect_condition_fields(conditions: Any, out: set[str]) -> None:
         for child in conditions.get("conditions") or conditions.get("children") or []:
             _collect_condition_fields(child, out)
         return
-    # exists and unknown types: contribute no typo-checkable field.
+    if ctype == "exists":
+        # The exists field itself tests presence and never raises, but the
+        # condition inside exists(condition=...) is an ordinary condition.
+        inner = conditions.get("condition")
+        if inner:
+            _collect_condition_fields(inner, out)
+        return
+    # Unknown types contribute no typo-checkable field.
+
+
+def _collect_not_states(node: Any, out: dict[int, NotState]) -> None:
+    """Register a :class:`NotState` for every ``not`` node in a tree."""
+    if isinstance(node, list):
+        for child in node:
+            _collect_not_states(child, out)
+        return
+    if not isinstance(node, dict):
+        return
+    if node.get("type") == "not":
+        out[id(node)] = NotState(node)
+    for key in ("condition", "child", "conditions", "children"):
+        child = node.get(key)
+        if child:
+            _collect_not_states(child, out)
 
 
 class _AlphaStats:
@@ -247,6 +273,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         strict_scope: bool = False,
         strict_discovery: bool = False,
         enable_metrics: bool = False,
+        *,
+        fact_schema: type | None = None,
+        validate_facts: str = "off",
+        on_invalid: str = "raise",
+        fact_pipeline: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ) -> None:
         """Initialize PhreakEngine.
 
@@ -346,8 +377,37 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 collector exposed via :meth:`get_observability_metrics`. Off by
                 default so the hot path is unaffected (the recorders are no-ops
                 when disabled). Advisory only - never affects ``fired_rules``.
+            fact_schema: Optional model class (Pydantic model, dataclass, attrs
+                class, msgspec ``Struct`` or TypedDict) describing the facts.
+                ``load_rules`` then raises ``UnknownFieldError`` for any rule
+                that names a field the model lacks, before anything is loaded.
+                Checked once per load, so evaluation pays nothing for it.
+                Nested models are addressed with dotted paths (``customer.age``).
+            validate_facts: Per-fact validation against ``fact_schema``,
+                ``"off"`` by default. ``"normalize"`` validates each dict with
+                Pydantic in lax mode, so aliases (see
+                :func:`fluxrules.facts.lenient_aliases`) rename keys and values
+                are coerced (``"42"`` -> ``42``). ``"strict"`` validates without
+                coercion. Costs roughly 2-4 microseconds per fact; a model
+                instance of ``fact_schema`` skips it.
+            on_invalid: What happens to a fact that fails validation:
+                ``"raise"`` (default) raises ``FactValidationError``; ``"skip"``
+                logs a warning and returns an empty result; ``"quarantine"``
+                also returns an empty result and keeps the fact in
+                :attr:`quarantined_facts`.
+            fact_pipeline: Optional callable, usually a
+                :class:`fluxrules.pipeline.FactPipeline`, applied to each fact
+                dict in :meth:`evaluate` before ``validate_facts``. A model
+                instance skips it. A fact the pipeline drops returns an empty
+                result. Not applied to :meth:`assert_fact`.
         """
-        super().__init__(max_rules=max_rules)
+        super().__init__(
+            max_rules=max_rules,
+            fact_schema=fact_schema,
+            validate_facts=validate_facts,
+            on_invalid=on_invalid,
+            fact_pipeline=fact_pipeline,
+        )
         self._config = config or get_config()
         self._streaming_mode = streaming_mode
 
@@ -416,7 +476,15 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # Union of condition-leaf field names across all field-bearing rules
         # (exists() fields excluded). Drives per-fact typo detection. Empty until
         # ``load_rules`` so ``evaluate`` before load is well-defined.
-        self._typo_candidate_fields: tuple[str, ...] = ()
+        # Stored as ``(field, canonical_field_name(field))`` pairs.
+        self._typo_candidate_fields: tuple[tuple[str, str], ...] = ()
+        # Whether key styles count as look-alikes (set at load: only with a
+        # fact schema).
+        self._typo_styles = False
+
+        # NotState per ``not`` node (by id), built at load; see
+        # fluxrules.domain.conditions.missing_fields.
+        self._not_states: dict[int, NotState] = {}
 
         # Per-rule condition compilation. Each rule's condition tree is compiled
         # once at load time into a ``fn(facts) -> bool`` closure that inlines
@@ -586,7 +654,24 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             conditions = getattr(rule, "conditions", None)
             if conditions:
                 _collect_condition_fields(conditions, _typo_fields)
-        self._typo_candidate_fields = tuple(sorted(_typo_fields))
+        # Key styles (userAge / user_age) count as look-alikes only with a fact
+        # schema: then every rule field is known to be real. Without one, a
+        # ruleset may serve fact shapes that spell a field differently, so only
+        # case variants count.
+        self._typo_styles = self._fact_schema_info is not None
+        self._typo_candidate_fields = tuple(
+            (fld, canonical_field_name(fld, styles=self._typo_styles))
+            for fld in sorted(_typo_fields)
+        )
+
+        # Per-NOT-node missing-field state for the interpreter, keyed by node
+        # identity. The rule repository keeps every node alive, so ids are
+        # stable until the next load rebuilds this map.
+        # Built whatever the mode, so a mode changed after loading never makes
+        # the interpreter rebuild a NotState per fact.
+        self._not_states = {}
+        for rule in self.rule_repository.rules.values():
+            _collect_not_states(getattr(rule, "conditions", None), self._not_states)
 
         # (Re)build the in-memory alpha pre-filter from the current
         # rule set. Done once per load, never per fact.
@@ -652,7 +737,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
     def evaluate(
         self,
-        facts: dict[str, Any],
+        facts: Any,
         filters: EvaluationFilter | None = None,
         *,
         strict_facts: bool = False,
@@ -749,19 +834,28 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         self._alpha_stats.record(n_in, len(candidates), engaged=engaged)
 
         # Typo detection: raise FieldNotFoundError for any condition-leaf field
-        # that is absent from the fact and is a case variant of a present key
-        # (e.g. ``Amount`` vs ``amount``). Scanning the precomputed union of leaf
-        # fields once per fact is O(distinct fields) - it does not rescan pruned
-        # rules - and is order-independent, so the same ruleset raises the same
-        # error regardless of AND/OR/NOT shape or alpha pruning. Genuinely absent
-        # fields with no resemblance to any key return False as before, so
+        # that is absent from the fact while a present key is the same field in
+        # another case (``Amount`` / ``amount``), or another key style when the
+        # engine has a fact schema (``userAge`` / ``user_age``), or that is a
+        # dotted path into an unflattened nested value. Scanning the
+        # precomputed union of leaf fields once per fact is O(distinct fields) -
+        # it does not rescan pruned rules - and is order-independent, so the same
+        # ruleset raises the same error regardless of AND/OR/NOT shape or alpha
+        # pruning. The fact's canonical key set is built lazily, only when some
+        # rule field is absent, so a fact carrying every field pays nothing extra.
+        # Genuinely absent fields with no look-alike return False as before, so
         # multi-schema rulesets keep working. exists() fields are excluded by
         # construction (see _collect_condition_fields).
         if self._typo_candidate_fields:
-            from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
-
-            for fld in self._typo_candidate_fields:
-                if fld not in facts and is_field_typo(fld, facts):
+            canonical_keys: set[str] | None = None
+            for fld, canonical in self._typo_candidate_fields:
+                if fld in facts:
+                    continue
+                if canonical_keys is None:
+                    canonical_keys = {
+                        canonical_field_name(str(k), styles=self._typo_styles) for k in facts
+                    }
+                if canonical in canonical_keys or ("." in fld and is_field_typo(fld, facts)):
                     raise FieldNotFoundError.for_field(fld, facts)
 
         if filters:
@@ -1259,12 +1353,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # direct-eval closure so the per-fact path skips the memo bookkeeping.
         value_memoizable = value_key is not _UNHASHABLE
 
+        # No per-leaf typo check: ``_candidate_rule_ids`` already scanned every
+        # rule field against this fact before any leaf runs (see there).
         def _leaf(facts: dict[str, Any]) -> bool:
-            if field not in facts:
-                from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
-
-                if is_field_typo(field, facts):
-                    raise FieldNotFoundError.for_field(field, facts)
             present = field in facts
             fact_val = facts.get(field)
             memo = self._leaf_memo
@@ -1327,11 +1418,29 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         if ctype == "not":
             inner = condition.get("condition")
             if inner:
-                return not self._evaluate_condition_inner(inner, facts)
-            inner_list = condition.get("conditions", [])
-            if inner_list:
-                return not any(self._evaluate_condition_inner(c, facts) for c in inner_list)
-            return True
+                plain = not self._evaluate_condition_inner(inner, facts)
+            else:
+                inner_list = condition.get("conditions", [])
+                if not inner_list:
+                    return True
+                plain = not any(self._evaluate_condition_inner(c, facts) for c in inner_list)
+            mode = getattr(self._config, "missing_field", None)
+            if not plain or mode == "false":
+                return plain
+            state = self._not_states.get(id(condition))
+            if state is None:
+                state = self._not_states[id(condition)] = NotState(condition)
+            elif state.warned:
+                return plain
+            return resolve_not(
+                state,
+                plain,
+                facts,
+                mode,
+                leaf=self._eval_leaf,
+                other=self._evaluate_condition_inner,
+                empty=True,
+            )
         if ctype == "exists":
             field = condition.get("field")
             if field:
@@ -1351,11 +1460,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         op = condition.get("op", "==")
         value = condition.get("value")
 
-        if field not in facts:
-            from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
-
-            if is_field_typo(field, facts):
-                raise FieldNotFoundError.for_field(field, facts)
+        # No per-leaf typo check: ``_candidate_rule_ids`` already scanned every
+        # rule field against this fact before any leaf runs, so repeating it
+        # here for each absent leaf would only cost time.
 
         # Per-cycle leaf memo. Reuse the result for identical
         # (field, op, value) leaves already evaluated this cycle. Only active on

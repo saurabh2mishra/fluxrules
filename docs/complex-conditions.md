@@ -2,8 +2,8 @@
 
 Combine multiple simple conditions using AND / OR / NOT logic.
 
-**Prerequisites:** [Authoring Rules](authoring-rules.md) and [Conditions & Operators](conditions.md) - covers all
-operators and the three authoring formats.
+**Prerequisites:** [Authoring Rules](authoring-rules.md) and [Conditions & Operators](conditions.md), which covers all
+operators and the four authoring formats.
 
 ---
 
@@ -129,11 +129,11 @@ Python's `&` and `|` bind more tightly than `>`, `<`, `==`. Always wrap each
 individual leaf in parentheses before composing:
 
 ```python
-# python skip - the Wrong line deliberately raises to show the trap
-# Correct - each leaf is parenthesised
+# python skip: the Wrong line deliberately raises to show the trap
+# Correct: each leaf is parenthesised
 (F("amount") > 2000) & (F("country") == "NG")
 
-# Wrong - & binds before ==, raising a TypeError
+# Wrong: & binds before ==, raising a TypeError
 F("amount") > 2000 & F("country") == "NG"
 ```
 
@@ -141,5 +141,5 @@ F("amount") > 2000 & F("country") == "NG"
 
 ## Next steps
 
-- **[Conditions](conditions.md)** - full operator reference and validation guide
-- **[examples/02_complex_conditions.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py)** - runnable examples
+- **[Conditions](conditions.md)**: full operator reference and validation guide
+- **[examples/02_complex_conditions.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/02_complex_conditions.py)**: runnable examples

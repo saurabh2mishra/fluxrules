@@ -133,7 +133,7 @@ def _bench_workload(name: str, rules: list[Rule], facts: list[dict]) -> None:
 
     # correctness gate: identical fired_rules per fact
     mismatches = sum(1 for a, b in zip(fired_off, fired_on, strict=True) if a != b)
-    parity = "PASS ✅" if mismatches == 0 else f"FAIL ❌ ({mismatches} differ)"
+    parity = "PASS ✓" if mismatches == 0 else f"FAIL ✗ ({mismatches} differ)"
 
     speedup = out_off.seconds / out_on.seconds if out_on.seconds else float("inf")
 
@@ -186,7 +186,7 @@ def main() -> None:
     )
 
     print("\n" + "=" * 90)
-    print("  ALL WORKLOADS PASSED PARITY ✅  - condition compiler is sound across workloads")
+    print("  ALL WORKLOADS PASSED PARITY ✓  - condition compiler is sound across workloads")
     print("=" * 90 + "\n")
 
 

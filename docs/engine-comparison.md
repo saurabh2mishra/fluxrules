@@ -5,7 +5,7 @@
 ---
 
 FluxRules is built on a single production engine: **PHREAK**, a lazy,
-agenda-driven matching algorithm. There is no engine to choose - the design goal
+agenda-driven matching algorithm. There is no engine to choose. The design goal
 is one fast, memory-efficient engine that covers every supported use case.
 
 PHREAK exposes two **evaluation modes** on the same engine, plus a dependency-free
@@ -19,7 +19,7 @@ PHREAK exposes two **evaluation modes** on the same engine, plus a dependency-fr
 | **Return value** | Full fired set every call | Fired delta since last fact |
 | **State** | None kept between calls | Working memory persists |
 | **Best for** | HTTP/request-response, batch | Long-lived sessions, event streams |
-| **Default** | ✅ Yes | Opt-in (`streaming_mode=True`) |
+| **Default** | ✓ Yes | Opt-in (`streaming_mode=True`) |
 
 Both modes share the same operator evaluator and configuration surface, so a fact
 that fires a rule in one mode fires the same rule in the other on first sight.
@@ -85,7 +85,7 @@ See [Working Memory](working-memory.md) for the streaming contract in full.
 ## Reference evaluator (correctness oracle)
 
 `fluxrules.services.reference_evaluator.ReferenceEvaluator` is a small,
-deterministic, dependency-free evaluator. It is **not** a selectable engine - it
+deterministic, dependency-free evaluator. It is **not** a selectable engine. It
 is the default `RuleService` engine and an independent oracle the test suite
 checks PHREAK against, so shared-code defects cannot hide behind a single
 implementation.
@@ -94,5 +94,5 @@ implementation.
 
 ## Next Steps
 
-- **Choosing an Engine** - See [Choosing an Evaluation Mode](choosing-an-engine.md) for mode-selection logic
-- **Engine Limits** - See [Engine Scope and Limits](engine-scope-and-limits.md)
+- **Choosing an Engine**: See [Choosing an Evaluation Mode](choosing-an-engine.md) for mode-selection logic
+- **Engine Limits**: See [Engine Scope and Limits](engine-scope-and-limits.md)

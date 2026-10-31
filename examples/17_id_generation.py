@@ -1,9 +1,9 @@
 """Batch 3 example: auto-generated rule IDs over shared use case."""
 
+from shared_use_case import SHARED_FACTS, USE_CASE_NAME, complex_risk_condition
+
 from fluxrules.domain import Rule
 from fluxrules.engine.phreak import PhreakEngine
-
-from shared_use_case import SHARED_FACTS, USE_CASE_NAME, complex_risk_condition
 
 
 def main() -> None:

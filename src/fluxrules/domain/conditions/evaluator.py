@@ -17,8 +17,10 @@ wrong answer dressed up as a non-match.
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from typing import Any
 
+from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
 from fluxrules.domain.errors import LossyConditionRebuildError
 from fluxrules.domain.predicates import evaluate_operator
 
@@ -118,8 +120,46 @@ def has_logic(conditions: dict | list) -> bool:
     return any(has_logic(child) for child in children)
 
 
+def _eval_present_leaf(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
+    return evaluate_operator(dsl.get("op", "=="), facts[dsl.get("field", "")], dsl.get("value"))
+
+
 class UnsupportedConditionTreeNodeError(ValueError):
     """A DSL node needs engine state this evaluator does not have."""
+
+
+# NotState per ``not`` node, so the subtree walk runs once per node and the
+# default mode's "warn once" flag survives between calls. Keyed by id; the node
+# is stored with its state, which keeps it alive (so the id cannot be reused)
+# and lets a lookup confirm it is the same object. A cached state is rebuilt if
+# the node's child was replaced since. Least recently used entries are evicted
+# one at a time once the cache is full, so its memory stays bounded.
+_NOT_STATES: OrderedDict[int, tuple[dict[str, Any], Any, NotState]] = OrderedDict()
+_NOT_STATES_MAX = 4096
+
+
+def _raw_child(node: dict[str, Any]) -> Any:
+    """The object a ``not`` node stores as its child, compared by identity."""
+    for key in ("condition", "child", "conditions", "children"):
+        value = node.get(key)
+        if value:
+            return value
+    return None
+
+
+def _not_state(node: dict[str, Any]) -> NotState:
+    key = id(node)
+    raw = _raw_child(node)
+    cached = _NOT_STATES.get(key)
+    if cached is not None and cached[0] is node and cached[1] is raw:
+        _NOT_STATES.move_to_end(key)
+        return cached[2]
+    state = NotState(node)
+    _NOT_STATES[key] = (node, raw, state)
+    _NOT_STATES.move_to_end(key)
+    while len(_NOT_STATES) > _NOT_STATES_MAX:
+        _NOT_STATES.popitem(last=False)
+    return state
 
 
 def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
@@ -160,13 +200,26 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
         return all(results) if logic == "AND" else any(results)
 
     if ctype == "not":
-        inner = dsl.get("condition") or dsl.get("child")
-        if inner:
-            return not evaluate_conditions(inner, facts)
-        inner_list = dsl.get("conditions") or dsl.get("children") or []
-        if inner_list:
-            return not any(evaluate_conditions(child, facts) for child in inner_list)
-        return False
+        state = _not_state(dsl)
+        if state.child is None:
+            return False
+        plain = not evaluate_conditions(state.child, facts)
+        if not plain:
+            return False
+        from fluxrules.engine.configuration import get_config
+
+        mode = get_config().missing_field
+        if mode == "false" or (mode is None and state.warned):
+            return True
+        return resolve_not(
+            state,
+            plain,
+            facts,
+            mode,
+            leaf=_eval_present_leaf,
+            other=evaluate_conditions,
+            empty=False,
+        )
 
     if ctype == "exists":
         field = dsl.get("field")

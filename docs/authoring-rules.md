@@ -141,16 +141,27 @@ and `==`, so without parentheses the expression means something else and usually
 fails with a `TypeError`.
 
 ```python
-# python skip - the second line deliberately raises to show the trap
+# python skip: the second line deliberately raises to show the trap
 (F("amount") > 5000) & (F("country") == "US")   # correct
 F("amount") > 5000 & F("country") == "US"       # wrong
 ```
 
-**Field names are exact.** `F("Amount")` and `F("amount")` are different fields.
-If a fact has `amount` and a rule asks for `Amount`, FluxRules raises
-`FieldNotFoundError` and suggests the right name, instead of quietly never
-matching. A field that is simply not in the fact, with no similar key, returns
-`False`. That keeps rulesets that serve different kinds of facts working.
+**Field names are exact.** `F("Amount")` and `F("amount")` are different fields,
+and so are `F("userAge")` and `F("user_age")`. If a rule asks for `Amount` and
+the fact has `amount`, FluxRules raises `FieldNotFoundError` and suggests the
+right name, instead of quietly never matching. With a
+[fact schema](typed-facts.md), it does the same for other key styles
+(`userAge` against `user_age`). A field that is simply not in the fact, with no
+look-alike key, returns `False`. That keeps rulesets that serve different kinds
+of facts working.
+
+**Write rules against a model when you have one.** `fields(Customer).age >= 18`
+builds the same condition as `F("age") >= 18`, but a misspelt field fails when
+you write the rule. See [Typed Facts](typed-facts.md).
+
+**Mind `NOT` over optional fields.** `~(F("blocked") == True)` also fires when
+`blocked` is missing. Say what you mean with `exists()`, and see
+[Missing fields and NOT](conditions.md#missing-fields-and-not).
 
 **Use `exists()` for fields that may be missing.** `F("promo").exists()` is true
 when the key is present and not `None`, and it never raises.
@@ -165,14 +176,18 @@ field to a string does not raise. It just never matches.
 
 ## Check a rule before you use it
 
-There are three layers, from earliest to latest:
+There are four layers, from earliest to latest:
 
 1. **When you build the `Rule`.** An unknown operator, a missing key or a
-   malformed tree raises `ConditionValidationError` immediately.
+   malformed tree raises `ConditionValidationError` immediately. Field
+   references from `fields(Model)` also fail here if the model lacks the field.
 2. **Before you deploy.** `validate(rules)` checks a whole list and returns a list
    of problems, empty when all is well. Run it in CI.
-3. **While evaluating.** `FieldNotFoundError` flags a field name that is a case
-   variant of a key in the fact.
+3. **When rules load.** An engine built with `fact_schema=Model` raises
+   `UnknownFieldError` for any rule field the model lacks, and loads nothing.
+4. **While evaluating.** `FieldNotFoundError` flags a field name whose key is in
+   the fact in another case (`Amount` / `amount`), or, with a fact schema, in
+   another key style (`userAge` / `user_age`).
 
 ```python
 from fluxrules import F, Rule, validate
@@ -208,8 +223,8 @@ same ruleset. When you do want to switch, the mapping is mechanical:
 
 ## Next steps
 
-- **[Conditions](conditions.md)** - every operator, with F and dictionary forms
-- **[Complex Conditions](complex-conditions.md)** - AND, OR, NOT and nesting
-- **[Rule Builder](rule-builder.md)** - the step-by-step API
-- **[YAML Rules](yaml-rules.md)** - rules as files
-- **[Rule Types](rule-types.md)** - `Rule` and the other rule models
+- **[Conditions](conditions.md)**: every operator, with F and dictionary forms
+- **[Complex Conditions](complex-conditions.md)**: AND, OR, NOT and nesting
+- **[Rule Builder](rule-builder.md)**: the step-by-step API
+- **[YAML Rules](yaml-rules.md)**: rules as files
+- **[Rule Types](rule-types.md)**: `Rule` and the other rule models

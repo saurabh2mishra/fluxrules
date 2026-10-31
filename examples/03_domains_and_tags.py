@@ -11,9 +11,7 @@ def evaluate_subset(label: str, rules) -> None:
     print(label)
     for fact in SHARED_FACTS:
         result = engine.evaluate(fact)
-        print(
-            f"  fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}"
-        )
+        print(f"  fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}")
 
 
 def main() -> None:

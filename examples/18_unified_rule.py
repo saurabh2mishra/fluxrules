@@ -1,9 +1,9 @@
 """Batch 3 example: unified Rule class over shared use case."""
 
+from shared_use_case import SHARED_FACTS, USE_CASE_NAME, complex_risk_condition
+
 from fluxrules.domain import Rule
 from fluxrules.engine.phreak import PhreakEngine
-
-from shared_use_case import SHARED_FACTS, USE_CASE_NAME, complex_risk_condition
 
 
 def main() -> None:
@@ -23,7 +23,7 @@ def main() -> None:
         priority=100,
     )
 
-    print(f"✅ Rule created:")
+    print("✓ Rule created:")
     print(f"  id={rule.id}")
     print(f"  name={rule.name}")
     print(f"  domain={rule.domain}")

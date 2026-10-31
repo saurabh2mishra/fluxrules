@@ -94,9 +94,9 @@ dsl = (F("amount") > 5000).to_dict()
 
 try:
     validate_conditions(dsl)
-    print("✅ Conditions are valid")
+    print("✓ Conditions are valid")
 except ConditionValidationError as e:
-    print(f"❌ Invalid conditions: {e}")
+    print(f"✗ Invalid conditions: {e}")
 ```
 
 Invalid DSLs raise `ConditionValidationError`. See [Validation Framework](validation-framework.md) for details.
@@ -181,7 +181,7 @@ service.persist(Ruleset(group="default", rules=(new_rule.to_engine_rule(),)))
 
 ## Next Steps
 
-- **Validation** - See [Validation Framework](validation-framework.md) for condition validation
-- **Complex Conditions** - See [Complex Conditions](complex-conditions.md) for AND/OR/NOT logic
-- **Persistence** - See [Persistence](persistence.md) for database management
-- **Custom Actions** - See [Custom Actions](custom-actions.md) for action handlers
+- **Validation**: See [Validation Framework](validation-framework.md) for condition validation
+- **Complex Conditions**: See [Complex Conditions](complex-conditions.md) for AND/OR/NOT logic
+- **Persistence**: See [Persistence](persistence.md) for database management
+- **Custom Actions**: See [Custom Actions](custom-actions.md) for action handlers

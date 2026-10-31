@@ -1,8 +1,8 @@
 """Batch 3 example: advanced features over shared use case."""
 
-from fluxrules.engine.phreak import PhreakEngine
-
 from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
+
+from fluxrules.engine.phreak import PhreakEngine
 
 
 def main() -> None:

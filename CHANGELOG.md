@@ -7,6 +7,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - Unreleased
+
+### Added
+
+- **Typed facts.** Every engine and `fluxrules.evaluate()` accept a Pydantic v2
+  model, dataclass, attrs class or msgspec `Struct` as the fact, converted by
+  the new `fluxrules.to_fact_dict()`. Nested models become dotted keys
+  (`customer.age`), the same shape as the `Flatten` transform. Before this,
+  `PhreakEngine.evaluate()` raised `AttributeError` on a model even though
+  `fluxrules.evaluate()` accepted one.
+- **`fact_schema=` on `PhreakEngine` / `BaseEngine`.** `load_rules` checks every
+  field each rule references against the model and raises the new
+  `UnknownFieldError` (code `UNKNOWN_FACT_FIELD`) with a "did you mean" hint
+  before anything is loaded. Checked once per load; evaluation pays nothing.
+  A nested model is not a field (facts hold its fields as dotted keys), so a
+  rule naming one is refused with a hint to use one of its fields. Unions of
+  models, `Annotated`, computed fields and `Any` fields are understood.
+- **`fluxrules.facts`** module: `fields(Model)` for checked field references
+  (`fields(Order).customer.age >= 18`), `lenient_aliases()` (a Pydantic alias
+  generator accepting snake_case, camelCase, PascalCase, kebab-case and
+  all-lowercase keys), `schema_info()` and `to_fact_dict()`.
+- **Opt-in per-fact validation.** `validate_facts="normalize" | "strict"`
+  validates each dict against `fact_schema` before discovery, renaming aliased
+  keys and (in `"normalize"`) coercing values. `on_invalid="raise" | "skip" |
+  "quarantine"` sets the policy for invalid facts; `raise` raises the new
+  `FactValidationError` (code `FACT_VALIDATION_ERROR`) with the validator's
+  per-field errors, and quarantined facts are kept in
+  `engine.quarantined_facts`. Default `"off"`. Costs roughly 2-4 µs per fact
+  when on; converting a model costs roughly 1-2 µs; plain dicts pay nothing.
+- **`assert_fact` accepts models** and converts them like `evaluate` does (no
+  validation).
+- **`fact_pipeline=` on `PhreakEngine` / `BaseEngine`.** `evaluate()` applies a
+  `FactPipeline` (or any dict-to-dict callable) to each fact before
+  `validate_facts` and discovery, so callers no longer run the pipeline by hand.
+  A model instance skips the pipeline. A fact the pipeline drops returns an
+  empty result; `assert_fact` is not piped.
+- **Schema checks for rule files and the CLI.** `fluxrules validate` takes
+  `--schema` and reports every field the model lacks, with a "did you mean"
+  hint. The schema is named by an import string (`myapp.models:Payment` or
+  `models.py:Payment`) and comes from `--schema`, else a `fact_schema` key in
+  the rule file (rules then go under `rules`), else `fact_schema` in
+  `fluxrules.yaml` (`--config` to choose the file; `fluxrules init` writes it
+  commented out). `fluxrules evaluate` takes the same options plus
+  `--validate-facts`. `load_rules_from_yaml(path, fact_schema=...)` checks on
+  load. New `fluxrules.facts.load_schema()`, `FactSchemaInfo.unknown_fields()`,
+  `fluxrules.adapters.loaders.read_rule_file()`, and structured attributes on
+  `UnknownFieldError`.
+- **CLI reads YAML rule files.** `validate` and `evaluate` accept `.yaml` /
+  `.yml` as well as `.json`, and `validate` accepts several files.
+- **`--trust-schema` / `trust_schema=True`.** A fact schema named inside a rule
+  file, or in a config file found automatically, is imported only with this
+  flag, because importing runs the module's code. Schemas named with
+  `--schema`, `--config` or `fact_schema=` need no flag.
+- **`fluxrules.config.deployment.find_config_file()` and
+  `read_config_file()`**, shared by `DeploymentConfig` and the CLI, so both
+  find the same config file in the same places.
+- **`EngineConfig.missing_field`** (`None` | `"false"` | `"unknown"`) sets how
+  `NOT` treats a field missing from the fact. `"unknown"` uses SQL NULL-style
+  three-valued logic, so `~(F("blocked") == True)` no longer fires on a fact
+  without `blocked`. Applies to the PHREAK interpreter, compiled conditions and
+  `fluxrules.evaluate()`.
+- **`MissingFieldNotWarning`** (a `FutureWarning`), emitted once per `NOT`
+  condition under the default `missing_field=None` when it fires only because a
+  field was missing. Set `missing_field="false"` to keep the 1.x behaviour
+  without the warning.
+- New guide: [Typed Facts](docs/typed-facts.md) and runnable
+  [example 31](examples/31_typed_facts.py); the
+  [Fact Pipeline](docs/fact-pipeline.md) guide now says when to use a pipeline
+  and when to use typed facts; new
+  [backlog](docs/development/backlog.md) page for designed-but-unshipped work;
+  new [From Fact to Action](docs/fact-to-action.md) page with a diagram of
+  every stage a fact passes through; new [CLI](docs/cli.md) reference; the
+  [YAML Rules](docs/yaml-rules.md) guide covers the `fact_schema` file form.
+  The docs site renders Mermaid diagrams.
+
+### Changed
+
+- **`fluxrules validate` exits 1 when it finds an issue** (it exited 0 even
+  when `valid` was `false`), and 2 when a rule file or schema cannot be loaded,
+  so it can gate CI. The JSON output gains a `schemas` list.
+- **`fluxrules evaluate` reports engine errors cleanly.** A `FieldNotFoundError`
+  or other FluxRules error prints one line to stderr and exits 1 instead of a
+  traceback.
+- **`FieldNotFoundError` catches key-style mismatches when the engine has a
+  `fact_schema`.** A rule on `user_age` against a fact with `userAge`,
+  `user-age` or `UserAge` raises instead of silently not matching. Without a
+  schema only case variants raise, as before, because one ruleset may serve
+  facts that spell a field differently. `.` is always significant, and
+  numbered families such as `field_0` / `field_10` stay distinct. The "did you
+  mean" hint prefers the same-shape key.
+- **Unflattened nested facts are reported.** A dotted rule field such as
+  `user.age` against `{"user": {"age": 30}}` raises `FieldNotFoundError` with a
+  hint to flatten, instead of silently not matching.
+- **`fluxrules.evaluate()` with a nested Pydantic model** now flattens the
+  nested model to dotted keys (`{"customer.age": 30}`) instead of passing a
+  nested dict (`{"customer": {"age": 30}}`) that no rule could read.
+- **Faster evaluation when facts lack rule fields.** The per-leaf typo check in
+  `PhreakEngine` duplicated the per-fact field scan and is removed; on a
+  300-rule benchmark with absent fields, evaluation is about 25-35% faster.
+
+### Deprecated
+
+- **`NOT` firing on a missing field.** In 2.0 `missing_field` will default to
+  `"unknown"`. Rules that rely on `NOT` matching absence should use
+  `~F("x").exists()`.
+
 ## [1.0.2] - 2026-10-28
 
 ### Added
@@ -185,15 +291,15 @@ First stable release.
 
 ### Added
 
-- **Multi-condition benchmarks** — 6 new scenarios (flat and selective AND trees,
+- **Multi-condition benchmarks**: 6 new scenarios (flat and selective AND trees,
   3–8 conditions/rule) and 3 streaming mode scenarios (unchanged-facts O(1)
   short-circuit, 5–6x speedup) added to `tests/performance/test_benchmark.py`.
-- **README `## How it works` section** — evaluation pipeline, Phreak-borrowed
+- **README `## How it works` section**: evaluation pipeline, Phreak-borrowed
   mechanisms, intentional omissions, and stateless vs. streaming guidance.
-- **`compile_conditions` user documentation** — `PhreakEngine.__init__` docstring
+- **`compile_conditions` user documentation**: `PhreakEngine.__init__` docstring
   now explains when to enable (3+ selective AND conditions → 20–40% gain) and the
   trade-off on single-condition rules (≈0.90x).
-- **Agenda gap documented** — `# NOTE:` comments in `agenda.py` and `_engine.py`
+- **Agenda gap documented**: `# NOTE:` comments in `agenda.py` and `_engine.py`
   explain that `add_activation`/`next_activation` are never called from the main
   evaluation path.
 
@@ -219,7 +325,7 @@ First stable release.
   `save_rule`, `update_rule`, and `delete_rule` each accessed the `db` property
   multiple times. Because a plain `sessionmaker` returns a new `Session` on every
   call, `commit()` and `refresh()` operated on an empty second session rather than
-  the one that received the ORM object — silently producing no row and falling back
+  the one that received the ORM object, silently producing no row and falling back
   to a local ID. Each write method now captures `self.db` once at entry.
 
 ### Added
@@ -234,13 +340,13 @@ First stable release.
 
 ### Changed
 
-- **`docs/persistence.md`** — new section "Using a different SQL provider"
+- **`docs/persistence.md`**: new section "Using a different SQL provider"
   with a FastAPI + PostgreSQL example, the adapter priority order, and a note
   that the ServiceFactory path requires schema migrations to be run separately
   (e.g. via Alembic) since it does not call `create_all_tables()`.
-- **`docs/dependency-injection.md`** — new "ServiceFactory and persistence"
+- **`docs/dependency-injection.md`**: new "ServiceFactory and persistence"
   section linking the DI setup to the `persist=True` behaviour.
-- **`docs/architecture.md`** — replaced the ASCII system-architecture sketch
+- **`docs/architecture.md`**: replaced the ASCII system-architecture sketch
   with the official diagram (`docs/images/system_architecture.png`).
 
 ## [0.1.1] - 2026-10-07
@@ -250,10 +356,10 @@ First stable release.
 First release intended for publication. The changes below tighten the public
 API surface so that one concept has one name and one type. `0.0.1` was never
 published, so these are breaking relative to an unreleased baseline only and
-carry no deprecation shims — carrying a shim for `matched_rule_ids` was
+carry no deprecation shims. Carrying a shim for `matched_rule_ids` was
 rejected precisely because the name's meaning was the defect.
 
-### Changed — breaking
+### Changed (breaking)
 
 - **One `EvaluationResult`.** There were two classes of that name: the domain
   one, whose `matched_rule_ids` meant *the rules that fired*, and the engine
@@ -273,7 +379,7 @@ rejected precisely because the name's meaning was the defect.
   default `True` meant importing a module that defined rules opened a
   connection and created a `.db` file, then swallowed any failure as a log
   warning. Persist explicitly with the new `Rule.save()` or `persist=True`.
-  The redundant `except Exception` around persistence is gone —
+  The redundant `except Exception` around persistence is gone:
   `PersistenceManager.persist_rule` already degrades to a local ID, so anything
   escaping it is a real fault.
 - **`RuleBuilder.build()` returns `Rule`**, not the internal `EngineRule`, so a
@@ -305,7 +411,7 @@ rejected precisely because the name's meaning was the defect.
 
 ### Added
 
-- `Rule.save()` — explicit persistence for a rule built in memory.
+- `Rule.save()`: explicit persistence for a rule built in memory.
 - `RuleBuilder`, `ConditionBuilder`, and the `Rules` input alias are exported
   from the top-level `fluxrules` namespace.
 - `RuleBuilder.build_engine_rule()` for the internal `EngineRule` shape.
@@ -322,23 +428,23 @@ evaluation modes.
 
 ### Added
 
-- Core evaluation API — `evaluate()`, `validate()`, `explain()` over a typed
+- Core evaluation API: `evaluate()`, `validate()`, `explain()` over a typed
   `Ruleset` of rules, with a curated public `__all__` and a shipped `py.typed`
   marker.
 - PHREAK engine (`PhreakEngine`): lazy, agenda-driven evaluation in stateless
   (default) and streaming modes. Correctness is checked against the
   dependency-free `ReferenceEvaluator` oracle and by stateless/streaming parity.
-- Condition operators — 13 distinct operators plus 6 word aliases: `==`/`eq`,
+- Condition operators: 13 distinct operators plus 6 word aliases: `==`/`eq`,
   `!=`/`ne`, `>`/`gt`, `>=`/`gte`, `<`/`lt`, `<=`/`lte`, `in`, `not_in`,
   `contains`, `not_contains`, `starts_with`, `ends_with`, `regex`; combined with
   arbitrary AND/OR/NOT nesting.
-- Extensibility — public `register_engine()` / `unregister_engine()` (a custom
+- Extensibility: public `register_engine()` / `unregister_engine()` (a custom
   `BaseEngine` becomes selectable via `get_engine()`, the HTTP API, and the CLI
   `--engine` flag; the built-in engine is protected), registries for custom
   operators/actions/transforms/validators, entry-point auto-discovery
   (`fluxrules.plugins.discovery.load_plugins`), and a public conformance kit
   (`fluxrules.testing.assert_engine_contract`).
-- Fact pipeline — `Flatten`, `Rename`, `Defaults`, `Require`, `FieldType`, and
+- Fact pipeline: `Flatten`, `Rename`, `Defaults`, `Require`, `FieldType`, and
   user-defined transforms.
 - Validation framework (structure, conflicts, dead/redundant rules) and an audit
   trail with integrity hashing.

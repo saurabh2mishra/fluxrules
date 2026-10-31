@@ -29,19 +29,19 @@ rule = Rule(
 
 **Key Attributes:**
 
-- `id` - Auto-generated unique identifier (or manual override)
+- `id`: Auto-generated unique identifier (or manual override)
 
-- `name` - Human-readable rule name
+- `name`: Human-readable rule name
 
-- `domain` - Logical grouping (e.g., "fraud_detection", "compliance")
+- `domain`: Logical grouping (e.g., "fraud_detection", "compliance")
 
-- `tags` - String set for filtering and categorization
+- `tags`: String set for filtering and categorization
 
-- `conditions` - Nested tree defining when the rule fires
+- `conditions`: Nested tree defining when the rule fires
 
-- `action` - What to do when the rule matches
+- `action`: What to do when the rule matches
 
-- `priority` - Execution order (higher = runs first). All matching rules fire; priority only orders them. Ties are currently broken by rule ID (highest first), which is not a guaranteed contract, so use distinct priorities if order matters. Same-group, same-priority rules raise a validation warning.
+- `priority`: Execution order (higher = runs first). All matching rules fire; priority only orders them. Ties are currently broken by rule ID (highest first), which is not a guaranteed contract, so use distinct priorities if order matters. Same-group, same-priority rules raise a validation warning.
 
 **See:** [examples/18_unified_rule.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py)
 
@@ -55,7 +55,7 @@ An **Engine** evaluates facts against loaded rules and returns matched rules and
 
 A single engine is available:
 
-- **PhreakEngine** (the only engine) - Lazy, agenda-driven evaluation with stateless (default) and streaming modes
+- **PhreakEngine** (the only engine): Lazy, agenda-driven evaluation with stateless (default) and streaming modes
 
 **Quick Example:**
 ```python
@@ -158,9 +158,9 @@ When you evaluate a fact, the engine returns a result object with:
 ```python
 result = engine.evaluate(fact)
 
-# result.fired_rules - list of rule IDs that matched
-# result.actions - list of actions to execute
-# result.latency_ms - execution time in milliseconds
+# result.fired_rules: list of rule IDs that matched
+# result.actions: list of actions to execute
+# result.latency_ms: execution time in milliseconds
 ```
 
 **Example:**
@@ -242,8 +242,8 @@ This shared context lets you focus on learning features without context-switchin
 
 ## Next Steps
 
-- **[Quickstart](quickstart.md)** - 5-minute working example
-- **[Conditions](conditions.md)** - Operator reference
-- **[Complex Conditions](complex-conditions.md)** - AND/OR/NOT logic
-- **[Domains & Tags](domains-and-tags.md)** - Rule organization
+- **[Quickstart](quickstart.md)**: 5-minute working example
+- **[Conditions](conditions.md)**: Operator reference
+- **[Complex Conditions](complex-conditions.md)**: AND/OR/NOT logic
+- **[Domains & Tags](domains-and-tags.md)**: Rule organization
 

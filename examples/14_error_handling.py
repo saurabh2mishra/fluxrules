@@ -1,9 +1,9 @@
 """Batch 3 example: validation and error handling over shared use case."""
 
+from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
+
 from fluxrules.domain.conditions.validation import ConditionValidationError, validate_conditions
 from fluxrules.engine.phreak import PhreakEngine
-
-from shared_use_case import SHARED_FACTS, USE_CASE_NAME, build_shared_rules
 
 
 def main() -> None:
@@ -22,9 +22,9 @@ def main() -> None:
     for rule in rules:
         try:
             validate_conditions(rule.conditions)
-            print(f"✅ Rule {rule.id}: valid DSL")
+            print(f"✓ Rule {rule.id}: valid DSL")
         except ConditionValidationError as e:
-            print(f"❌ Rule {rule.id}: {e}")
+            print(f"✗ Rule {rule.id}: {e}")
 
     print()
 
@@ -32,9 +32,7 @@ def main() -> None:
     for fact in SHARED_FACTS:
         try:
             result = engine.evaluate(fact)
-            print(
-                f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}"
-            )
+            print(f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}")
         except Exception as e:
             print(f"Error evaluating {fact['fact_id']}: {e}")
 

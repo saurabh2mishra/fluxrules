@@ -109,7 +109,7 @@ Response:
 ```json
 {
   "status": "healthy",
-  "version": "1.0.2"
+  "version": "1.1.0"
 }
 ```
 
@@ -117,5 +117,5 @@ Response:
 
 ## Next Steps
 
-- **Troubleshooting** - See [Troubleshooting](troubleshooting.md) for common issues
-- **Deployment** - See [Deployment](deployment.md) for production setup
+- **Troubleshooting**: See [Troubleshooting](troubleshooting.md) for common issues
+- **Deployment**: See [Deployment](deployment.md) for production setup

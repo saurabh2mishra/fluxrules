@@ -14,7 +14,11 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.inlinehilite
 
 extra:
@@ -38,11 +42,13 @@ nav:
   - Quickstart: quickstart.md
   - Concepts: concepts.md
   - Features: features.md
+  - From Fact to Action: fact-to-action.md
   - Architecture: architecture.md
   - Usage:
     - Overview: usage/index.md
     - Python API: usage/python-api.md
     - HTTP API: usage/http-api.md
+    - CLI: cli.md
     - Engine: usage/engines.md
     - Configuration: usage/configuration.md
     - Examples: usage/examples.md
@@ -71,6 +77,7 @@ nav:
     - Fact Pipeline: fact-pipeline.md
     - Cross-Fact Rules: cross-fact-rules.md
     - Nested Facts: nested-facts.md
+    - Typed Facts: typed-facts.md
     - Validation Framework: validation-framework.md
     - Working Memory: working-memory.md
     - Extension Points: extension-points.md
@@ -100,6 +107,7 @@ nav:
     - Overview: development/index.md
     - Contributing: contributing.md
     - Testing: development/testing.md
+    - Backlog: development/backlog.md
   - Security: security.md
   - Troubleshooting: troubleshooting.md
   - Changelog: changelog.md

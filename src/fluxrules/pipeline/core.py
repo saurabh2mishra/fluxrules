@@ -15,6 +15,7 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Any
 
 from fluxrules.pipeline.base import Transform
+from fluxrules.pipeline.transforms.composed import DropFact
 
 if TYPE_CHECKING:
     from fluxrules.pipeline.error_policy import ErrorPolicy
@@ -160,6 +161,10 @@ class FactPipeline:
             start = perf_counter()
             try:
                 result = transform(fact)
+            except DropFact:
+                # A Filter dropping a fact is a decision, not a failure: it
+                # bypasses the error policy, so no retry or fallback replaces it.
+                raise
             except Exception as error:
                 self._emit("on_transform_error", transform, fact, error)
                 decision = self._handle_error(transform, fact, error, attempt)

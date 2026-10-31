@@ -199,7 +199,7 @@ python examples/10_pluggable_engines.py
 **File:** `examples/11_cli_usage.py`
 
 Use FluxRules from the command line. Learn:
-- `fluxrules validate rules.json`
+- `fluxrules validate rules.json` (also YAML, and `--schema` to check fields; see [CLI](cli.md))
 - `fluxrules evaluate rules.json fact.json --format json`
 - The JSON rule and fact files the CLI reads
 - Running the CLI in-process with Typer's `CliRunner`
@@ -520,6 +520,24 @@ Analyze rule coverage and conflicts. Learn:
 **Run it:**
 ```bash
 python examples/30_conflict_detection.py
+```
+
+### Example 31: Typed Facts
+**File:** [`examples/31_typed_facts.py`](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/31_typed_facts.py)
+
+Use a Pydantic model as the fact. Learn:
+- Evaluating model instances directly (nested models become dotted keys)
+- Rejecting rules with unknown fields at load time (`fact_schema=`)
+- Checked field references with `fields(Model)`
+- Normalizing key styles and types (`validate_facts="normalize"`)
+- Raising or quarantining invalid facts (`on_invalid=`)
+- Running a fact pipeline before validation (`fact_pipeline=`)
+
+**Key Concepts:** Typed Facts, Fact Validation, Fact Pipeline
+
+**Run it:**
+```bash
+python examples/31_typed_facts.py
 ```
 
 ---

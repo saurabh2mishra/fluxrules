@@ -8,17 +8,23 @@ These names are part of the public API and are re-exported from
 ``fluxrules`` and ``fluxrules.domain``.
 """
 
+from typing import Any
+
 __all__ = [
     "ConditionValidationError",
     "CorruptStoredRuleError",
     "CyclicDependencyError",
     "EmptyRuleLogicError",
+    "FactValidationError",
     "FieldNotFoundError",
     "FluxRulesError",
     "InvalidRuleError",
     "LossyConditionRebuildError",
     "LossyConditionViewWarning",
+    "MissingFieldNotWarning",
+    "UnknownFieldError",
     "UnknownOperatorError",
+    "canonical_field_name",
     "is_field_typo",
 ]
 
@@ -75,6 +81,20 @@ class LossyConditionViewWarning(UserWarning):
     code = "LOSSY_CONDITION_VIEW"
 
 
+class MissingFieldNotWarning(FutureWarning):
+    """A NOT condition fired only because a field it tests was missing.
+
+    Today a missing field makes its condition ``False``, so ``NOT`` over it is
+    ``True`` and the rule fires: ``~(F("blocked") == True)`` matches a fact with
+    no ``blocked`` key. From 2.0 a missing field will be *unknown* and such a
+    ``NOT`` will not fire. Set ``EngineConfig(missing_field="unknown")`` to opt
+    in now, or ``missing_field="false"`` to keep today's behaviour and silence
+    this warning. To test for absence on purpose, use ``~F("x").exists()``.
+    """
+
+    code = "MISSING_FIELD_NOT"
+
+
 class LossyConditionRebuildError(InvalidRuleError):
     """Raised when a DSL tree would be rebuilt from a lossy condition view.
 
@@ -93,34 +113,81 @@ class LossyConditionRebuildError(InvalidRuleError):
     code = "LOSSY_CONDITION_REBUILD"
 
 
-def is_field_typo(field: str, facts: dict) -> bool:
-    """Return True when *field* is absent from *facts* but is a case variant of a
-    present key (e.g. ``Amount`` vs ``amount``).
+# Word separators a key style may use. "." is not one of them: it separates
+# levels of nesting, so "user.name" and "username" are different fields.
+_SEPARATORS = str.maketrans("", "", "_- ")
 
-    Only a case-insensitive exact match counts as a typo, because it is
-    unambiguous. Close-spelling (difflib) matching is deliberately NOT used to
-    decide this: field families such as ``field_0`` / ``field_10`` or
-    ``line_1`` / ``line_2`` resemble each other closely, so a fuzzy match would
-    raise on legitimately different fields in multi-schema or numbered-field
-    rulesets. Fields that are genuinely absent with no case-variant present
-    return False and evaluate to ``False`` as before. The human-facing
-    "Did you mean" hint in :meth:`FieldNotFoundError.for_field` still uses
-    difflib, since a suggestion is advisory and never changes control flow.
+
+def canonical_field_name(name: str, *, styles: bool = True) -> str:
+    """Return the comparable form of a field name.
+
+    With ``styles=True`` it drops ``_``, ``-`` and spaces and lowercases the
+    rest, so ``userAge``, ``user_age``, ``user-age``, ``UserAge`` and
+    ``userage`` all map to ``userage``: the same field in a different key
+    style. With ``styles=False`` it only lowercases, so only case variants
+    (``Amount`` / ``amount``) match. ``.`` is always kept, because it separates
+    levels of nesting.
     """
-    lower = field.lower()
-    return any(str(k).lower() == lower for k in facts)
+    return (name.translate(_SEPARATORS) if styles else name).lower()
+
+
+def _unflattened_parent(field: str, facts: dict) -> str | None:
+    """Return the parent key when *field* is a dotted path into a nested value.
+
+    A rule on ``user.age`` can never match ``{"user": {"age": 30}}``: the engine
+    reads flat keys only. When the first path segment is present and holds a
+    mapping, the fact was not flattened, which is always a mistake.
+    """
+    if "." not in field:
+        return None
+    head = field.split(".", 1)[0]
+    value = facts.get(head)
+    if isinstance(value, dict) or hasattr(value, "keys"):
+        return head
+    return None
+
+
+def is_field_typo(field: str, facts: dict, *, styles: bool = False) -> bool:
+    """Return True when *field* is absent from *facts* but a present key is the
+    same field spelled differently, or *field* points into a nested value that
+    was never flattened.
+
+    By default only case differs (``Amount`` / ``amount``). With
+    ``styles=True`` key styles count too (``userAge`` / ``user_age`` /
+    ``user-age``). Engines pass ``styles=True`` only when they have a fact
+    schema: then every rule field is known to be real, so a look-alike key can
+    only be a mismatch. Without a schema, one ruleset may serve several fact
+    shapes that spell a field differently, and treating those as typos would
+    reject valid facts. The comparison is exact equality through
+    :func:`canonical_field_name`, not a fuzzy match. Close-spelling (difflib) matching is deliberately
+    NOT used to decide this: field families such as ``field_0`` / ``field_10``
+    or ``line_1`` / ``line_2`` resemble each other closely, so a fuzzy match
+    would raise on legitimately different fields in multi-schema or
+    numbered-field rulesets. Fields that are genuinely absent with no
+    look-alike present return False and evaluate to ``False`` as before. The
+    human-facing "Did you mean" hint in :meth:`FieldNotFoundError.for_field`
+    still uses difflib as a last resort, since a suggestion is advisory and
+    never changes control flow.
+    """
+    if _unflattened_parent(field, facts) is not None:
+        return True
+    canonical = canonical_field_name(field, styles=styles)
+    return any(canonical_field_name(str(k), styles=styles) == canonical for k in facts)
 
 
 class FieldNotFoundError(FluxRulesError):
     """Raised when a condition references a field that looks like a typo.
 
     A ``condition`` node whose field is not a key in the incoming fact dict
-    previously returned ``False`` silently. When the absent field is a case
-    variant of an existing key (e.g. ``Amount`` vs ``amount``), this error is
-    raised so the typo surfaces immediately. Fields with no case-variant present
-    are treated as legitimately absent (different fact schema) and return
-    ``False`` as before. The error message still offers a difflib "Did you mean"
-    suggestion, which is advisory only and does not affect whether it is raised.
+    previously returned ``False`` silently. When a present key is the same
+    field in another case (``Amount`` vs ``amount``), or in another key style
+    when the engine has a fact schema (``userAge`` vs ``user_age``), or the
+    field is a dotted path into a nested value that was not flattened, this
+    error is raised so the mismatch surfaces immediately.
+    Fields with no look-alike present are treated as legitimately absent
+    (different fact schema) and return ``False`` as before. The error message
+    offers a "Did you mean" suggestion, which is advisory only and does not
+    affect whether it is raised.
 
     Use ``F("field").exists()`` when you intentionally want to test whether a
     field is present - that node always returns ``False`` for absent fields
@@ -135,9 +202,121 @@ class FieldNotFoundError(FluxRulesError):
         import difflib
 
         available = sorted(str(k) for k in facts.keys())
-        close = difflib.get_close_matches(field, available, n=1, cutoff=0.6)
+        parent = _unflattened_parent(field, facts)
+        if parent is not None:
+            return cls(
+                f"Field '{field}' not found in fact: '{parent}' holds a nested value. "
+                "The engine reads flat keys only; flatten the fact first (for example "
+                "with fluxrules.pipeline.transforms.Flatten, or pass a model and let "
+                f"the engine flatten it). Available keys: {available}"
+            )
+        canonical = canonical_field_name(field)
+        same_shape = [k for k in available if canonical_field_name(k) == canonical]
+        close = same_shape or difflib.get_close_matches(field, available, n=1, cutoff=0.6)
         hint = f" Did you mean '{close[0]}'?" if close else ""
         return cls(f"Field '{field}' not found in fact.{hint} Available keys: {available}")
+
+
+class UnknownFieldError(InvalidRuleError, AttributeError):
+    """Raised when a rule references a field the declared fact schema lacks.
+
+    Checked once, when rules are loaded into an engine built with
+    ``fact_schema=``, or when a field is read from :func:`fluxrules.facts.fields`.
+    A rule that names a field the schema does not have can never match, so it
+    is refused up front instead of evaluating to ``False`` on every fact.
+
+    Also an :class:`AttributeError`, so ``fields(Model).typo`` behaves like any
+    other missing attribute (``hasattr`` and ``getattr`` defaults work).
+    """
+
+    code = "UNKNOWN_FACT_FIELD"
+
+    # Set by ``for_field``: the unknown field, the rule naming it, the schema,
+    # the suggested field (or None), and the message without the field list.
+    field: str | None = None
+    rule: str | None = None
+    schema_name: str | None = None
+    suggestion: str | None = None
+    summary: str = ""
+
+    @classmethod
+    def for_field(
+        cls,
+        field: str,
+        schema_name: str,
+        known: "list[str] | tuple[str, ...]",
+        *,
+        rule: str | None = None,
+    ) -> "UnknownFieldError":
+        """Build the error with a 'did you mean' hint drawn from the schema."""
+        import difflib
+
+        canonical = canonical_field_name(field)
+        same_shape = [k for k in known if canonical_field_name(k) == canonical]
+        close = same_shape or difflib.get_close_matches(field, list(known), n=1, cutoff=0.6)
+        hint = f" Did you mean '{close[0]}'?" if close else ""
+        where = f"Rule '{rule}' references" if rule else "Reference to"
+        summary = f"{where} unknown field '{field}' (not in fact schema {schema_name}).{hint}"
+        error = cls(f"{summary} Known fields: {sorted(known)}")
+        error.field = field
+        error.rule = rule
+        error.schema_name = schema_name
+        error.suggestion = close[0] if close else None
+        error.summary = summary
+        return error
+
+    @classmethod
+    def for_parent(
+        cls,
+        field: str,
+        schema_name: str,
+        children: "list[str] | tuple[str, ...]",
+        *,
+        rule: str | None = None,
+    ) -> "UnknownFieldError":
+        """Build the error for a nested model named as if it were a field.
+
+        A nested model is flattened into its own fields, so a fact never has a
+        key for the model itself, and a rule on it could never match.
+        """
+        example = children[0] if children else f"{field}.<field>"
+        where = f"Rule '{rule}' references" if rule else "Reference to"
+        summary = (
+            f"{where} '{field}', which is a nested model in fact schema {schema_name}, "
+            f"not a field. Use one of its fields, such as '{example}'. To test whether "
+            f"it is set, use F('{example}').exists()."
+        )
+        error = cls(summary)
+        error.field = field
+        error.rule = rule
+        error.schema_name = schema_name
+        error.suggestion = example if children else None
+        error.summary = summary
+        return error
+
+
+class FactValidationError(FluxRulesError, ValueError):
+    """Raised when a fact fails validation against the engine's ``fact_schema``.
+
+    Only raised when the engine was built with ``validate_facts`` set to
+    ``"normalize"`` or ``"strict"`` and ``on_invalid="raise"`` (the default).
+
+    Attributes:
+        schema_name: Name of the schema the fact was validated against.
+        errors: The validator's error list (for Pydantic, ``ValidationError.errors()``),
+            each entry carrying the field location and an error code.
+    """
+
+    code = "FACT_VALIDATION_ERROR"
+
+    def __init__(self, schema_name: str, errors: "list[Any]") -> None:
+        self.schema_name = schema_name
+        self.errors = errors
+        details = "; ".join(
+            f"{'.'.join(str(p) for p in e.get('loc', ())) or '<root>'}: {e.get('msg', 'invalid')}"
+            for e in errors
+        )
+        super().__init__(f"Fact failed validation against {schema_name}: {details}")
 
 
 class EmptyRuleLogicError(InvalidRuleError):

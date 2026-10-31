@@ -14,6 +14,11 @@ FluxRules is a lightweight rule evaluation engine with a clean layered architect
 
 ## Evaluation Flow: From Fact to Result
 
+For the full path a fact takes, including the fact pipeline, typed-fact
+validation, discovery and action dispatch, see
+[From Fact to Action](fact-to-action.md). The sketches below show the two call
+shapes.
+
 ### Single Fact Evaluation (Simple API)
 
 ```
@@ -27,11 +32,11 @@ User: engine.evaluate({"amount": 5000, "country": "NG"})
   ├─→ [3. For each rule:
   │       - Evaluate conditions against fact
   │       - If matched: add to fired_rules list
-  │       - If matched & action exists: execute action
+  │       - If matched: collect its action names (not executed)
   │
   ├─→ [4. Collect results]
   │    - fired_rules: List[int] (matched rule IDs)
-  │    - actions: List[Any] (action results)
+  │    - actions: list[str] (action names, priority order)
   │    - latency_ms: float (execution time)
   │
   └─→ EvaluationResult(fired_rules=[1, 3], actions=["flag"], latency_ms=0.45)

@@ -10,7 +10,7 @@ path produces, so the result goes straight into an engine with no conversion.
 
 ## Basic usage
 
-`.condition()` accepts an `F` expression or a raw dict - both compile to the
+`.condition()` accepts an `F` expression or a raw dict; both compile to the
 same condition tree.
 
 ```python
@@ -54,7 +54,7 @@ print(evaluate(rule, {"age": 30}).fired_rules)
 | Method | Purpose | Returns |
 |--------|---------|---------|
 | `.name(str)` | Set rule name (required) | Builder |
-| `.condition(F(...) or dict)` | Set condition tree - accepts `F` expression or raw dict (required) | Builder |
+| `.condition(F(...) or dict)` | Set the condition tree from an `F` expression or a raw dict (required) | Builder |
 | `.action(str)` | Append an action; call repeatedly for several | Builder |
 | `.priority(int)` | Set priority, higher evaluates first | Builder |
 | `.group(str)` | Set the group/domain | Builder |
@@ -150,6 +150,6 @@ rule.save()
 
 ## Next Steps
 
-- **Rule Lifecycle** - See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations
-- **Conditions** - See [Conditions](conditions.md) for condition operators
-- **Example** - See [Example 18: Unified Rule](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py) for working code
+- **Rule Lifecycle**: See [Rule Lifecycle](rule-lifecycle.md) for CRUD operations
+- **Conditions**: See [Conditions](conditions.md) for condition operators
+- **Example**: See [Example 18: Unified Rule](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/18_unified_rule.py) for working code

@@ -12,6 +12,7 @@ FluxRules is a lightweight Python library for defining and managing business rul
 - Evaluate a ruleset against facts using the top-level Python API.
 - Run rule evaluation through FluxRules’ Phreak engine in stateless or streaming mode.
 - Validate rulesets before evaluation.
+- Pass facts as plain dicts or typed models (Pydantic, dataclasses, attrs, msgspec), and check rules against a fact schema when they load. See [Typed Facts](https://saurabh2mishra.github.io/fluxrules/typed-facts/).
 - Retrieve evaluation explanations
 - Use optional HTTP endpoints for evaluation, validation, explanations, and health checks.
 
@@ -123,11 +124,16 @@ see [API](https://saurabh2mishra.github.io/fluxrules/api/) for more detail.
 ```bash
 uv sync --extra cli
 fluxrules --help
+fluxrules validate rules/*.yaml --schema myapp.models:Payment  # check rule fields in CI
 ```
+
+See the [CLI guide](https://saurabh2mishra.github.io/fluxrules/cli/).
 
 ## How it works
 
 You call `evaluate(facts)` with a dictionary of field values. fluxrules returns which rules matched and what actions they produced. That's the whole contract.
+
+Facts can also arrive as typed models, raw nested payloads or file records; [From Fact to Action](https://saurabh2mishra.github.io/fluxrules/fact-to-action/) follows one fact through every stage, from pipeline and validation to discovery, ordering and actions.
 
 ### What happens inside each call
 

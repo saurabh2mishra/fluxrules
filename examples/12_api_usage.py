@@ -48,7 +48,9 @@ def main() -> None:
         body = response.json()
         execution_id = execution_id or body["execution_id"]
         print(f"\nPOST /v1/rulesets/{GROUP}/evaluate  ({fact['fact_id']})")
-        print(f"  {response.status_code} matched_rules={body['matched_rules']} actions={body['actions']}")
+        print(
+            f"  {response.status_code} matched_rules={body['matched_rules']} actions={body['actions']}"
+        )
 
     explained = client.get(f"/v1/executions/{execution_id}")
     print(f"\nGET /v1/executions/{execution_id}")
@@ -57,7 +59,7 @@ def main() -> None:
     samples = [{**SHARED_FACTS[0], "ip_risk_score": score} for score in (50, 90)]
     simulated = client.post(f"/v1/rulesets/{GROUP}/simulate", json={"samples": samples})
     print(f"\nPOST /v1/rulesets/{GROUP}/simulate  (txn-001 with IP risk 50 and 90)")
-    for score, run in zip((50, 90), simulated.json()):
+    for score, run in zip((50, 90), simulated.json(), strict=True):
         print(f"  ip_risk_score={score}: matched_rules={run['matched_rules']}")
 
 

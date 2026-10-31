@@ -23,9 +23,7 @@ def main() -> None:
     invalid = {
         "type": "group",
         "op": "AND",
-        "children": [
-            {"type": "condition", "field": "amount", "op": "__bad_op__", "value": 5}
-        ],
+        "children": [{"type": "condition", "field": "amount", "op": "__bad_op__", "value": 5}],
     }
     try:
         validate_conditions(invalid)
@@ -36,9 +34,7 @@ def main() -> None:
     engine.load_rules(rules)
     for fact in SHARED_FACTS:
         result = engine.evaluate(fact)
-        print(
-            f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}"
-        )
+        print(f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}")
 
 
 if __name__ == "__main__":

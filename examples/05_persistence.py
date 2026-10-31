@@ -27,9 +27,7 @@ def main() -> None:
             "latency_ms": result.latency_ms,
         }
         audit_log.append(audit_record)
-        print(
-            f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}"
-        )
+        print(f"fact={fact['fact_id']} matched={result.fired_rules} actions={result.actions}")
 
     print(f"\nPersisted {len(audit_log)} evaluation records to audit trail.")
     print("In production: use database or message queue for durability.")

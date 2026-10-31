@@ -33,16 +33,16 @@ confirm a fact fires the same rules on first sight in either mode.
 
 ## Results
 
-✅ **COMPLETE PARITY** - PHREAK matches the reference evaluator on all test cases.
+✓ **COMPLETE PARITY**: PHREAK matches the reference evaluator on all test cases.
 
 | Test Case | PHREAK | Reference | Match |
 |-----------|--------|-----------|-------|
-| Simple condition | ✅ | ✅ | ✅ |
-| AND groups | ✅ | ✅ | ✅ |
-| OR groups | ✅ | ✅ | ✅ |
-| NOT operator | ✅ | ✅ | ✅ |
-| Nested groups | ✅ | ✅ | ✅ |
-| Multiple rules | ✅ | ✅ | ✅ |
+| Simple condition | ✓ | ✓ | ✓ |
+| AND groups | ✓ | ✓ | ✓ |
+| OR groups | ✓ | ✓ | ✓ |
+| NOT operator | ✓ | ✓ | ✓ |
+| Nested groups | ✓ | ✓ | ✓ |
+| Multiple rules | ✓ | ✓ | ✓ |
 
 **Conclusion:** PHREAK's optimized matching is semantically equivalent to the
 naive reference evaluator across the supported condition surface.
@@ -51,5 +51,5 @@ naive reference evaluator across the supported condition surface.
 
 ## Next Steps
 
-- **The FluxRules Engine** - See [The FluxRules Engine](engine-comparison.md) for evaluation modes
-- **Benchmarks** - See [Benchmarks](benchmarks.md) for latency/throughput data
+- **The FluxRules Engine**: See [The FluxRules Engine](engine-comparison.md) for evaluation modes
+- **Benchmarks**: See [Benchmarks](benchmarks.md) for latency/throughput data

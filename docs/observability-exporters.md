@@ -6,7 +6,7 @@ documents the built-in exporters for **Prometheus** and **OpenTelemetry**.
 
 ## Architecture
 
-The observability system is built on the `ObservabilityHook` protocol - a minimal,
+The observability system is built on the `ObservabilityHook` protocol, a minimal,
 Python protocol that any class can implement to receive pipeline events. This design
 ensures:
 
@@ -31,7 +31,7 @@ class ObservabilityHook(Protocol):
 ```
 
 Both `PrometheusHook` and `OpenTelemetryHook` implement this protocol. They are **optional
-dependencies** - use only what you need.
+dependencies**, so use only what you need.
 
 ---
 
@@ -58,7 +58,7 @@ prometheus_hook = PrometheusHook(namespace="myapp", subsystem="pipeline")
 # Attach to pipeline
 pipeline = FactPipeline([Flatten()], hooks=[prometheus_hook], name="normalize_facts")
 
-# Use the pipeline - metrics are automatically recorded
+# Use the pipeline: metrics are automatically recorded
 fact = pipeline({"user": {"id": "u_1"}})
 
 # Expose metrics (standard approach)
@@ -135,7 +135,7 @@ context propagation.
 pip install opentelemetry-api opentelemetry-sdk
 
 # Add an exporter (choose one or more)
-pip install opentelemetry-exporter-otlp          # OTLP - Jaeger, Tempo, Collector, etc.
+pip install opentelemetry-exporter-otlp          # OTLP: Jaeger, Tempo, Collector, etc.
 pip install opentelemetry-exporter-zipkin        # Zipkin
 ```
 
@@ -155,7 +155,7 @@ otel_hook = OpenTelemetryHook(service_name="my_rule_engine", version="1.0.0")
 # Attach to pipeline
 pipeline = FactPipeline([Flatten()], hooks=[otel_hook], name="normalize_facts")
 
-# Use the pipeline - traces are automatically recorded
+# Use the pipeline: traces are automatically recorded
 fact = pipeline({"user": {"id": "u_1"}})
 
 # Traces appear in your configured OpenTelemetry backend
@@ -184,7 +184,7 @@ The span is created with `tracer.start_span(...)` (not `start_as_current_span`) 
 the hook holds a single span across several discrete callbacks rather than within one
 `with` block. Success and failure are reported through the **native span status**
 (`StatusCode.OK` / `StatusCode.ERROR`), and failures additionally call
-`span.record_exception(error)` - the idiomatic OpenTelemetry way to attach an exception,
+`span.record_exception(error)`, the idiomatic OpenTelemetry way to attach an exception,
 which your backend renders as an `exception` event with stack trace.
 
 ### Span Attributes
@@ -201,7 +201,7 @@ The span **status** conveys success/failure:
 
 | Outcome | Span status | Extra |
 |---------|-------------|-------|
-| success | `StatusCode.OK` | - |
+| success | `StatusCode.OK` | none |
 | error | `StatusCode.ERROR` (description = error message) | `record_exception(error)` emits an `exception` event |
 
 Transform events include:
@@ -241,7 +241,7 @@ pipeline({"user": {"id": "u_1"}})
 ```
 
 > **Testing tip:** For unit tests, swap the OTLP exporter for the SDK's
-> `InMemorySpanExporter` and assert on `exporter.get_finished_spans()` - exactly
+> `InMemorySpanExporter` and assert on `exporter.get_finished_spans()`. This is
 > how `tests/unit/pipeline/test_exporters.py` validates this hook end-to-end.
 
 ### Error Handling

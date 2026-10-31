@@ -1,17 +1,17 @@
 # Conditions & Rule Authoring
 
 A rule's `conditions` field defines when the rule fires. FluxRules gives you
-three ways to author conditions, the same condition tree on the wire for all
-three, and a set of tools to validate before you deploy.
+four ways to author conditions, the same condition tree on the wire for all
+four, and a set of tools to validate before you deploy.
 
 Start with [Authoring Rules](authoring-rules.md) for how to choose between them.
 This page is the reference: every operator and every validation tool.
 
 ---
 
-## Three ways to write conditions
+## Four ways to write conditions
 
-### 1. F DSL - recommended for Python code
+### 1. F DSL (recommended for Python code)
 
 Write conditions as natural Python expressions using the `F` helper. Each
 expression compiles to a condition dict the engine accepts; you never touch
@@ -27,14 +27,14 @@ rule = Rule(
     action="review",
 )
 
-# AND - both must hold
+# AND: both must hold
 rule = Rule(
     name="high_value_us",
     conditions=(F("amount") > 5000) & (F("country") == "US"),
     action="review",
 )
 
-# OR - either suffices
+# OR: either suffices
 rule = Rule(
     name="risky_origin",
     conditions=(F("country").isin(["NG", "SN"])) | (F("ip_risk_score") >= 70),
@@ -64,20 +64,20 @@ rule = Rule(
 )
 ```
 
-**Operator precedence warning** - Python's `&` and `|` bind more tightly than
+**Operator precedence warning.** Python's `&` and `|` bind more tightly than
 comparisons like `>`, `<`, `==`. Always wrap each individual condition in
 parentheses:
 
 ```python
-# python skip - the second line deliberately raises to show the trap
+# python skip: the second line deliberately raises to show the trap
 # Correct
 (F("amount") > 5000) & (F("country") == "US")
 
-# Wrong - & binds before ==, raising a TypeError at runtime
+# Wrong: & binds before ==, raising a TypeError at runtime
 F("amount") > 5000 & F("country") == "US"
 ```
 
-### 2. Dict / YAML - for config-driven rules
+### 2. Dict / YAML (for config-driven rules)
 
 The dict format is the wire and storage format. Use it when rules come from a
 database, YAML file, or API response.
@@ -121,7 +121,7 @@ and loads back from YAML the same way. One difference in shape: `a & b & c`
 nests as `(a & b) & c`, where a hand-written dict usually has one flat group of
 three. Both give the same results.
 
-### 3. RuleBuilder - fluent step-by-step construction
+### 3. RuleBuilder (fluent, step by step)
 
 `RuleBuilder` chains method calls and validates each step. Useful when building
 rules programmatically where you want to catch errors early.
@@ -140,6 +140,72 @@ rule = (
 ```
 
 `.condition()` accepts both an `F` expression and a raw dict.
+
+### 4. Checked field references with `fields(Model)`
+
+When your facts have a model, such as a Pydantic class, you can name fields
+through the model instead of typing them as strings. `fields(Model)` gives an
+object whose attributes are the model's fields:
+
+```python
+from pydantic import BaseModel
+
+from fluxrules import F, Rule
+from fluxrules.facts import fields
+
+
+class Account(BaseModel):
+    age_days: int
+    country: str
+
+
+class Payment(BaseModel):
+    amount: float
+    account: Account
+
+
+p = fields(Payment)
+
+rule = Rule(
+    name="block_high_risk_country",
+    conditions=p.account.country.isin(["NG", "RU"]) & (p.amount > 1000),
+    action="block",
+)
+```
+
+Read the condition piece by piece:
+
+- `p.amount` is the same as `F("amount")`.
+- `p.account.country` is the same as `F("account.country")`. A nested model
+  becomes a dotted field name, which is how the engine sees nested facts.
+- `.isin(["NG", "RU"])` and `> 1000` are the ordinary `F` operators, so every
+  operator on this page works here too.
+- `&` joins the two parts with AND. The comparison is wrapped in parentheses,
+  as with `F`. The `isin(...)` call needs none, because a method call binds
+  before `&`.
+
+The rule stores the same condition tree as one written with `F`:
+
+```python
+written_with_f = F("account.country").isin(["NG", "RU"]) & (F("amount") > 1000)
+assert rule.conditions == Rule(name="same", conditions=written_with_f, action="block").conditions
+```
+
+The difference is when a typo is caught. `F("acount.country")` is accepted and
+the rule never matches. `p.acount` raises `UnknownFieldError` on that line, and
+the message suggests `account`:
+
+```python
+from fluxrules import UnknownFieldError
+
+try:
+    p.acount  # noqa: B018
+except UnknownFieldError as exc:
+    assert "Did you mean 'account'?" in str(exc)
+```
+
+`dir(p.account)` lists the fields, so an editor can offer them as you type. See
+[Typed Facts](typed-facts.md#write-rules-with-checked-field-references).
 
 ---
 
@@ -181,7 +247,7 @@ Both sides are coerced to strings before matching.
 |---|---|---|
 | `F("x").starts_with("adm")` | `"starts_with"` | `str(x).startswith(...)` |
 | `F("x").ends_with(".com")` | `"ends_with"` | `str(x).endswith(...)` |
-| `F("x").regex("^4[0-9]{12}")` | `"regex"` | `re.search(pattern, str(x))` - matches anywhere in the string, so add `^` to anchor at the start |
+| `F("x").regex("^4[0-9]{12}")` | `"regex"` | `re.search(pattern, str(x))`. It matches anywhere in the string, so add `^` to anchor at the start |
 
 ### Boolean composition (F DSL)
 
@@ -204,28 +270,52 @@ Dict equivalent:
 {"type": "exists", "field": "email"}
 ```
 
-Use `exists()` when a field might legitimately be absent - `condition` nodes
-raise `FieldNotFoundError` if the field is a case variant of a present key
-(e.g. `Amount` vs `amount`). `exists()` never raises.
+Use `exists()` when a field might legitimately be absent. A `condition` node
+raises `FieldNotFoundError` if a present key is the same field spelled
+differently (see [Field names are exact](#field-names-are-exact)). `exists()`
+never raises.
 
 ---
 
 ## What to keep in mind when authoring rules
 
-### Field names are exact and case-sensitive
+### Field names are exact
 
-`F("Amount")` and `F("amount")` are different fields. If a fact arrives with
-`{"amount": 5000}` and the condition says `F("Amount")`, the rule raises a
-`FieldNotFoundError` because the field is a case variant of a present key.
-For genuinely different schemas (multi-domain rulesets), absent fields that are
-not a case variant of any present key return `False` silently, which is the
-correct behaviour.
+`F("Amount")`, `F("amount")` and `F("user_age")` / `F("userAge")` are
+different fields: the engine reads the exact key. When a rule's field is
+missing from a fact but the fact has a key that looks like the same field, the
+engine raises `FieldNotFoundError` instead of quietly not matching. What counts
+as a look-alike depends on whether the engine has a
+[fact schema](typed-facts.md):
+
+| Engine | Look-alikes that raise | Example |
+|---|---|---|
+| No schema | Case only | `Amount` against `amount` |
+| `fact_schema=Model` | Case and key style: `_`, `-` and spaces are ignored | `user_age` against `userAge`, `user-age` or `UserAge` |
+
+Without a schema, one ruleset may serve several kinds of facts that spell a
+field differently (`user_id` from one system, `userId` from another). The
+engine cannot tell that apart from a typo, so it only treats case as a typo.
+With a schema, every rule field is checked against the model when the rules
+load, so a key in another style can only be a mismatch.
+
+In both cases a `.` is significant, because it separates levels of nesting:
+`user.name` is never a look-alike of `username`. A dotted field such as
+`user.age` against an unflattened `{"user": {...}}` raises too, with a hint to
+flatten the fact (see [Nested Facts](nested-facts.md)). A field that is absent
+with no look-alike returns `False`. Numbered families stay distinct: `field_0`
+is not a look-alike of `field_10`.
 
 ```python
-# Fact: {"amount": 5000}
-F("Amount") > 1000   # raises FieldNotFoundError - did you mean 'amount'?
-F("amount") > 1000   # evaluates correctly
+# python skip: the first line deliberately raises to show the check
+# Fact: {"amount": 5000, "user_age": 30}, engine without a schema
+F("Amount") > 1000    # raises FieldNotFoundError: did you mean 'amount'?
+F("userAge") >= 18    # no match (with a schema it would raise)
+F("amount") > 1000    # evaluates correctly
 ```
+
+A schema also catches these before any fact arrives: `load_rules` rejects any
+rule field the model lacks.
 
 ### Operator precedence: always use parentheses
 
@@ -233,11 +323,11 @@ Python evaluates `&` and `|` before `>`, `<`, `==`. The rule is simple: wrap
 every individual `F(...)` comparison in its own parentheses before composing:
 
 ```python
-# python skip - the unsafe line deliberately raises to show the trap
-# safe - each leaf is wrapped
+# python skip: the unsafe line deliberately raises to show the trap
+# safe: each leaf is wrapped
 (F("amount") > 5000) & (F("country") == "US")
 
-# unsafe - raises TypeError
+# unsafe: raises TypeError
 F("amount") > 5000 & F("country") == "US"
 ```
 
@@ -251,6 +341,52 @@ intentionally optional, guard it with `exists()`:
 # Only fires if "promo_code" is present AND matches
 F("promo_code").exists() & (F("promo_code") == "SUMMER24")
 ```
+
+### Missing fields and NOT
+
+A condition on a missing field is `False`, so `NOT` over it is `True`:
+`~(F("blocked") == True)` fires on a fact with no `blocked` key. That is rarely
+what the rule means, and a key sent under another name (`is_blocked`) lets the
+rule through silently.
+
+`EngineConfig.missing_field` sets how `NOT` treats a missing field:
+
+| `missing_field` | `~(F("blocked") == True)` on `{"amount": 1}` | Notes |
+|---|---|---|
+| `None` (default) | fires, and emits `MissingFieldNotWarning` once | 1.x behaviour with a heads-up |
+| `"false"` | fires | 1.x behaviour, no warning |
+| `"unknown"` | does not fire | the 2.0 default |
+
+With `"unknown"` a missing field is *unknown*, as SQL treats `NULL`: `NOT` of
+unknown is unknown, `AND` / `OR` follow three-valued logic, and a rule fires
+only when its condition is definitely true. `exists()` is never unknown, so it
+is the way to test for absence on purpose:
+
+```python
+from fluxrules import EngineConfig, F, Rule
+from fluxrules.engine.phreak import PhreakEngine
+
+engine = PhreakEngine(config=EngineConfig(missing_field="unknown"))
+engine.load_rules(
+    [
+        Rule(id=1, name="not_blocked", conditions=~(F("blocked") == True), action="allow"),  # noqa: E712
+        # Explicit: "blocked is absent, or present and not True"
+        Rule(
+            id=2,
+            name="not_blocked_or_absent",
+            conditions=~F("blocked").exists() | ~(F("blocked") == True),  # noqa: E712
+            action="allow",
+        ),
+    ]
+)
+assert engine.evaluate({"amount": 1}).fired_rules == [2]
+assert sorted(engine.evaluate({"blocked": False}).fired_rules) == [1, 2]
+```
+
+The setting applies to `PhreakEngine` (interpreted and compiled) and to
+`fluxrules.evaluate()`, which reads the process-wide config
+(`fluxrules.engine.configuration.set_config`). Set it before `load_rules`:
+compiled conditions read it when they are compiled.
 
 ### Value types must match
 
@@ -266,9 +402,9 @@ F("tags").contains("vip")  # list field → scalar value to find in it
 ### `isin` takes a list, not positional args
 
 ```python
-# python skip - the second line deliberately raises to show the trap
+# python skip: the second line deliberately raises to show the trap
 F("country").isin(["NG", "SN", "GH"])   # correct
-F("country").isin("NG", "SN", "GH")    # wrong - TypeError
+F("country").isin("NG", "SN", "GH")    # wrong: TypeError
 ```
 
 ### Combining AND chains cleanly
@@ -296,7 +432,7 @@ exposes an explicit validate step for bulk checks before deployment.
 Invalid conditions are caught when you build the `Rule`:
 
 ```python
-# python skip - this block deliberately raises to show the validation error
+# python skip: this block deliberately raises to show the validation error
 from fluxrules import F, Rule
 
 Rule(
@@ -310,7 +446,7 @@ Rule(
 Missing required keys, unknown operators, and malformed tree shapes all raise
 `ConditionValidationError` immediately.
 
-### `validate()` - check a batch without evaluating
+### `validate()`: check a batch without evaluating
 
 ```python
 from fluxrules import F, Rule, validate
@@ -328,8 +464,8 @@ else:
     print("All rules valid")
 ```
 
-`validate()` returns a list of human-readable strings - empty means all rules
-passed. Use it in CI before deploying a new ruleset.
+`validate()` returns a list of human-readable strings. An empty list means all
+rules passed. Use it in CI before deploying a new ruleset.
 
 ### `FieldNotFoundError` at evaluation time
 
@@ -399,10 +535,10 @@ The dict / YAML format uses these node shapes:
 
 | Node type | Required keys | Optional keys |
 |---|---|---|
-| `condition` | `type`, `field`, `op`, `value` | - |
+| `condition` | `type`, `field`, `op`, `value` | none |
 | `group` / `and` / `or` | `type`, `children` (or `conditions`) | `op` (default `AND`) |
-| `not` | `type`, `condition` | - |
-| `exists` | `type`, `field` | - |
+| `not` | `type`, `condition` | none |
+| `exists` | `type`, `field` | none |
 
 Accepted aliases: `"and"`, `"or"`, `"not"`, `"exists"`, `"group"`, `"composite"`.
 
@@ -410,9 +546,9 @@ Accepted aliases: `"and"`, `"or"`, `"not"`, `"exists"`, `"group"`, `"composite"`
 
 ## Next steps
 
-- **[Complex Conditions](complex-conditions.md)** - AND/OR/NOT deep-dive with
+- **[Complex Conditions](complex-conditions.md)**: AND/OR/NOT deep-dive with
   more examples
-- **[Validation Framework](validation-framework.md)** - CI integration and
+- **[Validation Framework](validation-framework.md)**: CI integration and
   custom validators
-- **[YAML Rules](yaml-rules.md)** - rules as configuration files
-- **[Rule Builder](rule-builder.md)** - `RuleBuilder` fluent API reference
+- **[YAML Rules](yaml-rules.md)**: rules as configuration files
+- **[Rule Builder](rule-builder.md)**: `RuleBuilder` fluent API reference

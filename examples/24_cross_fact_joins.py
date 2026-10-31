@@ -65,7 +65,10 @@ def main() -> None:
         "insert Payment txn-003 (2600, customer c2)",
         engine.insert("Payment", {"payment_id": "txn-003", "customer_id": "c2", "amount": 2600}),
     )
-    show("insert Customer c2 (540 days old)", engine.insert("Customer", {"id": "c2", "account_age_days": 540}))
+    show(
+        "insert Customer c2 (540 days old)",
+        engine.insert("Customer", {"id": "c2", "account_age_days": 540}),
+    )
 
     print(f"\nActive matches: {[a.bindings['p']['payment_id'] for a in engine.activations()]}")
 

@@ -124,7 +124,7 @@ def _bench_workload(name: str, rules: list[Rule], facts: list[dict]) -> None:
 
     # correctness gate: identical fired_rules per fact
     mismatches = sum(1 for a, b in zip(fired_off, fired_on, strict=True) if a != b)
-    parity = "PASS ✅" if mismatches == 0 else f"FAIL ❌ ({mismatches} differ)"
+    parity = "PASS ✓" if mismatches == 0 else f"FAIL ✗ ({mismatches} differ)"
 
     # candidate reduction: how many rules the alpha layer drops per fact
     idx = on._alpha_index
@@ -217,7 +217,7 @@ def main() -> None:
     )
 
     print("\n" + "=" * 90)
-    print("  ALL WORKLOADS PASSED PARITY ✅  - alpha filter is sound across the envelope")
+    print("  ALL WORKLOADS PASSED PARITY ✓  - alpha filter is sound across the envelope")
     print("=" * 90 + "\n")
 
 

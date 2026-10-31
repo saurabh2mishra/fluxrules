@@ -141,9 +141,9 @@ class ValidationResult:
     def __str__(self) -> str:
         """String representation."""
         if not self.issues:
-            return "✅ No validation issues"
+            return "✓ No validation issues"
 
-        lines = [f"📋 Validation Report ({len(self.issues)} issues):"]
+        lines = [f"Validation Report ({len(self.issues)} issues):"]
         for issue in self.issues:
             lines.append(f"  {issue}")
         return "\n".join(lines)

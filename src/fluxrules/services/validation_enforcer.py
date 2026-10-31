@@ -112,7 +112,7 @@ class ValidationEnforcer:
         rule_prefix = f"Rule '{rule_name}': " if rule_name else "Validation: "
 
         if not result.issues:
-            return f"{rule_prefix}✅ No issues"
+            return f"{rule_prefix}✓ No issues"
 
         errors = result.get_errors()
         warnings = result.get_warnings()
@@ -120,9 +120,9 @@ class ValidationEnforcer:
         parts = [rule_prefix]
 
         if errors:
-            parts.append(f"❌ {len(errors)} error(s)")
+            parts.append(f"✗ {len(errors)} error(s)")
         if warnings:
-            parts.append(f"⚠️  {len(warnings)} warning(s)")
+            parts.append(f"⚠ {len(warnings)} warning(s)")
 
         summary = " | ".join(parts)
 
