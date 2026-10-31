@@ -24,6 +24,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`tests/performance/perf_parallel.py`).
 - `FactValidationError` now survives pickling with its `schema_name` and
   `errors`.
+- **New guide: Ways to Evaluate a Fact** (`docs/evaluating-facts.md`). Every
+  way to evaluate a fact, side by side: `fluxrules.evaluate()`, an engine,
+  model instances, `evaluate_batch`, streaming mode, `DedupEvaluator`,
+  `CrossFactEngine`, sessions, the CLI and HTTP. With a runnable tour in
+  `examples/32_ways_to_evaluate.py` and tests that every way agrees.
+
+### Fixed
+
+- **The REST API docs now match the server.** `rest-api.md`, `api.md`,
+  `usage/http-api.md` and `reference/http-endpoints.md` described endpoints
+  that do not exist (`POST /api/v1/simulate`, `POST /api/v1/explain`,
+  `POST /api/v1/validate`), a `domain` request field the server ignores, and a
+  `fired_rules` / `latency_ms` response the server never sends (it answers
+  with `matched_rules`). They now show the real routes, logging in, request
+  fields and responses, checked by `tests/integration/test_rest_api_reference.py`.
 
 ### Changed
 

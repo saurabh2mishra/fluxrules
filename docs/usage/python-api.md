@@ -184,6 +184,7 @@ service = RuleService.create()
 
 ## Next Steps
 
+- **Ways to Evaluate a Fact**: See [Ways to Evaluate a Fact](../evaluating-facts.md) for every way to evaluate facts, side by side
 - **Engines**: See [The FluxRules Engine](../engine-comparison.md)
 - **Sessions**: See [Sessions](../sessions.md) for stateful workflows
 - **API Reference**: See [Reference: Public API](../reference/public-api.md)

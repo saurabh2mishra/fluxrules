@@ -540,6 +540,24 @@ Use a Pydantic model as the fact. Learn:
 python examples/31_typed_facts.py
 ```
 
+### Example 32: Ways to Evaluate a Fact
+**File:** [`examples/32_ways_to_evaluate.py`](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/32_ways_to_evaluate.py)
+
+Evaluate one payment in every way that runs inside Python, and check they all agree. Learn:
+- One-off checks with `fluxrules.evaluate()`
+- Building an engine once with `engine.evaluate()`
+- Passing a Pydantic model instance as the fact
+- Many facts at once with `engine.evaluate_batch()`, in one process and with `workers=2`
+- How streaming mode and `DedupEvaluator` treat a repeated fact
+- Evaluating a stored rule set through a session
+
+**Key Concepts:** Evaluation paths, Batch evaluation, Streaming mode
+
+**Run it:**
+```bash
+python examples/32_ways_to_evaluate.py
+```
+
 ---
 
 ## Running All Examples
