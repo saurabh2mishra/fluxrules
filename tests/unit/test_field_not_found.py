@@ -350,7 +350,7 @@ class TestSecondReviewEngine:
         with pytest.raises(FieldNotFoundError, match="Did you mean 'amount'"):
             engine.evaluate({"amount": 10})
 
-    def test_not_state_is_kept_when_mode_changes_after_load(self):
+    def test_not_state_is_kept_when_caller_config_changes_after_load(self):
         from fluxrules.engine.configuration import EngineConfig
 
         config = EngineConfig(missing_field="false")
@@ -358,9 +358,10 @@ class TestSecondReviewEngine:
         engine.load_rules([_rule(~(F("blocked") == True))])  # noqa: E712
         states_before = dict(engine._not_states)
         assert states_before  # built at load whatever the mode
+        # The engine copied its config, so this change does not reach it.
         config.missing_field = "unknown"
         for _ in range(3):
-            assert engine.evaluate({"amount": 1}).fired_rules == []
+            assert len(engine.evaluate({"amount": 1}).fired_rules) == 1
         assert engine._not_states == states_before
 
     def test_domain_not_cache_rebuilds_when_child_is_replaced(self):

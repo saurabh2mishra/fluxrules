@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`PhreakEngine` copies its `EngineConfig` when it is created.** Before,
+  the engine shared the caller's config object (or the process-wide one). A
+  setting changed after `load_rules`, such as `missing_field` or
+  `strict_null_handling`, reached interpreted rules but not rules compiled with
+  `compile_conditions=True`, so the same engine could give two different
+  answers. Now later changes to that object, or `set_config()`, do not affect
+  an existing engine. To change a setting, create a new engine.
+
 ## [1.1.0] - Unreleased
 
 ### Added

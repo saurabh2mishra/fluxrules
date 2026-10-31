@@ -14,6 +14,7 @@ evaluation strategy with integrated optimizations:
 from __future__ import annotations
 
 import concurrent.futures
+import copy
 import logging
 import threading
 from collections.abc import Callable
@@ -286,7 +287,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
         Args:
             max_rules: Maximum rules to handle
-            config: EngineConfig instance. If None, uses get_config()
+            config: EngineConfig instance. If None, uses get_config(). The
+                engine keeps its own copy, so changing the object (or the
+                process-wide config) later does not affect this engine.
             streaming_mode: If True, enable lazy evaluation with dirty tracking.
 
                 When False (default): Evaluate all applicable rules on each call
@@ -408,7 +411,10 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             on_invalid=on_invalid,
             fact_pipeline=fact_pipeline,
         )
-        self._config = config or get_config()
+        # A private copy: compiled conditions bake the flags in at load time
+        # while the interpreter reads them per call, so a config changed after
+        # load_rules would split the two paths (and never reach batch workers).
+        self._config = copy.copy(config or get_config())
         self._streaming_mode = streaming_mode
 
         # Single-fact boundary enforcement (P0.3). When True, ``load_rules``

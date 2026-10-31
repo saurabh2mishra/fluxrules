@@ -11,6 +11,34 @@ cfg = get_config()
 print(cfg.rule_engine_type)
 ```
 
+### Settings are fixed when the engine is created
+
+`PhreakEngine` keeps its own copy of the config. It takes the `config` you
+pass, or the process-wide config if you pass none, and copies it. Changing
+that object afterwards, or calling `set_config`, does not affect an engine
+that already exists:
+
+```python
+from fluxrules import F, Rule
+from fluxrules.engine.configuration import EngineConfig
+from fluxrules.engine.phreak import PhreakEngine
+
+config = EngineConfig(missing_field="false")
+engine = PhreakEngine(config=config)
+engine.load_rules([Rule(id=1, name="r", conditions=~(F("blocked") == True), action="allow")])  # noqa: E712
+
+config.missing_field = "unknown"  # too late: this engine kept "false"
+assert engine.evaluate({"amount": 1}).fired_rules == [1]
+
+engine = PhreakEngine(config=config)  # a new engine picks up "unknown"
+engine.load_rules([Rule(id=1, name="r", conditions=~(F("blocked") == True), action="allow")])  # noqa: E712
+assert engine.evaluate({"amount": 1}).fired_rules == []
+```
+
+This keeps every part of the engine in agreement. Rules compiled with
+`compile_conditions=True` and rules run by the interpreter always use the
+same settings.
+
 ## Strict Fact Validation
 
 Engine evaluation supports optional strict fact pre-flight validation:

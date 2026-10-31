@@ -55,7 +55,8 @@ class EngineConfig:
     # None (default): behave as "false", but emit a one-time
     #   MissingFieldNotWarning when a NOT fires only because a field was
     #   missing. The default becomes "unknown" in 2.0.
-    # Set it before load_rules: compiled conditions read it when they compile.
+    # PhreakEngine copies its config when it is created, so changing this
+    # later does not affect an existing engine; create a new engine instead.
     missing_field: str | None = None
 
     def __post_init__(self) -> None:
