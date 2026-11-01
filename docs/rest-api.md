@@ -176,21 +176,35 @@ Evaluate a fact as a dry run and get an explanation for each matched rule.
 
 `event` is the fact. `rule_ids` is optional and limits the run to those rules.
 
-**Response (shortened):**
+**Response:**
 ```json
 {
+  "matched_rules": [
+    {"id": 1, "name": "big_payment", "priority": 10},
+    {"id": 2, "name": "german_payment", "priority": 0}
+  ],
   "execution_order": [1, 2],
   "explanations": {
     "1": "Rule big_payment (1) matched via PHREAK (segments: seg_amount, seg_country)",
     "2": "Rule german_payment (2) matched via PHREAK (segments: seg_amount, seg_country)"
   },
   "dry_run": true,
-  "stats": {"rules_matched": 2}
+  "stats": {
+    "total_rules": 2,
+    "candidates_evaluated": 2,
+    "rules_matched": 2,
+    "evaluation_time_ms": 0.41,
+    "optimization": null
+  }
 }
 ```
 
-`execution_order` lists the matched rule ids in the order they fired, and
-`explanations` says why each one matched.
+- `matched_rules`: each matched rule's id, name and priority, in the order
+  they fired. `execution_order` lists the same ids.
+- `explanations`: why each rule matched.
+- `stats`: how many rules were loaded (`total_rules`), how many the engine
+  looked at closely after filtering (`candidates_evaluated`), how many matched,
+  and how long it took in milliseconds.
 
 ## Checking a rule set
 

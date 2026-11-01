@@ -75,6 +75,18 @@ def test_rules_and_evaluation(client) -> None:  # type: ignore[no-untyped-def]
     assert set(sim["explanations"]) == {"1", "2"}
     assert sim["dry_run"] is True
     assert sim["stats"]["rules_matched"] == 2
+    assert sim["stats"]["total_rules"] == 2
+    assert sim["stats"]["candidates_evaluated"] == 2
+    assert sim["stats"]["evaluation_time_ms"] is not None
+    # Real names and priorities, not placeholders.
+    assert [(r["id"], r["name"], r["priority"]) for r in sim["matched_rules"]] == [
+        (1, "big_payment", 10),
+        (2, "german_payment", 0),
+    ]
+
+    # /api/v1/engines/evaluate uses the same adapter.
+    engines = client.post("/api/v1/engines/evaluate", json={"event": FACT}).json()
+    assert [r["name"] for r in engines["matched_rules"]] == ["big_payment", "german_payment"]
 
     # A conflicting rule is refused and parked, unless the check is skipped.
     clash = {**BIG, "name": "other", "conditions": GERMAN["conditions"]}

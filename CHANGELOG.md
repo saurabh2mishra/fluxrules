@@ -41,6 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   checks the server once without retries (0.5 seconds instead of about 4).
   With Redis running, nothing changes except that one connection pool is
   reused instead of a new one per call.
+- **Matched rules in API evaluation responses have their real names and
+  priorities.** `/api/v1/rules/simulate`, `/api/v1/engines/evaluate`,
+  `/api/v1/engines/simulate`, `POST /api/v1/event` and the event worker
+  reported every match as `rule_<id>` with priority 0. `/api/v1/rules/simulate`
+  also always returned `null` for `total_rules`, `candidates_evaluated` and
+  `evaluation_time_ms`; it now fills them in. The `/api/v1/engines` stats keep
+  their existing keys and gain these three.
 - **The REST API docs now match the server.** `rest-api.md`, `api.md`,
   `usage/http-api.md` and `reference/http-endpoints.md` described endpoints
   that do not exist (`POST /api/v1/simulate`, `POST /api/v1/explain`,

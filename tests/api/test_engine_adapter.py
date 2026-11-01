@@ -221,3 +221,36 @@ class TestAPIEngineAdapter:
         stats = adapter.get_stats()
         assert stats["metrics_enabled"] is False
         assert "observability" not in stats
+
+
+class TestFormatResponse:
+    """Matched rules carry their real name and priority (not placeholders)."""
+
+    def _result(self):  # type: ignore[no-untyped-def]
+        from fluxrules.engine.infrastructure import EvaluationResult
+
+        return EvaluationResult(
+            fired_rules=[7, 3], candidate_rule_ids=[7, 3, 9], actions=["a", "b"]
+        )
+
+    def test_names_and_priorities_come_from_the_rules(self, db_session: Session) -> None:
+        adapter = APIEngineAdapter(engine_type="PHREAK", db=db_session, enable_cache=False)
+        rules = [
+            {"id": 3, "name": "low", "priority": 1},
+            {"id": 7, "name": "high", "priority": 9},
+            {"id": 9, "name": "unmatched", "priority": 5},
+        ]
+        body = adapter._format_response(self._result(), 1.234, rules)
+        assert body["matched_rules"] == [
+            {"id": 7, "name": "high", "priority": 9},
+            {"id": 3, "name": "low", "priority": 1},
+        ]
+        assert body["stats"]["total_rules"] == 3
+        assert body["stats"]["candidates_evaluated"] == 3
+        assert body["stats"]["evaluation_time_ms"] == 1.23
+
+    def test_unknown_rule_falls_back_to_its_id(self, db_session: Session) -> None:
+        adapter = APIEngineAdapter(engine_type="PHREAK", db=db_session, enable_cache=False)
+        body = adapter._format_response(self._result(), 1.0)
+        assert body["matched_rules"][0] == {"id": 7, "name": "rule_7", "priority": 0}
+        assert body["stats"]["total_rules"] is None
