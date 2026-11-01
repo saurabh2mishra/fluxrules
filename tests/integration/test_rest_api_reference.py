@@ -129,6 +129,10 @@ class TestSessions:
         facts = client.get(url).json()
         assert [f["fact"] for f in facts] == [{"amount": 7000}]  # same fact_id replaces
 
+        evaluated = client.post(f"/api/v1/sessions/{session['id']}/evaluate").json()
+        assert evaluated["count"] == 1
+        assert evaluated["results"][0]["fact_id"] == "txn_123"
+
 
 class TestHealthAndErrors:
     def test_health(self, client) -> None:  # type: ignore[no-untyped-def]

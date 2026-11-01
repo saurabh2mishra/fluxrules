@@ -240,10 +240,13 @@ all, such as an unknown operator, answers `422` instead (see
 
 ## Sessions
 
-Sessions store facts on the server under a session id. They do not evaluate
-anything themselves: read the facts back and evaluate them with
-`POST /api/v1/evaluate`. A session holds at most 100 facts, lives in the
-server's memory, and is visible only to the user who created it.
+Sessions store facts on the server under a session id, so you can collect
+facts over several requests and evaluate them later. A session holds at most
+100 facts and is visible only to the user who created it.
+
+Sessions live in the memory of one server process. They are lost when the
+server restarts, and if you run several server processes, each one has its
+own sessions: send all requests for a session to the same process.
 
 ### POST /api/v1/sessions (login)
 
@@ -281,6 +284,40 @@ Add a fact to a session.
 
 `fact` is the fact. `fact_id` is optional; sending the same `fact_id` again
 replaces that fact.
+
+### POST /api/v1/sessions/{id}/evaluate (login)
+
+Evaluate every fact stored in the session against the stored rules. Each fact
+is evaluated **on its own**, and you get one result per fact. Facts are never
+combined, so two transactions with the same fields each get their own answer.
+
+**Request** (optional; send no body to use all stored rules):
+```json
+{"ruleset_id": "payments"}
+```
+
+`ruleset_id` and `rule_ids` work as for `POST /api/v1/evaluate`.
+
+**Response:**
+```json
+{
+  "session_id": "a43cdf91-61f3-41ac-a55d-526d6e806ab6",
+  "count": 2,
+  "ruleset_group": "payments",
+  "results": [
+    {"index": 0, "fact_id": "txn_1", "execution_id": "1105cdb5-...", "matched_rules": [1, 2], "actions": ["review", "add_vat"]},
+    {"index": 1, "fact_id": "txn_2", "execution_id": "9c24bea9-...", "matched_rules": [], "actions": []}
+  ]
+}
+```
+
+- `results` are in the order the facts were first added. Replacing a fact
+  (sending the same `fact_id` again) keeps its place.
+- `fact_id` says which stored fact each result belongs to.
+- Each `execution_id` works with `GET /api/v1/explain/{execution_id}`.
+
+The answers are the same as sending the facts to `POST /api/v1/evaluate/bulk`.
+Evaluating only reads the session: its facts stay as they were.
 
 Also available: `GET /api/v1/sessions/{id}` and `GET /api/v1/sessions/{id}/facts`
 to read a session back, `DELETE /api/v1/sessions/{id}/facts/{fact_id}` to

@@ -123,7 +123,8 @@ rule set is fine. No login needed.
 
 - **Rules** (`/api/v1/rules`): list, update, delete, versions and conflict
   checks.
-- **Sessions** (`/api/v1/sessions`): store facts under a session id.
+- **Sessions** (`/api/v1/sessions`): store facts under a session id, and
+  evaluate them later with `POST /api/v1/sessions/{id}/evaluate`.
 - **Audit** (`/api/v1/audit`): the audit trail of rule changes.
 - **Metrics** (`/api/v1/metrics`): Prometheus metrics.
 

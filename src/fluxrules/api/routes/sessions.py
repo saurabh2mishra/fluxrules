@@ -6,13 +6,18 @@ from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy.orm import Session
 
+from fluxrules.api.database import get_db
 from fluxrules.api.deps import get_current_user
 from fluxrules.api.models.user import User
 from fluxrules.api.schemas.session import (
     AssertFactRequest,
     AssertFactResponse,
     SessionCreate,
+    SessionEvaluateRequest,
+    SessionEvaluateResponse,
+    SessionEvaluateResult,
     SessionResponse,
     SessionStatsResponse,
 )
@@ -153,6 +158,40 @@ def list_sessions(
             for sid, sess in _SESSIONS.items()
             if sess["user_id"] == current_user.id
         ]
+
+
+@router.post("/{id}/evaluate", response_model=SessionEvaluateResponse)
+def evaluate_session(
+    id: str,
+    payload: SessionEvaluateRequest | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SessionEvaluateResponse:
+    """Evaluate each stored fact on its own, in the order the facts were added.
+
+    The session is only read: its facts stay as they are. The answers are the
+    same as sending the facts to ``/evaluate/bulk``.
+    """
+    from fluxrules.api.routes.evaluation import evaluate_many
+
+    request = payload or SessionEvaluateRequest()
+    with _STORE_LOCK:
+        session = _get_owned_session(id, current_user.id)
+        stored = [(fid, dict(rec["fact"])) for fid, rec in session["facts"].items()]
+
+    # Evaluate outside the lock so other session requests are not held up.
+    ruleset_group, results = evaluate_many(
+        db, [fact for _, fact in stored], request.ruleset_id, request.rule_ids
+    )
+    return SessionEvaluateResponse(
+        session_id=id,
+        count=len(results),
+        ruleset_group=ruleset_group,
+        results=[
+            SessionEvaluateResult(fact_id=fact_id, **result.model_dump())
+            for (fact_id, _), result in zip(stored, results, strict=True)
+        ],
+    )
 
 
 @router.get("/{id}/facts", response_model=list[AssertFactResponse])

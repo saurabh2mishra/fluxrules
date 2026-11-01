@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and a bad `workers` value fail early with a clear message. Returning full
   results costs about 4 to 6% more than fired-rule ids alone
   (`tests/performance/perf_parallel.py`).
+- **`POST /api/v1/sessions/{id}/evaluate`.** HTTP sessions could store facts
+  but not evaluate them. This endpoint evaluates each stored fact on its own,
+  in the order the facts were added, and returns one result per fact with its
+  `fact_id`. It takes the same optional `ruleset_id` and `rule_ids` as
+  `/api/v1/evaluate`, gives the same answers as `/api/v1/evaluate/bulk`, and
+  leaves the session's facts unchanged.
 - `FactValidationError` now survives pickling with its `schema_name` and
   `errors`.
 - **New guide: Ways to Evaluate a Fact** (`docs/evaluating-facts.md`). Every

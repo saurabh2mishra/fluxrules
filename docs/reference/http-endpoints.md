@@ -16,6 +16,7 @@ Quick reference for all REST endpoints.
 | POST | `/api/v1/rules/simulate` | Dry run with explanations |
 | POST | `/validate` | Check a rule set without storing it |
 | POST | `/api/v1/sessions` | Create a session that stores facts |
+| POST | `/api/v1/sessions/{id}/evaluate` | Evaluate each fact stored in a session |
 
 ## Setup
 

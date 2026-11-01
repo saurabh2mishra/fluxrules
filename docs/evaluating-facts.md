@@ -388,7 +388,8 @@ curl -X POST http://localhost:8000/api/v1/evaluate \
 
 The response lists the matched rule ids as `matched_rules`, plus `actions` and
 an `execution_id`. `POST /api/v1/evaluate/bulk` takes a list under `facts` and
-returns one result per fact.
+returns one result per fact. A session can also collect facts over several
+requests and evaluate them later with `POST /api/v1/sessions/{id}/evaluate`.
 
 **Use it when** another service, possibly not written in Python, needs
 answers. See [REST API](rest-api.md) and [Deployment](deployment.md).

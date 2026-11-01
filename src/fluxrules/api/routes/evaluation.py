@@ -166,12 +166,32 @@ def evaluate_bulk(
     current_user: User = Depends(get_current_user),
 ) -> BulkEvaluateResponse:
     """Evaluate many fact sets against the same rules in one request."""
+    ruleset_group, results = evaluate_many(db, request.facts, request.ruleset_id, request.rule_ids)
+    return BulkEvaluateResponse(
+        count=len(results),
+        ruleset_group=ruleset_group,
+        results=results,
+    )
+
+
+def evaluate_many(
+    db: Session,
+    facts_list: list[dict[str, Any]],
+    ruleset_id: str | None,
+    rule_ids: list[int] | None,
+) -> tuple[str, list[BulkEvaluateResult]]:
+    """Evaluate each fact on its own against the same stored rules.
+
+    Shared by ``/evaluate/bulk`` and ``/sessions/{id}/evaluate``. Each result is
+    recorded for ``/explain``. Returns the ruleset group and one result per
+    fact, in input order.
+    """
     service = RuleService.create()
-    ruleset = _load_ruleset(db, request.ruleset_id, request.rule_ids)
-    ruleset_group = request.ruleset_id or "all"
+    ruleset = _load_ruleset(db, ruleset_id, rule_ids)
+    ruleset_group = ruleset_id or "all"
 
     results: list[BulkEvaluateResult] = []
-    for index, facts in enumerate(request.facts):
+    for index, facts in enumerate(facts_list):
         if not ruleset.rules:
             result = _empty_match_result(ruleset_group)
         else:
@@ -191,12 +211,7 @@ def evaluate_bulk(
                 actions=result.actions,
             )
         )
-
-    return BulkEvaluateResponse(
-        count=len(results),
-        ruleset_group=ruleset_group,
-        results=results,
-    )
+    return ruleset_group, results
 
 
 @router.get("/explain/{execution_id}")
