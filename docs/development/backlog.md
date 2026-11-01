@@ -79,3 +79,53 @@ dependency. Remove the fallback branch and the stale install hint, and consider
 building them on `fluxrules.facts`.
 
 **Why waiting:** Cosmetic; no behaviour change.
+
+## HTTP API
+
+### Cap the in-memory explain store (next minor)
+
+**What:** Every evaluation through the HTTP API (`POST /api/v1/evaluate`,
+`/api/v1/evaluate/bulk` and `/api/v1/sessions/{id}/evaluate`) saves a record
+in `_execution_store`, a plain dict in
+`src/fluxrules/api/routes/evaluation.py`, so that
+`GET /api/v1/explain/{execution_id}` can find it later. The dict has no size
+limit: a long-running server keeps every record until it restarts, and memory
+grows with traffic. Keep only the most recent records instead.
+
+**Why waiting:** It needs a decision on the limit and its setting, and its own
+tests. It is not a regression: the store has always been unbounded.
+
+**Plan:**
+
+1. Replace the dict with a small bounded store, for example a class in
+   `src/fluxrules/api/routes/evaluation.py` built on `collections.OrderedDict`.
+   Adding a record past the limit removes the oldest one. Reading a record
+   does not change its age (a record's age is when it was evaluated). Guard
+   writes with a `threading.Lock`, because FastAPI runs sync routes in a
+   thread pool.
+2. Keep the same interface the routes use today: `store[execution_id] = record`,
+   `execution_id in store` and `store[execution_id]`. Then the three writers
+   (`evaluate`, `evaluate_many`) and the reader (`explain`) do not change.
+3. Add a setting `EXPLAIN_STORE_MAX_RECORDS` to `src/fluxrules/api/config.py`,
+   default `10_000`, read from the environment like the other settings.
+   `0` turns the store off (nothing is saved, and `explain` answers `404`
+   unless `RuleService.explain` knows the id).
+4. Tests, in a new `tests/unit/test_explain_store.py`:
+   - with a limit of 3, adding a 4th record removes the 1st;
+   - reading a record does not keep it from being removed;
+   - a limit of 0 saves nothing;
+   - concurrent writes from several threads never exceed the limit.
+   And one integration test: with a limit of 2, three evaluations make the
+   first `execution_id` answer `404` from `/api/v1/explain/{id}`.
+5. Docs: in `docs/rest-api.md`, section `GET /api/v1/explain/{execution_id}`,
+   say that the server keeps only the most recent records (10,000 by default,
+   set by `EXPLAIN_STORE_MAX_RECORDS`), so an old `execution_id` answers `404`.
+   Add the setting to the "Production configuration" section of
+   `docs/deployment.md`. Add a CHANGELOG entry under "Changed".
+
+**Cost:** about 40 lines of code and 80 lines of tests. Each evaluation pays
+one dict insert and, past the limit, one removal: no measurable change.
+
+**Not in scope:** keeping records across restarts or sharing them between
+server processes. That needs a real store (the database or Redis) and is a
+separate decision.

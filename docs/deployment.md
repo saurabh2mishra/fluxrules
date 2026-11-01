@@ -110,8 +110,11 @@ Use the health endpoint for readiness checks:
 
 ```bash
 curl http://localhost:8000/health
-# {"status": "healthy", "version": "1.1.0"}
+# {"status": "healthy"}
 ```
+
+`GET /api/v1/system/status` also reports the version and the state of each
+part of the server (queue, cache, persistence).
 
 Add to Docker/K8s liveness probes:
 
