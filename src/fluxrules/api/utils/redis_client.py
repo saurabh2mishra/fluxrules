@@ -1,4 +1,6 @@
 import redis
+from redis.backoff import NoBackoff
+from redis.retry import Retry
 
 from fluxrules.api.config import settings
 
@@ -14,15 +16,23 @@ def get_redis_client():
 
     if _redis_client is None:
         try:
-            _redis_client = redis.Redis(
-                host=settings.REDIS_HOST,
-                port=settings.REDIS_PORT,
-                db=settings.REDIS_DB,
-                decode_responses=True,
-                socket_timeout=0.5,
-                socket_connect_timeout=0.5,
-            )
-            _redis_client.ping()
+            options = {
+                "host": settings.REDIS_HOST,
+                "port": settings.REDIS_PORT,
+                "db": settings.REDIS_DB,
+                "decode_responses": True,
+                "socket_timeout": 0.5,
+                "socket_connect_timeout": 0.5,
+            }
+            # Probe once without retries: with redis-py's default retries a
+            # missing server cost several seconds here. The client kept for
+            # use keeps the default retries (the event queue relies on them).
+            probe = redis.Redis(**options, retry=Retry(NoBackoff(), 0))
+            try:
+                probe.ping()
+            finally:
+                probe.close()
+            _redis_client = redis.Redis(**options)
             _redis_available = True
         except Exception:
             _redis_available = False

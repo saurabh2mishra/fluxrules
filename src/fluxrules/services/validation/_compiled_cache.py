@@ -103,14 +103,51 @@ def _redis_key(group: str | None) -> str:
     return f"{_REDIS_PREFIX}{group or '__all__'}"
 
 
+# The Redis tier is best effort: it must never slow a request down. One client
+# is shared per process, with short timeouts and no retries, and after a
+# failure Redis is skipped for _REDIS_RETRY_SECONDS before the next attempt.
+# (A new client per call, with redis-py's default retries, cost seconds per
+# call on a server without Redis.)
+_REDIS_TIMEOUT_SECONDS = 0.5
+_REDIS_RETRY_SECONDS = 30.0
+_redis_client: Any = None
+_redis_down_until = 0.0
+
+
 def _get_redis_client():
-    """Lazy import - only available if ``redis`` is installed."""
+    """Return the shared Redis client, or ``None`` while Redis is unavailable."""
+    global _redis_client, _redis_down_until
+    if _redis_client is not None:
+        return _redis_client
+    if time.monotonic() < _redis_down_until:
+        return None
     try:
         import redis as _redis
-
-        return _redis.Redis()
-    except Exception:
+        from redis.backoff import NoBackoff
+        from redis.retry import Retry
+    except ImportError:
+        _redis_down_until = float("inf")  # not installed: never try again
         return None
+    try:
+        client = _redis.Redis(
+            socket_timeout=_REDIS_TIMEOUT_SECONDS,
+            socket_connect_timeout=_REDIS_TIMEOUT_SECONDS,
+            retry=Retry(NoBackoff(), 0),
+        )
+        client.ping()
+    except Exception as exc:
+        logger.debug("Redis compiled-cache unavailable: %s", exc)
+        _mark_redis_down()
+        return None
+    _redis_client = client
+    return client
+
+
+def _mark_redis_down() -> None:
+    """Drop the shared client and skip Redis for ``_REDIS_RETRY_SECONDS``."""
+    global _redis_client, _redis_down_until
+    _redis_client = None
+    _redis_down_until = time.monotonic() + _REDIS_RETRY_SECONDS
 
 
 def _get_redis(group: str | None) -> list[dict[str, Any]] | None:
@@ -123,6 +160,7 @@ def _get_redis(group: str | None) -> list[dict[str, Any]] | None:
             return json.loads(raw)
     except Exception as exc:
         logger.debug("Redis compiled-cache read failed: %s", exc)
+        _mark_redis_down()
     return None
 
 
@@ -138,6 +176,7 @@ def _set_redis(group: str | None, payloads: list[dict[str, Any]]) -> None:
         )
     except Exception as exc:
         logger.debug("Redis compiled-cache write failed: %s", exc)
+        _mark_redis_down()
 
 
 #  Index builder
@@ -228,3 +267,4 @@ def invalidate(group: str | None = None) -> None:
             client.delete(_redis_key(None))
     except Exception as exc:
         logger.debug("Redis compiled-cache invalidation failed: %s", exc)
+        _mark_redis_down()

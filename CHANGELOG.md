@@ -32,6 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Rule writes no longer stall on a server without Redis.** The compiled-rule
+  cache built a new Redis client on every call, with no timeout and redis-py's
+  default retries, so each rule create, update or delete waited about 7
+  seconds for connections that could not succeed. It now shares one client per
+  process with 0.5-second timeouts and no retries, and after a failure skips
+  Redis for 30 seconds before trying again. The API's shared Redis client also
+  checks the server once without retries (0.5 seconds instead of about 4).
+  With Redis running, nothing changes except that one connection pool is
+  reused instead of a new one per call.
 - **The REST API docs now match the server.** `rest-api.md`, `api.md`,
   `usage/http-api.md` and `reference/http-endpoints.md` described endpoints
   that do not exist (`POST /api/v1/simulate`, `POST /api/v1/explain`,
