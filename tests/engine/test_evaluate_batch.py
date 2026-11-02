@@ -337,3 +337,74 @@ def test_custom_engine_with_clone_settings_runs_in_workers() -> None:
     got = engine.evaluate_batch(FACTS, workers=2)
     assert [r.fired_rules for r in got] == expected
     assert any(expected) and not all(expected)
+
+
+class TestWorkerCodeInProcess:
+    """Code that normally runs inside worker processes, exercised here.
+
+    Coverage does not follow worker processes, so these call the same
+    functions directly in this process.
+    """
+
+    def test_payload_initializer_builds_the_engine(self) -> None:
+        from fluxrules.engine.runtime import worker_pool
+
+        engine = _engine()
+        engine_class, settings = engine._clone_settings()
+        payload = worker_pool.build_payload(engine_class, settings, RULES)
+        try:
+            worker_pool._init_worker_from_payload(payload)
+            built = worker_pool._WORKER_ENGINE
+            assert type(built) is PhreakEngine
+            assert built.evaluate(FACTS[0]).fired_rules == engine.evaluate(FACTS[0]).fired_rules
+        finally:
+            worker_pool._WORKER_ENGINE = None
+
+    def test_chunk_returns_quarantined_facts_with_their_index(self) -> None:
+        from fluxrules.engine.runtime.worker_pool import run_sharded
+
+        engine = _engine(fact_schema=Payment, validate_facts="normalize", on_invalid="quarantine")
+        engine_class, settings = engine._clone_settings()
+        facts = [{"amount": 1}, {"amount": "x"}, {"amount": 2}]
+        outcome = run_sharded(engine_class, settings, RULES, facts, 1)
+        assert [q.facts for q in outcome.quarantined] == [{"amount": "x"}]
+        assert len(outcome.results) == 3
+
+    def test_picklable_keeps_or_replaces_an_exception(self) -> None:
+        from fluxrules.engine.runtime.worker_pool import _picklable
+
+        fine = ValueError("fine")
+        assert _picklable(fine) is fine
+        replaced = _picklable(NeedsKeyword(reason="boom"))
+        assert type(replaced) is RuntimeError
+        assert str(replaced) == "NeedsKeyword: boom"
+
+    def test_payload_error_when_only_the_whole_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import pickle
+
+        from fluxrules.engine.runtime import worker_pool
+
+        real_dumps = pickle.dumps
+
+        def dumps(obj, *args, **kwargs):  # type: ignore[no-untyped-def]
+            if isinstance(obj, tuple):
+                raise pickle.PicklingError("whole payload")
+            return real_dumps(obj, *args, **kwargs)
+
+        monkeypatch.setattr(worker_pool.pickle, "dumps", dumps)
+        with pytest.raises(ValueError, match="the engine settings could not be pickled"):
+            worker_pool.build_payload(PhreakEngine, {}, RULES)
+
+    def test_evaluate_batch_parallel_raises_the_first_error(self) -> None:
+        from fluxrules.engine.runtime import evaluate_batch_parallel
+
+        with pytest.raises(FieldNotFoundError):
+            evaluate_batch_parallel(RULES, [FACTS[0], {"Amount": 1}], num_workers=1)
+
+
+def test_chunk_offsets() -> None:
+    from fluxrules.engine.runtime.worker_pool import _chunk
+
+    assert _chunk([1, 2, 3], 1) == [(0, [1, 2, 3])]
+    assert _chunk([1], 4) == [(0, [1])]
+    assert _chunk([1, 2, 3, 4, 5], 2) == [(0, [1, 2, 3]), (3, [4, 5])]

@@ -123,3 +123,11 @@ def test_batch_workers_use_the_current_values() -> None:
     config.missing_field = "unknown"
     results = engine.evaluate_batch([FACT, FACT], workers=2)
     assert all(1 not in r.fired_rules for r in results)
+
+
+def test_rule_without_a_condition_tree_is_left_to_the_interpreter() -> None:
+    engine = _engine(EngineConfig(missing_field="false"), True)
+    stored = engine.rule_repository.rules[2]
+    object.__setattr__(stored, "conditions", None)  # e.g. a custom repository entry
+    engine._compile_all_conditions()
+    assert sorted(engine._compiled_conditions) == [1]

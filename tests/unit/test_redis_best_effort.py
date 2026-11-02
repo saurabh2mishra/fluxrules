@@ -177,3 +177,28 @@ class TestCompiledCacheRedis:
         assert _compiled_cache._get_redis("payments") is None
         assert _compiled_cache._get_redis_client() is None
         assert len(clients.built) == 1
+
+
+class TestFailuresStartTheWait:
+    def test_failed_write(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
+        clients = _Clients(up=True)
+        monkeypatch.setattr(redis, "Redis", clients)
+        assert _compiled_cache._get_redis_client() is not None
+
+        clients.up = False
+        _compiled_cache._set_redis("payments", [{"id": 1}])
+        assert _compiled_cache._redis_client is None
+        assert _compiled_cache._redis_down_until > clock[0]
+
+    def test_failed_invalidate(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
+        clients = _Clients(up=True)
+        monkeypatch.setattr(redis, "Redis", clients)
+        client = _compiled_cache._get_redis_client()
+
+        def broken_delete(key: str) -> None:
+            raise redis.ConnectionError("gone")
+
+        monkeypatch.setattr(client, "delete", broken_delete)
+        _compiled_cache.invalidate("payments")
+        assert _compiled_cache._redis_client is None
+        assert _compiled_cache._redis_down_until > clock[0]
