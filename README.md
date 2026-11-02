@@ -139,7 +139,9 @@ A fact can be:
 - a plain `dict`, or any other mapping, of field names to values;
 - a typed model: a Pydantic v2 model, a dataclass, an attrs class or a msgspec `Struct`. The engine turns it into a flat dict, and nested models become dotted keys such as `customer.age`.
 
-Anything else, such as a list or a string, raises `TypeError`. With `engine.evaluate(fact, strict_facts=True)` the same input raises `InvalidFactError` (from `fluxrules.pipeline.validators`, a subclass of `ValueError`) instead. The engine reads flat keys only, so flatten a nested `dict` first (for example with the `Flatten` transform). Raw payloads and file records go through a fact pipeline or `FactLoader` first. [From Fact to Action](https://saurabh2mishra.github.io/fluxrules/fact-to-action/) follows one fact through every stage, from pipeline and validation to discovery, ordering and actions.
+Anything else, such as a list or a string, raises `TypeError`. The engine reads flat keys only, so flatten a nested `dict` first, for example with the [`Flatten` transform](https://saurabh2mishra.github.io/fluxrules/nested-facts/#flattening-nested-facts).
+
+See [From Fact to Action](https://saurabh2mishra.github.io/fluxrules/fact-to-action/) to learn how a fact can be passed to `evaluate` in fluxrules.
 
 ### What happens inside each call
 

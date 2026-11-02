@@ -82,9 +82,9 @@ on the docs site. Their content lives on the page named after each arrow:
 - Sample `/health` and status responses show version 1.1.1.
 - The README said `evaluate(facts)` takes a dictionary. It takes a dict, any
   mapping or a typed model (Pydantic, dataclass, attrs, msgspec), and the
-  top-level function takes rules as well as the fact. It now also says that
-  `strict_facts=True` rejects an invalid fact with `InvalidFactError`, not
-  `TypeError`, as does the Configuration page.
+  top-level function takes rules as well as the fact. The Configuration
+  page now says that `strict_facts=True` rejects an invalid fact with
+  `InvalidFactError`, not `TypeError`.
 - Check-mark symbols and spaced-hyphen dashes replaced with plain words.
 
 ## [1.1.0] - 2026-11-02
