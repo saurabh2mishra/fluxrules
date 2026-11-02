@@ -1,6 +1,6 @@
 # Dependency Injection
 
-**Prerequisites:** [Custom Actions](custom-actions.md) and [Custom Engines](custom-engines.md).
+**Prerequisites:** [Actions](custom-actions.md) and [Custom Engines](custom-engines.md).
 
 ---
 
@@ -83,4 +83,4 @@ See [Persistence](persistence.md#using-a-different-sql-provider-postgres-sql-ser
 
 - **Persistence**: See [Persistence](persistence.md) for database configuration
 - **Custom Engines**: See [Custom Engines](custom-engines.md)
-- **Custom Actions**: See [Custom Actions](custom-actions.md)
+- **Actions**: See [Actions](custom-actions.md)

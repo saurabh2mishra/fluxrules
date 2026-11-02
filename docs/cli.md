@@ -204,7 +204,7 @@ pip install 'fluxrules[api]'
 fluxrules serve --host 127.0.0.1 --port 8000 --reload
 ```
 
-Starts the HTTP API with uvicorn. See [REST API](rest-api.md).
+Starts the HTTP API with uvicorn. See [HTTP API Reference](rest-api.md).
 
 ## Next Steps
 

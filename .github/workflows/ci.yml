@@ -67,7 +67,7 @@ jobs:
         run: uv run pytest --doctest-modules src/fluxrules -q
 
       - name: MkDocs build
-        run: uv run mkdocs build
+        run: uv run mkdocs build --strict
 
       - name: Bandit security scan
         run: uv run bandit -r src/fluxrules -c pyproject.toml

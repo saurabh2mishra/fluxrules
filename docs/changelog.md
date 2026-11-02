@@ -10,6 +10,13 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **v1.1.1** (2026): Documentation reorganized
+  - Each topic now lives on one page, and the navigation follows the order
+    a reader needs it
+  - Duplicate pages merged; Advanced Capabilities became the Capability Map
+    under Advanced Guides
+  - Concepts links to From Fact to Action and Ways to Evaluate a Fact
+  - Several wrong statements corrected; the library code is unchanged
 - **v1.1.0** (2026): Typed facts, missing-field fixes and batch evaluation
   - Engines accept Pydantic models, dataclasses, attrs classes and msgspec
     structs; nested models become dotted keys

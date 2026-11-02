@@ -1,18 +1,13 @@
 # Reference
 
-API reference and configuration documentation.
+Exact details for when you know what you are looking for.
 
-## API
+- **[Public API](public-api.md)**: the functions, classes and errors that
+  `fluxrules` exports, with their stability labels.
+- **[HTTP API Reference](../rest-api.md)**: every endpoint of the HTTP server,
+  with its request and response.
+- **[Configuration](../usage/configuration.md)**: engine settings and the
+  extras that enable each integration.
+- **[CLI](../cli.md)**: the `fluxrules` command and its options.
 
-- **[Public API](public-api.md)**: Exported functions and classes
-- **[HTTP Endpoints](http-endpoints.md)**: REST endpoint reference
-
-## Configuration
-
-Environment variables and configuration options.
-
-See [Configuration](../usage/configuration.md) for runtime setup.
-
-## Deployment
-
-For production deployment, see [Deployment](../deployment.md).
+To run FluxRules in production, see [Deployment](../deployment.md).

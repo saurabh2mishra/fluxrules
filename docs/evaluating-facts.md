@@ -392,7 +392,7 @@ returns one result per fact. A session can also collect facts over several
 requests and evaluate them later with `POST /api/v1/sessions/{id}/evaluate`.
 
 **Use it when** another service, possibly not written in Python, needs
-answers. See [REST API](rest-api.md) and [Deployment](deployment.md).
+answers. See [HTTP API Reference](rest-api.md) and [Deployment](deployment.md).
 
 ---
 

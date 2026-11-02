@@ -68,17 +68,17 @@ fact = {"amount": 6000, "country": "NG"}
 result = engine.evaluate(fact)
 ```
 
-**For evaluation modes**, see [The FluxRules Engine](engine-comparison.md).  
-**For mode selection guidance**, see [Choosing an Evaluation Mode](choosing-an-engine.md).
+The engine has two evaluation modes, stateless and streaming.
+[The PHREAK Engine](engine-comparison.md) explains how each mode works, and
+[Choosing an Evaluation Mode](choosing-an-engine.md) helps you pick one.
 
 ---
 
 ## Fact
 
-A **Fact** is a JSON-like dictionary representing data to evaluate against rules.
+A **Fact** is the data you check against your rules, such as one payment. It
+is a flat dictionary of field names and values:
 
-**Structure:** Flat or nested dictionaries
-**Example:**
 ```python
 fact = {
     "fact_id": "txn-001",
@@ -91,9 +91,27 @@ fact = {
 }
 ```
 
-**Important:** A fact is **stateless** by default. Each `engine.evaluate(fact)` call is independent.
+A rule refers to a field by its key, as in `F("amount") > 1000`.
 
-**See:** [examples/06_working_memory.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/06_working_memory.py) (state management patterns)
+Facts often arrive in other shapes, and FluxRules handles each of them:
+
+- **Nested data**, such as `{"payment": {"amount": 4200}}`. The engine reads
+  flat keys only, so flatten it first. The nested value then becomes the
+  dotted key `"payment.amount"`. See [Nested Facts](nested-facts.md).
+- **Typed models**, such as a Pydantic model or a dataclass. The engine turns
+  them into a flat dictionary for you. See [Typed Facts](typed-facts.md).
+- **Raw input** that needs cleaning, renaming or enriching. A fact pipeline
+  prepares it before evaluation. See [Fact Pipeline](fact-pipeline.md).
+
+Each `engine.evaluate(fact)` call is independent by default: the engine keeps
+nothing from one call to the next. Streaming mode and sessions keep state on
+purpose, and you opt into each.
+
+To follow a single fact from the moment it arrives to the actions it
+produces, read [From Fact to Action](fact-to-action.md). To choose how your
+application sends facts to the engine (one at a time, in batches, as a stream,
+from the command line or over HTTP), read
+[Ways to Evaluate a Fact](evaluating-facts.md).
 
 ---
 
@@ -170,6 +188,10 @@ print(f"Actions: {result.actions}")       # ['manual_review', 'block_payment']
 print(f"Time: {result.latency_ms}ms")     # 1.2ms
 ```
 
+The engine does not run the actions itself. It returns their names, and your
+application decides what to do with them. [Actions](custom-actions.md) shows
+how to register a handler for each action name.
+
 **See:** [examples/15_action_system.py](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py)
 
 ---
@@ -242,8 +264,8 @@ This shared context lets you focus on learning features without context-switchin
 
 ## Next Steps
 
-- **[Quickstart](quickstart.md)**: 5-minute working example
-- **[Conditions](conditions.md)**: Operator reference
-- **[Complex Conditions](complex-conditions.md)**: AND/OR/NOT logic
-- **[Domains & Tags](domains-and-tags.md)**: Rule organization
+- **[From Fact to Action](fact-to-action.md)**: one fact, followed through every stage
+- **[Ways to Evaluate a Fact](evaluating-facts.md)**: every way to send facts to the engine
+- **[Authoring Rules](authoring-rules.md)**: the ways to write a rule
+- **[Conditions](conditions.md)**: operator reference
 

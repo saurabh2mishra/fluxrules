@@ -201,5 +201,5 @@ than treating a file loader as a database repository.
 - [Typed Facts](typed-facts.md)
 - [Conditions](conditions.md)
 - [Rule Types](rule-types.md)
-- [Custom Actions](custom-actions.md)
+- [Actions](custom-actions.md)
 - [Persistence](persistence.md)

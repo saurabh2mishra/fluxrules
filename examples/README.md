@@ -80,10 +80,10 @@ Each group has corresponding comprehensive documentation guides. Use these along
 - [YAML Rules](../docs/yaml-rules.md): Rules as configuration
 
 **Engine & Architecture**
-- [Engine Comparison Guide](../docs/engine-comparison.md): Choose the right engine
+- [The PHREAK Engine](../docs/engine-comparison.md): Stateless and streaming modes
 
 **Integration & DevOps**
-- [REST API Server Guide](../docs/rest-api.md): Deploy as a microservice
+- [HTTP API Reference](../docs/rest-api.md): Every endpoint of the HTTP server
 
 **Advanced Techniques**
 - [Rule Builder API](../docs/rule-builder.md): Fluent programming interface
@@ -341,7 +341,7 @@ For help choosing the right engine and optimizing performance:
 
 ### Learning & Examples
 - **[Examples Learning Path](../docs/examples.md)**: Structured guide through all examples
-- **[Getting Started](../docs/GETTING_STARTED.md)**: Step-by-step tutorial
+- **[Concepts](../docs/concepts.md)**: Rules, facts, engines and results explained
 
 ### Feature Guides
 - **[Simple Conditions](../docs/conditions.md)**: Master operators
@@ -350,12 +350,12 @@ For help choosing the right engine and optimizing performance:
 - **[Working Memory](../docs/working-memory.md)**: Stateful evaluation
 - **[Sessions & State](../docs/sessions.md)**: Long-running workflows
 - **[YAML Rules](../docs/yaml-rules.md)**: Rules as configuration
-- **[Engine Comparison](../docs/engine-comparison.md)**: Engine selection
-- **[REST API](../docs/rest-api.md)**: Microservice deployment
+- **[The PHREAK Engine](../docs/engine-comparison.md)**: Evaluation modes
+- **[HTTP API Reference](../docs/rest-api.md)**: Every endpoint
 - **[Rule Builder](../docs/rule-builder.md)**: Fluent API
 
 ### Reference
-- **[API Reference](../docs/api.md)**: Complete API documentation
+- **[HTTP API](../docs/api.md)**: Run FluxRules as an HTTP service
 - **[Architecture Guide](../docs/architecture.md)**: Design and internals
 - **[Validation Framework](../docs/validation-framework.md)**: Built-in validation
 - **[Performance Benchmarks](../docs/benchmarks.md)**: Performance analysis

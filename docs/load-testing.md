@@ -250,7 +250,7 @@ result = engine.evaluate(facts)
 # Next fact: only "amount" changed
 facts_updated = {"customer_id": 123, "amount": 6000}
 result = engine.evaluate(facts_updated, prev_facts=facts)
-# PHREAK recomputes only alphas for "amount" field ✓
+# PHREAK recomputes only alphas for "amount" field
 ```
 
 **Impact:** 5-10× faster for incremental updates vs. full re-evaluation.
@@ -318,7 +318,7 @@ API ──────▶ PHREAK Engine ──────▶ Results DB
 
 ```
 Daily Volume: 100,000,000 facts  (≈ 1,160 facts/sec average;
-                                   higher at peak - size for peak, not average)
+                                   higher at peak; size for peak, not average)
 Rules: 50,000 (pricing, promotions, inventory)
 
 Setup:
@@ -349,7 +349,7 @@ Rules: 100,000 (regulatory, risk, compliance)
 
 Per-fact latency: MEASURE at 100K rules with perf_realistic_rules.py. Per-fact
 cost scales with surviving candidates (post-alpha), not raw rule count, so the
-number depends on selectivity - do not assume a fixed multiple of the 50K case.
+number depends on selectivity. Do not assume a fixed multiple of the 50K case.
 
 Setup:
 - Many processes/pods (size from measured per-process throughput + headroom).

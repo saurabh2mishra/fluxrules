@@ -1,14 +1,16 @@
-# Examples & Learning Path
+# Examples and Learning Path
 
-Welcome to the FluxRules learning path! This guide walks you through progressively more sophisticated examples that teach you how to build rules in FluxRules. 
+The `examples/` folder holds runnable scripts that build on each other, from
+the first rule to fact pipelines. This page describes each one in the order
+we suggest you read them.
 
-**All examples use a shared `cross_border_payment_risk_triage` dataset** located in `examples/shared_use_case.py`. This means you can focus on learning each feature without switching between different problem domains. Each example is a standalone Python script in the `examples/` directory.
+Every example uses the same **payment-risk triage** data, defined in
+`examples/shared_use_case.py`. Because the data stays the same, you can focus
+on the feature each example teaches.
 
-**Estimated time:** 30 minutes to run all examples end-to-end.
+**Estimated time:** 30 minutes to run all examples end to end.
 
 ## Learning Path Overview
-
-All examples share a common **payment-risk triage** use case with cross-border fraud detection rules. This lets you focus on learning each feature without context switching between different problem domains.
 
 | Group | Examples | Focus |
 |-------|----------|-------|
@@ -16,6 +18,7 @@ All examples share a common **payment-risk triage** use case with cross-border f
 | **Integration** | 05-11 | Persistence, working memory, YAML, engines, CLI, REST API |
 | **Advanced** | 13-22 | Complex rules, error handling, actions, fact store, ID generation, unified rules, streaming, workflows |
 | **Pipelines** | 23-30 | Stateless evaluation, cross-fact joins, nested facts, fact loading, pipelines, transforms, conflict detection |
+| **Facts** | 31-32 | Typed facts, and every way to evaluate a fact |
 
 ---
 
@@ -560,30 +563,18 @@ python examples/32_ways_to_evaluate.py
 
 ---
 
-## Running All Examples
+## Running the Examples
 
-To run all examples in sequence:
+Run the examples from the `examples/` folder, because each one imports the
+shared data from `shared_use_case.py` in that folder:
 
-```bash
-cd examples
-for file in *.py; do
-    echo "Running $file..."
-    python "$file"
-done
-```
-
-## Quick Reference
-
-### Running Examples
-
-**Run a single example:**
 ```bash
 cd examples
 python 00_getting_started.py
-python 13_complex_rules.py
 ```
 
-**Run all examples:**
+To run them all in order:
+
 ```bash
 cd examples
 for file in [0-3][0-9]_*.py; do
@@ -592,9 +583,12 @@ for file in [0-3][0-9]_*.py; do
 done
 ```
 
-### Shared Dataset (`examples/shared_use_case.py`)
+Examples 11 and 12 need the `cli` and `api` extras. Example 07 needs the
+`yaml` extra.
 
-All examples use the same payment-risk dataset. Run examples from the `examples/` directory:
+## Shared Dataset (`examples/shared_use_case.py`)
+
+Every example imports the same payment-risk data:
 
 ```python
 # python skip
@@ -624,10 +618,11 @@ dsl = complex_risk_condition()
 
 After completing the learning path:
 
-1. **Read the [Unified Validation Framework](validation-framework.md)** to understand the core validation system
-2. **Review [The FluxRules Engine](engine-comparison.md)** to pick the right evaluation mode for your use case
-3. **Explore [Custom Engines](custom-engines.md)** to extend FluxRules
-4. **Check [Troubleshooting](troubleshooting.md)** for common issues
+1. **Read the [Validation Framework](validation-framework.md)** to understand how rules are checked
+2. **Review [The PHREAK Engine](engine-comparison.md)** to pick the right evaluation mode for your use case
+3. **Browse [Advanced Capabilities](advanced-capabilities.md)** for a map of every advanced feature
+4. **Explore [Custom Engines](custom-engines.md)** to extend FluxRules
+5. **Check [Troubleshooting](troubleshooting.md)** for common issues
 
 ---
 
@@ -639,4 +634,3 @@ After completing the learning path:
 - **Build:** Create your own rules based on the patterns you see
 - **Integrate:** Try using FluxRules in your own projects
 
-Happy rule engineering! 
