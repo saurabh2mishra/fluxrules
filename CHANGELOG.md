@@ -71,6 +71,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The HTTP explain store keeps only recent records.** Every evaluation
+  through the HTTP API saves a record so `GET /api/v1/explain/{id}` can find
+  it. The store had no limit, so a long-running server's memory grew with
+  traffic. It now keeps the most recent 10,000 records (set
+  `EXPLAIN_STORE_MAX_RECORDS`; `0` keeps none), and an older id answers `404`.
 - `fluxrules.engine.runtime.evaluate_batch_parallel` is now built on the same
   code as `evaluate_batch`. Its signature and results are unchanged; it still
   builds a default engine and returns fired-rule ids.

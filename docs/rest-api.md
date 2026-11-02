@@ -163,7 +163,11 @@ Look up an earlier evaluation by its `execution_id`. The response has the same
 fields as `POST /api/v1/evaluate`, including the facts that were evaluated. An
 unknown id answers `404`.
 
-The server keeps these records in memory, so they are lost when it restarts.
+The server keeps only the most recent records: 10,000 by default, set by the
+`EXPLAIN_STORE_MAX_RECORDS` environment variable (`0` keeps none). An older
+`execution_id` answers `404`. The records live in the server's memory, so
+they are lost when it restarts, and with several server processes each one
+has its own.
 
 ### POST /api/v1/rules/simulate (login)
 

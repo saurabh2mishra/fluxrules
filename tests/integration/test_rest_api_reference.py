@@ -158,3 +158,17 @@ def test_register_and_token(client) -> None:  # type: ignore[no-untyped-def]
     ).json()
     assert token["token_type"] == "bearer"
     assert token["access_token"]
+
+
+def test_explain_forgets_the_oldest_evaluations(client, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from fluxrules.api.config import settings
+    from fluxrules.api.routes.evaluation import _execution_store
+
+    monkeypatch.setattr(settings, "EXPLAIN_STORE_MAX_RECORDS", 2)
+    _execution_store.clear()
+    ids = [
+        client.post("/api/v1/evaluate", json={"facts": FACT}).json()["execution_id"]
+        for _ in range(3)
+    ]
+    assert client.get(f"/api/v1/explain/{ids[0]}").status_code == 404
+    assert [client.get(f"/api/v1/explain/{i}").status_code for i in ids[1:]] == [200, 200]

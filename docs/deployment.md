@@ -60,6 +60,9 @@ export API_HOST=0.0.0.0
 export API_PORT=8000
 export API_WORKERS=4
 
+# How many recent evaluations GET /api/v1/explain can find (default 10000)
+export EXPLAIN_STORE_MAX_RECORDS=10000
+
 # Optional: Prometheus metrics
 export OTEL_ENABLED=true
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
