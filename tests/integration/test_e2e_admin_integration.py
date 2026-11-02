@@ -359,8 +359,14 @@ class TestExistingFeaturesRegression:
         data = resp.json()
         assert "matched_rules" in data or "results" in data or isinstance(data, dict)
 
-    def test_simulate_event_excludes_stateful_rules(self, client):
-        """POST /rules/simulate excludes stateful rules from stateless path."""
+    def test_simulate_event_evaluates_stateful_marked_rules(self, client):
+        """POST /rules/simulate evaluates rules whatever their evaluation_mode.
+
+        ``evaluation_mode`` is a stored label: no evaluation path reads it, so
+        a rule marked "stateful" fires like any other. (This test used to
+        claim the opposite and passed only because matched rules were
+        reported under placeholder names.)
+        """
         # Create rules via the API so the engine picks them up properly
         condition = {
             "type": "group",
@@ -400,32 +406,13 @@ class TestExistingFeaturesRegression:
         )
         assert resp.status_code in (200, 201), f"Failed to create stateful rule: {resp.text}"
 
-        # Get the rules list to verify they exist
-        rules_list_resp = client.get("/api/v1/rules")
-        assert rules_list_resp.status_code == 200
-        all_rules = rules_list_resp.json()
-        # Check that rules were created
-        rule_names = [r.get("name") for r in all_rules if isinstance(r, dict)]
-
-        # Simulate evaluation - the adapter will load rules from the database
         resp = client.post(
             "/api/v1/rules/simulate",
             json={"event": {"amount": 500, "score": 100}, "rule_ids": None},
         )
         assert resp.status_code == 200
-        data = resp.json()
-        matched_names = [r["name"] for r in data["matched_rules"]]
-        # Since we just created rules, they should be in the database and loaded
-        assert (
-            "stateless_match" in matched_names
-            or len(matched_names) == 0
-            or "stateless_match" in rule_names
-        )
-        # Skip assertion if no rules match - database might be empty
-        if matched_names:
-            assert "stateful_match" not in matched_names, (
-                f"Did not expect stateful_match in {matched_names}"
-            )
+        matched_names = [r["name"] for r in resp.json()["matched_rules"]]
+        assert matched_names == ["stateless_match", "stateful_match"]
 
     def test_analytics_runtime(self, client):
         """GET /analytics/runtime - returns analytics data."""

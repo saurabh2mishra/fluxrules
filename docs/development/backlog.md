@@ -129,3 +129,17 @@ one dict insert and, past the limit, one removal: no measurable change.
 **Not in scope:** keeping records across restarts or sharing them between
 server processes. That needs a real store (the database or Redis) and is a
 separate decision.
+
+### Define what `evaluation_mode="stateful"` means for stored rules
+
+**What:** Rules stored through the HTTP API have an `evaluation_mode` field
+(`"stateless"` by default, or `"stateful"`). It is saved and returned, but no
+evaluation path reads it, so a "stateful" rule fires like any other. Either
+give it a meaning (for example: such rules run only in a streaming engine or a
+session, and the stateless endpoints skip them) or remove the field.
+
+**Why waiting:** Giving it a meaning changes which rules fire for anyone who
+set it, and needs a design for where stateful rules run in the HTTP API.
+Today's behaviour is documented in [REST API](../rest-api.md#post-apiv1rules-login)
+and pinned by
+`tests/integration/test_e2e_admin_integration.py::TestExistingFeaturesRegression::test_simulate_event_evaluates_stateful_marked_rules`.

@@ -69,6 +69,9 @@ Store a new rule.
   (see below).
 - `priority` orders the matches: higher numbers come first. It defaults to 0.
 - `conditions` uses the condition format described in [Conditions](conditions.md).
+- `evaluation_mode` (`"stateless"` by default) is stored and returned as a
+  label only. No evaluation reads it: a rule marked `"stateful"` is evaluated
+  like any other.
 
 **Response:** the stored rule, with its new `id`, a `current_version` of 1
 and timestamps.
