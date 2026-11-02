@@ -58,9 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   priorities.** `/api/v1/rules/simulate`, `/api/v1/engines/evaluate`,
   `/api/v1/engines/simulate`, `POST /api/v1/event` and the event worker
   reported every match as `rule_<id>` with priority 0. `/api/v1/rules/simulate`
-  also always returned `null` for `total_rules`, `candidates_evaluated` and
-  `evaluation_time_ms`; it now fills them in. The `/api/v1/engines` stats keep
-  their existing keys and gain these three.
+  also always returned `null` for `candidates_evaluated` and
+  `evaluation_time_ms`; it now fills them in. Other responses' stats are
+  unchanged.
 - **The REST API docs now match the server.** `rest-api.md`, `api.md`,
   `usage/http-api.md` and `reference/http-endpoints.md` described endpoints
   that do not exist (`POST /api/v1/simulate`, `POST /api/v1/explain`,

@@ -571,7 +571,16 @@ def simulate_event(
     current_user: User = Depends(get_current_user),
 ):
     adapter = APIEngineAdapter(engine_type=settings.RULE_ENGINE_TYPE, db=db, enable_cache=True)
-    return adapter.evaluate(request.event, request.rule_ids)
+    result = adapter.evaluate(request.event, request.rule_ids)
+    # The adapter names its stats for /api/v1/engines; SimulateStats uses
+    # other names for the same figures.
+    stats = result.get("stats") or {}
+    result["stats"] = {
+        "candidates_evaluated": stats.get("rules_evaluated"),
+        "rules_matched": stats.get("rules_matched"),
+        "evaluation_time_ms": stats.get("latency_ms"),
+    }
+    return result
 
 
 @router.post("/reload")

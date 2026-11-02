@@ -436,9 +436,5 @@ class APIEngineAdapter:
                 "latency_ms": round(latency_ms, 2),
                 "rules_evaluated": len(result.candidate_rule_ids),
                 "rules_matched": len(result.fired_rules),
-                # The same figures under the names SimulateStats uses.
-                "total_rules": len(rules) if rules is not None else None,
-                "candidates_evaluated": len(result.candidate_rule_ids),
-                "evaluation_time_ms": round(latency_ms, 2),
             },
         }

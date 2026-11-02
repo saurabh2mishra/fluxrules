@@ -193,7 +193,7 @@ Evaluate a fact as a dry run and get an explanation for each matched rule.
   },
   "dry_run": true,
   "stats": {
-    "total_rules": 2,
+    "total_rules": null,
     "candidates_evaluated": 2,
     "rules_matched": 2,
     "evaluation_time_ms": 0.41,
@@ -205,9 +205,10 @@ Evaluate a fact as a dry run and get an explanation for each matched rule.
 - `matched_rules`: each matched rule's id, name and priority, in the order
   they fired. `execution_order` lists the same ids.
 - `explanations`: why each rule matched.
-- `stats`: how many rules were loaded (`total_rules`), how many the engine
-  looked at closely after filtering (`candidates_evaluated`), how many matched,
-  and how long it took in milliseconds.
+- `stats`: how many rules the engine looked at closely after filtering
+  (`candidates_evaluated`), how many matched (`rules_matched`), and how long
+  it took in milliseconds (`evaluation_time_ms`). `total_rules` and
+  `optimization` are not filled in.
 
 ## Checking a rule set
 
