@@ -80,33 +80,47 @@ building them on `fluxrules.facts`.
 
 **Why waiting:** Cosmetic; no behaviour change.
 
-## Batch evaluation
+## HTTP API
 
-### `engine.evaluate_batch()` with full results and engine options
+### Define what `evaluation_mode="stateful"` means for stored rules
 
-**What:** A method on the engine that evaluates many facts and returns one full
-`EvaluationResult` per fact (fired rules, actions, explanations, grouping by
-domain and tag, latency), in input order:
+**What:** Rules stored through the HTTP API have an `evaluation_mode` field
+(`"stateless"` by default, or `"stateful"`). It is saved and returned, but no
+evaluation path reads it, so a "stateful" rule fires like any other. Either
+give it a meaning (for example: such rules run only in a streaming engine or a
+session, and the stateless endpoints skip them) or remove the field.
 
-```python
-# python skip: proposed API, not implemented yet
-results = engine.evaluate_batch(rows)              # one process
-results = engine.evaluate_batch(rows, workers=8)   # eight processes
-```
+**Why waiting:** Giving it a meaning changes which rules fire for anyone who
+set it, and needs a design for where stateful rules run in the HTTP API.
+Today's behaviour is documented in [REST API](../rest-api.md#post-apiv1rules-login)
+and pinned by
+`tests/integration/test_e2e_admin_integration.py::TestExistingFeaturesRegression::test_simulate_event_evaluates_stateful_marked_rules`.
 
-With `workers=1` it loops over `evaluate()`. With more workers, each worker
-process rebuilds an engine from this engine's own rules and settings, so
-`fact_schema`, `validate_facts`, `on_invalid`, `fact_pipeline` and
-`EngineConfig` apply exactly as they do to `evaluate()`. Facts quarantined in
-the workers are gathered into the calling engine's `quarantined_facts`.
-`fluxrules.engine.runtime.evaluate_batch_parallel` becomes a thin wrapper that
-keeps returning fired-rule ids, so existing callers keep working.
+### Compiled-rule cache: use the configured Redis server
 
-**Why waiting:** Today's `evaluate_batch_parallel` builds a plain
-`PhreakEngine(streaming_mode=...)` in each worker, so it ignores every other
-engine option, and it returns only fired-rule ids. Fixing that changes the
-engine's public API and its multiprocessing behaviour, so it needs its own PR,
-review and performance run. Open points: settings must be picklable to reach
-worker processes (a `Filter` with a lambda is not), which needs a clear early
-error; and sending full results back costs more than id lists, which should be
-measured before adding any ids-only option.
+**What:** `src/fluxrules/services/validation/_compiled_cache.py` connects with
+`redis.Redis()`, so it always uses `localhost:6379`, while the rest of the API
+reads `REDIS_HOST`, `REDIS_PORT` and `REDIS_DB`. A deployment with Redis on
+another host shares rule caches but not compiled rules between processes.
+Pass the connection settings in (the module is in `services/`, which must not
+import the `api` package), for example through a small setter the API calls
+at startup.
+
+**Why waiting:** Behaviour is unchanged from 1.0, and a server without the
+cache still works (each process compiles its own rules). Documented in
+[Deployment](../deployment.md#redis-optional).
+
+### Finish the `/api/v1/engines` endpoints, and clear the Redis rule cache
+
+**What:** `POST /api/v1/engines/switch` and `/reload` answer "success" but
+change nothing; `/benchmark` and `GET /stats` describe a new engine with no
+rules. Either make them do what their names say or remove them. Related:
+`RuleCache.clear()` in `src/fluxrules/api/engines/adapter.py` empties only the
+in-process copy, so with Redis a rule change can take up to the cache's 5
+minutes to reach `/api/v1/engines/*` and `/api/v1/rules/simulate`. Clearing
+should also delete the Redis keys.
+
+**Why waiting:** Behaviour is unchanged from 1.0 and documented as it is in
+[REST API: Endpoints that are not finished](../rest-api.md#endpoints-that-are-not-finished),
+pinned by `tests/integration/test_engine_endpoints.py`. Removing endpoints or
+changing their answers is an API change that needs its own decision.

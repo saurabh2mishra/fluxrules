@@ -8,6 +8,15 @@ FluxRules exposes a REST API for evaluating rules from other services. The API i
 
 ## Starting the API server
 
+Install the `api` extra, then start the server from the command line:
+
+```bash
+pip install "fluxrules[api]"
+fluxrules serve --port 8000
+```
+
+Or start it from Python:
+
 ```python
 from fluxrules.api.app import create_app
 import uvicorn
@@ -18,13 +27,13 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-Or run from CLI:
-
-```bash
-python -m fluxrules.api.app
-```
+While it runs, `http://localhost:8000/docs` lists every endpoint and lets you
+try them.
 
 ## Core endpoints
+
+Most endpoints need a login token. [REST API](rest-api.md#logging-in) shows
+how to get one, and gives the full request and response of each endpoint.
 
 ### Health check
 
@@ -32,89 +41,95 @@ python -m fluxrules.api.app
 GET /health
 ```
 
-Returns server status.
+Answers `{"status": "healthy"}`. No login needed.
 
-### Evaluate rules
+### Store a rule
+
+```bash
+POST /api/v1/rules
+Content-Type: application/json
+
+{
+  "name": "big_payment",
+  "group": "payments",
+  "action": "review",
+  "conditions": {"type": "condition", "field": "amount", "op": ">", "value": 1000}
+}
+```
+
+Rules live in the server's database. Store them before you evaluate.
+
+### Evaluate a fact
 
 ```bash
 POST /api/v1/evaluate
 Content-Type: application/json
 
 {
-  "facts": {"amount": 5000, "country": "US"},
-  "domain": "fraud_detection"
+  "facts": {"amount": 4200, "country": "DE"},
+  "ruleset_id": "payments"
 }
 ```
+
+`ruleset_id` is optional and picks the rules of one `group`. Without it, all
+stored rules are used.
 
 **Response:**
 ```json
 {
-  "fired_rules": [1, 3],
-  "actions": ["flag_for_review"],
-  "latency_ms": 2.5
+  "execution_id": "8ac723da-c93d-40ec-809c-64a244003e9e",
+  "ruleset_group": "payments",
+  "matched_rules": [1],
+  "actions": ["review"],
+  "facts": {"amount": 4200, "country": "DE"}
 }
 ```
 
-### Simulate rule changes
+`POST /api/v1/evaluate/bulk` takes a list under `facts` and returns one result
+per fact.
+
+### Look up an evaluation
 
 ```bash
-POST /api/v1/simulate
-Content-Type: application/json
-
-{
-  "facts": {"amount": 5000, "country": "US"},
-  "domain": "fraud_detection"
-}
+GET /api/v1/explain/{execution_id}
 ```
 
-Returns potential matches if rules are changed.
+Returns an earlier evaluation by the `execution_id` it answered with.
 
-### Validate Conditions
+### Dry run with explanations
 
 ```bash
-POST /api/v1/validate
+POST /api/v1/rules/simulate
 Content-Type: application/json
 
-{
-  "conditions": {
-    "type": "condition",
-    "field": "amount",
-    "op": ">",
-    "value": 5000
-  }
-}
+{"event": {"amount": 4200, "country": "DE"}}
 ```
 
-**Response:**
-```json
-{
-  "valid": true,
-  "errors": []
-}
-```
+Returns the matched rules in firing order, with an explanation for each.
 
-### Explain rule match
+### Check a rule set
 
 ```bash
-POST /api/v1/explain
+POST /validate
 Content-Type: application/json
 
-{
-  "rule_id": 1,
-  "facts": {"amount": 5000}
-}
+{"ruleset": {"group": "payments", "rules": [...]}}
 ```
 
-Returns why/why-not a rule matched.
+Answers `{"issues": [...]}`, a list of problems found; an empty list means the
+rule set is fine. No login needed.
 
-## Optional endpoints
+## More endpoints
 
-Additional endpoints are available if extras are installed:
-
-- **Rules management** (`/api/v1/rules`): CRUD operations (requires `[sql]`)
-- **Sessions** (`/api/v1/sessions`): Stateful evaluation (requires `[sql]`)
-- **Audit logging** (`/api/v1/audit`): Audit trail (requires `[sql]`)
-- **Metrics** (`/api/v1/metrics`): Prometheus metrics (requires `[otel]`)
+- **Rules** (`/api/v1/rules`): list, update, delete, versions and conflict
+  checks.
+- **Sessions** (`/api/v1/sessions`): store facts under a session id, and
+  evaluate them later with `POST /api/v1/sessions/{id}/evaluate`.
+- **Audit** (`/api/v1/audit`): the audit trail of rule changes.
+- **Metrics** (`/api/v1/metrics`): Prometheus metrics.
+- **Engines** (`/api/v1/engines`): evaluate with explanations, and report the
+  engine in use. Some of these endpoints are not finished; see
+  [REST API: Engine endpoints](rest-api.md#engine-endpoints).
 
 ## API versioning
 

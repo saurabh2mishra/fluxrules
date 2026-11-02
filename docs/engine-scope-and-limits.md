@@ -137,9 +137,10 @@ ordered stream through ordinary round-robin HTTP workers: each worker would
 have a different previous-fact state and could emit incorrect deltas. Use
 stateless mode for independently load-balanced requests. For independent batch
 facts, process-based parallel evaluation is available through
-`fluxrules.engine.runtime.evaluate_batch_parallel`; keep its
-`streaming_mode=False` default. A streaming workload must instead shard by
-stream identity and keep each shard ordered on one owner.
+`engine.evaluate_batch(facts, workers=N)`. It refuses a streaming engine when
+`workers` is more than 1, because the workers would split the stream's state.
+A streaming workload must instead shard by stream identity and keep each shard
+ordered on one owner.
 
 ---
 

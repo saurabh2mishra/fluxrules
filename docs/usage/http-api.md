@@ -25,29 +25,38 @@ uvicorn fluxrules.api.app:create_app --factory --host 0.0.0.0 --port 8000
 The API includes these core routes:
 
 - `GET /health`: Health check
-- `POST /api/v1/evaluate`: Evaluate facts against rules
-- `POST /api/v1/validate`: Validate conditions or ruleset
-- `GET /api/v1/executions/{id}`: Get execution details
-- `POST /api/v1/simulate`: Simulate rule with custom facts
+- `POST /api/v1/rules`: Store a rule (rules live in the server's database)
+- `POST /api/v1/evaluate`: Evaluate one fact against the stored rules
+- `POST /api/v1/evaluate/bulk`: Evaluate several facts in one request
+- `GET /api/v1/explain/{execution_id}`: Look up an earlier evaluation
+- `POST /api/v1/rules/simulate`: Dry run with an explanation per matched rule
+- `POST /validate`: Check a rule set without storing it
+- `POST /api/v1/sessions/{id}/evaluate`: Evaluate each fact stored in a session
+
+All of them except `/health` and `/validate` need a login token. See
+[Logging in](../rest-api.md#logging-in).
 
 ## Evaluate Request
 
 ```json
 POST /api/v1/evaluate
 {
-  "ruleset": {...},
-  "facts": {"amount": 2500, "country": "US"}
+  "facts": {"amount": 2500, "country": "US"},
+  "ruleset_id": "payments"
 }
 ```
+
+`ruleset_id` is optional and picks the rules of one `group`.
 
 Response:
 
 ```json
 {
-  "fired_rules": [1, 3],
+  "execution_id": "8ac723da-c93d-40ec-809c-64a244003e9e",
+  "ruleset_group": "payments",
+  "matched_rules": [1, 3],
   "actions": ["flag", "review"],
-  "latency_ms": 2.5,
-  "execution_id": "exec-123"
+  "facts": {"amount": 2500, "country": "US"}
 }
 ```
 

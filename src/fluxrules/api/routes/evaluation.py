@@ -8,7 +8,10 @@ re-implementing rule matching in the route layer.
 from __future__ import annotations
 
 import logging
+import threading
 import uuid
+from collections import OrderedDict
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -66,8 +69,52 @@ class BulkEvaluateResponse(BaseModel):
     results: list[BulkEvaluateResult]
 
 
-# In-memory store for execution results (shared with SDK RuleService)
-_execution_store: dict[str, dict[str, Any]] = {}
+class _ExecutionStore:
+    """The most recent evaluation records, for ``GET /explain/{execution_id}``.
+
+    Kept in memory and bounded: adding a record past the limit removes the
+    oldest one. Reading a record does not change its age. Writes take a lock
+    because FastAPI runs these sync routes in a thread pool.
+    """
+
+    def __init__(self, max_records: Callable[[], int]) -> None:
+        self._records: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        self._max_records = max_records
+        self._lock = threading.Lock()
+
+    def __setitem__(self, execution_id: str, record: dict[str, Any]) -> None:
+        limit = self._max_records()
+        with self._lock:
+            if limit <= 0:
+                self._records.clear()
+                return
+            self._records[execution_id] = record
+            self._records.move_to_end(execution_id)
+            while len(self._records) > limit:
+                self._records.popitem(last=False)
+
+    def get(self, execution_id: str) -> dict[str, Any] | None:
+        return self._records.get(execution_id)
+
+    def __contains__(self, execution_id: object) -> bool:
+        return execution_id in self._records
+
+    def __len__(self) -> int:
+        return len(self._records)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._records.clear()
+
+
+def _explain_store_limit() -> int:
+    from fluxrules.api.config import settings
+
+    return settings.EXPLAIN_STORE_MAX_RECORDS
+
+
+# In-memory store for execution results, read by /explain.
+_execution_store = _ExecutionStore(_explain_store_limit)
 
 
 def _load_ruleset(
@@ -166,12 +213,32 @@ def evaluate_bulk(
     current_user: User = Depends(get_current_user),
 ) -> BulkEvaluateResponse:
     """Evaluate many fact sets against the same rules in one request."""
+    ruleset_group, results = evaluate_many(db, request.facts, request.ruleset_id, request.rule_ids)
+    return BulkEvaluateResponse(
+        count=len(results),
+        ruleset_group=ruleset_group,
+        results=results,
+    )
+
+
+def evaluate_many(
+    db: Session,
+    facts_list: list[dict[str, Any]],
+    ruleset_id: str | None,
+    rule_ids: list[int] | None,
+) -> tuple[str, list[BulkEvaluateResult]]:
+    """Evaluate each fact on its own against the same stored rules.
+
+    Shared by ``/evaluate/bulk`` and ``/sessions/{id}/evaluate``. Each result is
+    recorded for ``/explain``. Returns the ruleset group and one result per
+    fact, in input order.
+    """
     service = RuleService.create()
-    ruleset = _load_ruleset(db, request.ruleset_id, request.rule_ids)
-    ruleset_group = request.ruleset_id or "all"
+    ruleset = _load_ruleset(db, ruleset_id, rule_ids)
+    ruleset_group = ruleset_id or "all"
 
     results: list[BulkEvaluateResult] = []
-    for index, facts in enumerate(request.facts):
+    for index, facts in enumerate(facts_list):
         if not ruleset.rules:
             result = _empty_match_result(ruleset_group)
         else:
@@ -191,12 +258,7 @@ def evaluate_bulk(
                 actions=result.actions,
             )
         )
-
-    return BulkEvaluateResponse(
-        count=len(results),
-        ruleset_group=ruleset_group,
-        results=results,
-    )
+    return ruleset_group, results
 
 
 @router.get("/explain/{execution_id}")
@@ -205,8 +267,9 @@ def explain(
     current_user: User = Depends(get_current_user),
 ) -> dict[str, Any]:
     """Retrieve the explanation for a prior evaluation."""
-    if execution_id in _execution_store:
-        return _execution_store[execution_id]
+    record = _execution_store.get(execution_id)
+    if record is not None:
+        return record
 
     try:
         result = RuleService.create().explain(execution_id)

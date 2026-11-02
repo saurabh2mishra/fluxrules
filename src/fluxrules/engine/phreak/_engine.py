@@ -40,6 +40,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+#: EngineConfig fields that compiled conditions bind when they are built.
+_CONDITION_FLAGS = (
+    "missing_field",
+    "strict_null_handling",
+    "strict_type_comparison",
+    "boolean_string_coercion",
+)
+
 
 # Sentinel for "field absent" in NodeMemory cache keys.
 # Using a unique object distinguishes a missing field from a field whose value
@@ -286,7 +294,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
         Args:
             max_rules: Maximum rules to handle
-            config: EngineConfig instance. If None, uses get_config()
+            config: EngineConfig instance. If None, uses get_config().
+                Changes to this object later take effect on the next
+                evaluate(), for interpreted and compiled rules alike.
             streaming_mode: If True, enable lazy evaluation with dirty tracking.
 
                 When False (default): Evaluate all applicable rules on each call
@@ -410,6 +420,23 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         )
         self._config = config or get_config()
         self._streaming_mode = streaming_mode
+        # Everything needed to rebuild this engine in a worker process
+        # (evaluate_batch with workers > 1). Metrics stay in this process: the
+        # parent records each worker result's latency itself.
+        self._settings: dict[str, Any] = {
+            "max_rules": max_rules,
+            "config": self._config,
+            "streaming_mode": streaming_mode,
+            "alpha_prefilter": alpha_prefilter,
+            "compile_conditions": compile_conditions,
+            "strict_scope": strict_scope,
+            "strict_discovery": strict_discovery,
+            "enable_metrics": False,
+            "fact_schema": fact_schema,
+            "validate_facts": validate_facts,
+            "on_invalid": on_invalid,
+            "fact_pipeline": fact_pipeline,
+        }
 
         # Single-fact boundary enforcement (P0.3). When True, ``load_rules``
         # raises on rule shapes that imply cross-fact / temporal semantics the
@@ -495,6 +522,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # for when to enable this.
         self._compile_conditions_enabled = compile_conditions
         self._compiled_conditions: dict[int, CompiledCondition] = {}
+        # The condition flags the closures were compiled with; see
+        # _recompile_if_flags_changed.
+        self._compiled_flags: tuple[Any, ...] = ()
 
         # Initialize BitMaskLinker for O(1) rule linking
         self._bitmask_linker = BitMaskLinker()
@@ -692,16 +722,39 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # accumulate / unknown nodes so results never change.
         self._compiled_conditions = {}
         if self._compile_conditions_enabled:
-            for rid, rule in self.rule_repository.rules.items():
-                condition = getattr(rule, "conditions", None)
-                if not isinstance(condition, dict):
-                    continue
-                self._compiled_conditions[rid] = compile_condition(
-                    condition,
-                    self._config,
-                    fallback_factory=self._make_interpreter_fallback,
-                    leaf_compiler=self._compile_memo_leaf,
-                )
+            self._compile_all_conditions()
+
+    def _condition_flags(self) -> tuple[Any, ...]:
+        """The config values that compiled conditions bake in."""
+        config = self._config
+        return tuple(getattr(config, name, None) for name in _CONDITION_FLAGS)
+
+    def _compile_all_conditions(self) -> None:
+        """Compile every rule's condition tree with the current config flags."""
+        flags = self._condition_flags()
+        compiled: dict[int, CompiledCondition] = {}
+        for rid, rule in self.rule_repository.rules.items():
+            condition = getattr(rule, "conditions", None)
+            if not isinstance(condition, dict):
+                continue
+            compiled[rid] = compile_condition(
+                condition,
+                self._config,
+                fallback_factory=self._make_interpreter_fallback,
+                leaf_compiler=self._compile_memo_leaf,
+            )
+        self._compiled_flags = flags
+        self._compiled_conditions = compiled
+
+    def _recompile_if_flags_changed(self) -> None:
+        """Recompile when a condition flag on the config changed since compiling.
+
+        The interpreter reads the config on every call, while compiled closures
+        bind the flags when they are built. Recompiling on change keeps both
+        paths giving the same answer after the config is edited.
+        """
+        if self._compiled_conditions and self._condition_flags() != self._compiled_flags:
+            self._compile_all_conditions()
 
     @staticmethod
     def _compute_alpha_engage(index: PredicateIndex | None) -> bool:
@@ -749,10 +802,38 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         observability reservoir (p50/p95/p99). When metrics are off this is a
         direct passthrough with no added cost beyond one bool check.
         """
+        self._recompile_if_flags_changed()
         result = super().evaluate(facts, filters, strict_facts=strict_facts)
         if self._metrics is not None:
             self._metrics.record_latency_ms(result.latency_ms)
         return result
+
+    def _clone_settings(self) -> tuple[type, dict[str, Any]]:
+        """Constructor arguments that rebuild this engine in a worker process."""
+        if type(self).__init__ is not PhreakEngine.__init__:
+            raise NotImplementedError(
+                f"{type(self).__name__} has its own __init__, so evaluate_batch cannot "
+                "rebuild it in worker processes. Use workers=1, or override "
+                "_clone_settings() to return (engine_class, constructor_kwargs)."
+            )
+        return type(self), dict(self._settings)
+
+    def _evaluate_in_workers(
+        self,
+        engine_class: type,
+        settings: dict[str, Any],
+        rules: list[Any],
+        facts: list[Any],
+        workers: int,
+        payload: bytes,
+    ) -> list[Any]:
+        results = super()._evaluate_in_workers(
+            engine_class, settings, rules, facts, workers, payload
+        )
+        if self._metrics is not None:
+            for result in results:
+                self._metrics.record_latency_ms(result.latency_ms)
+        return results
 
     # Single discovery path (P1.2)
 

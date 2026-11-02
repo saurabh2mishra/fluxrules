@@ -13,6 +13,7 @@ Run any example from the `examples/` folder, for example
 |---|---|---|
 | Custom engines and the engine registry | Change how matched rules are chosen, and pick an engine by name | [09_custom_engines.py][ex09], [10_pluggable_engines.py][ex10] |
 | Evaluation modes | Stateless by default, or streaming for a long-lived stream of updates | [20_streaming_mode.py][ex20], [23_streaming_vs_stateless.py][ex23] |
+| Every way to evaluate | One call, an engine, models, batches across processes, streaming, a cache and sessions, side by side | [32_ways_to_evaluate.py][ex32] |
 | Working memory | Hold the facts of a session and retract them later | [06_working_memory.py][ex06] |
 | Rules as data | Keep complete rules, conditions included, in a YAML file | [07_yaml_rules.py][ex07] |
 | Actions | Run code when a rule fires, and describe your actions | [15_action_system.py][ex15], [21_action_registry.py][ex21] |
@@ -140,3 +141,4 @@ extras installed.
 [ex27]: https://github.com/saurabh2mishra/fluxrules/blob/main/examples/27_factpipeline.py
 [ex28]: https://github.com/saurabh2mishra/fluxrules/blob/main/examples/28_factpipeline_tier1.py
 [ex29]: https://github.com/saurabh2mishra/fluxrules/blob/main/examples/29_custom_transforms.py
+[ex32]: https://github.com/saurabh2mishra/fluxrules/blob/main/examples/32_ways_to_evaluate.py

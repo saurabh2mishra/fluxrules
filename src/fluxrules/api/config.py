@@ -49,6 +49,10 @@ class Settings(BaseSettings):
 
     RULE_VALIDATION_MODE: str = "brms"
 
+    # How many recent evaluations GET /api/v1/explain/{execution_id} can find.
+    # Older records are removed; 0 keeps none.
+    EXPLAIN_STORE_MAX_RECORDS: int = 10_000
+
     # Evaluation hardening flags
     STRICT_TYPE_COMPARISON: bool = False
     BOOLEAN_STRING_COERCION: bool = False

@@ -282,7 +282,7 @@ class APIEngineAdapter:
                 self._collect_metrics(result, latency_ms, len(rules))
 
             # 5. Format and return API response
-            return self._format_response(result, latency_ms)
+            return self._format_response(result, latency_ms, rules)
 
         except Exception as e:
             logger.error(f"Evaluation error: {e}", exc_info=True)
@@ -399,22 +399,30 @@ class APIEngineAdapter:
         except Exception as e:
             logger.debug(f"Failed to collect metrics: {e}")
 
-    def _format_response(self, result: EvaluationResult, latency_ms: float) -> dict[str, Any]:
+    def _format_response(
+        self,
+        result: EvaluationResult,
+        latency_ms: float,
+        rules: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         """Convert typed EvaluationResult to API dict format.
 
         Args:
             result: Typed evaluation result
             latency_ms: Latency in milliseconds
+            rules: The rule dicts that were evaluated, used for each matched
+                rule's name and priority
 
         Returns:
             Dictionary formatted for API response
         """
+        by_id = {rule.get("id"): rule for rule in rules or []}
         return {
             "matched_rules": [
                 {
                     "id": rule_id,
-                    "name": f"rule_{rule_id}",
-                    "priority": 0,
+                    "name": by_id.get(rule_id, {}).get("name") or f"rule_{rule_id}",
+                    "priority": by_id.get(rule_id, {}).get("priority") or 0,
                 }
                 for rule_id in result.fired_rules
             ],

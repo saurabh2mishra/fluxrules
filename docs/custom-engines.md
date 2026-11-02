@@ -76,6 +76,43 @@ Your custom engine should:
 3. **Preserve the result contract**: Return fired IDs, actions, and explanations from `_evaluate_rules`
 4. **Use `BaseEngine.evaluate()`**: It supplies discovery, filters, grouping, and latency measurement
 
+## Evaluating many facts
+
+Every engine gets `evaluate_batch(facts)` from `BaseEngine`. Without
+`workers`, it calls your engine's `evaluate()` on each fact and returns the
+results in order, so it works for a custom engine with no extra code:
+
+```python
+results = engine.evaluate_batch([{"amount": 5000}, {"amount": 10}])
+assert [len(r.fired_rules) for r in results] == [1, 0]
+```
+
+`workers=N` (more than 1) runs the facts in `N` worker processes, and each
+worker must build its own copy of your engine. `BaseEngine` cannot know how
+to build yours, so by default it raises `NotImplementedError` and asks you to
+use `workers=1`. To allow workers, override `_clone_settings()` and return
+your engine class plus the keyword arguments its constructor needs:
+
+```python
+class BatchReadyEngine(MyCustomEngine):
+    def __init__(self, threshold: int = 0) -> None:
+        super().__init__()
+        self.threshold = threshold
+
+    def _clone_settings(self) -> tuple[type, dict[str, Any]]:
+        return type(self), {"threshold": self.threshold}
+
+
+assert BatchReadyEngine(threshold=5)._clone_settings() == (BatchReadyEngine, {"threshold": 5})
+```
+
+Each worker then calls `BatchReadyEngine(threshold=5)` and loads your rules
+into it. The class and its arguments are sent to the workers by pickling, so
+define the class at the top level of a module (not inside a function), and
+call `evaluate_batch(facts, workers=4)` under `if __name__ == "__main__":`.
+See [Many facts at once](usage/python-api.md#many-facts-at-once) for the
+other rules that apply to workers.
+
 ---
 
 ## Next Steps

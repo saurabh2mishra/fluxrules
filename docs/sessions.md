@@ -15,7 +15,6 @@ Sessions provide stateful, multi-step evaluation with snapshot support. Use sess
 Create a session via `RuleService`, then accumulate facts and evaluate:
 
 ```python
-# python skip
 from fluxrules import F, Rule
 from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
@@ -25,11 +24,13 @@ service = RuleService.create()
 # Build rules and register them as a named ruleset
 rules = [
     Rule(
+        id=1,
         name="verify_kyc",
         conditions=F("kyc_status") == "verified",
         action="proceed_to_payment",
     ),
     Rule(
+        id=2,
         name="check_amount",
         conditions=F("amount") > 10000,
         action="require_approval",
@@ -47,6 +48,7 @@ session.add_fact("kyc_status", "verified")
 session.add_fact("amount", 15000)
 result = session.evaluate()
 print(f"Actions: {result.actions}")  # actions whose rules matched
+assert sorted(result.fired_rules) == [1, 2]
 ```
 
 **Key point:** Sessions accumulate facts. You evaluate once against all accumulated facts, not after each `add_fact()`.
@@ -64,14 +66,14 @@ A session has these phases:
 Evaluations are **independent**: each `evaluate()` is stateless. The session remembers facts but not evaluation history.
 
 ```python
-# python skip
 # Multiple evaluations with different facts
-session.add_fact("risk_score", 50)
+session.add_fact("amount", 500)
 result1 = session.evaluate()
+assert result1.fired_rules == [1]  # only the KYC rule
 
-session.remove_fact("risk_score")
-session.add_fact("risk_score", 80)
-result2 = session.evaluate()  # Different result due to updated fact
+session.add_fact("amount", 50000)  # add_fact replaces the old value
+result2 = session.evaluate()
+assert sorted(result2.fired_rules) == [1, 2]  # different result due to the updated fact
 ```
 
 ## Snapshot: save and restore
@@ -79,7 +81,8 @@ result2 = session.evaluate()  # Different result due to updated fact
 Serialize a session to JSON for checkpointing or recovery:
 
 ```python
-# python skip
+from fluxrules.services.session import EvaluationSession
+
 # Checkpoint current state
 snapshot = session.save()  # Returns JSON string
 
@@ -89,6 +92,7 @@ result = restored.evaluate()
 
 # The restored session has the same facts and metadata
 print(restored.facts)  # Same as original session
+assert restored.facts == session.facts
 ```
 
 Snapshots include:
@@ -107,20 +111,33 @@ Use snapshots to:
 Each session is isolated. Facts in one session do not affect another:
 
 ```python
-# python skip
 # Each session is independent: same ruleset, different fact sets
 session1 = service.create_session("order_rules")
-session1.add_fact("user_type", "premium")
+session1.add_fact("amount", 20000)
 
 session2 = service.create_session("order_rules")
-session2.add_fact("user_type", "basic")
+session2.add_fact("amount", 100)
 
-result1 = session1.evaluate()  # Evaluates with "premium"
-result2 = session2.evaluate()  # Evaluates with "basic"
+result1 = session1.evaluate()  # Evaluates with 20000
+result2 = session2.evaluate()  # Evaluates with 100
 # No cross-contamination
+assert (result1.fired_rules, result2.fired_rules) == ([2], [])
 ```
 
 Use sessions to evaluate the same ruleset independently for different users, transactions, or workflows.
+
+## Sessions over HTTP
+
+The HTTP API has its own sessions, under `/api/v1/sessions`. They work
+differently from the Python sessions on this page:
+
+- **Python session**: each `add_fact(key, value)` adds one field to a single
+  fact, and `evaluate()` checks that one fact.
+- **HTTP session**: each `POST /api/v1/sessions/{id}/facts` stores a whole
+  fact under a `fact_id`, and `POST /api/v1/sessions/{id}/evaluate` evaluates
+  every stored fact on its own, returning one result per fact.
+
+See [REST API: Sessions](rest-api.md#sessions).
 
 ---
 

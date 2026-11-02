@@ -133,6 +133,14 @@ result = engine.evaluate(raw_fact)  # normalized, then evaluated
 - With `fact_schema=` and `validate_facts`, the pipeline runs first and its
   output is validated.
 - `assert_fact()` does not run the pipeline.
+- `engine.evaluate_batch(facts)` runs the pipeline on each fact, as
+  `evaluate()` does. With `workers=N`, each worker process gets its own copy
+  of the pipeline, so a step that remembers earlier facts (a duplicate filter,
+  a counter) only sees its own worker's facts, and the pipeline object in your
+  process does not change. A pipeline used with workers must also be
+  picklable: a `Filter(lambda f: ...)` is refused with a clear error, so use a
+  named function defined at the top level of a module. See
+  [Many facts at once](usage/python-api.md#many-facts-at-once).
 
 To read facts from a source, use `FactLoader` instead:
 

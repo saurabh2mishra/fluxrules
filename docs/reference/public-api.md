@@ -56,7 +56,31 @@ From `fluxrules.engine`:
   See [Typed Facts](../typed-facts.md). `fact_pipeline=` applies a `FactPipeline`
   (or any dict-to-dict callable) to each fact in `evaluate()` before validation;
   see [Fact Pipeline](../fact-pipeline.md#using-pipelines-with-engines).
+  `evaluate_batch(facts, workers=None)` evaluates many facts and returns one
+  `EvaluationResult` per fact, in input order; `workers=N` spreads them over `N`
+  processes, each rebuilt with the engine's settings. See
+  [Many facts at once](../usage/python-api.md#many-facts-at-once).
+  A change to the engine's `EngineConfig` object takes effect on its next evaluation,
+  for interpreted and compiled rules alike.
 - `BaseEngine` (abstract base for custom engines); takes the same typed-fact and `fact_pipeline=` keywords.
+  `evaluate_batch` works with `workers=1`; override `_clone_settings()` to allow more.
+
+## Runtime Helpers
+
+From `fluxrules.engine.runtime`:
+
+- `evaluate_batch_parallel(rules, facts, num_workers=None, streaming_mode=False) → list[list[int]]`:
+  The older batch helper. Each worker builds a default `PhreakEngine` with
+  only `streaming_mode` set, so other engine options (`fact_schema`,
+  `fact_pipeline`, `EngineConfig`, ...) do not apply, and it returns only the
+  fired rule ids per fact. It keeps working unchanged; for new code use
+  `engine.evaluate_batch(facts, workers=N)`, which keeps every option and
+  returns full results.
+- `DedupEvaluator(engine, backend=LRUDedupBackend())`: Wraps a stateless
+  engine and returns a cached result for a fact it has already seen.
+  `LRUDedupBackend(max_entries=100_000)` keeps results in memory;
+  `RedisDedupBackend` shares them between processes (needs the `redis` extra).
+  See [Ways to Evaluate a Fact](../evaluating-facts.md#6-repeated-facts-dedupevaluator).
 
 ## Typed Facts
 

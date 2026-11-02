@@ -43,7 +43,7 @@ class EngineConfig:
     # sequential on identical work. The pool is kept opt-in (lower this
     # threshold) only for workloads dominated by I/O-bound custom actions; for
     # true multi-core scaling use the process-based
-    # fluxrules.engine.runtime.evaluate_batch_parallel helper instead.
+    # engine.evaluate_batch(facts, workers=N) instead.
     parallel_threshold: int = 1_000_000_000  # Effectively sequential by default
     parallel_workers: int = 4  # Thread pool size for parallel evaluation (opt-in)
 
@@ -55,7 +55,8 @@ class EngineConfig:
     # None (default): behave as "false", but emit a one-time
     #   MissingFieldNotWarning when a NOT fires only because a field was
     #   missing. The default becomes "unknown" in 2.0.
-    # Set it before load_rules: compiled conditions read it when they compile.
+    # Changing it on an engine's config takes effect on the next evaluate();
+    # compiled conditions are rebuilt when it changes.
     missing_field: str | None = None
 
     def __post_init__(self) -> None:

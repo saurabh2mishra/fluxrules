@@ -39,25 +39,33 @@ result = engine.evaluate(combined)
 
 ### Pattern 2: Multi-step with sessions
 
-Use sessions to accumulate state:
+A session keeps the fields you add across steps. Add a running total as each
+transaction arrives, and evaluate after every step:
 
 ```python
-# python skip
+from fluxrules import F, Rule
+from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
 
 service = RuleService.create()
-session = service.create_session()
+velocity = [Rule(id=1, name="high_24h_total", conditions=F("total_24h") > 6000, action="review")]
+service.persist(
+    Ruleset(group="velocity", rules=tuple(r.to_engine_rule(group="velocity") for r in velocity))
+)
+session = service.create_session("velocity")
 
-# Step 1: Check first condition
-session.add_fact("transaction_1", {"amount": 5000})
-result1 = session.evaluate()
+# Step 1: the first transaction (5000) arrives
+session.add_fact("total_24h", 5000)
+assert session.evaluate().fired_rules == []
 
-# Step 2: Add second condition
-session.add_fact("transaction_2", {"amount": 3000})
-result2 = session.evaluate()
-
-# Both facts now in session state
+# Step 2: a second transaction (3000) arrives; update the running total
+session.add_fact("total_24h", 8000)
+assert session.evaluate().fired_rules == [1]
 ```
+
+Your code computes the total; the session only remembers it between steps.
+Rules read flat fields, so store values such as `total_24h` rather than whole
+transactions under one key.
 
 ### Pattern 3: Working memory
 

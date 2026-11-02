@@ -36,3 +36,27 @@ class SessionStatsResponse(BaseModel):
     total_facts: int
     created_at: datetime
     updated_at: datetime
+
+
+class SessionEvaluateRequest(BaseModel):
+    """Which stored rules to evaluate a session's facts against."""
+
+    ruleset_id: str | None = Field(
+        default=None, description="Optional ruleset/group ID to evaluate"
+    )
+    rule_ids: list[int] | None = Field(default=None, description="Optional specific rule IDs")
+
+
+class SessionEvaluateResult(BaseModel):
+    index: int
+    fact_id: str
+    execution_id: str
+    matched_rules: list[Any]
+    actions: list[str]
+
+
+class SessionEvaluateResponse(BaseModel):
+    session_id: str
+    count: int
+    ruleset_group: Any
+    results: list[SessionEvaluateResult]

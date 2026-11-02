@@ -249,6 +249,23 @@ assert rejected.facts == {"userAge": "abc"}
 Whether unknown keys are allowed is the model's choice: Pydantic ignores them
 by default and rejects them with `model_config = ConfigDict(extra="forbid")`.
 
+`evaluate_batch` follows the same policy for every fact in the batch:
+
+```python
+batch = [{"userAge": "40"}, {"userAge": "x"}, {"userAge": "12"}, {"userAge": "y"}]
+results = tolerant.evaluate_batch(batch)
+
+assert [r.fired_rules for r in results] == [[1], [], [], []]
+assert [q.facts for q in tolerant.quarantined_facts][-2:] == [{"userAge": "x"}, {"userAge": "y"}]
+```
+
+With `workers=N`, the rejected facts from all workers are added to
+`quarantined_facts` in input order, as above. With `on_invalid="raise"`, the
+error for the first invalid fact in the batch is raised, as a loop over
+`evaluate()` would. The model is sent to the workers by pickling, so define it
+at the top level of a module. See
+[Many facts at once](usage/python-api.md#many-facts-at-once).
+
 ## Check rule files in CI
 
 Rules kept in JSON or YAML files can be checked against the model before they

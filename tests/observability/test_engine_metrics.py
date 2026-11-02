@@ -178,20 +178,25 @@ class TestMetricsOverhead:
         rules = _selective_rules(2000)
         facts = [{"amount": v} for v in range(300)]
 
-        def _best_time(enable: bool, trials: int = 5) -> float:
+        def _engine(enable: bool) -> PhreakEngine:
             engine = PhreakEngine(alpha_prefilter=True, enable_metrics=enable)
             engine.load_rules(rules)
             engine.evaluate(facts[0])  # warm
-            best = float("inf")
-            for _ in range(trials):
-                start = time.perf_counter()
-                for f in facts:
-                    engine.evaluate(f)
-                best = min(best, time.perf_counter() - start)
-            return best
+            return engine
 
-        off = _best_time(False)
-        on = _best_time(True)
+        def _time(engine: PhreakEngine) -> float:
+            start = time.perf_counter()
+            for f in facts:
+                engine.evaluate(f)
+            return time.perf_counter() - start
+
+        # Interleave the trials so a slow spell (CPU frequency change, a busy
+        # CI neighbour) hits both sides alike instead of only the second one.
+        engine_off, engine_on = _engine(False), _engine(True)
+        off = on = float("inf")
+        for _ in range(9):
+            off = min(off, _time(engine_off))
+            on = min(on, _time(engine_on))
         # Generous budget: metrics are increment-only + a bounded reservoir.
         # On a selective set almost everything is pruned so few leaf records
         # fire; the dominant cost (one latency record + one linked record per

@@ -47,6 +47,7 @@ nav:
   - Usage:
     - Overview: usage/index.md
     - Python API: usage/python-api.md
+    - Ways to Evaluate a Fact: evaluating-facts.md
     - HTTP API: usage/http-api.md
     - CLI: cli.md
     - Engine: usage/engines.md

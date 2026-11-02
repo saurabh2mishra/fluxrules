@@ -165,6 +165,7 @@ Get heterogeneous facts (JSON, CSV, streams) into the engine cleanly.
 | **29** | `29_custom_transforms.py` | Writing your own transform stages | 15 min |
 | **30** | `30_conflict_detection.py` | Rule health: conflicts, coverage gaps, shadowed rules | 15 min |
 | **31** | `31_typed_facts.py` | Typed facts: Pydantic models, `fact_schema=`, key normalization, quarantine, `fact_pipeline=` | 15 min |
+| **32** | `32_ways_to_evaluate.py` | Every way to evaluate a fact, side by side: `evaluate()`, engines, models, `evaluate_batch`, streaming, cache, sessions | 10 min |
 
 ---
 
