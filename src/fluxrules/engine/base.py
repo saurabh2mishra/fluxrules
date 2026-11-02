@@ -389,6 +389,11 @@ class BaseEngine(ABC):
 
         Facts rejected under ``on_invalid="quarantine"`` inside workers are
         added to this engine's :attr:`quarantined_facts`, in input order.
+
+        With workers, each process has its own copy of the settings: a
+        ``fact_pipeline`` that keeps state (a duplicate filter, a counter) only
+        sees its own worker's facts, and of the engine metrics only per-fact
+        latency is recorded here.
         """
         if workers is not None and (
             isinstance(workers, bool) or not isinstance(workers, int) or workers < 1
@@ -398,7 +403,7 @@ class BaseEngine(ABC):
         if workers is None or workers == 1:
             return [self.evaluate(fact) for fact in facts]
 
-        from fluxrules.engine.runtime.worker_pool import check_picklable
+        from fluxrules.engine.runtime.worker_pool import build_payload
 
         engine_class, settings = self._clone_settings()
         if settings.get("streaming_mode"):
@@ -408,10 +413,12 @@ class BaseEngine(ABC):
                 "Use workers=1."
             )
         rules = list(self.rule_repository.rules.values())
-        check_picklable(settings, rules)
+        # Checked even for a single fact, so an unpicklable setting fails the
+        # same way whatever the batch size.
+        payload = build_payload(engine_class, settings, rules)
         if len(facts) < 2:
             return [self.evaluate(fact) for fact in facts]
-        return self._evaluate_in_workers(engine_class, settings, rules, facts, workers)
+        return self._evaluate_in_workers(engine_class, settings, rules, facts, workers, payload)
 
     def _evaluate_in_workers(
         self,
@@ -420,11 +427,12 @@ class BaseEngine(ABC):
         rules: list[Any],
         facts: list[Any],
         workers: int,
+        payload: bytes,
     ) -> list[EvaluationResult]:
         """Run the batch in worker processes and merge quarantine and errors back."""
         from fluxrules.engine.runtime.worker_pool import run_sharded
 
-        outcome = run_sharded(engine_class, settings, rules, facts, workers)
+        outcome = run_sharded(engine_class, settings, rules, facts, workers, payload=payload)
         if self._fact_intake is not None:
             self._fact_intake.quarantine.extend(outcome.quarantined)
         if outcome.error is not None:

@@ -70,22 +70,34 @@ class BatchOutcome:
 
 
 def _init_worker(engine_class: type, settings: dict[str, Any], rules: list[Any]) -> None:
-    """Process initializer: build a single engine per worker process."""
+    """Build the single engine this process evaluates with."""
     global _WORKER_ENGINE
     _WORKER_ENGINE = engine_class(**settings)
     _WORKER_ENGINE.load_rules(rules)
 
 
-def _eval_chunk(
-    task: tuple[int, list[Any], bool],
-) -> tuple[list[Any], list[tuple[int, Any]], tuple[int, BaseException] | None]:
-    """Evaluate one chunk in the worker.
+def _init_worker_from_payload(payload: bytes) -> None:
+    """Process initializer: unpickle ``(engine_class, settings, rules)`` and build the engine.
 
-    ``task`` is ``(start, facts, ids_only)``, where ``start`` is the chunk's
-    offset in the whole batch, so the indexes returned are global. The chunk
-    stops at the first exception, as a loop over ``evaluate`` would.
+    The parent pickles the payload once (see :func:`build_payload`), so it is
+    not serialized again for every worker.
     """
-    start, facts, ids_only = task
+    engine_class, settings, rules = pickle.loads(payload)  # noqa: S301 - our own payload
+    _init_worker(engine_class, settings, rules)
+
+
+def _eval_chunk(
+    task: tuple[int, list[Any], bool, bool],
+) -> tuple[list[Any], list[tuple[int, Any]], tuple[int, BaseException] | None]:
+    """Evaluate one chunk with this process's engine.
+
+    ``task`` is ``(start, facts, ids_only, in_worker)``, where ``start`` is the
+    chunk's offset in the whole batch, so the indexes returned are global. The
+    chunk stops at the first exception, as a loop over ``evaluate`` would. In a
+    worker process an exception that cannot be pickled is replaced by a
+    ``RuntimeError`` describing it; in this process the original is kept.
+    """
+    start, facts, ids_only, in_worker = task
     engine = _WORKER_ENGINE
     intake = getattr(engine, "_fact_intake", None)
     results: list[Any] = []
@@ -99,7 +111,7 @@ def _eval_chunk(
         try:
             result = engine.evaluate(fact)
         except Exception as exc:  # noqa: BLE001 - re-raised in the parent
-            error = (index, _picklable(exc))
+            error = (index, _picklable(exc) if in_worker else exc)
             break
         if intake is not None and intake.quarantine:
             quarantined.append((index, intake.quarantine[-1]))
@@ -124,14 +136,23 @@ def _chunk(seq: list, n_chunks: int) -> list[tuple[int, list]]:
     return [(i, seq[i : i + size]) for i in range(0, len(seq), size)]
 
 
-def check_picklable(settings: dict[str, Any], rules: list[Any]) -> None:
-    """Raise ``ValueError`` naming the first setting (or ``rules``) that cannot be pickled.
+def build_payload(engine_class: type, settings: dict[str, Any], rules: list[Any]) -> bytes:
+    """Pickle what the workers need, once, or raise a clear ``ValueError``.
 
-    Worker processes receive the engine settings and rules by pickling, so a
-    lambda in a ``fact_pipeline`` or a class defined inside a function would
-    otherwise fail deep inside the pool with a confusing traceback.
+    Worker processes receive the engine class, its settings and the rules by
+    pickling, so a lambda in a ``fact_pipeline`` or a class defined inside a
+    function would otherwise fail deep inside the pool with a confusing
+    traceback. On failure each part is tried alone so the message can name it.
     """
-    parts: list[tuple[str, Any]] = [*settings.items(), ("rules", rules)]
+    try:
+        return pickle.dumps((engine_class, settings, rules))
+    except Exception:  # noqa: BLE001, S110 - any pickling failure; named below
+        pass
+    parts: list[tuple[str, Any]] = [
+        ("the engine class", engine_class),
+        *settings.items(),
+        ("rules", rules),
+    ]
     for name, value in parts:
         try:
             pickle.dumps(value)
@@ -142,6 +163,7 @@ def check_picklable(settings: dict[str, Any], rules: list[Any]) -> None:
                 "functions and classes defined inside a function cannot be sent to "
                 "worker processes. Use workers=1, or a named module-level function or class."
             ) from None
+    raise ValueError("evaluate_batch with workers > 1: the engine settings could not be pickled")
 
 
 def run_sharded(
@@ -152,11 +174,13 @@ def run_sharded(
     workers: int,
     *,
     ids_only: bool = False,
+    payload: bytes | None = None,
 ) -> BatchOutcome:
     """Evaluate ``facts`` with engines rebuilt from ``settings`` in ``workers`` processes.
 
     ``workers`` is capped to ``len(facts)``. With one worker no process pool is
-    started: the engine is built in this process.
+    started and nothing is pickled: the engine is built in this process.
+    ``payload`` is the output of :func:`build_payload`, when the caller has it.
     """
     if not facts:
         return BatchOutcome()
@@ -167,16 +191,18 @@ def run_sharded(
         # environments where spawning processes is restricted).
         _init_worker(engine_class, settings, rules)
         try:
-            chunk_outputs = [_eval_chunk((0, facts, ids_only))]
+            chunk_outputs = [_eval_chunk((0, facts, ids_only, False))]
         finally:
             # Reset module state so repeated in-process calls stay clean.
             globals()["_WORKER_ENGINE"] = None
     else:
-        tasks = [(start, chunk, ids_only) for start, chunk in _chunk(facts, workers)]
+        if payload is None:
+            payload = pickle.dumps((engine_class, settings, rules))
+        tasks = [(start, chunk, ids_only, True) for start, chunk in _chunk(facts, workers)]
         with ProcessPoolExecutor(
             max_workers=workers,
-            initializer=_init_worker,
-            initargs=(engine_class, settings, rules),
+            initializer=_init_worker_from_payload,
+            initargs=(payload,),
         ) as executor:
             # executor.map preserves input order, so concatenating chunk
             # results reproduces the original fact order exactly.
@@ -234,4 +260,4 @@ def evaluate_batch_parallel(
     return outcome.results
 
 
-__all__ = ["BatchOutcome", "check_picklable", "evaluate_batch_parallel", "run_sharded"]
+__all__ = ["BatchOutcome", "build_payload", "evaluate_batch_parallel", "run_sharded"]

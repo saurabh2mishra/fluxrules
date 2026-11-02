@@ -825,8 +825,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         rules: list[Any],
         facts: list[Any],
         workers: int,
+        payload: bytes,
     ) -> list[Any]:
-        results = super()._evaluate_in_workers(engine_class, settings, rules, facts, workers)
+        results = super()._evaluate_in_workers(
+            engine_class, settings, rules, facts, workers, payload
+        )
         if self._metrics is not None:
             for result in results:
                 self._metrics.record_latency_ms(result.latency_ms)

@@ -124,6 +124,15 @@ Things to know when you use `workers`:
 - **Not for streaming mode.** A streaming engine remembers the previous fact,
   and splitting facts between processes would split that memory. A streaming
   engine accepts only `workers=1`.
+- **Each worker has its own copy of the pipeline.** A `fact_pipeline` step
+  that remembers earlier facts, such as a filter that drops duplicates or a
+  counter, only sees the facts sent to its own worker. Two duplicates that land
+  in different workers are both evaluated, and the pipeline object in your
+  process is not updated. Use `workers=1` when the pipeline keeps state.
+- **Metrics record latency only.** With `enable_metrics=True`, your engine
+  records each fact's evaluation time from the workers. The other counters
+  (leaf-memo hits, linked rules, alpha prune ratio) are counted inside the
+  workers and are not added to your engine's metrics.
 
 ### Facts from a database
 

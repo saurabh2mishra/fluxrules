@@ -258,3 +258,58 @@ def test_pickling_a_fact_validation_error_keeps_its_fields() -> None:
         error.errors,
         str(error),
     )
+
+
+class NeedsKeyword(Exception):
+    """An exception pickle cannot rebuild (its __init__ needs a keyword)."""
+
+    def __init__(self, *, reason: str) -> None:
+        super().__init__(reason)
+
+
+class _RaisingEngine(PhreakEngine):
+    def evaluate(self, facts, filters=None, *, strict_facts=False):  # type: ignore[no-untyped-def]
+        raise NeedsKeyword(reason="boom")
+
+
+class TestReviewFixes:
+    def test_in_process_keeps_the_original_exception(self) -> None:
+        from fluxrules.engine.runtime.worker_pool import run_sharded
+
+        outcome = run_sharded(_RaisingEngine, {}, RULES, FACTS, 1)
+        assert type(outcome.error) is NeedsKeyword
+
+    def test_worker_turns_an_unpicklable_exception_into_runtime_error(self) -> None:
+        from fluxrules.engine.runtime.worker_pool import run_sharded
+
+        outcome = run_sharded(_RaisingEngine, {}, RULES, FACTS, 2)
+        assert isinstance(outcome.error, RuntimeError)
+        assert "NeedsKeyword: boom" in str(outcome.error)
+
+    def test_unpicklable_engine_class_is_a_clear_error(self) -> None:
+        class LocalEngine(PhreakEngine):
+            pass
+
+        engine = LocalEngine()
+        engine.load_rules(RULES)
+        with pytest.raises(ValueError, match="the engine class could not be pickled"):
+            engine.evaluate_batch(FACTS, workers=2)
+
+    def test_payload_is_pickled_once(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import pickle
+
+        from fluxrules.engine.runtime import worker_pool
+
+        dumps = []
+
+        class _CountingPickle:
+            loads = staticmethod(pickle.loads)
+
+            @staticmethod
+            def dumps(obj, *args, **kwargs):  # type: ignore[no-untyped-def]
+                dumps.append(type(obj).__name__)
+                return pickle.dumps(obj, *args, **kwargs)
+
+        monkeypatch.setattr(worker_pool, "pickle", _CountingPickle)
+        _engine().evaluate_batch(FACTS, workers=2)
+        assert dumps == ["tuple"]  # one payload; nothing pickled again per worker
