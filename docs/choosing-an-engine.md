@@ -1,6 +1,6 @@
 # Choosing an Evaluation Mode
 
-**Prerequisites:** [The FluxRules Engine](engine-comparison.md).
+**Prerequisites:** [The PHREAK Engine](engine-comparison.md).
 
 ---
 
@@ -48,6 +48,6 @@ Enable streaming only when you need incremental deltas across a session.
 ## Next Steps
 
 - **Ways to Evaluate a Fact**: See [Ways to Evaluate a Fact](evaluating-facts.md) for every way to send facts to the engine
-- **The FluxRules Engine**: See [The FluxRules Engine](engine-comparison.md) for how the modes work
+- **The PHREAK Engine**: See [The PHREAK Engine](engine-comparison.md) for how the modes work
 - **Working Memory**: See [Working Memory](working-memory.md) for the streaming contract
 - **Concepts**: See [Concepts](concepts.md) for engine fundamentals

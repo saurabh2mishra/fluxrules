@@ -1,6 +1,6 @@
 # Engine Scope and Limits
 
-**Prerequisites:** [The FluxRules Engine](engine-comparison.md).
+**Prerequisites:** [The PHREAK Engine](engine-comparison.md).
 
 ---
 
@@ -146,5 +146,5 @@ ordered on one owner.
 
 ## Next Steps
 
-- **The FluxRules Engine**: See [The FluxRules Engine](engine-comparison.md) for algorithm details
+- **The PHREAK Engine**: See [The PHREAK Engine](engine-comparison.md) for algorithm details
 - **Choosing an Evaluation Mode**: See [Choosing an Evaluation Mode](choosing-an-engine.md) for selection logic

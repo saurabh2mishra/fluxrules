@@ -55,7 +55,7 @@ flowchart TB
     NETWORK -. "candidates" .-> FIND
 
     ORDER --> RESULT["8. EvaluationResult<br/>fired_rules, actions,<br/>rules_by_domain, rules_by_tag,<br/>explanations, latency_ms"]
-    RESULT --> ACT["9. Act<br/>your code reads actions,<br/>or evaluate_with_actions<br/>runs action handlers"]
+    RESULT --> ACT["9. Act<br/>your code reads actions<br/>and runs their handlers"]
 
     classDef optin stroke-dasharray: 5 4
     classDef stop fill:#fdecea,stroke:#c62828,color:#5f1111
@@ -70,7 +70,7 @@ flowchart TB
 | Stage | What happens | Turn it on | Read more |
 |---|---|---|---|
 | 0. Rules load | Rules from any source become one `Rule` type. With a schema, every field each rule names is checked against the model, and a bad rule is refused before anything loads. The engine then builds its indexes once. | `PhreakEngine(fact_schema=Model)`; `fluxrules validate --schema` in CI | [Authoring Rules](authoring-rules.md), [YAML Rules](yaml-rules.md), [Typed Facts](typed-facts.md#check-rules-against-a-schema), [CLI](cli.md) |
-| 1. Arrival | `evaluate()` takes a dict, any mapping, or a model instance. `evaluate_batch()` takes many at once, optionally across worker processes. `FactLoader` reads batches; the CLI and HTTP API pass a parsed JSON dict. | Always on | [Concepts](concepts.md#fact), [Ways to Evaluate a Fact](evaluating-facts.md), [Fact Pipeline](fact-pipeline.md#using-pipelines-with-engines), [REST API](rest-api.md) |
+| 1. Arrival | `evaluate()` takes a dict, any mapping, or a model instance. `evaluate_batch()` takes many at once, optionally across worker processes. `FactLoader` reads batches; the CLI and HTTP API pass a parsed JSON dict. | Always on | [Concepts](concepts.md#fact), [Ways to Evaluate a Fact](evaluating-facts.md), [Fact Pipeline](fact-pipeline.md#using-pipelines-with-engines), [HTTP API Reference](rest-api.md) |
 | 2. Pipeline | Raw input is reshaped: flatten, rename, coerce, fill defaults, require fields, filter. A filtered fact returns an empty result. A model instance skips this stage. | `fact_pipeline=FactPipeline([...])` | [Fact Pipeline](fact-pipeline.md) |
 | 3. Validation | The fact is validated against the model: `userAge` and `user-age` become `user_age`, `"42"` becomes `42` (in `normalize`). An invalid fact is raised, skipped or quarantined. | `validate_facts="normalize"` or `"strict"`, `on_invalid=` | [Typed Facts](typed-facts.md#normalize-incoming-keys) |
 | 4. Flat dict | Rules read flat keys, so nested models become dotted keys (`account.age_days`). | Always on | [Nested Facts](nested-facts.md) |
@@ -78,7 +78,7 @@ flowchart TB
 | 6. Conditions | Surviving rules are evaluated. Identical sub-conditions are computed once per call. A rule naming `Amount` against a fact with `amount` raises `FieldNotFoundError` instead of silently not matching; with a fact schema, so does `userAge` against `user_age`. With `missing_field="unknown"`, a `NOT` rule does not fire just because the fact lacks the field. | Always on; `compile_conditions=True`; `EngineConfig(missing_field=...)` | [Conditions](conditions.md#missing-fields-and-not), [Complex Conditions](complex-conditions.md) |
 | 7. Order | Fired rules are ordered by `priority`, highest first, then by rule id. | `Rule(priority=...)` | [Rule Types](rule-types.md) |
 | 8. Result | One `EvaluationResult` for every path: which rules fired, their actions in order, grouping by domain and tag, an explanation per rule, and latency. | Always on; `enable_metrics=True` for percentiles | [Concepts](concepts.md#evaluation-result), [Observability](observability.md) |
-| 9. Act | `evaluate()` never runs side effects: it returns action names. Your code dispatches them, or `await engine.evaluate_with_actions(fact)` runs the registered handlers. | `@action` handlers | [Custom Actions](custom-actions.md), [Action Registry](action-registry.md) |
+| 9. Act | `evaluate()` never runs side effects: it returns action names. Your code dispatches them, for example by calling `action_registry.execute(name, **fact)` for each name. | `@action` handlers | [Actions](custom-actions.md) |
 
 Rules that join several facts (an order and its customer) take a different
 engine, `CrossFactEngine`, with its own insert and retract contract. See

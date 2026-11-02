@@ -6,6 +6,13 @@ repo_name: saurabh2mishra/fluxrules
 
 docs_dir: docs
 
+# Fail the strict build on any link to a missing page or missing section.
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
 theme:
   name: material
 
@@ -37,30 +44,19 @@ plugins:
 
 nav:
   - Home: index.md
-  - Getting Started: getting-started.md
-  - Installation: installation.md
-  - Quickstart: quickstart.md
-  - Concepts: concepts.md
-  - Features: features.md
-  - From Fact to Action: fact-to-action.md
-  - Architecture: architecture.md
-  - Usage:
-    - Overview: usage/index.md
-    - Python API: usage/python-api.md
-    - Ways to Evaluate a Fact: evaluating-facts.md
-    - HTTP API: usage/http-api.md
-    - CLI: cli.md
-    - Engine: usage/engines.md
-    - Configuration: usage/configuration.md
-    - Examples: usage/examples.md
-    - Advanced Capabilities: usage/advanced-capabilities.md
-  - The Engine:
+  - Getting Started:
+    - Installation: installation.md
+    - Quickstart: quickstart.md
+    - Concepts: concepts.md
+    - From Fact to Action: fact-to-action.md
     - Decision Guide: decision-guide.md
-    - The FluxRules Engine: engine-comparison.md
-    - Choosing an Evaluation Mode: choosing-an-engine.md
-    - Algorithm Fidelity: algorithm-fidelity.md
-    - Scope and Limits: engine-scope-and-limits.md
-    - Benchmarks: benchmarks.md
+    - Architecture: architecture.md
+  - Using FluxRules:
+    - Ways to Evaluate a Fact: evaluating-facts.md
+    - Python API: usage/python-api.md
+    - CLI: cli.md
+    - HTTP API: api.md
+    - Configuration: usage/configuration.md
   - Authoring Rules:
     - Overview: authoring-rules.md
     - Rule Types: rule-types.md
@@ -71,21 +67,25 @@ nav:
     - Rule Builder: rule-builder.md
     - YAML Rules: yaml-rules.md
     - ID Generation: id-generation.md
-    - Custom Actions: custom-actions.md
-  - Advanced Guides:
-    - Rule Analysis: rule-analysis.md
-    - Action Registry: action-registry.md
-    - Fact Pipeline: fact-pipeline.md
-    - Cross-Fact Rules: cross-fact-rules.md
-    - Nested Facts: nested-facts.md
-    - Typed Facts: typed-facts.md
-    - Validation Framework: validation-framework.md
+    - Actions: custom-actions.md
+  - The Engine:
+    - The PHREAK Engine: engine-comparison.md
+    - Choosing an Evaluation Mode: choosing-an-engine.md
     - Working Memory: working-memory.md
+    - Algorithm Fidelity: algorithm-fidelity.md
+    - Scope and Limits: engine-scope-and-limits.md
+    - Benchmarks: benchmarks.md
+  - Advanced Guides:
+    - Capability Map: advanced-capabilities.md
+    - Typed Facts: typed-facts.md
+    - Nested Facts: nested-facts.md
+    - Cross-Fact Rules: cross-fact-rules.md
+    - Fact Pipeline: fact-pipeline.md
+    - Custom Transforms: custom-transforms.md
+    - Validation Framework: validation-framework.md
+    - Rule Analysis: rule-analysis.md
     - Extension Points: extension-points.md
     - Custom Engines: custom-engines.md
-    - Custom Transforms: custom-transforms.md
-    - Custom Transforms Cheatsheet: custom-transforms-cheatsheet.md
-    - Custom Transforms Q&A: custom-transforms-answered.md
   - Operating:
     - Deployment: deployment.md
     - Persistence: persistence.md
@@ -95,15 +95,13 @@ nav:
     - Observability Exporters: observability-exporters.md
     - Dependency Injection: dependency-injection.md
     - Load Testing: load-testing.md
-  - Learning:
-    - Examples: examples.md
+  - Examples:
+    - Examples and Learning Path: examples.md
     - Use Cases: usecases.md
   - Reference:
     - Overview: reference/index.md
     - Public API: reference/public-api.md
-    - HTTP Endpoints: reference/http-endpoints.md
-    - REST API Guide: rest-api.md
-    - API Overview: api.md
+    - HTTP API Reference: rest-api.md
   - Development:
     - Overview: development/index.md
     - Contributing: contributing.md

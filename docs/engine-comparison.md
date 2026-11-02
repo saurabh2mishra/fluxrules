@@ -1,4 +1,4 @@
-# The FluxRules Engine: PHREAK
+# The PHREAK Engine
 
 **Prerequisites:** [Concepts](concepts.md) (Engine).
 
@@ -19,7 +19,7 @@ PHREAK exposes two **evaluation modes** on the same engine, plus a dependency-fr
 | **Return value** | Full fired set every call | Fired delta since last fact |
 | **State** | None kept between calls | Working memory persists |
 | **Best for** | HTTP/request-response, batch | Long-lived sessions, event streams |
-| **Default** | ✓ Yes | Opt-in (`streaming_mode=True`) |
+| **Default** | Yes | Opt-in (`streaming_mode=True`) |
 
 Both modes share the same operator evaluator and configuration surface, so a fact
 that fires a rule in one mode fires the same rule in the other on first sight.
@@ -94,5 +94,6 @@ implementation.
 
 ## Next Steps
 
-- **Choosing an Engine**: See [Choosing an Evaluation Mode](choosing-an-engine.md) for mode-selection logic
-- **Engine Limits**: See [Engine Scope and Limits](engine-scope-and-limits.md)
+- **Choosing a mode**: See [Choosing an Evaluation Mode](choosing-an-engine.md) to pick between the two modes
+- **Streaming in depth**: See [Working Memory](working-memory.md)
+- **Engine limits**: See [Engine Scope and Limits](engine-scope-and-limits.md)

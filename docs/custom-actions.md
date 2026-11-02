@@ -1,16 +1,21 @@
-# Custom Actions
+# Actions
 
-**Prerequisites:** [Concepts](concepts.md) (Rule, action field) and [Validation Framework](validation-framework.md).
+**Prerequisites:** [Concepts](concepts.md) (Rule, Evaluation Result).
 
 ---
 
-Actions are strings or tuples of strings that are executed when a rule fires. FluxRules supports:
+An **action** is the name of what should happen when a rule fires, such as
+`"manual_review"` or `"block"`. The engine does not run actions. It returns
+their names in `result.actions`, and your application decides what each name
+means. This keeps rules free of side effects, so you can evaluate them in a
+test, a dry run or a batch job without sending emails or blocking payments.
 
-1. **String actions**: Simple action names from your application
-2. **Action registry**: Register custom handlers with the `@action` decorator
-3. **Built-in actions**: Default actions like `flag` and `alert`
+When you want FluxRules to keep track of the code behind each name, register
+a handler in the action registry, described below.
 
-## Using actions in rules
+## Actions in rules
+
+A rule takes one action with `action`, or several with `actions`:
 
 ```python
 from fluxrules import F, Rule
@@ -19,164 +24,196 @@ from fluxrules.engine.phreak import PhreakEngine
 rule1 = Rule(
     name="check_high_value",
     conditions=F("amount") > 5000,
-    action="require_approval",  # Single action (string)
-    persist=False,
+    action="require_approval",
 )
 
 rule2 = Rule(
     name="check_fraud",
     conditions=F("ip_risk_score") > 80,
-    actions=("block", "notify_security"),  # Multiple actions (tuple)
-    persist=False,
+    actions=("block", "notify_security"),
 )
 
 engine = PhreakEngine()
 engine.load_rules([rule1, rule2])
 
 result = engine.evaluate({"amount": 7500, "ip_risk_score": 90})
-print(f"Actions: {result.actions}")  # ["require_approval"] + ["block", "notify_security"]
+print(f"Actions: {result.actions}")
 ```
 
-## Built-in actions
+- `action="require_approval"` gives the rule a single action name.
+- `actions=("block", "notify_security")` gives it several, in the order they
+  should run.
 
-- **`flag`**: Mark fact for manual review
-- **`alert`**: Send alert notification
-- **`skip`**: Skip further evaluation
-- Custom strings: any string your application recognizes
+`result.actions` lists the actions of every fired rule, in firing order. Any
+string is a valid action name.
 
-## Register custom action handlers
+## Registering a handler
 
-Use the `@action` decorator to register a handler that executes when an action fires:
+The `@action` decorator registers a function under an action name:
 
 ```python
-from fluxrules.plugins.actions import action
-from fluxrules.plugins.actions import action_registry
+from fluxrules.plugins.actions import action, action_registry
 
 
-# Register a simple action
 @action(
     name="send_approval_request",
-    description="Send approval request to team",
+    description="Send an approval request to the team",
     category="notifications",
 )
 def send_approval_request(transaction_id: str, amount: int) -> dict:
-    """Execute when 'send_approval_request' action fires."""
-
-    # Your implementation: call API, send email, etc.
-    print(f"Sending approval request for txn {transaction_id} ({amount})")
-
-    return {"success": True, "action": "send_approval_request", "transaction_id": transaction_id}
+    print(f"Sending approval request for {transaction_id} ({amount})")
+    return {"sent": True}
 
 
-# Register an async action
-@action(
-    name="log_to_database",
-    description="Log event to database",
-    category="logging",
-    async_handler=True,
-)
-async def log_to_database(event_id: str) -> dict:
-    """Async action handler."""
-
-    # Your async implementation
-    return {"logged": True, "event_id": event_id}
-
-
-# List all registered actions
-print(action_registry.list_actions())
-
-# Execute an action programmatically
-result = action_registry.execute("send_approval_request", transaction_id="TXN-123", amount=7500)
+outcome = action_registry.execute("send_approval_request", transaction_id="TXN-123", amount=7500)
+print(outcome)  # {'success': True, 'action': 'send_approval_request', 'result': {'sent': True}}
 ```
 
-## Action metadata
+The decorator takes these options:
 
-Inspect registered actions:
+- `name`: the action name that rules use. Registering the same name again
+  replaces the earlier handler without a warning, so keep names unique.
+- `description`: a short text that tools and listings show.
+- `category`: a label for grouping related actions. The default is
+  `"general"`.
+- `async_handler`: marks the handler as async. You do not need it for an
+  `async def` function, which the registry detects on its own. Set it only
+  for a plain function that returns an awaitable.
+
+`action_registry.execute(name, **kwargs)` calls the handler with the keyword
+arguments you pass. Before calling, it checks that every required parameter
+is present and that no unknown ones are passed, and raises `ValueError` if
+not. It returns a dictionary with `success`, `action`, and either `result` or
+`error`. A handler that raises does not stop your program: the error is
+logged and returned under `error` with `success` set to `False`.
+
+## Running the actions of a result
+
+A common pattern is to evaluate a fact and then run the handler for each
+fired action. A handler that declares `**fact` accepts every field of the
+fact, so you can pass the whole fact to it. A handler with fixed parameters,
+such as `send_approval_request` above, rejects the extra fields with
+`ValueError`, so catch it and carry on with the next action:
 
 ```python
-from fluxrules.plugins.actions import action_registry
+@action(name="notify_security", category="notifications")
+def notify_security(**fact) -> dict:
+    return {"notified": True, "amount": fact.get("amount")}
 
-# Get action metadata
-info = action_registry.get("send_approval_request")
-print(f"Name: {info.name}")
-print(f"Description: {info.description}")
-print(f"Category: {info.category}")
 
-# Get actions by category
-notification_actions = action_registry.get_actions_by_category("notifications")
-
-# Get action signature (parameters)
-sig = action_registry.get_action_signature("send_approval_request")
-```
-
-## Action execution in evaluations
-
-When a rule fires, its actions are included in the evaluation result:
-
-```python
 fact = {"amount": 7500, "ip_risk_score": 90}
 result = engine.evaluate(fact)
 
-# result.actions is a list of action names that fired
-for action_name in result.actions:
-    print(f"Execute: {action_name}")
-    
-    # Execute registered handler (if defined)
+for name in result.actions:
+    if not action_registry.has(name):
+        print(f"No handler for {name!r}; the application handles it")
+        continue
     try:
-        handler_result = action_registry.execute(action_name, **fact)
-        print(f"  Result: {handler_result}")
-    except ValueError:
-        # Action not registered: your app handles the string
-        print(f"  (Application handles '{action_name}')")
+        print(action_registry.execute(name, **fact))
+    except ValueError as e:
+        print(f"Could not run {name!r}: {e}")
 ```
 
-## Common patterns
+`action_registry.has(name)` tells you whether a handler is registered, so
+action names without a handler can fall through to your own code. The
+`try` block keeps one action with the wrong parameters, or an async handler
+passed to `execute`, from stopping the rest.
 
-### Fire multiple actions
+## Async handlers
+
+Register an `async def` function as usual, and run it with
+`execute_async`:
 
 ```python
-from fluxrules import F
+import asyncio
 
-Rule(
-    name="suspicious_transaction",
-    conditions=F("amount") > 50000,
-    actions=("block", "notify_fraud_team", "log_to_database"),
-    persist=False,
-)
+
+@action(name="log_to_database", category="logging")
+async def log_to_database(event_id: str) -> dict:
+    return {"logged": True, "event_id": event_id}
+
+
+outcome = asyncio.run(action_registry.execute_async("log_to_database", event_id="evt-1"))
+print(outcome["result"])  # {'logged': True, 'event_id': 'evt-1'}
 ```
 
-### Context-aware actions
+`execute` refuses an async handler, and `execute_async` refuses a plain one.
+Each raises `ValueError` that says which method to use instead.
+
+## Inspecting the registry
+
+Every registered action keeps its metadata:
 
 ```python
-@action(name="escalate_if_high_value", description="Escalate high-value transactions")
-def escalate_if_high_value(**kwargs) -> dict:
-    amount = kwargs.get("amount", 0)
-    
+print(action_registry.list_actions())  # every registered name
+
+info = action_registry.get("send_approval_request")
+print(info.name, info.category, info.description)
+
+notifications = action_registry.get_actions_by_category("notifications")
+print([a.name for a in notifications])
+
+print(action_registry.get_action_signature("send_approval_request"))
+# send_approval_request(transaction_id: str, amount: int) -> dict
+```
+
+- `list_actions()` returns every registered name.
+- `get(name)` returns the metadata of one action, or `None`.
+- `get_actions_by_category(category)` returns the metadata of every action in
+  that category.
+- `get_action_signature(name)` returns the handler's parameters and return
+  type as text.
+
+## Patterns
+
+### Choosing behavior from the fact
+
+A handler can read the fact and decide what to do:
+
+```python
+@action(name="escalate", description="Escalate by amount")
+def escalate(**fact) -> dict:
+    amount = fact.get("amount", 0)
     if amount > 50000:
         level = "executive"
     elif amount > 10000:
         level = "manager"
     else:
         level = "standard"
-    
-    return {"escalated_to": level, "amount": amount}
+    return {"escalated_to": level}
 ```
 
-### Chain actions
+### Chaining actions
+
+A handler can run other registered actions in a fixed order:
 
 ```python
+@action(name="block_transaction")
+def block_transaction(**fact) -> dict:
+    return {"blocked": True}
+
+
 @action(name="notify_then_block")
-def notify_then_block(**kwargs) -> dict:
-    """Notify first, then block."""
-    action_registry.execute("notify_fraud_team", **kwargs)
-    action_registry.execute("block_transaction", **kwargs)
-    return {"action": "notify_then_block", "status": "complete"}
+def notify_then_block(**fact) -> dict:
+    for step in ("notify_security", "block_transaction"):
+        outcome = action_registry.execute(step, **fact)
+        if not outcome["success"]:
+            raise RuntimeError(f"{step} failed: {outcome['error']}")
+    return {"status": "complete"}
 ```
+
+`execute` reports a failed handler in its return value instead of raising,
+so check `success` after each step. Raising here marks the whole chain as
+failed, and the error reaches whoever called `notify_then_block`.
+
+Often it is simpler to list both names in the rule with
+`actions=("notify_security", "block_transaction")` and let the dispatch loop
+above run them in order.
 
 ---
 
 ## Next Steps
 
-- **Rule Lifecycle**: See [Rule Lifecycle](rule-lifecycle.md) for rule creation and deletion
-- **Example**: See [Example 15: Action System](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py) for working code
-- **Action Registry**: See [Action Registry](action-registry.md) for advanced registration patterns
+- **Rule Lifecycle**: See [Rule Lifecycle](rule-lifecycle.md) for creating, updating and deleting rules
+- **Example 15**: See [Action System](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/15_action_system.py) for handlers and dispatch
+- **Example 21**: See [Action Registry](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/21_action_registry.py) for metadata, categories and async handlers

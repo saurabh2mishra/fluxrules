@@ -65,55 +65,13 @@ User: session = service.create_session()
 
 ## The Engine: PHREAK
 
-**For evaluation modes and selection guidance**, see [The FluxRules Engine](engine-comparison.md) and [Choosing an Evaluation Mode](choosing-an-engine.md).
+Every evaluation runs on one engine, `PhreakEngine`. It works in one of two
+modes. In **stateless mode** (the default) each call is independent and
+returns the full set of fired rules. In **streaming mode** the engine keeps
+working memory between calls and reports only what changed.
 
-### PHREAK (Phased Evaluation and Knowledge-the single engine)
-
-**Data flow:**
-```
-Load rules → [Store rules list]
-              ↓
-Fact input → [Linear iteration over rules]
-              ├→ For each rule: evaluate condition
-              ├→ Match? Add to results
-              ↓
-          [Produce EvaluationResult]
-          ↓
-          [Discard working memory for next fact]
-```
-
-**Stateless mode (default):**
-
-- Most HTTP/stateless workloads
-
-- Rules added/removed frequently
-
-- Low memory footprint required
-
-- Single-fact evaluation (typical)
-
----
-
-### Streaming mode (opt-in)
-
-**Data flow:**
-```
-Load rules → [Build PHREAK network]
-              ↓
-Fact input → [Assert into working memory]
-              ├→ Match new/changed facts
-              └→ Report fired delta
-              ↓
-          [Produce EvaluationResult]
-          ↓
-          [Working memory persists across calls]
-```
-
-**When to use:**
-
-- Many facts over same rule set within a session
-- Event streams where only changes matter
-- Incremental fact updates (assert/retract)
+[The PHREAK Engine](engine-comparison.md) explains both modes, and
+[Choosing an Evaluation Mode](choosing-an-engine.md) helps you pick one.
 
 ---
 
@@ -163,7 +121,7 @@ Rule(
     tags=frozenset(["tier_1", "urgent"]), # Cross-cutting labels
     priority=10,                          # Execution order (higher first)
     conditions={...},                  # The condition tree above
-    action="flag_for_review",             # Or callable
+    action="flag_for_review",             # Action name
     persist=False                         # Optional: store in database
 )
 ```
@@ -172,39 +130,24 @@ Rule(
 
 - Rule is immutable once created (frozen Pydantic model)
 - Conditions are pure predicates (no side effects)
-- Actions are simple strings or callables
+- Actions are names; your application decides what each name does
 - Domain/tags allow flexible rule organization
 
 ---
 
 ## Pluggability Points
 
-FluxRules allows extension at three key layers:
+You can replace three parts with your own code:
 
-### 1. Custom Engines
-```python
-# python skip
-class MyEngine(BaseEngine):
-    def load_rules(self, rules: List[Rule]) -> None: ...
-    def evaluate(self, fact: Dict) -> EvaluationResult: ...
-```
+- **Engines**: subclass `BaseEngine` to change how matched rules are chosen.
+  See [Custom Engines](custom-engines.md).
+- **Actions**: register a handler for each action name. See
+  [Actions](custom-actions.md).
+- **Transforms**: add your own steps to a fact pipeline. See
+  [Custom Transforms](custom-transforms.md).
 
-### 2. Custom Actions
-```python
-# python skip
-@action(name="email_alert", category="notifications")
-def email_alert(recipient: str, subject: str) -> bool:
-    send_email(recipient, subject)
-    return True
-```
-
-### 3. Custom Transforms (FactPipeline)
-```python
-# python skip
-class UpperCase(Transform):
-    def apply(self, fact: Dict) -> Dict:
-        return {k: v.upper() if isinstance(v, str) else v for k, v in fact.items()}
-```
+[Extension Points](extension-points.md) lists every extension point and its
+stability promise.
 
 ---
 

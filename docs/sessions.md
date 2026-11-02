@@ -137,7 +137,7 @@ differently from the Python sessions on this page:
   fact under a `fact_id`, and `POST /api/v1/sessions/{id}/evaluate` evaluates
   every stored fact on its own, returning one result per fact.
 
-See [REST API: Sessions](rest-api.md#sessions).
+See [HTTP API Reference: Sessions](rest-api.md#sessions).
 
 ---
 

@@ -1,6 +1,6 @@
 # Benchmarks
 
-**Prerequisites:** [The FluxRules Engine](engine-comparison.md).
+**Prerequisites:** [The PHREAK Engine](engine-comparison.md).
 
 ---
 
@@ -93,5 +93,5 @@ Each profile must identify whether it measures matcher-only or end-to-end work.
 
 ## Next Steps
 
-- **The FluxRules Engine**: See [The FluxRules Engine](engine-comparison.md)
+- **The PHREAK Engine**: See [The PHREAK Engine](engine-comparison.md)
 - **Deployment**: See [Deployment](deployment.md) for scaling

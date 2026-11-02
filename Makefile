@@ -54,7 +54,7 @@ type-check: check-uv
 	$(UV) run mypy src/fluxrules --ignore-missing-imports
 
 docs: check-uv
-	$(UV) run mkdocs build
+	$(UV) run mkdocs build --strict
 
 docs-serve: check-uv
 	$(UV) run mkdocs serve

@@ -1,4 +1,4 @@
-# REST API
+# HTTP API
 
 **Prerequisites:** [Concepts](concepts.md) (Rule, Engine).
 
@@ -32,8 +32,9 @@ try them.
 
 ## Core endpoints
 
-Most endpoints need a login token. [REST API](rest-api.md#logging-in) shows
-how to get one, and gives the full request and response of each endpoint.
+Most endpoints need a login token. [HTTP API Reference](rest-api.md#logging-in)
+shows how to get one, and gives the full request and response of each
+endpoint.
 
 ### Health check
 
@@ -129,7 +130,7 @@ rule set is fine. No login needed.
 - **Metrics** (`/api/v1/metrics`): Prometheus metrics.
 - **Engines** (`/api/v1/engines`): evaluate with explanations, and report the
   engine in use. Some of these endpoints are not finished; see
-  [REST API: Engine endpoints](rest-api.md#engine-endpoints).
+  [HTTP API Reference: Engine endpoints](rest-api.md#engine-endpoints).
 
 ## API versioning
 
@@ -139,6 +140,6 @@ All endpoints are under `/api/v1` for stability. Breaking changes will use `/api
 
 ## Next Steps
 
-- **REST API Detailed**: See [REST API](rest-api.md) for full endpoint reference
+- **Full reference**: See [HTTP API Reference](rest-api.md) for every request and response
 - **Example**: See [Example 12: API Usage](https://github.com/saurabh2mishra/fluxrules/blob/main/examples/12_api_usage.py) for working client code
 - **Deployment**: See [Deployment](deployment.md) for production setup

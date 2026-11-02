@@ -7,6 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing yet. Work that is designed but not yet shipped is listed in the
+[backlog](docs/development/backlog.md).
+
+## [1.1.1] - 2026-11-02
+
+Documentation release. The library code is unchanged; only the version
+number moves to 1.1.1.
+
+### Changed
+
+- **Docs reorganized so each topic lives on one page.** The navigation now
+  follows the path a reader takes: Getting Started, Using FluxRules, Authoring
+  Rules, The Engine, Advanced Guides, Operating, Examples and Reference.
+- **Merged duplicate pages.** Getting Started went into Installation and
+  Quickstart; Features went into the home page; the Usage pages for the
+  engine, the HTTP API and examples went into The PHREAK Engine, HTTP API and
+  Examples and Learning Path; HTTP Endpoints went into the HTTP API Reference;
+  Action Registry went into a single Actions page; the custom transforms
+  cheat sheet and Q&A went into Custom Transforms.
+- **Advanced Capabilities moved to Advanced Guides** as the Capability Map,
+  which now links every capability to its guide as well as its example.
+- **Concepts links onward.** The Fact section now points to From Fact to
+  Action and Ways to Evaluate a Fact, and explains how nested data, typed
+  models and raw input reach the engine.
+- Architecture and the Decision Guide link to the engine and extension pages
+  instead of repeating them.
+- **Broken links fail the docs build.** `mkdocs.yml` now validates links to
+  missing pages and missing sections, and CI, the deploy workflow and
+  `make docs` build with `--strict`, so a broken link stops the build instead
+  of being published.
+- The Capability Map's examples were all run again on 2026-11-02, and its
+  verification note says so.
+
+### Removed
+
+These pages were merged into others and their old addresses no longer exist
+on the docs site. Their content lives on the page named after each arrow:
+
+- `getting-started/` to Installation and Quickstart
+- `features/` and `usage/` to the home page
+- `usage/engines/` to The PHREAK Engine
+- `usage/http-api/` to HTTP API
+- `usage/examples/` to Examples and Learning Path
+- `usage/advanced-capabilities/` to `advanced-capabilities/` (Capability Map)
+- `reference/http-endpoints/` to HTTP API Reference
+- `action-registry/` to Actions
+- `custom-transforms-cheatsheet/` and `custom-transforms-answered/` to Custom
+  Transforms
+
+### Fixed
+
+- Concepts said a fact could be a nested dictionary. The engine reads flat
+  keys only; the page now says to flatten nested data first.
+- Actions listed `flag`, `alert` and `skip` as built-in actions. No such
+  actions exist, and the list is gone.
+- Custom Transforms said a missing `metadata` property raises
+  `AttributeError`. Python raises `TypeError` when the object is created.
+- The Decision Guide said sessions need the `sql` extra. Sessions live in
+  memory and save to a JSON snapshot.
+- Architecture showed custom transforms overriding `apply()`. They implement
+  `__call__` and `metadata`.
+- From Fact to Action said `evaluate_with_actions` runs the `@action`
+  handlers. It does not; the page now shows dispatching through
+  `action_registry`.
+- The action dispatch example no longer stops at the first handler whose
+  parameters do not match, and the chaining example checks each step.
+- Quickstart sets rule ids, so its printed output matches however the
+  examples are run.
+- Example 12 is documented as needing `httpx` as well as the `api` extra.
+- `examples/README.md` linked to a `docs/GETTING_STARTED.md` page that never
+  existed; it now links to Concepts, and its other link labels use the
+  current page names.
+- Sample `/health` and status responses show version 1.1.1.
+- Check-mark symbols and spaced-hyphen dashes replaced with plain words.
+
 ## [1.1.0] - 2026-11-02
 
 ### Added

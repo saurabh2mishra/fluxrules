@@ -10,7 +10,7 @@ policy; the deep how-to guides live on their own pages and are linked below.
 |--------------|--------------------|--------------|
 | Condition operator | [`register_operator(name, func)`](reference/public-api.md) | [Conditions](conditions.md) |
 | Rule engine | [`register_engine(name, cls)`](reference/public-api.md) | [Custom Engines](custom-engines.md) |
-| Action | [`action_registry.register(...)`](action-registry.md) | [Custom Actions](custom-actions.md) |
+| Action | [`action_registry.register(...)`](custom-actions.md#registering-a-handler) | [Actions](custom-actions.md) |
 | Pipeline transform | [`pipeline.registry.register(cls)`](fact-pipeline.md) | [Custom Transforms](custom-transforms.md) |
 | Validator | [`ValidationService.register_validator(...)`](validation-framework.md) | [Validation Framework](validation-framework.md) |
 
