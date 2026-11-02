@@ -132,14 +132,19 @@ See the [CLI guide](https://saurabh2mishra.github.io/fluxrules/cli/).
 
 ## How it works
 
-You call `evaluate(facts)` with a dictionary of field values. fluxrules returns which rules matched and what actions they produced. That's the whole contract.
+You pass a fact to `engine.evaluate(fact)`, or rules and a fact to `fluxrules.evaluate(rules, fact)`. fluxrules returns which rules matched and what actions they produced. That's the whole contract.
 
-Facts can also arrive as typed models, raw nested payloads or file records; [From Fact to Action](https://saurabh2mishra.github.io/fluxrules/fact-to-action/) follows one fact through every stage, from pipeline and validation to discovery, ordering and actions.
+A fact can be:
+
+- a plain `dict`, or any other mapping, of field names to values;
+- a typed model: a Pydantic v2 model, a dataclass, an attrs class or a msgspec `Struct`. The engine turns it into a flat dict, and nested models become dotted keys such as `customer.age`.
+
+Anything else, such as a list or a string, raises `TypeError`. The engine reads flat keys only, so flatten a nested `dict` first (for example with the `Flatten` transform). Raw payloads and file records go through a fact pipeline or `FactLoader` first. [From Fact to Action](https://saurabh2mishra.github.io/fluxrules/fact-to-action/) follows one fact through every stage, from pipeline and validation to discovery, ordering and actions.
 
 ### What happens inside each call
 
 ```
-facts (dict)
+fact (dict, mapping or typed model, as a flat dict)
   |
   +-- Field check: rules that need a field not present in facts are skipped
   |
@@ -154,7 +159,7 @@ Within a single call, identical sub-expressions are evaluated once and reused ac
 
 ### Design choices
 
-By default, FluxRules is **stateless**. Each `evaluate(facts)` call stands on its own: it reads the facts you pass in, returns what matched, and keeps nothing afterwards. Because calls share no state, you can run them in parallel across threads, processes, or servers with no coordination.
+By default, FluxRules is **stateless**. Each `evaluate()` call stands on its own: it reads the fact you pass in, returns what matched, and keeps nothing afterwards. Because calls share no state, you can run them in parallel across threads, processes, or servers with no coordination.
 
 Two features keep state on purpose, and you opt into each:
 

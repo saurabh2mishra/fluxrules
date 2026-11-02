@@ -80,6 +80,9 @@ on the docs site. Their content lives on the page named after each arrow:
   existed; it now links to Concepts, and its other link labels use the
   current page names.
 - Sample `/health` and status responses show version 1.1.1.
+- The README said `evaluate(facts)` takes a dictionary. It takes a dict, any
+  mapping or a typed model (Pydantic, dataclass, attrs, msgspec), and the
+  top-level function takes rules as well as the fact.
 - Check-mark symbols and spaced-hyphen dashes replaced with plain words.
 
 ## [1.1.0] - 2026-11-02
