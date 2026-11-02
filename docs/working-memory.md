@@ -75,40 +75,27 @@ For workflows that accumulate facts across multiple steps, use `EvaluationSessio
 
 ```python
 from fluxrules import F, Rule
+from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
 
-# Create a ruleset (persisted rules)
 service = RuleService.create()
 rules = [
-    Rule(
-        name="kyc_verified",
-        domain="compliance",
-        conditions=F("kyc_status") == "verified",
-        action="proceed",
-        persist=True,
-    ),
-    Rule(
-        name="high_risk",
-        domain="fraud",
-        conditions=F("amount") > 10000,
-        action="review",
-        persist=True,
-    ),
+    Rule(id=1, name="kyc_verified", conditions=F("kyc_status") == "verified", action="proceed"),
+    Rule(id=2, name="high_risk", conditions=F("amount") > 10000, action="review"),
 ]
+service.persist(
+    Ruleset(group="onboarding", rules=tuple(r.to_engine_rule(group="onboarding") for r in rules))
+)
 
-# Accumulate facts and evaluate (python skip for demo)
-# from fluxrules.engine.phreak import PhreakEngine
-#
-# engine = PhreakEngine()
-# engine.load_rules(rules)
-#
-# # Evaluate with accumulated facts
-# facts = {"kyc_status": "verified", "amount": 15000}
-#
-# # Evaluate against all facts
-# result = engine.evaluate(facts)
-print(f"Matched: {result.fired_rules}")  # Both rules match
+session = service.create_session("onboarding")
+session.add_fact("kyc_status", "verified")  # step 1: KYC check finishes
+session.add_fact("amount", 15000)  # step 2: the payment request arrives
+result = session.evaluate()
+assert sorted(result.fired_rules) == [1, 2]  # both rules match
 ```
+
+`service.persist(Ruleset(...))` stores the rules under the name `"onboarding"`,
+and `create_session("onboarding")` starts an empty session for that rule set.
 
 **Session methods:**
 
@@ -125,13 +112,14 @@ print(f"Matched: {result.fired_rules}")  # Both rules match
 Sessions can be serialized to JSON snapshots for recovery:
 
 ```python
-# python skip
-# Save session to JSON (demonstration: requires session object)
-# snapshot_json = session.save()
+from fluxrules.services.session import EvaluationSession
 
-# Later: restore the session
-# restored_session = type(session).restore(snapshot_json, service)
-# result = restored_session.evaluate()
+snapshot_json = session.save()  # a JSON string
+
+# Later, for example in another process: rebuild the session from the string
+restored = EvaluationSession.restore(snapshot_json, service)
+assert restored.facts == session.facts
+assert restored.evaluate().fired_rules == result.fired_rules
 ```
 
 The snapshot includes facts, session ID, timestamp, and optional metadata. Use this to checkpoint multi-step workflows.

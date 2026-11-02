@@ -171,23 +171,39 @@ rows at a time) instead of loading every row first.
 
 ## RuleService (Sessions & Persistence)
 
-Use `RuleService` for stateful workflows:
+`RuleService` stores rule sets by name. A session collects the fields of one
+fact over several steps and evaluates them against a stored rule set:
 
 ```python
-# python skip
+from fluxrules import F, Rule
+from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
 
 service = RuleService.create()
+payment_rules = [Rule(id=1, name="big", conditions=F("amount") > 1000, action="review")]
+service.persist(
+    Ruleset(
+        group="payment_rules",
+        rules=tuple(rule.to_engine_rule(group="payment_rules") for rule in payment_rules),
+    )
+)
 
-# Create session requires ruleset_id
-# ruleset_id = service.save_ruleset(name="payment_rules", rules=rules)
-# session = service.create_session(ruleset_id)
-
-# Add facts and evaluate
-# session.assert_fact({"customer_id": "c1", "amount": 5000})
-# result = session.evaluate()
-# print(f"Matched: {result.fired_rules}")
+session = service.create_session("payment_rules")
+session.add_fact("customer_id", "c1")
+session.add_fact("amount", 5000)
+result = session.evaluate()
+assert result.fired_rules == [1]
 ```
+
+- `service.persist(Ruleset(...))` stores the rules under the name
+  `"payment_rules"`. `to_engine_rule(group=...)` converts each `Rule` to the
+  stored form.
+- `create_session("payment_rules")` starts an empty session for that rule set.
+- `add_fact(key, value)` sets one field; `session.evaluate()` checks all
+  fields added so far.
+
+`RuleService.create()` keeps rule sets in memory. See [Sessions](../sessions.md)
+for saving and restoring a session.
 
 ---
 
