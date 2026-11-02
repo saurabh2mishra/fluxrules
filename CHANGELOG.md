@@ -7,80 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **`engine.evaluate_batch(facts, workers=None)`.** Evaluates many facts and
-  returns one full `EvaluationResult` per fact (fired rules, actions,
-  explanations, grouping by domain and tag, latency), in input order, exactly
-  as a loop over `evaluate()` would. With `workers=N` the facts are spread over
-  `N` processes. Each worker rebuilds the engine from its own settings, so
-  `fact_schema`, `validate_facts`, `on_invalid`, `fact_pipeline`,
-  `compile_conditions` and the `EngineConfig` all apply. Facts quarantined in
-  workers are added to the calling engine's `quarantined_facts`, and with
-  `on_invalid="raise"` the error for the earliest invalid fact is raised.
-  Settings that cannot be pickled (a lambda in a pipeline), streaming mode,
-  and a bad `workers` value fail early with a clear message. Returning full
-  results costs about 4 to 6% more than fired-rule ids alone
-  (`tests/performance/perf_parallel.py`).
-- **`POST /api/v1/sessions/{id}/evaluate`.** HTTP sessions could store facts
-  but not evaluate them. This endpoint evaluates each stored fact on its own,
-  in the order the facts were added, and returns one result per fact with its
-  `fact_id`. It takes the same optional `ruleset_id` and `rule_ids` as
-  `/api/v1/evaluate`, gives the same answers as `/api/v1/evaluate/bulk`, and
-  leaves the session's facts unchanged.
-- `FactValidationError` now survives pickling with its `schema_name` and
-  `errors`.
-- **New guide: Ways to Evaluate a Fact** (`docs/evaluating-facts.md`). Every
-  way to evaluate a fact, side by side: `fluxrules.evaluate()`, an engine,
-  model instances, `evaluate_batch`, streaming mode, `DedupEvaluator`,
-  `CrossFactEngine`, sessions, the CLI and HTTP. With a runnable tour in
-  `examples/32_ways_to_evaluate.py` and tests that every way agrees.
-
-### Fixed
-
-- **Compiled rules follow config changes made after `load_rules`.** A
-  condition setting (`missing_field`, `strict_null_handling`,
-  `strict_type_comparison`, `boolean_string_coercion`) changed on an engine's
-  config after `load_rules` reached interpreted rules but not rules compiled
-  with `compile_conditions=True`, so the same engine could give two answers.
-  The engine now recompiles when one of these settings changes. Engines
-  without compiled conditions are unaffected.
-- **Rule writes no longer stall on a server without Redis.** The compiled-rule
-  cache built a new Redis client on every call, with no timeout and redis-py's
-  default retries, so each rule create, update or delete waited about 7
-  seconds for connections that could not succeed. It now shares one client per
-  process with 0.5-second timeouts and no retries. After a failed read or
-  write, reads and writes skip Redis for 30 seconds; clearing the cache after
-  a rule change always tries, so other processes never keep stale compiled
-  rules. With Redis running, nothing changes except that one connection pool
-  is reused instead of a new one per call.
-- **Matched rules in API evaluation responses have their real names and
-  priorities.** `/api/v1/rules/simulate`, `/api/v1/engines/evaluate`,
-  `/api/v1/engines/simulate`, `POST /api/v1/event` and the event worker
-  reported every match as `rule_<id>` with priority 0. `/api/v1/rules/simulate`
-  also always returned `null` for `candidates_evaluated` and
-  `evaluation_time_ms`; it now fills them in. Other responses' stats are
-  unchanged.
-- **The REST API docs now match the server.** `rest-api.md`, `api.md`,
-  `usage/http-api.md` and `reference/http-endpoints.md` described endpoints
-  that do not exist (`POST /api/v1/simulate`, `POST /api/v1/explain`,
-  `POST /api/v1/validate`), a `domain` request field the server ignores, and a
-  `fired_rules` / `latency_ms` response the server never sends (it answers
-  with `matched_rules`). They now show the real routes, logging in, request
-  fields and responses, checked by `tests/integration/test_rest_api_reference.py`.
-
-### Changed
-
-- **The HTTP explain store keeps only recent records.** Every evaluation
-  through the HTTP API saves a record so `GET /api/v1/explain/{id}` can find
-  it. The store had no limit, so a long-running server's memory grew with
-  traffic. It now keeps the most recent 10,000 records (set
-  `EXPLAIN_STORE_MAX_RECORDS`; `0` keeps none), and an older id answers `404`.
-- `fluxrules.engine.runtime.evaluate_batch_parallel` is now built on the same
-  code as `evaluate_batch`. Its signature and results are unchanged; it still
-  builds a default engine and returns fired-rule ids.
-
-
 ## [1.1.0] - Unreleased
 
 ### Added
@@ -155,6 +81,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every stage a fact passes through; new [CLI](docs/cli.md) reference; the
   [YAML Rules](docs/yaml-rules.md) guide covers the `fact_schema` file form.
   The docs site renders Mermaid diagrams.
+- **`engine.evaluate_batch(facts, workers=None)`.** Evaluates many facts and
+  returns one full `EvaluationResult` per fact (fired rules, actions,
+  explanations, grouping by domain and tag, latency), in input order, exactly
+  as a loop over `evaluate()` would. With `workers=N` the facts are spread over
+  `N` processes. Each worker rebuilds the engine from its own settings, so
+  `fact_schema`, `validate_facts`, `on_invalid`, `fact_pipeline`,
+  `compile_conditions` and the `EngineConfig` all apply. Facts quarantined in
+  workers are added to the calling engine's `quarantined_facts`, and with
+  `on_invalid="raise"` the error for the earliest invalid fact is raised.
+  Settings that cannot be pickled (a lambda in a pipeline), streaming mode,
+  and a bad `workers` value fail early with a clear message. Returning full
+  results costs about 4 to 6% more than fired-rule ids alone
+  (`tests/performance/perf_parallel.py`).
+- **`POST /api/v1/sessions/{id}/evaluate`.** HTTP sessions could store facts
+  but not evaluate them. This endpoint evaluates each stored fact on its own,
+  in the order the facts were added, and returns one result per fact with its
+  `fact_id`. It takes the same optional `ruleset_id` and `rule_ids` as
+  `/api/v1/evaluate`, gives the same answers as `/api/v1/evaluate/bulk`, and
+  leaves the session's facts unchanged.
+- `FactValidationError` now survives pickling with its `schema_name` and
+  `errors`.
+- **New guide: Ways to Evaluate a Fact** (`docs/evaluating-facts.md`). Every
+  way to evaluate a fact, side by side: `fluxrules.evaluate()`, an engine,
+  model instances, `evaluate_batch`, streaming mode, `DedupEvaluator`,
+  `CrossFactEngine`, sessions, the CLI and HTTP. With a runnable tour in
+  `examples/32_ways_to_evaluate.py` and tests that every way agrees.
 
 ### Changed
 
@@ -180,12 +132,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Faster evaluation when facts lack rule fields.** The per-leaf typo check in
   `PhreakEngine` duplicated the per-fact field scan and is removed; on a
   300-rule benchmark with absent fields, evaluation is about 25-35% faster.
+- **The HTTP explain store keeps only recent records.** Every evaluation
+  through the HTTP API saves a record so `GET /api/v1/explain/{id}` can find
+  it. The store had no limit, so a long-running server's memory grew with
+  traffic. It now keeps the most recent 10,000 records (set
+  `EXPLAIN_STORE_MAX_RECORDS`; `0` keeps none), and an older id answers `404`.
+- `fluxrules.engine.runtime.evaluate_batch_parallel` is now built on the same
+  code as `evaluate_batch`. Its signature and results are unchanged; it still
+  builds a default engine and returns fired-rule ids.
 
 ### Deprecated
 
 - **`NOT` firing on a missing field.** In 2.0 `missing_field` will default to
   `"unknown"`. Rules that rely on `NOT` matching absence should use
   `~F("x").exists()`.
+
+### Fixed
+
+- **Compiled rules follow config changes made after `load_rules`.** A
+  condition setting (`missing_field`, `strict_null_handling`,
+  `strict_type_comparison`, `boolean_string_coercion`) changed on an engine's
+  config after `load_rules` reached interpreted rules but not rules compiled
+  with `compile_conditions=True`, so the same engine could give two answers.
+  The engine now recompiles when one of these settings changes. Engines
+  without compiled conditions are unaffected.
+- **Rule writes no longer stall on a server without Redis.** The compiled-rule
+  cache built a new Redis client on every call, with no timeout and redis-py's
+  default retries, so each rule create, update or delete waited about 7
+  seconds for connections that could not succeed. It now shares one client per
+  process with 0.5-second timeouts and no retries. After a failed read or
+  write, reads and writes skip Redis for 30 seconds; clearing the cache after
+  a rule change always tries, so other processes never keep stale compiled
+  rules. With Redis running, nothing changes except that one connection pool
+  is reused instead of a new one per call.
+- **Matched rules in API evaluation responses have their real names and
+  priorities.** `/api/v1/rules/simulate`, `/api/v1/engines/evaluate`,
+  `/api/v1/engines/simulate`, `POST /api/v1/event` and the event worker
+  reported every match as `rule_<id>` with priority 0. `/api/v1/rules/simulate`
+  also always returned `null` for `candidates_evaluated` and
+  `evaluation_time_ms`; it now fills them in. Other responses' stats are
+  unchanged.
+- **The REST API docs now match the server.** `rest-api.md`, `api.md`,
+  `usage/http-api.md` and `reference/http-endpoints.md` described endpoints
+  that do not exist (`POST /api/v1/simulate`, `POST /api/v1/explain`,
+  `POST /api/v1/validate`), a `domain` request field the server ignores, and a
+  `fired_rules` / `latency_ms` response the server never sends (it answers
+  with `matched_rules`). They now show the real routes, logging in, request
+  fields and responses, checked by `tests/integration/test_rest_api_reference.py`.
 
 ## [1.0.2] - 2026-10-28
 
