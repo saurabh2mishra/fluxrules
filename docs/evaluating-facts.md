@@ -117,10 +117,10 @@ Related methods on the same engine:
   first (a dict with string keys and flat values) and raises a clear error if
   it is wrong.
 
-The engine's settings are fixed when you create it. It keeps its own copy of
-the `EngineConfig` you pass (or of the process-wide one), so changing that
-object later does not change the engine. See
-[Configuration](usage/configuration.md#settings-are-fixed-when-the-engine-is-created).
+The engine reads its settings from the `EngineConfig` you pass (or the
+process-wide one). If you change a field on that object later, the engine
+uses the new value from its next evaluation on. See
+[Configuration](usage/configuration.md#changing-settings-after-the-engine-is-created).
 
 ## 3. A model as the fact
 

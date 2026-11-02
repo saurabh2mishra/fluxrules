@@ -385,9 +385,9 @@ assert sorted(engine.evaluate({"blocked": False}).fired_rules) == [1, 2]
 
 The setting applies to `PhreakEngine` (interpreted and compiled) and to
 `fluxrules.evaluate()`, which reads the process-wide config
-(`fluxrules.engine.configuration.set_config`). An engine copies its config
-when it is created, so changing the config object later has no effect on that
-engine. To use a different setting, create a new engine.
+(`fluxrules.engine.configuration.set_config`). Changing it on an engine's
+config object takes effect on that engine's next evaluation. See
+[Changing settings after the engine is created](usage/configuration.md#changing-settings-after-the-engine-is-created).
 
 ### Value types must match
 

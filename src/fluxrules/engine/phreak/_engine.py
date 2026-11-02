@@ -14,7 +14,6 @@ evaluation strategy with integrated optimizations:
 from __future__ import annotations
 
 import concurrent.futures
-import copy
 import logging
 import threading
 from collections.abc import Callable
@@ -40,6 +39,14 @@ if TYPE_CHECKING:
     from fluxrules.engine.infrastructure import EvaluationFilter
 
 logger = logging.getLogger(__name__)
+
+#: EngineConfig fields that compiled conditions bind when they are built.
+_CONDITION_FLAGS = (
+    "missing_field",
+    "strict_null_handling",
+    "strict_type_comparison",
+    "boolean_string_coercion",
+)
 
 
 # Sentinel for "field absent" in NodeMemory cache keys.
@@ -287,9 +294,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
         Args:
             max_rules: Maximum rules to handle
-            config: EngineConfig instance. If None, uses get_config(). The
-                engine keeps its own copy, so changing the object (or the
-                process-wide config) later does not affect this engine.
+            config: EngineConfig instance. If None, uses get_config().
+                Changes to this object later take effect on the next
+                evaluate(), for interpreted and compiled rules alike.
             streaming_mode: If True, enable lazy evaluation with dirty tracking.
 
                 When False (default): Evaluate all applicable rules on each call
@@ -411,10 +418,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             on_invalid=on_invalid,
             fact_pipeline=fact_pipeline,
         )
-        # A private copy: compiled conditions bake the flags in at load time
-        # while the interpreter reads them per call, so a config changed after
-        # load_rules would split the two paths (and never reach batch workers).
-        self._config = copy.copy(config or get_config())
+        self._config = config or get_config()
         self._streaming_mode = streaming_mode
         # Everything needed to rebuild this engine in a worker process
         # (evaluate_batch with workers > 1). Metrics stay in this process: the
@@ -518,6 +522,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # for when to enable this.
         self._compile_conditions_enabled = compile_conditions
         self._compiled_conditions: dict[int, CompiledCondition] = {}
+        # The condition flags the closures were compiled with; see
+        # _recompile_if_flags_changed.
+        self._compiled_flags: tuple[Any, ...] = ()
 
         # Initialize BitMaskLinker for O(1) rule linking
         self._bitmask_linker = BitMaskLinker()
@@ -715,16 +722,39 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # accumulate / unknown nodes so results never change.
         self._compiled_conditions = {}
         if self._compile_conditions_enabled:
-            for rid, rule in self.rule_repository.rules.items():
-                condition = getattr(rule, "conditions", None)
-                if not isinstance(condition, dict):
-                    continue
-                self._compiled_conditions[rid] = compile_condition(
-                    condition,
-                    self._config,
-                    fallback_factory=self._make_interpreter_fallback,
-                    leaf_compiler=self._compile_memo_leaf,
-                )
+            self._compile_all_conditions()
+
+    def _condition_flags(self) -> tuple[Any, ...]:
+        """The config values that compiled conditions bake in."""
+        config = self._config
+        return tuple(getattr(config, name, None) for name in _CONDITION_FLAGS)
+
+    def _compile_all_conditions(self) -> None:
+        """Compile every rule's condition tree with the current config flags."""
+        flags = self._condition_flags()
+        compiled: dict[int, CompiledCondition] = {}
+        for rid, rule in self.rule_repository.rules.items():
+            condition = getattr(rule, "conditions", None)
+            if not isinstance(condition, dict):
+                continue
+            compiled[rid] = compile_condition(
+                condition,
+                self._config,
+                fallback_factory=self._make_interpreter_fallback,
+                leaf_compiler=self._compile_memo_leaf,
+            )
+        self._compiled_flags = flags
+        self._compiled_conditions = compiled
+
+    def _recompile_if_flags_changed(self) -> None:
+        """Recompile when a condition flag on the config changed since compiling.
+
+        The interpreter reads the config on every call, while compiled closures
+        bind the flags when they are built. Recompiling on change keeps both
+        paths giving the same answer after the config is edited.
+        """
+        if self._compiled_conditions and self._condition_flags() != self._compiled_flags:
+            self._compile_all_conditions()
 
     @staticmethod
     def _compute_alpha_engage(index: PredicateIndex | None) -> bool:
@@ -772,6 +802,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         observability reservoir (p50/p95/p99). When metrics are off this is a
         direct passthrough with no added cost beyond one bool check.
         """
+        self._recompile_if_flags_changed()
         result = super().evaluate(facts, filters, strict_facts=strict_facts)
         if self._metrics is not None:
             self._metrics.record_latency_ms(result.latency_ms)

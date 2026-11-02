@@ -60,7 +60,8 @@ From `fluxrules.engine`:
   `EvaluationResult` per fact, in input order; `workers=N` spreads them over `N`
   processes, each rebuilt with the engine's settings. See
   [Many facts at once](../usage/python-api.md#many-facts-at-once).
-  The engine keeps its own copy of the `EngineConfig` it is created with.
+  A change to the engine's `EngineConfig` object takes effect on its next evaluation,
+  for interpreted and compiled rules alike.
 - `BaseEngine` (abstract base for custom engines); takes the same typed-fact and `fact_pipeline=` keywords.
   `evaluate_batch` works with `workers=1`; override `_clone_settings()` to allow more.
 

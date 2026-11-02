@@ -38,6 +38,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Compiled rules follow config changes made after `load_rules`.** A
+  condition setting (`missing_field`, `strict_null_handling`,
+  `strict_type_comparison`, `boolean_string_coercion`) changed on an engine's
+  config after `load_rules` reached interpreted rules but not rules compiled
+  with `compile_conditions=True`, so the same engine could give two answers.
+  The engine now recompiles when one of these settings changes. Engines
+  without compiled conditions are unaffected.
 - **Rule writes no longer stall on a server without Redis.** The compiled-rule
   cache built a new Redis client on every call, with no timeout and redis-py's
   default retries, so each rule create, update or delete waited about 7
@@ -68,13 +75,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   code as `evaluate_batch`. Its signature and results are unchanged; it still
   builds a default engine and returns fired-rule ids.
 
-- **`PhreakEngine` copies its `EngineConfig` when it is created.** Before,
-  the engine shared the caller's config object (or the process-wide one). A
-  setting changed after `load_rules`, such as `missing_field` or
-  `strict_null_handling`, reached interpreted rules but not rules compiled with
-  `compile_conditions=True`, so the same engine could give two different
-  answers. Now later changes to that object, or `set_config()`, do not affect
-  an existing engine. To change a setting, create a new engine.
 
 ## [1.1.0] - Unreleased
 

@@ -11,12 +11,14 @@ cfg = get_config()
 print(cfg.rule_engine_type)
 ```
 
-### Settings are fixed when the engine is created
+### Changing settings after the engine is created
 
-`PhreakEngine` keeps its own copy of the config. It takes the `config` you
-pass, or the process-wide config if you pass none, and copies it. Changing
-that object afterwards, or calling `set_config`, does not affect an engine
-that already exists:
+`PhreakEngine` uses the config object it was created with: the `config` you
+pass, or the process-wide config if you pass none. If you change a field on
+that object later, the engine uses the new value from its next evaluation on.
+This holds for rules run by the interpreter and for rules compiled with
+`compile_conditions=True` (the engine recompiles them when a condition setting
+changes):
 
 ```python
 from fluxrules import F, Rule
@@ -24,20 +26,21 @@ from fluxrules.engine.configuration import EngineConfig
 from fluxrules.engine.phreak import PhreakEngine
 
 config = EngineConfig(missing_field="false")
-engine = PhreakEngine(config=config)
+engine = PhreakEngine(config=config, compile_conditions=True)
 engine.load_rules([Rule(id=1, name="r", conditions=~(F("blocked") == True), action="allow")])  # noqa: E712
-
-config.missing_field = "unknown"  # too late: this engine kept "false"
 assert engine.evaluate({"amount": 1}).fired_rules == [1]
 
-engine = PhreakEngine(config=config)  # a new engine picks up "unknown"
-engine.load_rules([Rule(id=1, name="r", conditions=~(F("blocked") == True), action="allow")])  # noqa: E712
+config.missing_field = "unknown"  # takes effect on the next evaluation
 assert engine.evaluate({"amount": 1}).fired_rules == []
 ```
 
-This keeps every part of the engine in agreement. Rules compiled with
-`compile_conditions=True` and rules run by the interpreter always use the
-same settings, and so do the worker processes of `evaluate_batch`.
+`set_config(new_config)` is different: it replaces the process-wide object
+instead of changing it. Engines created before the call keep the object they
+already had. Engines created afterwards, and `fluxrules.evaluate()`, use the
+new one.
+
+`evaluate_batch(facts, workers=N)` sends the config's current values to its
+worker processes when you call it.
 
 ## Strict Fact Validation
 
