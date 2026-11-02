@@ -31,6 +31,7 @@ The API includes these core routes:
 - `GET /api/v1/explain/{execution_id}`: Look up an earlier evaluation
 - `POST /api/v1/rules/simulate`: Dry run with an explanation per matched rule
 - `POST /validate`: Check a rule set without storing it
+- `POST /api/v1/sessions/{id}/evaluate`: Evaluate each fact stored in a session
 
 All of them except `/health` and `/validate` need a login token. See
 [Logging in](../rest-api.md#logging-in).

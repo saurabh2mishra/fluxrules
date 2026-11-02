@@ -37,6 +37,10 @@ The collector is bounded and advisory. Useful operational signals include
 `linked_rules_avg`, `node_memory.hit_rate` in streaming mode, and
 `working_memory_size`.
 
+With `engine.evaluate_batch(facts, workers=N)`, only per-fact latency reaches
+the engine's metrics. The other counters are counted inside the worker
+processes and are not added here.
+
 ## Metrics (Prometheus)
 
 Prometheus export is optional and is attached to a `FactPipeline` through a

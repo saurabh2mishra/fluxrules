@@ -12,6 +12,8 @@ FluxRules provides everything needed for production rule engines.
 - **Complex Logic**: [AND/OR/NOT boolean logic](complex-conditions.md) with deep, arbitrary nesting
 - **Rule Organization**: [Domains and Tags](domains-and-tags.md) for categorization and filtering
 - **Priority-Based Execution**: Higher priority rules fire first when multiple match
+- **Batch Evaluation**: [`evaluate_batch`](usage/python-api.md#many-facts-at-once) evaluates many facts in one call, optionally across worker processes, with the same results as one at a time
+- **Many Ways In**: one call, an engine, a batch, a stream, sessions, the CLI or HTTP; see [Ways to Evaluate a Fact](evaluating-facts.md)
 - **Multiple Actions**: Each rule can trigger one or more actions in sequence
 - **Validation**: [condition validation](validation-framework.md) catches syntax errors before rules run
 - **Explicit IDs**: Auto-generate or provide your own (sequential integers)

@@ -10,6 +10,14 @@ For the most up-to-date changes, see `CHANGELOG.md` in the repository root or th
 
 ### Key Milestones
 
+- **Next release** (unreleased): Batch evaluation and HTTP fixes
+  - `engine.evaluate_batch(facts, workers=N)` returns full results in input
+    order, with every engine option applied in worker processes
+  - Rules compiled with `compile_conditions=True` follow config changes made
+    after `load_rules`
+  - `POST /api/v1/sessions/{id}/evaluate`; real rule names in API responses;
+    rule writes no longer stall without Redis; the explain store is bounded
+  - New guide: [Ways to Evaluate a Fact](evaluating-facts.md)
 - **v1.1.0** (2026): Typed facts and missing-field fixes
   - Engines accept Pydantic models, dataclasses, attrs classes and msgspec
     structs; nested models become dotted keys
