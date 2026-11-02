@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -3149,6 +3177,19 @@ the converted (or validated) dict.</p>
 </table>
 <p>Whether unknown keys are allowed is the model's choice: Pydantic ignores them
 by default and rejects them with <code>model_config = ConfigDict(extra="forbid")</code>.</p>
+<p><code>evaluate_batch</code> follows the same policy for every fact in the batch:</p>
+<div class="highlight"><pre><span></span><code><span class="n">batch</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"userAge"</span><span class="p">:</span> <span class="s2">"40"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"userAge"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"userAge"</span><span class="p">:</span> <span class="s2">"12"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"userAge"</span><span class="p">:</span> <span class="s2">"y"</span><span class="p">}]</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">tolerant</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">fired_rules</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span> <span class="o">==</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]]</span>
+<span class="k">assert</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">facts</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">tolerant</span><span class="o">.</span><span class="n">quarantined_facts</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">"userAge"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"userAge"</span><span class="p">:</span> <span class="s2">"y"</span><span class="p">}]</span>
+</code></pre></div>
+<p>With <code>workers=N</code>, the rejected facts from all workers are added to
+<code>quarantined_facts</code> in input order, as above. With <code>on_invalid="raise"</code>, the
+error for the first invalid fact in the batch is raised, as a loop over
+<code>evaluate()</code> would. The model is sent to the workers by pickling, so define it
+at the top level of a module. See
+<a href="../usage/python-api/#many-facts-at-once">Many facts at once</a>.</p>
 <h2 id="check-rule-files-in-ci">Check rule files in CI<a class="headerlink" href="#check-rule-files-in-ci" title="Permanent link">&para;</a></h2>
 <p>Rules kept in JSON or YAML files can be checked against the model before they
 reach an engine. <code>fluxrules validate</code> (from <code>pip install 'fluxrules[cli]'</code>)

@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -2880,9 +2908,10 @@ ordered stream through ordinary round-robin HTTP workers: each worker would
 have a different previous-fact state and could emit incorrect deltas. Use
 stateless mode for independently load-balanced requests. For independent batch
 facts, process-based parallel evaluation is available through
-<code>fluxrules.engine.runtime.evaluate_batch_parallel</code>; keep its
-<code>streaming_mode=False</code> default. A streaming workload must instead shard by
-stream identity and keep each shard ordered on one owner.</p>
+<code>engine.evaluate_batch(facts, workers=N)</code>. It refuses a streaming engine when
+<code>workers</code> is more than 1, because the workers would split the stream's state.
+A streaming workload must instead shard by stream identity and keep each shard
+ordered on one owner.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>

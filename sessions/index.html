@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -1903,6 +1931,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sessions-over-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sessions over HTTP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2691,6 +2730,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sessions-over-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sessions over HTTP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2732,8 +2782,7 @@
 </ol>
 <h2 id="creating-and-using-a-session">Creating and using a session<a class="headerlink" href="#creating-and-using-a-session" title="Permanent link">&para;</a></h2>
 <p>Create a session via <code>RuleService</code>, then accumulate facts and evaluate:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
 
@@ -2742,11 +2791,13 @@
 <span class="c1"># Build rules and register them as a named ruleset</span>
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Rule</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"verify_kyc"</span><span class="p">,</span>
         <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"kyc_status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"verified"</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"proceed_to_payment"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">Rule</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"check_amount"</span><span class="p">,</span>
         <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"require_approval"</span><span class="p">,</span>
@@ -2764,6 +2815,7 @@
 <span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">15000</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Actions: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">actions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># actions whose rules matched</span>
+<span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 </code></pre></div>
 <p><strong>Key point:</strong> Sessions accumulate facts. You evaluate once against all accumulated facts, not after each <code>add_fact()</code>.</p>
 <h2 id="session-lifecycle">Session lifecycle<a class="headerlink" href="#session-lifecycle" title="Permanent link">&para;</a></h2>
@@ -2776,18 +2828,19 @@
 <li><strong>Restore</strong>: <code>EvaluationSession.restore(json, service)</code> reconstructs from snapshot</li>
 </ol>
 <p>Evaluations are <strong>independent</strong>: each <code>evaluate()</code> is stateless. The session remembers facts but not evaluation history.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="c1"># Multiple evaluations with different facts</span>
-<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"risk_score"</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Multiple evaluations with different facts</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
 <span class="n">result1</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">result1</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># only the KYC rule</span>
 
-<span class="n">session</span><span class="o">.</span><span class="n">remove_fact</span><span class="p">(</span><span class="s2">"risk_score"</span><span class="p">)</span>
-<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"risk_score"</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
-<span class="n">result2</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Different result due to updated fact</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">50000</span><span class="p">)</span>  <span class="c1"># add_fact replaces the old value</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result2</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>  <span class="c1"># different result due to the updated fact</span>
 </code></pre></div>
 <h2 id="snapshot-save-and-restore">Snapshot: save and restore<a class="headerlink" href="#snapshot-save-and-restore" title="Permanent link">&para;</a></h2>
 <p>Serialize a session to JSON for checkpointing or recovery:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationSession</span>
+
 <span class="c1"># Checkpoint current state</span>
 <span class="n">snapshot</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># Returns JSON string</span>
 
@@ -2797,6 +2850,7 @@
 
 <span class="c1"># The restored session has the same facts and metadata</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">restored</span><span class="o">.</span><span class="n">facts</span><span class="p">)</span>  <span class="c1"># Same as original session</span>
+<span class="k">assert</span> <span class="n">restored</span><span class="o">.</span><span class="n">facts</span> <span class="o">==</span> <span class="n">session</span><span class="o">.</span><span class="n">facts</span>
 </code></pre></div>
 <p>Snapshots include:
 - <strong>execution_id</strong>: unique session identifier
@@ -2809,19 +2863,30 @@
 - <strong>Audit trail</strong>: keep JSON copies of evaluation context</p>
 <h2 id="isolation">Isolation<a class="headerlink" href="#isolation" title="Permanent link">&para;</a></h2>
 <p>Each session is isolated. Facts in one session do not affect another:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="c1"># Each session is independent: same ruleset, different fact sets</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Each session is independent: same ruleset, different fact sets</span>
 <span class="n">session1</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"order_rules"</span><span class="p">)</span>
-<span class="n">session1</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"user_type"</span><span class="p">,</span> <span class="s2">"premium"</span><span class="p">)</span>
+<span class="n">session1</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">20000</span><span class="p">)</span>
 
 <span class="n">session2</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"order_rules"</span><span class="p">)</span>
-<span class="n">session2</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"user_type"</span><span class="p">,</span> <span class="s2">"basic"</span><span class="p">)</span>
+<span class="n">session2</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 
-<span class="n">result1</span> <span class="o">=</span> <span class="n">session1</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Evaluates with "premium"</span>
-<span class="n">result2</span> <span class="o">=</span> <span class="n">session2</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Evaluates with "basic"</span>
+<span class="n">result1</span> <span class="o">=</span> <span class="n">session1</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Evaluates with 20000</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">session2</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>  <span class="c1"># Evaluates with 100</span>
 <span class="c1"># No cross-contamination</span>
+<span class="k">assert</span> <span class="p">(</span><span class="n">result1</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">,</span> <span class="n">result2</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">)</span> <span class="o">==</span> <span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="p">[])</span>
 </code></pre></div>
 <p>Use sessions to evaluate the same ruleset independently for different users, transactions, or workflows.</p>
+<h2 id="sessions-over-http">Sessions over HTTP<a class="headerlink" href="#sessions-over-http" title="Permanent link">&para;</a></h2>
+<p>The HTTP API has its own sessions, under <code>/api/v1/sessions</code>. They work
+differently from the Python sessions on this page:</p>
+<ul>
+<li><strong>Python session</strong>: each <code>add_fact(key, value)</code> adds one field to a single
+  fact, and <code>evaluate()</code> checks that one fact.</li>
+<li><strong>HTTP session</strong>: each <code>POST /api/v1/sessions/{id}/facts</code> stores a whole
+  fact under a <code>fact_id</code>, and <code>POST /api/v1/sessions/{id}/evaluate</code> evaluates
+  every stored fact on its own, returning one result per fact.</li>
+</ul>
+<p>See <a href="../rest-api/#sessions">REST API: Sessions</a>.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>

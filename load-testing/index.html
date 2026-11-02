@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -3641,7 +3669,28 @@ fact joins/temporal correlation are out of scope; see
 <h3 id="multi-core-scaling">Multi-core scaling<a class="headerlink" href="#multi-core-scaling" title="Permanent link">&para;</a></h3>
 <p>Python's GIL serializes CPU-bound condition evaluation within a process, so
 multi-core throughput comes from <strong>processes</strong>, not threads. Use
-<code>evaluate_batch_parallel</code> (one engine per worker process):</p>
+<code>engine.evaluate_batch(facts, workers=N)</code>. It starts <code>N</code> worker processes, and
+each one rebuilds your engine with the same settings and rules:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">([</span><span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"big"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)])</span>
+    <span class="n">facts</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="n">n</span><span class="p">}</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">500</span><span class="p">)]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">facts</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">),</span> <span class="s2">"facts matched"</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</code></pre></div>
+<p>The <code>if __name__ == "__main__":</code> guard matters. On macOS and Windows, each
+worker process imports your script again, and without the guard it would start
+the batch again. See <a href="../usage/python-api/#many-facts-at-once">Many facts at once</a>
+for the full rules.</p>
+<p>The benchmark harness measures parallel throughput:</p>
 <div class="highlight"><pre><span></span><code>python tests/performance/perf_realistic_rules.py --parallel --workers 8
 </code></pre></div>
 <p>The harness reports parallel throughput, per-core throughput, and the speedup,

@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://saurabh2mishra.github.io/fluxrules/usage/http-api/">
       
       
-        <link rel="prev" href="../python-api/">
+        <link rel="prev" href="../../evaluating-facts/">
       
       
         <link rel="next" href="../../cli/">
@@ -527,6 +527,34 @@
     
   
     Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
   
 
     
@@ -2714,24 +2742,31 @@
 <p>The API includes these core routes:</p>
 <ul>
 <li><code>GET /health</code>: Health check</li>
-<li><code>POST /api/v1/evaluate</code>: Evaluate facts against rules</li>
-<li><code>POST /api/v1/validate</code>: Validate conditions or ruleset</li>
-<li><code>GET /api/v1/executions/{id}</code>: Get execution details</li>
-<li><code>POST /api/v1/simulate</code>: Simulate rule with custom facts</li>
+<li><code>POST /api/v1/rules</code>: Store a rule (rules live in the server's database)</li>
+<li><code>POST /api/v1/evaluate</code>: Evaluate one fact against the stored rules</li>
+<li><code>POST /api/v1/evaluate/bulk</code>: Evaluate several facts in one request</li>
+<li><code>GET /api/v1/explain/{execution_id}</code>: Look up an earlier evaluation</li>
+<li><code>POST /api/v1/rules/simulate</code>: Dry run with an explanation per matched rule</li>
+<li><code>POST /validate</code>: Check a rule set without storing it</li>
+<li><code>POST /api/v1/sessions/{id}/evaluate</code>: Evaluate each fact stored in a session</li>
 </ul>
+<p>All of them except <code>/health</code> and <code>/validate</code> need a login token. See
+<a href="../../rest-api/#logging-in">Logging in</a>.</p>
 <h2 id="evaluate-request">Evaluate Request<a class="headerlink" href="#evaluate-request" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="err">POST</span><span class="w"> </span><span class="err">/api/v</span><span class="mi">1</span><span class="err">/evalua</span><span class="kc">te</span>
 <span class="p">{</span>
-<span class="w">  </span><span class="nt">"ruleset"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
-<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"ruleset_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span>
 <span class="p">}</span>
 </code></pre></div>
+<p><code>ruleset_id</code> is optional and picks the rules of one <code>group</code>.</p>
 <p>Response:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"fired_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8ac723da-c93d-40ec-809c-64a244003e9e"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"ruleset_group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">],</span>
 <span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"flag"</span><span class="p">,</span><span class="w"> </span><span class="s2">"review"</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.5</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"exec-123"</span>
+<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <hr />

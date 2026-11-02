@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -1692,6 +1720,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#evaluating-many-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluating many facts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2713,6 +2752,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#evaluating-many-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluating many facts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2828,6 +2878,35 @@
 <li><strong>Preserve the result contract</strong>: Return fired IDs, actions, and explanations from <code>_evaluate_rules</code></li>
 <li><strong>Use <code>BaseEngine.evaluate()</code></strong>: It supplies discovery, filters, grouping, and latency measurement</li>
 </ol>
+<h2 id="evaluating-many-facts">Evaluating many facts<a class="headerlink" href="#evaluating-many-facts" title="Permanent link">&para;</a></h2>
+<p>Every engine gets <code>evaluate_batch(facts)</code> from <code>BaseEngine</code>. Without
+<code>workers</code>, it calls your engine's <code>evaluate()</code> on each fact and returns the
+results in order, so it works for a custom engine with no extra code:</p>
+<div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">([{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span> <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">10</span><span class="p">}])</span>
+<span class="k">assert</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+<p><code>workers=N</code> (more than 1) runs the facts in <code>N</code> worker processes, and each
+worker must build its own copy of your engine. <code>BaseEngine</code> cannot know how
+to build yours, so by default it raises <code>NotImplementedError</code> and asks you to
+use <code>workers=1</code>. To allow workers, override <code>_clone_settings()</code> and return
+your engine class plus the keyword arguments its constructor needs:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BatchReadyEngine</span><span class="p">(</span><span class="n">MyCustomEngine</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_clone_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="p">{</span><span class="s2">"threshold"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">}</span>
+
+
+<span class="k">assert</span> <span class="n">BatchReadyEngine</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">_clone_settings</span><span class="p">()</span> <span class="o">==</span> <span class="p">(</span><span class="n">BatchReadyEngine</span><span class="p">,</span> <span class="p">{</span><span class="s2">"threshold"</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+</code></pre></div>
+<p>Each worker then calls <code>BatchReadyEngine(threshold=5)</code> and loads your rules
+into it. The class and its arguments are sent to the workers by pickling, so
+define the class at the top level of a module (not inside a function), and
+call <code>evaluate_batch(facts, workers=4)</code> under <code>if __name__ == "__main__":</code>.
+See <a href="../usage/python-api/#many-facts-at-once">Many facts at once</a> for the
+other rules that apply to workers.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>

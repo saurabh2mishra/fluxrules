@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -3702,8 +3730,9 @@ is the way to test for absence on purpose:</p>
 </code></pre></div>
 <p>The setting applies to <code>PhreakEngine</code> (interpreted and compiled) and to
 <code>fluxrules.evaluate()</code>, which reads the process-wide config
-(<code>fluxrules.engine.configuration.set_config</code>). Set it before <code>load_rules</code>:
-compiled conditions read it when they are compiled.</p>
+(<code>fluxrules.engine.configuration.set_config</code>). Changing it on an engine's
+config object takes effect on that engine's next evaluation. See
+<a href="../usage/configuration/#changing-settings-after-the-engine-is-created">Changing settings after the engine is created</a>.</p>
 <h3 id="value-types-must-match">Value types must match<a class="headerlink" href="#value-types-must-match" title="Permanent link">&para;</a></h3>
 <p>A numeric field compared with a string will not raise, but will silently not
 match. Match the value type to the field type:</p>

@@ -16,7 +16,7 @@
         <link rel="prev" href="../">
       
       
-        <link rel="next" href="../http-api/">
+        <link rel="next" href="../../evaluating-facts/">
       
       
         
@@ -612,6 +612,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#many-facts-at-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Many facts at once
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Many facts at once">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-several-cpu-cores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using several CPU cores
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#facts-from-a-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Facts from a database
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#ruleservice-sessions-persistence" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -637,6 +676,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2680,6 +2747,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#many-facts-at-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Many facts at once
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Many facts at once">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-several-cpu-cores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using several CPU cores
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#facts-from-a-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Facts from a database
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#ruleservice-sessions-persistence" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2773,25 +2879,131 @@
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">2500</span><span class="p">})</span>
 </code></pre></div>
+<h2 id="many-facts-at-once">Many facts at once<a class="headerlink" href="#many-facts-at-once" title="Permanent link">&para;</a></h2>
+<p><code>engine.evaluate_batch(facts)</code> evaluates a list of facts and returns a list of
+results, one per fact, in the same order. Each result is the same
+<code>EvaluationResult</code> that <code>evaluate()</code> returns, so you get the fired rules,
+their actions, the explanations and the latency for every fact:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">([</span><span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"big"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)])</span>
+
+<span class="n">facts</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">50</span><span class="p">},</span> <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">4200</span><span class="p">},</span> <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">900</span><span class="p">}]</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">facts</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">fired_rules</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span> <span class="o">==</span> <span class="p">[[],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[]]</span>
+<span class="k">assert</span> <span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">actions</span> <span class="o">==</span> <span class="p">[</span><span class="s2">"review"</span><span class="p">]</span>
+</code></pre></div>
+<p>Without <code>workers</code>, this is the same as writing
+<code>[engine.evaluate(f) for f in facts]</code>. It accepts any iterable, so a generator
+works too.</p>
+<h3 id="using-several-cpu-cores">Using several CPU cores<a class="headerlink" href="#using-several-cpu-cores" title="Permanent link">&para;</a></h3>
+<p>Python runs one thread of Python code at a time, so a single process uses one
+CPU core. To use more, pass <code>workers</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">facts</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</code></pre></div>
+<p>This starts 4 worker processes and splits the facts between them. Each worker
+builds its own copy of your engine, with the same rules and the same settings:
+<code>fact_schema</code>, <code>validate_facts</code>, <code>on_invalid</code>, <code>fact_pipeline</code>,
+<code>compile_conditions</code> and the <code>EngineConfig</code>. The results are identical to the
+single-process ones and come back in input order.</p>
+<p>Things to know when you use <code>workers</code>:</p>
+<ul>
+<li><strong>Starting processes takes time.</strong> Workers pay off for thousands of facts or
+  expensive rules, not for a handful. <code>workers</code> larger than the number of facts
+  is reduced to the number of facts.</li>
+<li><strong>Guard your script.</strong> On macOS and Windows each worker imports your script
+  again. Put the code that calls <code>evaluate_batch</code> under
+  <code>if __name__ == "__main__":</code>, or every worker would start the batch again.</li>
+<li><strong>Settings must be picklable.</strong> Workers receive the settings by pickling
+  them. A <code>lambda</code>, or a class defined inside a function, cannot be pickled, so
+  <code>Filter(lambda f: ...)</code> in a pipeline raises a clear <code>ValueError</code> before any
+  worker starts. Use a named function defined at the top level of a module.</li>
+<li><strong>Invalid facts behave as in a loop.</strong> With <code>on_invalid="quarantine"</code>,
+  rejected facts get an empty result and are added to
+  <code>engine.quarantined_facts</code>, in input order. With <code>on_invalid="raise"</code>, the
+  error for the first invalid fact is raised.</li>
+<li><strong>Not for streaming mode.</strong> A streaming engine remembers the previous fact,
+  and splitting facts between processes would split that memory. A streaming
+  engine accepts only <code>workers=1</code>.</li>
+<li><strong>Each worker has its own copy of the pipeline.</strong> A <code>fact_pipeline</code> step
+  that remembers earlier facts, such as a filter that drops duplicates or a
+  counter, only sees the facts sent to its own worker. Two duplicates that land
+  in different workers are both evaluated, and the pipeline object in your
+  process is not updated. Use <code>workers=1</code> when the pipeline keeps state.</li>
+<li><strong>Metrics record latency only.</strong> With <code>enable_metrics=True</code>, your engine
+  records each fact's evaluation time from the workers. The other counters
+  (leaf-memo hits, linked rules, alpha prune ratio) are counted inside the
+  workers and are not added to your engine's metrics.</li>
+</ul>
+<h3 id="facts-from-a-database">Facts from a database<a class="headerlink" href="#facts-from-a-database" title="Permanent link">&para;</a></h3>
+<p>Read the rows with your own query, build the engine once, and keep the row key
+next to each result. With SQLAlchemy, <code>.mappings()</code> gives each row as a
+dictionary:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">text</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s2">"sqlite://"</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">db</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s2">"CREATE TABLE payments (id INTEGER, amount REAL, country TEXT)"</span><span class="p">))</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">text</span><span class="p">(</span><span class="s2">"INSERT INTO payments VALUES (1, 50, 'US'), (2, 4200, 'DE'), (3, 9000, 'FR')"</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="n">rules_engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+<span class="n">rules_engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"big"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)]</span>
+<span class="p">)</span>
+
+<span class="k">with</span> <span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s2">"SELECT id, amount, country FROM payments"</span><span class="p">))</span><span class="o">.</span><span class="n">mappings</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">rules_engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+<span class="n">flagged</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">flagged</span> <span class="o">==</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</code></pre></div>
+<p>For a very large table, read and evaluate it in chunks (for example 10,000
+rows at a time) instead of loading every row first.</p>
 <h2 id="ruleservice-sessions-persistence">RuleService (Sessions &amp; Persistence)<a class="headerlink" href="#ruleservice-sessions-persistence" title="Permanent link">&para;</a></h2>
-<p>Use <code>RuleService</code> for stateful workflows:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
+<p><code>RuleService</code> stores rule sets by name. A session collects the fields of one
+fact over several steps and evaluates them against a stored rule set:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
 
 <span class="n">service</span> <span class="o">=</span> <span class="n">RuleService</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+<span class="n">payment_rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"big"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">)]</span>
+<span class="n">service</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
+    <span class="n">Ruleset</span><span class="p">(</span>
+        <span class="n">group</span><span class="o">=</span><span class="s2">"payment_rules"</span><span class="p">,</span>
+        <span class="n">rules</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">to_engine_rule</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">"payment_rules"</span><span class="p">)</span> <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">payment_rules</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 
-<span class="c1"># Create session requires ruleset_id</span>
-<span class="c1"># ruleset_id = service.save_ruleset(name="payment_rules", rules=rules)</span>
-<span class="c1"># session = service.create_session(ruleset_id)</span>
-
-<span class="c1"># Add facts and evaluate</span>
-<span class="c1"># session.assert_fact({"customer_id": "c1", "amount": 5000})</span>
-<span class="c1"># result = session.evaluate()</span>
-<span class="c1"># print(f"Matched: {result.fired_rules}")</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"payment_rules"</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"customer_id"</span><span class="p">,</span> <span class="s2">"c1"</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </code></pre></div>
+<ul>
+<li><code>service.persist(Ruleset(...))</code> stores the rules under the name
+  <code>"payment_rules"</code>. <code>to_engine_rule(group=...)</code> converts each <code>Rule</code> to the
+  stored form.</li>
+<li><code>create_session("payment_rules")</code> starts an empty session for that rule set.</li>
+<li><code>add_fact(key, value)</code> sets one field; <code>session.evaluate()</code> checks all
+  fields added so far.</li>
+</ul>
+<p><code>RuleService.create()</code> keeps rule sets in memory. See <a href="../../sessions/">Sessions</a>
+for saving and restoring a session.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
+<li><strong>Ways to Evaluate a Fact</strong>: See <a href="../../evaluating-facts/">Ways to Evaluate a Fact</a> for every way to evaluate facts, side by side</li>
 <li><strong>Engines</strong>: See <a href="../../engine-comparison/">The FluxRules Engine</a></li>
 <li><strong>Sessions</strong>: See <a href="../../sessions/">Sessions</a> for stateful workflows</li>
 <li><strong>API Reference</strong>: See <a href="../../reference/public-api/">Reference: Public API</a></li>

@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -2779,40 +2807,26 @@
 <h2 id="stateful-sessions">Stateful sessions<a class="headerlink" href="#stateful-sessions" title="Permanent link">&para;</a></h2>
 <p>For workflows that accumulate facts across multiple steps, use <code>EvaluationSession</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
 
-<span class="c1"># Create a ruleset (persisted rules)</span>
 <span class="n">service</span> <span class="o">=</span> <span class="n">RuleService</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
 <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">Rule</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">"kyc_verified"</span><span class="p">,</span>
-        <span class="n">domain</span><span class="o">=</span><span class="s2">"compliance"</span><span class="p">,</span>
-        <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"kyc_status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"verified"</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s2">"proceed"</span><span class="p">,</span>
-        <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">),</span>
-    <span class="n">Rule</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">"high_risk"</span><span class="p">,</span>
-        <span class="n">domain</span><span class="o">=</span><span class="s2">"fraud"</span><span class="p">,</span>
-        <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span>
-        <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"kyc_verified"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"kyc_status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"verified"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"proceed"</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"high_risk"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">),</span>
 <span class="p">]</span>
+<span class="n">service</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
+    <span class="n">Ruleset</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">"onboarding"</span><span class="p">,</span> <span class="n">rules</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">to_engine_rule</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">"onboarding"</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">))</span>
+<span class="p">)</span>
 
-<span class="c1"># Accumulate facts and evaluate (python skip for demo)</span>
-<span class="c1"># from fluxrules.engine.phreak import PhreakEngine</span>
-<span class="c1">#</span>
-<span class="c1"># engine = PhreakEngine()</span>
-<span class="c1"># engine.load_rules(rules)</span>
-<span class="c1">#</span>
-<span class="c1"># # Evaluate with accumulated facts</span>
-<span class="c1"># facts = {"kyc_status": "verified", "amount": 15000}</span>
-<span class="c1">#</span>
-<span class="c1"># # Evaluate against all facts</span>
-<span class="c1"># result = engine.evaluate(facts)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Matched: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># Both rules match</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"onboarding"</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"kyc_status"</span><span class="p">,</span> <span class="s2">"verified"</span><span class="p">)</span>  <span class="c1"># step 1: KYC check finishes</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">15000</span><span class="p">)</span>  <span class="c1"># step 2: the payment request arrives</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>  <span class="c1"># both rules match</span>
 </code></pre></div>
+<p><code>service.persist(Ruleset(...))</code> stores the rules under the name <code>"onboarding"</code>,
+and <code>create_session("onboarding")</code> starts an empty session for that rule set.</p>
 <p><strong>Session methods:</strong></p>
 <ul>
 <li><code>add_fact(key, value)</code>: set or update one field</li>
@@ -2824,13 +2838,14 @@
 <hr />
 <h2 id="snapshot-save-and-restore">Snapshot save and restore<a class="headerlink" href="#snapshot-save-and-restore" title="Permanent link">&para;</a></h2>
 <p>Sessions can be serialized to JSON snapshots for recovery:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
-<span class="c1"># Save session to JSON (demonstration: requires session object)</span>
-<span class="c1"># snapshot_json = session.save()</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationSession</span>
 
-<span class="c1"># Later: restore the session</span>
-<span class="c1"># restored_session = type(session).restore(snapshot_json, service)</span>
-<span class="c1"># result = restored_session.evaluate()</span>
+<span class="n">snapshot_json</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># a JSON string</span>
+
+<span class="c1"># Later, for example in another process: rebuild the session from the string</span>
+<span class="n">restored</span> <span class="o">=</span> <span class="n">EvaluationSession</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">snapshot_json</span><span class="p">,</span> <span class="n">service</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">restored</span><span class="o">.</span><span class="n">facts</span> <span class="o">==</span> <span class="n">session</span><span class="o">.</span><span class="n">facts</span>
+<span class="k">assert</span> <span class="n">restored</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span>
 </code></pre></div>
 <p>The snapshot includes facts, session ID, timestamp, and optional metadata. Use this to checkpoint multi-step workflows.</p>
 <hr />

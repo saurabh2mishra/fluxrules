@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -2773,6 +2801,9 @@ latency, or streaming-cache signals:</p>
 <code>candidates_per_fact_out</code>, <code>alpha_prune_ratio</code>, <code>eval_latency_ms_p95</code>,
 <code>linked_rules_avg</code>, <code>node_memory.hit_rate</code> in streaming mode, and
 <code>working_memory_size</code>.</p>
+<p>With <code>engine.evaluate_batch(facts, workers=N)</code>, only per-fact latency reaches
+the engine's metrics. The other counters are counted inside the worker
+processes and are not added here.</p>
 <h2 id="metrics-prometheus">Metrics (Prometheus)<a class="headerlink" href="#metrics-prometheus" title="Permanent link">&para;</a></h2>
 <p>Prometheus export is optional and is attached to a <code>FactPipeline</code> through a
 <code>PrometheusHook</code>:</p>

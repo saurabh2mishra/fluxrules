@@ -1,0 +1,3419 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Python rule evaluation toolkit with optional API, powered by the PHREAK engine">
+      
+      
+      
+        <link rel="canonical" href="https://saurabh2mishra.github.io/fluxrules/evaluating-facts/">
+      
+      
+        <link rel="prev" href="../usage/python-api/">
+      
+      
+        <link rel="next" href="../usage/http-api/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ways to Evaluate a Fact - FluxRules</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ways-to-evaluate-a-fact" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FluxRules" class="md-header__button md-logo" aria-label="FluxRules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FluxRules
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ways to Evaluate a Fact
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/saurabh2mishra/fluxrules" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    saurabh2mishra/fluxrules
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FluxRules" class="md-nav__button md-logo" aria-label="FluxRules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FluxRules
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/saurabh2mishra/fluxrules" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    saurabh2mishra/fluxrules
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fact-to-action/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From Fact to Action
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/python-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-rules-used-on-this-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The rules used on this page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-get-back" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you get back
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pick-a-way" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pick a way
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-one-call-fluxrulesevaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. One call: fluxrules.evaluate()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-an-engine-engineevaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. An engine: engine.evaluate()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-a-model-as-the-fact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. A model as the fact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-many-facts-at-once-engineevaluate_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Many facts at once: engine.evaluate_batch()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-a-stream-of-updates-streaming-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. A stream of updates: streaming mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-repeated-facts-dedupevaluator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Repeated facts: DedupEvaluator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-facts-that-relate-to-each-other-crossfactengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Facts that relate to each other: CrossFactEngine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-saved-rule-sets-and-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Saved rule sets and sessions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-the-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. The command line
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. HTTP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/http-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/engines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/advanced-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Engine
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Engine
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decision-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The FluxRules Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choosing-an-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing an Evaluation Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithm-fidelity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm Fidelity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine-scope-and-limits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope and Limits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authoring Rules
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Authoring Rules
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authoring-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pydantic-rule-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pydantic Rule Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conditions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../complex-conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complex Conditions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../domains-and-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domains and Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-builder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Builder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../yaml-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../id-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ID Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fact-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fact Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cross-fact-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Fact Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested Facts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed Facts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation-framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../working-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extension-points/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension Points
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-engines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Engines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms-cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-transforms-answered/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Transforms Q&A
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operating
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operating
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sessions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sessions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rule-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability-exporters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability Exporters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../load-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Learning
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usecases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/public-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/http-endpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Endpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_16" >
+        
+          
+          <label class="md-nav__link" for="__nav_16" id="__nav_16_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_16_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_16">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/backlog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backlog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-rules-used-on-this-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The rules used on this page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-get-back" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you get back
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pick-a-way" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pick a way
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-one-call-fluxrulesevaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. One call: fluxrules.evaluate()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-an-engine-engineevaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. An engine: engine.evaluate()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-a-model-as-the-fact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. A model as the fact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-many-facts-at-once-engineevaluate_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Many facts at once: engine.evaluate_batch()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-a-stream-of-updates-streaming-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. A stream of updates: streaming mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-repeated-facts-dedupevaluator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Repeated facts: DedupEvaluator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-facts-that-relate-to-each-other-crossfactengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Facts that relate to each other: CrossFactEngine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-saved-rule-sets-and-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Saved rule sets and sessions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-the-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. The command line
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. HTTP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ways-to-evaluate-a-fact">Ways to Evaluate a Fact<a class="headerlink" href="#ways-to-evaluate-a-fact" title="Permanent link">&para;</a></h1>
+<p><strong>Prerequisites:</strong> <a href="../concepts/">Concepts</a> (rules, facts, results).</p>
+<hr />
+<p>A <strong>fact</strong> is the data you want to check, such as one payment:
+<code>{"amount": 4200, "country": "DE"}</code>. <strong>Evaluating</strong> a fact means running your
+rules against it and finding out which ones match.</p>
+<p>FluxRules gives you several ways to do this. They all use the same rules and
+the same matching logic, so the same fact always matches the same rules. They
+differ in how the fact reaches the engine: one at a time, many at once, as a
+stream, from the command line, or over HTTP.</p>
+<p>This page shows each way with a small example and says when to use it. To see
+what happens <em>inside</em> one evaluation, read <a href="../fact-to-action/">From Fact to Action</a>.</p>
+<h2 id="the-rules-used-on-this-page">The rules used on this page<a class="headerlink" href="#the-rules-used-on-this-page" title="Permanent link">&para;</a></h2>
+<p>Every example on this page uses these two rules:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+
+<span class="n">RULES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"big_payment"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"review"</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"german_payment"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"DE"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"add_vat"</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="n">FACT</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">4200</span><span class="p">,</span> <span class="s2">"country"</span><span class="p">:</span> <span class="s2">"DE"</span><span class="p">}</span>
+</code></pre></div>
+<p><code>priority</code> decides the order of the results: higher numbers come first. The
+fact above matches both rules, so the answer is always rule 1, then rule 2.</p>
+<h2 id="what-you-get-back">What you get back<a class="headerlink" href="#what-you-get-back" title="Permanent link">&para;</a></h2>
+<p>Most ways return an <code>EvaluationResult</code>. These are the fields you will use most:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fired_rules</code></td>
+<td>The ids of the rules that matched, highest priority first. This is the answer.</td>
+</tr>
+<tr>
+<td><code>actions</code></td>
+<td>The action names of the matched rules, in the same order. FluxRules does not run them; your code does.</td>
+</tr>
+<tr>
+<td><code>explanations</code></td>
+<td>One sentence per matched rule saying why it matched.</td>
+</tr>
+<tr>
+<td><code>rules_by_domain</code>, <code>rules_by_tag</code></td>
+<td>The matched rule ids grouped by each rule's <code>domain</code> and <code>tags</code>.</td>
+</tr>
+<tr>
+<td><code>latency_ms</code></td>
+<td>How long the evaluation took, in milliseconds.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pick-a-way">Pick a way<a class="headerlink" href="#pick-a-way" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Way</th>
+<th>Use it when</th>
+<th>Keeps state between facts?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#1-one-call-fluxrulesevaluate">1. <code>fluxrules.evaluate()</code></a></td>
+<td>A script, a test, or a one-off check</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="#2-an-engine-engineevaluate">2. <code>engine.evaluate()</code></a></td>
+<td>Your application checks facts one by one. <strong>The usual choice.</strong></td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="#3-a-model-as-the-fact">3. A model as the fact</a></td>
+<td>Your facts already have a Pydantic model or dataclass</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="#4-many-facts-at-once-engineevaluate_batch">4. <code>engine.evaluate_batch()</code></a></td>
+<td>You have a list of facts, such as rows from a table</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="#5-a-stream-of-updates-streaming-mode">5. Streaming mode</a></td>
+<td>The same entity is sent again and again, and only changes matter</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="#6-repeated-facts-dedupevaluator">6. <code>DedupEvaluator</code></a></td>
+<td>Many facts are exact repeats</td>
+<td>A cache of results</td>
+</tr>
+<tr>
+<td><a href="#7-facts-that-relate-to-each-other-crossfactengine">7. <code>CrossFactEngine</code></a></td>
+<td>A rule must compare two facts, such as a payment and its customer</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="#8-saved-rule-sets-and-sessions">8. Sessions</a></td>
+<td>You build a fact up piece by piece, or save and restore it</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="#9-the-command-line">9. The command line</a></td>
+<td>You want to try rules from a file, or check them in CI</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="#10-http">10. HTTP</a></td>
+<td>Another service sends facts to a FluxRules server</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-one-call-fluxrulesevaluate">1. One call: <code>fluxrules.evaluate()</code><a class="headerlink" href="#1-one-call-fluxrulesevaluate" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">fluxrules</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">fluxrules</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">RULES</span><span class="p">,</span> <span class="n">FACT</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">actions</span> <span class="o">==</span> <span class="p">[</span><span class="s2">"review"</span><span class="p">,</span> <span class="s2">"add_vat"</span><span class="p">]</span>
+</code></pre></div>
+<p><code>fluxrules.evaluate(rules, fact)</code> takes one rule or a list of rules, and one
+fact. It prepares the rules, evaluates the fact, and returns the result.</p>
+<p><strong>Use it when</strong> you check a fact once: in a script, a notebook or a test.</p>
+<p><strong>Avoid it when</strong> you check many facts against the same rules. It prepares
+the rules on every call. An engine (way 2) prepares them once.</p>
+<p>It reads the process-wide engine settings
+(<code>fluxrules.engine.configuration.get_config()</code>). To give it different
+settings, use an engine instead.</p>
+<h2 id="2-an-engine-engineevaluate">2. An engine: <code>engine.evaluate()</code><a class="headerlink" href="#2-an-engine-engineevaluate" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">RULES</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">FACT</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s2">"country"</span><span class="p">:</span> <span class="s2">"US"</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[]</span>
+</code></pre></div>
+<p>Create the engine once and load the rules once, when your application starts.
+After that, <code>engine.evaluate(fact)</code> is cheap: <code>load_rules</code> builds indexes, so
+each evaluation only looks at rules that can match the fact.</p>
+<p><strong>Use it when</strong> your application checks facts one by one, for example one
+per web request. This is the usual choice. One engine can be shared by many
+threads.</p>
+<p>Related methods on the same engine:</p>
+<ul>
+<li><code>engine.evaluate_by_domain(fact, ["tax"])</code> and
+  <code>engine.evaluate_by_tags(fact, ["fraud"])</code> only consider rules in those
+  domains or with those tags. See <a href="../domains-and-tags/">Domains and Tags</a>.</li>
+<li><code>engine.evaluate(fact, strict_facts=True)</code> checks the shape of the fact
+  first (a dict with string keys and flat values) and raises a clear error if
+  it is wrong.</li>
+</ul>
+<p>The engine reads its settings from the <code>EngineConfig</code> you pass (or the
+process-wide one). If you change a field on that object later, the engine
+uses the new value from its next evaluation on. See
+<a href="../usage/configuration/#changing-settings-after-the-engine-is-created">Configuration</a>.</p>
+<h2 id="3-a-model-as-the-fact">3. A model as the fact<a class="headerlink" href="#3-a-model-as-the-fact" title="Permanent link">&para;</a></h2>
+<p>If your facts already have a model, pass an instance of it directly:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Payment</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">amount</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">country</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">(</span><span class="n">fact_schema</span><span class="o">=</span><span class="n">Payment</span><span class="p">)</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">RULES</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">Payment</span><span class="p">(</span><span class="n">amount</span><span class="o">=</span><span class="mi">4200</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s2">"DE"</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+</code></pre></div>
+<p>The engine turns the model into a plain dict before it checks the rules. A
+Pydantic model, a dataclass, an attrs class or a msgspec <code>Struct</code> all work,
+with or without <code>fact_schema</code>.</p>
+<p><code>fact_schema=Payment</code> is optional. With it, <code>load_rules</code> checks that every
+field a rule names exists in <code>Payment</code>, so a rule with a typo is refused when
+it loads instead of quietly never matching.</p>
+<p>The engine can also clean facts that arrive as dicts before it checks the
+rules:</p>
+<ul>
+<li><code>fact_pipeline=</code> reshapes each dict, for example to flatten it or fill in
+  defaults. See <a href="../fact-pipeline/#using-pipelines-with-engines">Fact Pipeline</a>.</li>
+<li><code>validate_facts="normalize"</code> validates each dict against <code>fact_schema</code> and
+  converts values, so <code>"4200"</code> becomes <code>4200.0</code>. <code>on_invalid=</code> decides what
+  happens to a fact that fails. See <a href="../typed-facts/">Typed Facts</a>.</li>
+</ul>
+<p>These steps run in that order (pipeline, then validation) and apply to every
+way on this page that uses an engine.</p>
+<h2 id="4-many-facts-at-once-engineevaluate_batch">4. Many facts at once: <code>engine.evaluate_batch()</code><a class="headerlink" href="#4-many-facts-at-once-engineevaluate_batch" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">RULES</span><span class="p">)</span>
+
+<span class="n">facts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">4200</span><span class="p">,</span> <span class="s2">"country"</span><span class="p">:</span> <span class="s2">"DE"</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s2">"country"</span><span class="p">:</span> <span class="s2">"US"</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">9000</span><span class="p">,</span> <span class="s2">"country"</span><span class="p">:</span> <span class="s2">"FR"</span><span class="p">},</span>
+<span class="p">]</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">facts</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">fired_rules</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span> <span class="o">==</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+</code></pre></div>
+<p><code>evaluate_batch(facts)</code> returns one result per fact, in the same order as the
+input. On its own it does the same as <code>[engine.evaluate(f) for f in facts]</code>.</p>
+<p>Add <code>workers=4</code> to spread the facts over 4 processes, so they use 4 CPU
+cores:</p>
+<div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">facts</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</code></pre></div>
+<p>Each worker process builds a copy of your engine, with the same rules and
+settings, so the results are exactly the same. Starting processes takes time,
+so this pays off for thousands of facts, not for a few.</p>
+<p><strong>Use it when</strong> you have a list of facts, such as rows from a database table
+or lines from a file.</p>
+<p><a href="../usage/python-api/#many-facts-at-once">Many facts at once</a> explains the
+rules for <code>workers</code> and shows how to evaluate rows from a database.</p>
+<h2 id="5-a-stream-of-updates-streaming-mode">5. A stream of updates: streaming mode<a class="headerlink" href="#5-a-stream-of-updates-streaming-mode" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">(</span><span class="n">streaming_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">RULES</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">FACT</span><span class="p">)</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>  <span class="c1"># first time: full answer</span>
+<span class="k">assert</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">FACT</span><span class="p">)</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[]</span>  <span class="c1"># same fact again: skipped</span>
+<span class="n">changed</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">FACT</span><span class="p">,</span> <span class="s2">"amount"</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">changed</span><span class="p">)</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># changed: evaluated again</span>
+</code></pre></div>
+<p><code>streaming_mode=True</code> makes the engine remember the previous fact. A fact
+identical to the previous one is skipped and returns no matches. A changed fact
+is evaluated again.</p>
+<p><strong>Use it when</strong> the same entity, such as an account, is sent again and again,
+and you only care when something changes.</p>
+<p><strong>Avoid it when</strong> each fact is independent, such as one request per payment.
+Because the engine remembers, one stream must always go to the same engine.
+Splitting a stream between servers or processes gives wrong answers, which is
+why <code>evaluate_batch</code> with <code>workers</code> refuses a streaming engine.</p>
+<p>See <a href="../choosing-an-engine/">Choosing an Evaluation Mode</a>.</p>
+<h2 id="6-repeated-facts-dedupevaluator">6. Repeated facts: <code>DedupEvaluator</code><a class="headerlink" href="#6-repeated-facts-dedupevaluator" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.runtime</span><span class="w"> </span><span class="kn">import</span> <span class="n">DedupEvaluator</span><span class="p">,</span> <span class="n">LRUDedupBackend</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span><span class="n">RULES</span><span class="p">)</span>
+<span class="n">dedup</span> <span class="o">=</span> <span class="n">DedupEvaluator</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">LRUDedupBackend</span><span class="p">(</span><span class="n">max_entries</span><span class="o">=</span><span class="mi">10_000</span><span class="p">))</span>
+
+<span class="n">first</span> <span class="o">=</span> <span class="n">dedup</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">FACT</span><span class="p">)</span>  <span class="c1"># evaluated by the engine</span>
+<span class="n">again</span> <span class="o">=</span> <span class="n">dedup</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"country"</span><span class="p">:</span> <span class="s2">"DE"</span><span class="p">,</span> <span class="s2">"amount"</span><span class="p">:</span> <span class="mi">4200</span><span class="p">})</span>  <span class="c1"># same content: from the cache</span>
+
+<span class="k">assert</span> <span class="n">again</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="n">first</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="k">assert</span> <span class="p">(</span><span class="n">dedup</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">hits</span><span class="p">,</span> <span class="n">dedup</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">misses</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p><code>DedupEvaluator</code> wraps an engine and remembers the result for each fact it has
+seen. When the same fact arrives again, it returns the remembered result
+without running the rules. Two dicts with the same keys and values count as the
+same fact, whatever the order of their keys.</p>
+<ul>
+<li><code>backend=LRUDedupBackend(max_entries=10_000)</code> keeps at most 10,000 results in
+  memory and forgets the least recently used one when it is full. This is also
+  the default backend (with 100,000 entries). <code>RedisDedupBackend</code> shares the
+  cache between processes; it needs the <code>redis</code> extra.</li>
+<li><code>dedup.stats</code> counts cache <code>hits</code> and <code>misses</code>.</li>
+</ul>
+<p>A result from the cache is the original result object, so its <code>latency_ms</code> and
+<code>execution_id</code> are those of the first evaluation.</p>
+<p><strong>Use it when</strong> your input repeats a lot, such as retried events or polling.
+It needs a stateless engine: it refuses a streaming one. Call <code>dedup.clear()</code>
+after you load new rules, or old answers stay in the cache.</p>
+<h2 id="7-facts-that-relate-to-each-other-crossfactengine">7. Facts that relate to each other: <code>CrossFactEngine</code><a class="headerlink" href="#7-facts-that-relate-to-each-other-crossfactengine" title="Permanent link">&para;</a></h2>
+<p>The ways above check <strong>one fact at a time</strong>. When a rule must compare two
+facts, such as "a payment over 2000 from a customer whose account is less than
+14 days old", use <code>CrossFactEngine</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.cross_fact</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrossFactEngine</span><span class="p">,</span> <span class="n">CrossFactRule</span><span class="p">,</span> <span class="n">Pattern</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">CrossFactEngine</span><span class="p">()</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="n">CrossFactRule</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"large_payment_from_new_account"</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="s2">"manual_review"</span><span class="p">,</span>
+            <span class="n">patterns</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">Pattern</span><span class="p">(</span><span class="s2">"p"</span><span class="p">,</span> <span class="s2">"Payment"</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="p">[(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)]),</span>
+                <span class="n">Pattern</span><span class="p">(</span>
+                    <span class="s2">"c"</span><span class="p">,</span>
+                    <span class="s2">"Customer"</span><span class="p">,</span>
+                    <span class="n">constraints</span><span class="o">=</span><span class="p">[(</span><span class="s2">"account_age_days"</span><span class="p">,</span> <span class="s2">"&lt;"</span><span class="p">,</span> <span class="mi">14</span><span class="p">)],</span>
+                    <span class="n">joins</span><span class="o">=</span><span class="p">[(</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"p"</span><span class="p">,</span> <span class="s2">"customer_id"</span><span class="p">)],</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">engine</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s2">"Payment"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"customer_id"</span><span class="p">:</span> <span class="s2">"c1"</span><span class="p">,</span> <span class="s2">"amount"</span><span class="p">:</span> <span class="mi">4200</span><span class="p">})</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s2">"Customer"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"id"</span><span class="p">:</span> <span class="s2">"c1"</span><span class="p">,</span> <span class="s2">"account_age_days"</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+<span class="k">assert</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">rule_name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">delta</span><span class="o">.</span><span class="n">added</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="s2">"large_payment_from_new_account"</span><span class="p">]</span>
+</code></pre></div>
+<p>Each <code>Pattern</code> matches one type of fact. <code>constraints</code> compare a field with a
+value. <code>joins</code> compare a field with a field of a fact matched by an earlier
+pattern: here, the customer's <code>id</code> must equal the payment's <code>customer_id</code>.</p>
+<p>The engine keeps every inserted fact. <code>insert</code>, <code>update</code> and <code>retract</code> each
+return a <code>CrossFactDelta</code>, whose <code>added</code> and <code>removed</code> lists say which matches
+appeared or disappeared because of that change. It does not return an
+<code>EvaluationResult</code>.</p>
+<p>See <a href="../cross-fact-rules/">Cross-Fact Rules</a>.</p>
+<h2 id="8-saved-rule-sets-and-sessions">8. Saved rule sets and sessions<a class="headerlink" href="#8-saved-rule-sets-and-sessions" title="Permanent link">&para;</a></h2>
+<p><code>RuleService</code> stores rule sets by name. A session collects a fact piece by
+piece and evaluates it against one named rule set:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.domain.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ruleset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.services.rule_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleService</span>
+
+<span class="n">service</span> <span class="o">=</span> <span class="n">RuleService</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+<span class="n">service</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
+    <span class="n">Ruleset</span><span class="p">(</span>
+        <span class="n">group</span><span class="o">=</span><span class="s2">"payments"</span><span class="p">,</span>
+        <span class="n">rules</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">to_engine_rule</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">"payments"</span><span class="p">)</span> <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">RULES</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="s2">"payments"</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">,</span> <span class="mi">4200</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">add_fact</span><span class="p">(</span><span class="s2">"country"</span><span class="p">,</span> <span class="s2">"DE"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">session</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+<span class="n">snapshot</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># a JSON string you can store and restore later</span>
+</code></pre></div>
+<ul>
+<li><code>Ruleset(group="payments", ...)</code> names the rule set. <code>to_engine_rule(group=...)</code>
+  converts each <code>Rule</code> to the stored form.</li>
+<li><code>create_session("payments")</code> starts an empty session for that rule set.</li>
+<li><code>add_fact(key, value)</code> adds one field. <code>session.evaluate()</code> checks all fields
+  added so far.</li>
+<li><code>save()</code> and <code>EvaluationSession.restore(snapshot, service)</code> let you pause and
+  continue later.</li>
+</ul>
+<p><code>service.evaluate_ruleset("payments", fact)</code> evaluates a whole fact against a
+stored rule set in one call, without a session.</p>
+<p><code>RuleService.create()</code> keeps rule sets in memory. Storing them in a database
+needs the <code>sql</code> extra. See <a href="../sessions/">Sessions</a> and
+<a href="../persistence/">Persistence</a>.</p>
+<h2 id="9-the-command-line">9. The command line<a class="headerlink" href="#9-the-command-line" title="Permanent link">&para;</a></h2>
+<p>With the <code>cli</code> extra installed, evaluate a fact from a JSON file against rules
+in a JSON or YAML file:</p>
+<div class="highlight"><pre><span></span><code>fluxrules<span class="w"> </span>evaluate<span class="w"> </span>rules.yaml<span class="w"> </span>event.json
+fluxrules<span class="w"> </span>evaluate<span class="w"> </span>rules.yaml<span class="w"> </span>event.json<span class="w"> </span>--format<span class="w"> </span>json
+fluxrules<span class="w"> </span>evaluate<span class="w"> </span>rules.yaml<span class="w"> </span>event.json<span class="w"> </span>--schema<span class="w"> </span>models.py:Payment<span class="w"> </span>--validate-facts<span class="w"> </span>normalize
+</code></pre></div>
+<ul>
+<li><code>--format json</code> prints the matched rules and actions as JSON instead of a
+  table.</li>
+<li><code>--schema models.py:Payment</code> checks the rules against the <code>Payment</code> model
+  first, and stops with exit code 1 if a rule names a field the model lacks.</li>
+<li><code>--validate-facts normalize</code> also validates and converts the event against
+  that model before evaluating it.</li>
+</ul>
+<p><strong>Use it when</strong> you want to try rules without writing code, or check rule
+files in CI. See <a href="../cli/">CLI</a>.</p>
+<h2 id="10-http">10. HTTP<a class="headerlink" href="#10-http" title="Permanent link">&para;</a></h2>
+<p>The FluxRules server (the <code>api</code> extra) evaluates facts sent as JSON:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/evaluate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"facts": {"amount": 4200, "country": "DE"}, "ruleset_id": "payments"}'</span>
+</code></pre></div>
+<ul>
+<li><code>facts</code> is the fact to evaluate.</li>
+<li><code>ruleset_id</code> is optional. It picks a stored rule set; without it, all stored
+  rules are used. <code>rule_ids</code> picks individual rules instead.</li>
+</ul>
+<p>The response lists the matched rule ids as <code>matched_rules</code>, plus <code>actions</code> and
+an <code>execution_id</code>. <code>POST /api/v1/evaluate/bulk</code> takes a list under <code>facts</code> and
+returns one result per fact. A session can also collect facts over several
+requests and evaluate them later with <code>POST /api/v1/sessions/{id}/evaluate</code>.</p>
+<p><strong>Use it when</strong> another service, possibly not written in Python, needs
+answers. See <a href="../rest-api/">REST API</a> and <a href="../deployment/">Deployment</a>.</p>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Inside one evaluation</strong>: <a href="../fact-to-action/">From Fact to Action</a></li>
+<li><strong>Stateless or streaming</strong>: <a href="../choosing-an-engine/">Choosing an Evaluation Mode</a></li>
+<li><strong>Facts with a model</strong>: <a href="../typed-facts/">Typed Facts</a></li>
+<li><strong>Many facts and several cores</strong>: <a href="../usage/python-api/#many-facts-at-once">Many facts at once</a></li>
+<li><strong>A runnable tour of these ways</strong>: <code>examples/32_ways_to_evaluate.py</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/saurabh2mishra/fluxrules" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

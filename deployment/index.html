@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -1836,6 +1864,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#redis-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Redis (optional)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#scaling" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2691,6 +2730,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#redis-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Redis (optional)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#scaling" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2790,10 +2840,31 @@
 <span class="nb">export</span><span class="w"> </span><span class="nv">API_PORT</span><span class="o">=</span><span class="m">8000</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">API_WORKERS</span><span class="o">=</span><span class="m">4</span>
 
+<span class="c1"># How many recent evaluations GET /api/v1/explain can find (default 10000)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">EXPLAIN_STORE_MAX_RECORDS</span><span class="o">=</span><span class="m">10000</span>
+
 <span class="c1"># Optional: Prometheus metrics</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_ENABLED</span><span class="o">=</span><span class="nb">true</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_EXPORTER_OTLP_ENDPOINT</span><span class="o">=</span>http://otel-collector:4317
 </code></pre></div>
+<h2 id="redis-optional">Redis (optional)<a class="headerlink" href="#redis-optional" title="Permanent link">&para;</a></h2>
+<p>The server works without Redis. When a Redis server is reachable, the API
+uses it to share work between server processes:</p>
+<ul>
+<li><code>POST /api/v1/event</code> puts events on a queue for the event worker instead
+  of evaluating them during the request.</li>
+<li>The rule cache and the compiled rules used for conflict checks are shared
+  between server processes. Without Redis, each process keeps its own copy in
+  memory.</li>
+<li>Runtime analytics are kept in Redis instead of in each process's memory.</li>
+</ul>
+<p>The API connects with <code>REDIS_HOST</code>, <code>REDIS_PORT</code> and <code>REDIS_DB</code> (defaults
+<code>localhost</code>, <code>6379</code>, <code>0</code>). The compiled-rule cache always connects to
+<code>localhost:6379</code> for now.</p>
+<p>Without Redis, the server checks once at startup and then stops trying, so
+requests are not slowed down. The compiled-rule cache tries again at most
+every 30 seconds, and always tries when it must clear old rules after a rule
+change.</p>
 <h2 id="scaling">Scaling<a class="headerlink" href="#scaling" title="Permanent link">&para;</a></h2>
 <p>For high-throughput production:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># python skip</span>
@@ -2829,8 +2900,10 @@
 <h2 id="health-monitoring">Health monitoring<a class="headerlink" href="#health-monitoring" title="Permanent link">&para;</a></h2>
 <p>Use the health endpoint for readiness checks:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/health
-<span class="c1"># {"status": "healthy", "version": "1.1.0"}</span>
+<span class="c1"># {"status": "healthy"}</span>
 </code></pre></div>
+<p><code>GET /api/v1/system/status</code> also reports the version and the state of each
+part of the server (queue, cache, persistence).</p>
 <p>Add to Docker/K8s liveness probes:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">livenessProbe</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">httpGet</span><span class="p">:</span>

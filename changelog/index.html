@@ -543,6 +543,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -2758,7 +2786,7 @@
 <p>For the most up-to-date changes, see <code>CHANGELOG.md</code> in the repository root or the git commit log.</p>
 <h3 id="key-milestones">Key Milestones<a class="headerlink" href="#key-milestones" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>v1.1.0</strong> (2026): Typed facts and missing-field fixes</li>
+<li><strong>v1.1.0</strong> (2026): Typed facts, missing-field fixes and batch evaluation</li>
 <li>Engines accept Pydantic models, dataclasses, attrs classes and msgspec
     structs; nested models become dotted keys</li>
 <li><code>fact_schema=</code> checks rule fields against a model when rules load;
@@ -2772,6 +2800,13 @@
 <li><code>fluxrules validate --schema</code> checks JSON/YAML rule files against a model
     in CI; the schema can also be named in the rule file or <code>fluxrules.yaml</code></li>
 <li><code>fact_pipeline=</code> runs a <code>FactPipeline</code> inside <code>evaluate()</code></li>
+<li><code>engine.evaluate_batch(facts, workers=N)</code> returns full results in input
+    order, with every engine option applied in worker processes</li>
+<li>Rules compiled with <code>compile_conditions=True</code> follow config changes made
+    after <code>load_rules</code></li>
+<li><code>POST /api/v1/sessions/{id}/evaluate</code>; real rule names in API responses;
+    rule writes no longer stall without Redis; the explain store is bounded</li>
+<li>New guide: <a href="../evaluating-facts/">Ways to Evaluate a Fact</a></li>
 <li><strong>v1.0.2</strong> (2026): Packaging cleanup</li>
 <li>Python 3.13 and 3.14 support; SPDX license metadata; working README links on
     PyPI; <code>dev</code> and <code>docs</code> moved from extras to dependency groups</li>

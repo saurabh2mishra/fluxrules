@@ -547,6 +547,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../http-api/" class="md-nav__link">
         
   
@@ -698,6 +726,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Engine Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changing-settings-after-the-engine-is-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changing settings after the engine is created
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2655,6 +2700,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Engine Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changing-settings-after-the-engine-is-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changing settings after the engine is created
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2729,6 +2791,31 @@
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">get_config</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">rule_engine_type</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="changing-settings-after-the-engine-is-created">Changing settings after the engine is created<a class="headerlink" href="#changing-settings-after-the-engine-is-created" title="Permanent link">&para;</a></h3>
+<p><code>PhreakEngine</code> uses the config object it was created with: the <code>config</code> you
+pass, or the process-wide config if you pass none. If you change a field on
+that object later, the engine uses the new value from its next evaluation on.
+This holds for rules run by the interpreter and for rules compiled with
+<code>compile_conditions=True</code> (the engine recompiles them when a condition setting
+changes):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">Rule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.configuration</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.engine.phreak</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">EngineConfig</span><span class="p">(</span><span class="n">missing_field</span><span class="o">=</span><span class="s2">"false"</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">compile_conditions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">load_rules</span><span class="p">([</span><span class="n">Rule</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"r"</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=~</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="s2">"blocked"</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">),</span> <span class="n">action</span><span class="o">=</span><span class="s2">"allow"</span><span class="p">)])</span>  <span class="c1"># noqa: E712</span>
+<span class="k">assert</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">config</span><span class="o">.</span><span class="n">missing_field</span> <span class="o">=</span> <span class="s2">"unknown"</span>  <span class="c1"># takes effect on the next evaluation</span>
+<span class="k">assert</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span><span class="o">.</span><span class="n">fired_rules</span> <span class="o">==</span> <span class="p">[]</span>
+</code></pre></div>
+<p><code>set_config(new_config)</code> is different: it replaces the process-wide object
+instead of changing it. Engines created before the call keep the object they
+already had. Engines created afterwards, and <code>fluxrules.evaluate()</code>, use the
+new one.</p>
+<p><code>evaluate_batch(facts, workers=N)</code> sends the config's current values to its
+worker processes when you call it.</p>
 <h2 id="strict-fact-validation">Strict Fact Validation<a class="headerlink" href="#strict-fact-validation" title="Permanent link">&para;</a></h2>
 <p>Engine evaluation supports optional strict fact pre-flight validation:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhreakEngine</span>

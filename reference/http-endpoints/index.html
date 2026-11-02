@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../usage/http-api/" class="md-nav__link">
         
   
@@ -2674,18 +2702,58 @@
 </tr>
 <tr>
 <td>POST</td>
-<td><code>/api/v1/evaluate</code></td>
-<td>Evaluate facts against rules</td>
+<td><code>/api/v1/auth/token</code></td>
+<td>Log in and get a token</td>
 </tr>
 <tr>
 <td>POST</td>
-<td><code>/api/v1/validate</code></td>
-<td>Validate conditions or ruleset</td>
+<td><code>/api/v1/rules</code></td>
+<td>Store a rule</td>
 </tr>
 <tr>
 <td>GET</td>
-<td><code>/api/v1/executions/{id}</code></td>
-<td>Get execution details</td>
+<td><code>/api/v1/rules</code></td>
+<td>List stored rules</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/evaluate</code></td>
+<td>Evaluate one fact against stored rules</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/evaluate/bulk</code></td>
+<td>Evaluate several facts</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/v1/explain/{execution_id}</code></td>
+<td>Look up an earlier evaluation</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/rules/simulate</code></td>
+<td>Dry run with explanations</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/validate</code></td>
+<td>Check a rule set without storing it</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/sessions</code></td>
+<td>Create a session that stores facts</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/sessions/{id}/evaluate</code></td>
+<td>Evaluate each fact stored in a session</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/engines/evaluate</code></td>
+<td>Evaluate a fact, with an explanation per matched rule</td>
 </tr>
 </tbody>
 </table>

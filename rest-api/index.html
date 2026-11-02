@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -2275,10 +2303,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requestresponse-format" class="md-nav__link">
+  <a href="#basics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Request/Response Format
+        Basics
       
     </span>
   </a>
@@ -2286,22 +2314,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#endpoints" class="md-nav__link">
+  <a href="#logging-in" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Endpoints
+        Logging in
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Endpoints">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#post-apiv1evaluate" class="md-nav__link">
+  <a href="#post-apiv1rules-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/evaluate
+        POST /api/v1/rules (login)
       
     </span>
   </a>
@@ -2309,10 +2348,38 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1evaluatebulk" class="md-nav__link">
+  <a href="#get-apiv1rules-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/evaluate/bulk
+        GET /api/v1/rules (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluating facts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Evaluating facts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1evaluate-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/evaluate (login)
       
     </span>
   </a>
@@ -2320,10 +2387,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1explain" class="md-nav__link">
+  <a href="#post-apiv1evaluatebulk-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/explain
+        POST /api/v1/evaluate/bulk (login)
       
     </span>
   </a>
@@ -2331,10 +2398,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1simulate" class="md-nav__link">
+  <a href="#get-apiv1explainexecution_id-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/simulate
+        GET /api/v1/explain/{execution_id} (login)
       
     </span>
   </a>
@@ -2342,15 +2409,171 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1validate" class="md-nav__link">
+  <a href="#post-apiv1rulessimulate-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/validate
+        POST /api/v1/rules/simulate (login)
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#engine-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engine endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Engine endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1enginesevaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/engines/evaluate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1enginessimulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/engines/simulate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiv1enginesconfig-and-get-apiv1enginesavailable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/v1/engines/config and GET /api/v1/engines/available
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoints-that-are-not-finished" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Endpoints that are not finished
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-a-rule-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking a rule set
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checking a rule set">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /validate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sessions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sessions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1sessions-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/sessions (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1sessionsidfacts-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/sessions/{id}/facts (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1sessionsidevaluate-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/sessions/{id}/evaluate (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-health" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server health
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server health">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#get-health" class="md-nav__link">
@@ -2363,61 +2586,11 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#optional-endpoints-with-extras" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Optional Endpoints (with extras)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Optional Endpoints (with extras)">
-      <ul class="md-nav__list">
-        
           <li class="md-nav__item">
-  <a href="#post-apiv1rules-requires-sql" class="md-nav__link">
+  <a href="#get-apiv1systemstatus" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/rules (requires [sql])
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#get-apiv1rules-requires-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        GET /api/v1/rules (requires [sql])
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#post-apiv1sessions-requires-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        POST /api/v1/sessions (requires [sql])
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#post-apiv1sessionsidfacts-requires-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        POST /api/v1/sessions/{id}/facts (requires [sql])
+        GET /api/v1/system/status
       
     </span>
   </a>
@@ -2430,10 +2603,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#error-responses" class="md-nav__link">
+  <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Error Responses
+        Errors
       
     </span>
   </a>
@@ -2769,10 +2942,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requestresponse-format" class="md-nav__link">
+  <a href="#basics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Request/Response Format
+        Basics
       
     </span>
   </a>
@@ -2780,22 +2953,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#endpoints" class="md-nav__link">
+  <a href="#logging-in" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Endpoints
+        Logging in
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Endpoints">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#post-apiv1evaluate" class="md-nav__link">
+  <a href="#post-apiv1rules-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/evaluate
+        POST /api/v1/rules (login)
       
     </span>
   </a>
@@ -2803,10 +2987,38 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1evaluatebulk" class="md-nav__link">
+  <a href="#get-apiv1rules-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/evaluate/bulk
+        GET /api/v1/rules (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluating facts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Evaluating facts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1evaluate-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/evaluate (login)
       
     </span>
   </a>
@@ -2814,10 +3026,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1explain" class="md-nav__link">
+  <a href="#post-apiv1evaluatebulk-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/explain
+        POST /api/v1/evaluate/bulk (login)
       
     </span>
   </a>
@@ -2825,10 +3037,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1simulate" class="md-nav__link">
+  <a href="#get-apiv1explainexecution_id-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/simulate
+        GET /api/v1/explain/{execution_id} (login)
       
     </span>
   </a>
@@ -2836,15 +3048,171 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#post-apiv1validate" class="md-nav__link">
+  <a href="#post-apiv1rulessimulate-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/validate
+        POST /api/v1/rules/simulate (login)
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#engine-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engine endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Engine endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1enginesevaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/engines/evaluate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1enginessimulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/engines/simulate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiv1enginesconfig-and-get-apiv1enginesavailable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/v1/engines/config and GET /api/v1/engines/available
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoints-that-are-not-finished" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Endpoints that are not finished
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-a-rule-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking a rule set
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checking a rule set">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /validate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sessions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sessions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1sessions-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/sessions (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1sessionsidfacts-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/sessions/{id}/facts (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiv1sessionsidevaluate-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/v1/sessions/{id}/evaluate (login)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-health" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server health
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server health">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#get-health" class="md-nav__link">
@@ -2857,61 +3225,11 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#optional-endpoints-with-extras" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Optional Endpoints (with extras)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Optional Endpoints (with extras)">
-      <ul class="md-nav__list">
-        
           <li class="md-nav__item">
-  <a href="#post-apiv1rules-requires-sql" class="md-nav__link">
+  <a href="#get-apiv1systemstatus" class="md-nav__link">
     <span class="md-ellipsis">
       
-        POST /api/v1/rules (requires [sql])
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#get-apiv1rules-requires-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        GET /api/v1/rules (requires [sql])
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#post-apiv1sessions-requires-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        POST /api/v1/sessions (requires [sql])
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#post-apiv1sessionsidfacts-requires-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        POST /api/v1/sessions/{id}/facts (requires [sql])
+        GET /api/v1/system/status
       
     </span>
   </a>
@@ -2924,10 +3242,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#error-responses" class="md-nav__link">
+  <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Error Responses
+        Errors
       
     </span>
   </a>
@@ -2966,167 +3284,363 @@
 
 
 <h1 id="rest-api-reference">REST API Reference<a class="headerlink" href="#rest-api-reference" title="Permanent link">&para;</a></h1>
-<p><strong>Prerequisites:</strong> <a href="../api/">API</a> (core endpoints).</p>
+<p><strong>Prerequisites:</strong> <a href="../api/">API</a> (starting the server).</p>
 <hr />
-<p>Comprehensive reference for all REST API endpoints.</p>
-<h2 id="requestresponse-format">Request/Response Format<a class="headerlink" href="#requestresponse-format" title="Permanent link">&para;</a></h2>
-<p>All requests use <code>Content-Type: application/json</code>.</p>
-<p>All responses include:</p>
+<p>This page lists the main endpoints of the FluxRules server, with the request
+and response of each. The server needs the <code>api</code> extra
+(<code>pip install "fluxrules[api]"</code>). Start it with <code>fluxrules serve</code>.</p>
+<p>The full, always current list is generated by the server itself: open
+<code>http://localhost:8000/docs</code> while it runs.</p>
+<h2 id="basics">Basics<a class="headerlink" href="#basics" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>fired_rules</code>: List of matched rule IDs</li>
-<li><code>actions</code>: List of triggered actions</li>
-<li><code>latency_ms</code>: Evaluation time in milliseconds</li>
+<li>Requests and responses are JSON (<code>Content-Type: application/json</code>), except
+  the login form below.</li>
+<li>Rules are stored in the server's database. Add them with
+  <code>POST /api/v1/rules</code> before you evaluate anything.</li>
+<li>A matched rule is reported by its id in a list called <code>matched_rules</code>.
+  (The Python API calls the same list <code>fired_rules</code>.)</li>
+<li>Endpoints marked <strong>(login)</strong> need a token in the <code>Authorization</code> header.</li>
 </ul>
-<h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
-<h3 id="post-apiv1evaluate">POST /api/v1/evaluate<a class="headerlink" href="#post-apiv1evaluate" title="Permanent link">&para;</a></h3>
-<p>Evaluate facts against rules.</p>
+<h2 id="logging-in">Logging in<a class="headerlink" href="#logging-in" title="Permanent link">&para;</a></h2>
+<p>Create a user once, then ask for a token:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/register<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"username": "alice", "email": "alice@example.com", "password": "Str0ng-Passw0rd!"}'</span>
+
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/token<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s2">"username=alice&amp;password=Str0ng-Passw0rd!"</span>
+</code></pre></div>
+<p>The token endpoint takes a form (<code>username=...&amp;password=...</code>), not JSON. It
+answers with:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"access_token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOi..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"token_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bearer"</span><span class="p">,</span><span class="w"> </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"business"</span><span class="p">}</span>
+</code></pre></div>
+<p>Send the token with every request marked <strong>(login)</strong>:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/v1/rules<span class="w"> </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer eyJhbGciOi..."</span>
+</code></pre></div>
+<h2 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h2>
+<h3 id="post-apiv1rules-login">POST /api/v1/rules (login)<a class="headerlink" href="#post-apiv1rules-login" title="Permanent link">&para;</a></h3>
+<p>Store a new rule.</p>
 <p><strong>Request:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"ip_risk_score"</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fraud_detection"</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"big_payment"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"priority"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"review"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"condition"</span><span class="p">,</span><span class="w"> </span><span class="nt">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"amount"</span><span class="p">,</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&gt;"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></p>
+<ul>
+<li><code>name</code>, <code>conditions</code> and <code>action</code> are required.</li>
+<li><code>group</code> collects rules into a rule set. Evaluate one group with <code>ruleset_id</code>
+  (see below).</li>
+<li><code>priority</code> orders the matches: higher numbers come first. It defaults to 0.</li>
+<li><code>conditions</code> uses the condition format described in <a href="../conditions/">Conditions</a>.</li>
+<li><code>evaluation_mode</code> (<code>"stateless"</code> by default) is stored and returned as a
+  label only. No evaluation reads it: a rule marked <code>"stateful"</code> is evaluated
+  like any other.</li>
+</ul>
+<p><strong>Response:</strong> the stored rule, with its new <code>id</code>, a <code>current_version</code> of 1
+and timestamps.</p>
+<p>Before storing it, the server checks the new rule against the rules already in
+its group. If it finds a conflict, such as the same name or the same priority,
+it answers <code>400</code> with the list of conflicts and keeps the rule aside for
+review instead of storing it. Add <code>?skip_conflict_check=true</code> to store it
+anyway. <code>POST /api/v1/rules/validate</code> runs the same check without storing
+anything. See <a href="../rule-analysis/">Rule Analysis</a>.</p>
+<h3 id="get-apiv1rules-login">GET /api/v1/rules (login)<a class="headerlink" href="#get-apiv1rules-login" title="Permanent link">&para;</a></h3>
+<p>List the stored rules.</p>
+<h2 id="evaluating-facts">Evaluating facts<a class="headerlink" href="#evaluating-facts" title="Permanent link">&para;</a></h2>
+<h3 id="post-apiv1evaluate-login">POST /api/v1/evaluate (login)<a class="headerlink" href="#post-apiv1evaluate-login" title="Permanent link">&para;</a></h3>
+<p>Evaluate one fact against the stored rules.</p>
+<p><strong>Request:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">4200</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DE"</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"ruleset_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<ul>
+<li><code>facts</code> is the fact to evaluate. Required.</li>
+<li><code>ruleset_id</code> is optional. It limits the evaluation to the rules of that
+  <code>group</code>. Without it, all stored rules are used.</li>
+<li><code>rule_ids</code> is optional. It limits the evaluation to those rule ids, such as
+  <code>[1, 4]</code>.</li>
+</ul>
 <p><strong>Response:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"fired_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"flag_for_review"</span><span class="p">,</span><span class="w"> </span><span class="s2">"notify_analyst"</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.1</span>
+<span class="w">  </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8ac723da-c93d-40ec-809c-64a244003e9e"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"ruleset_group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"review"</span><span class="p">,</span><span class="w"> </span><span class="s2">"add_vat"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">4200</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DE"</span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></p>
-<h3 id="post-apiv1evaluatebulk">POST /api/v1/evaluate/bulk<a class="headerlink" href="#post-apiv1evaluatebulk" title="Permanent link">&para;</a></h3>
-<p>Evaluate multiple facts in batch.</p>
+<ul>
+<li><code>matched_rules</code>: the ids of the rules that matched, highest priority first.</li>
+<li><code>actions</code>: their actions, in the same order. The server does not run them;
+  the caller does.</li>
+<li><code>execution_id</code>: an id for this evaluation. Use it with
+  <code>GET /api/v1/explain/{execution_id}</code>.</li>
+<li><code>ruleset_group</code>: the <code>ruleset_id</code> you sent, or <code>"all"</code>.</li>
+</ul>
+<h3 id="post-apiv1evaluatebulk-login">POST /api/v1/evaluate/bulk (login)<a class="headerlink" href="#post-apiv1evaluatebulk-login" title="Permanent link">&para;</a></h3>
+<p>Evaluate several facts against the same rules in one request.</p>
 <p><strong>Request:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">50000</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NG"</span><span class="p">}</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">4200</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DE"</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">}</span>
 <span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fraud_detection"</span>
+<span class="w">  </span><span class="nt">"ruleset_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span>
 <span class="p">}</span>
 </code></pre></div></p>
+<p><code>facts</code> is a list here. <code>ruleset_id</code> and <code>rule_ids</code> work as for a single fact.</p>
 <p><strong>Response:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"ruleset_group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"results"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span><span class="nt">"fired_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"proceed"</span><span class="p">],</span><span class="w"> </span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.2</span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="nt">"fired_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">],</span><span class="w"> </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"block"</span><span class="p">],</span><span class="w"> </span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.5</span><span class="p">}</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1105cdb5-..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"review"</span><span class="p">,</span><span class="w"> </span><span class="s2">"add_vat"</span><span class="p">]},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9c24bea9-..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w"> </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[]}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div></p>
-<h3 id="post-apiv1explain">POST /api/v1/explain<a class="headerlink" href="#post-apiv1explain" title="Permanent link">&para;</a></h3>
-<p>Get detailed explanation of rule matching.</p>
+<p><code>results</code> has one entry per fact, in the order you sent them. <code>index</code> is the
+position of the fact in your list.</p>
+<h3 id="get-apiv1explainexecution_id-login">GET /api/v1/explain/{execution_id} (login)<a class="headerlink" href="#get-apiv1explainexecution_id-login" title="Permanent link">&para;</a></h3>
+<p>Look up an earlier evaluation by its <code>execution_id</code>. The response has the same
+fields as <code>POST /api/v1/evaluate</code>, including the facts that were evaluated. An
+unknown id answers <code>404</code>.</p>
+<p>The server keeps only the most recent records: 10,000 by default, set by the
+<code>EXPLAIN_STORE_MAX_RECORDS</code> environment variable (<code>0</code> keeps none). An older
+<code>execution_id</code> answers <code>404</code>. The records live in the server's memory, so
+they are lost when it restarts, and with several server processes each one
+has its own.</p>
+<h3 id="post-apiv1rulessimulate-login">POST /api/v1/rules/simulate (login)<a class="headerlink" href="#post-apiv1rulessimulate-login" title="Permanent link">&para;</a></h3>
+<p>Evaluate a fact as a dry run and get an explanation for each matched rule.</p>
 <p><strong>Request:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"rule_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">7500</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NG"</span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"event"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">4200</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DE"</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"rule_ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div></p>
+<p><code>event</code> is the fact. <code>rule_ids</code> is optional and limits the run to those rules.</p>
 <p><strong>Response:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"rule_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"rule_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"high_value_transaction"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
-<span class="w">  </span><span class="nt">"matched"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"matching_conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"amount &gt; 5000"</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"explanation"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Amount exceeds threshold"</span>
-<span class="p">}</span>
-</code></pre></div></p>
-<h3 id="post-apiv1simulate">POST /api/v1/simulate<a class="headerlink" href="#post-apiv1simulate" title="Permanent link">&para;</a></h3>
-<p>Simulate rule changes without persisting.</p>
-<p><strong>Request:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"test_rule"</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
-<span class="w">      </span><span class="nt">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"flag"</span>
-<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"big_payment"</span><span class="p">,</span><span class="w"> </span><span class="nt">"priority"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"german_payment"</span><span class="p">,</span><span class="w"> </span><span class="nt">"priority"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span>
 <span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"execution_order"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"explanations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Rule big_payment (1) matched via PHREAK (segments: seg_amount, seg_country)"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"2"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Rule german_payment (2) matched via PHREAK (segments: seg_amount, seg_country)"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"dry_run"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"stats"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"total_rules"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"candidates_evaluated"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"rules_matched"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"evaluation_time_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.41</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"optimization"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></p>
+<ul>
+<li><code>matched_rules</code>: each matched rule's id, name and priority, in the order
+  they fired. <code>execution_order</code> lists the same ids.</li>
+<li><code>explanations</code>: why each rule matched.</li>
+<li><code>stats</code>: how many rules the engine looked at closely after filtering
+  (<code>candidates_evaluated</code>), how many matched (<code>rules_matched</code>), and how long
+  it took in milliseconds (<code>evaluation_time_ms</code>). <code>total_rules</code> and
+  <code>optimization</code> are not filled in.</li>
+</ul>
+<h2 id="engine-endpoints">Engine endpoints<a class="headerlink" href="#engine-endpoints" title="Permanent link">&para;</a></h2>
+<p>These endpoints under <code>/api/v1/engines</code> need no login.</p>
+<h3 id="post-apiv1enginesevaluate">POST /api/v1/engines/evaluate<a class="headerlink" href="#post-apiv1enginesevaluate" title="Permanent link">&para;</a></h3>
+<p>Evaluate a fact against the stored rules and get an explanation for each
+matched rule.</p>
+<p><strong>Request:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"event"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">4200</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DE"</span><span class="p">},</span><span class="w"> </span><span class="nt">"rule_ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">]}</span>
+</code></pre></div></p>
+<ul>
+<li><code>event</code> is the fact. Required.</li>
+<li><code>rule_ids</code> is optional and limits the run to those rules.</li>
+<li><code>engine_type</code> is optional. <code>"PHREAK"</code>, the only engine, is the default; any
+  other name answers <code>400</code>.</li>
+</ul>
 <p><strong>Response:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"fired_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">999</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"flag"</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.8</span>
+<span class="w">  </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"big_payment"</span><span class="p">,</span><span class="w"> </span><span class="nt">"priority"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"german_payment"</span><span class="p">,</span><span class="w"> </span><span class="nt">"priority"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"execution_order"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"explanations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Rule big_payment (1) matched via PHREAK (segments: seg_amount, seg_country)"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"2"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Rule german_payment (2) matched via PHREAK (segments: seg_amount, seg_country)"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"stats"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.68</span><span class="p">,</span><span class="w"> </span><span class="nt">"rules_evaluated"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">"rules_matched"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"engine_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PHREAK"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"dry_run"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="p">}</span>
 </code></pre></div></p>
-<h3 id="post-apiv1validate">POST /api/v1/validate<a class="headerlink" href="#post-apiv1validate" title="Permanent link">&para;</a></h3>
-<p>Validate condition tree syntax.</p>
+<p>The fields are the same as for <code>POST /api/v1/rules/simulate</code>, except for the
+names in <code>stats</code>: <code>rules_evaluated</code> is the number of rules the engine looked at
+closely after filtering, and <code>latency_ms</code> is the time taken.</p>
+<h3 id="post-apiv1enginessimulate">POST /api/v1/engines/simulate<a class="headerlink" href="#post-apiv1enginessimulate" title="Permanent link">&para;</a></h3>
+<p>The same request and response as <code>/api/v1/engines/evaluate</code>, with
+<code>"dry_run": true</code>. Neither endpoint runs actions or changes anything, so the
+two give the same answers.</p>
+<h3 id="get-apiv1enginesconfig-and-get-apiv1enginesavailable">GET /api/v1/engines/config and GET /api/v1/engines/available<a class="headerlink" href="#get-apiv1enginesconfig-and-get-apiv1enginesavailable" title="Permanent link">&para;</a></h3>
+<p>Report the engine in use and the engines available (only <code>"PHREAK"</code>), with a
+short description of each.</p>
+<h3 id="endpoints-that-are-not-finished">Endpoints that are not finished<a class="headerlink" href="#endpoints-that-are-not-finished" title="Permanent link">&para;</a></h3>
+<p>These endpoints answer, but do not yet do what their names say:</p>
+<ul>
+<li><code>POST /api/v1/engines/switch</code> and <code>POST /api/v1/engines/reload</code> check the
+  engine name and answer <code>"status": "success"</code>, but change nothing on the
+  server. Without Redis, rules stored with <code>/api/v1/rules</code> are used from the
+  next request on. With Redis, these engine endpoints (and
+  <code>/api/v1/rules/simulate</code>) read the rule list from a Redis cache that lasts up
+  to 5 minutes, so a new or changed rule can take that long to appear there.
+  <code>/api/v1/evaluate</code> always reads the stored rules directly.</li>
+<li><code>POST /api/v1/engines/benchmark</code> times a new engine with no rules loaded on
+  generated events, so it does not measure your rules.</li>
+<li><code>GET /api/v1/engines/stats</code> reports a new engine with no rules loaded, so
+  <code>rules_loaded</code> is always <code>0</code>.</li>
+</ul>
+<h2 id="checking-a-rule-set">Checking a rule set<a class="headerlink" href="#checking-a-rule-set" title="Permanent link">&para;</a></h2>
+<h3 id="post-validate">POST /validate<a class="headerlink" href="#post-validate" title="Permanent link">&para;</a></h3>
+<p>Check a rule set for problems without storing it. No login needed.</p>
 <p><strong>Request:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"condition"</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"amount"</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&gt;"</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span>
+<span class="w">  </span><span class="nt">"ruleset"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"big_payment"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"condition"</span><span class="p">,</span><span class="w"> </span><span class="nt">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"amount"</span><span class="p">,</span><span class="w"> </span><span class="nt">"op"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&gt;"</span><span class="p">,</span><span class="w"> </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></p>
 <p><strong>Response:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"issues"</span><span class="p">:</span><span class="w"> </span><span class="p">[]}</span>
+</code></pre></div></p>
+<p><code>issues</code> lists each problem as a sentence, such as <code>"Ruleset is empty"</code>. An
+empty list means the rule set is fine. A condition the server cannot read at
+all, such as an unknown operator, answers <code>422</code> instead (see
+<a href="#errors">Errors</a>).</p>
+<h2 id="sessions">Sessions<a class="headerlink" href="#sessions" title="Permanent link">&para;</a></h2>
+<p>Sessions store facts on the server under a session id, so you can collect
+facts over several requests and evaluate them later. A session holds at most
+100 facts and is visible only to the user who created it.</p>
+<p>Sessions live in the memory of one server process. They are lost when the
+server restarts, and if you run several server processes, each one has its
+own sessions: send all requests for a session to the same process.</p>
+<h3 id="post-apiv1sessions-login">POST /api/v1/sessions (login)<a class="headerlink" href="#post-apiv1sessions-login" title="Permanent link">&para;</a></h3>
+<p>Create a session.</p>
+<p><strong>Request:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"metadata"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"channel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"web"</span><span class="p">}}</span>
+</code></pre></div></p>
+<p>Both fields are optional. <code>metadata</code> is any data you want to keep with the
+session. <code>session_id</code> lets you choose the id yourself; otherwise the server
+makes one.</p>
+<p><strong>Response (<code>201</code>):</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"valid"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"errors"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"a43cdf91-61f3-41ac-a55d-526d6e806ab6"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"user_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"metadata"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"channel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"web"</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"fact_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"created_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-10-31T23:19:46.484674Z"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"updated_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-10-31T23:19:46.484674Z"</span>
 <span class="p">}</span>
 </code></pre></div></p>
-<h3 id="get-health">GET /health<a class="headerlink" href="#get-health" title="Permanent link">&para;</a></h3>
-<p>Health check endpoint.</p>
+<h3 id="post-apiv1sessionsidfacts-login">POST /api/v1/sessions/{id}/facts (login)<a class="headerlink" href="#post-apiv1sessionsidfacts-login" title="Permanent link">&para;</a></h3>
+<p>Add a fact to a session.</p>
+<p><strong>Request:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"fact_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"txn_123"</span><span class="p">,</span><span class="w"> </span><span class="nt">"fact"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">}}</span>
+</code></pre></div></p>
+<p><code>fact</code> is the fact. <code>fact_id</code> is optional; sending the same <code>fact_id</code> again
+replaces that fact.</p>
+<h3 id="post-apiv1sessionsidevaluate-login">POST /api/v1/sessions/{id}/evaluate (login)<a class="headerlink" href="#post-apiv1sessionsidevaluate-login" title="Permanent link">&para;</a></h3>
+<p>Evaluate every fact stored in the session against the stored rules. Each fact
+is evaluated <strong>on its own</strong>, and you get one result per fact. Facts are never
+combined, so two transactions with the same fields each get their own answer.</p>
+<p><strong>Request</strong> (optional; send no body to use all stored rules):
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"ruleset_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">}</span>
+</code></pre></div></p>
+<p><code>ruleset_id</code> and <code>rule_ids</code> work as for <code>POST /api/v1/evaluate</code>.</p>
 <p><strong>Response:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"healthy"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.1.0"</span>
+<span class="w">  </span><span class="nt">"session_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"a43cdf91-61f3-41ac-a55d-526d6e806ab6"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"ruleset_group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"results"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"fact_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"txn_1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1105cdb5-..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"review"</span><span class="p">,</span><span class="w"> </span><span class="s2">"add_vat"</span><span class="p">]},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"fact_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"txn_2"</span><span class="p">,</span><span class="w"> </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9c24bea9-..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w"> </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[]}</span>
+<span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div></p>
-<h2 id="optional-endpoints-with-extras">Optional Endpoints (with extras)<a class="headerlink" href="#optional-endpoints-with-extras" title="Permanent link">&para;</a></h2>
-<h3 id="post-apiv1rules-requires-sql">POST /api/v1/rules (requires [sql])<a class="headerlink" href="#post-apiv1rules-requires-sql" title="Permanent link">&para;</a></h3>
-<p>Create a new rule.</p>
-<p><strong>Request:</strong>
+<ul>
+<li><code>results</code> are in the order the facts were first added. Replacing a fact
+  (sending the same <code>fact_id</code> again) keeps its place.</li>
+<li><code>fact_id</code> says which stored fact each result belongs to.</li>
+<li>Each <code>execution_id</code> works with <code>GET /api/v1/explain/{execution_id}</code>.</li>
+</ul>
+<p>The answers are the same as sending the facts to <code>POST /api/v1/evaluate/bulk</code>.
+Evaluating only reads the session: its facts stay as they were.</p>
+<p>Also available: <code>GET /api/v1/sessions/{id}</code> and <code>GET /api/v1/sessions/{id}/facts</code>
+to read a session back, <code>DELETE /api/v1/sessions/{id}/facts/{fact_id}</code> to
+remove one fact, and <code>DELETE /api/v1/sessions/{id}</code> to remove the session.</p>
+<h2 id="server-health">Server health<a class="headerlink" href="#server-health" title="Permanent link">&para;</a></h2>
+<h3 id="get-health">GET /health<a class="headerlink" href="#get-health" title="Permanent link">&para;</a></h3>
+<p>Answers <code>{"status": "healthy"}</code> while the server runs. No login needed.</p>
+<h3 id="get-apiv1systemstatus">GET /api/v1/system/status<a class="headerlink" href="#get-apiv1systemstatus" title="Permanent link">&para;</a></h3>
+<p>The version and the state of each part of the server. No login needed.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"new_rule"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fraud_detection"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
-<span class="w">  </span><span class="nt">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"flag"</span>
-<span class="p">}</span>
-</code></pre></div></p>
-<h3 id="get-apiv1rules-requires-sql">GET /api/v1/rules (requires [sql])<a class="headerlink" href="#get-apiv1rules-requires-sql" title="Permanent link">&para;</a></h3>
-<p>List all rules.</p>
-<h3 id="post-apiv1sessions-requires-sql">POST /api/v1/sessions (requires [sql])<a class="headerlink" href="#post-apiv1sessions-requires-sql" title="Permanent link">&para;</a></h3>
-<p>Create a new evaluation session.</p>
-<p><strong>Request:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"ruleset_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
-<span class="p">}</span>
-</code></pre></div></p>
-<h3 id="post-apiv1sessionsidfacts-requires-sql">POST /api/v1/sessions/{id}/facts (requires [sql])<a class="headerlink" href="#post-apiv1sessionsidfacts-requires-sql" title="Permanent link">&para;</a></h3>
-<p>Add facts to a session.</p>
-<p><strong>Request:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"fact_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"txn_123"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"event"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></p>
-<h2 id="error-responses">Error Responses<a class="headerlink" href="#error-responses" title="Permanent link">&para;</a></h2>
-<p>All errors follow this format:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Error message"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"error_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VALIDATION_ERROR"</span>
+<span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"running"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.1.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"engine"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fluxrules"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"healthy"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"components"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"queue"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"healthy"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Queue not configured (embedded mode)"</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"cache"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"healthy"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Cache not configured (embedded mode)"</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"persistence"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"healthy"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Persistence is healthy"</span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Common error codes:</p>
+<h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
+<p>Most errors use FastAPI's format, with the reason under <code>detail</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Execution 'abc' not found"</span><span class="p">}</span>
+</code></pre></div>
+<p>A request whose body has the wrong shape answers <code>422</code>, and <code>detail</code> lists each
+problem with its location:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"missing"</span><span class="p">,</span><span class="w"> </span><span class="nt">"loc"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"body"</span><span class="p">,</span><span class="w"> </span><span class="s2">"facts"</span><span class="p">],</span><span class="w"> </span><span class="nt">"msg"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Field required"</span><span class="p">,</span><span class="w"> </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"fact"</span><span class="p">:</span><span class="w"> </span><span class="p">{}}}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Errors raised by the rule engine itself use an <code>error</code> code and a <code>message</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DSL_PARSE_ERROR"</span><span class="p">,</span><span class="w"> </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">}</span>
+</code></pre></div>
+<p>Status codes you will see:</p>
 <ul>
-<li><code>VALIDATION_ERROR</code>: Invalid request format</li>
-<li><code>DSL_ERROR</code>: Invalid condition tree syntax</li>
-<li><code>RULE_NOT_FOUND</code>: Rule ID does not exist</li>
-<li><code>INTERNAL_ERROR</code>: Server error</li>
+<li><code>400</code>: the request was understood but refused, for example a rule conflict.</li>
+<li><code>401</code>: the token is missing, wrong or expired.</li>
+<li><code>404</code>: the rule, session or execution does not exist.</li>
+<li><code>422</code>: the request body has the wrong shape.</li>
+<li><code>500</code> or <code>503</code>: a problem on the server, such as the database being
+  unavailable.</li>
 </ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>API Overview</strong>: See <a href="../api/">API</a> for quick start</li>
+<li><strong>Starting the server</strong>: See <a href="../api/">API</a></li>
+<li><strong>Every way to evaluate a fact</strong>: See <a href="../evaluating-facts/">Ways to Evaluate a Fact</a></li>
 <li><strong>Example</strong>: See <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/examples/12_api_usage.py">Example 12: API Usage</a> for working client code</li>
 </ul>
 

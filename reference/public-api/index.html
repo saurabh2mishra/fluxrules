@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../usage/http-api/" class="md-nav__link">
         
   
@@ -2269,6 +2297,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#runtime-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#typed-facts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2775,6 +2814,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#runtime-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#typed-facts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2993,8 +3043,31 @@ Cross-Fact activation delta is intentionally not comparable to a stateless
   and <code>on_invalid="raise" | "skip" | "quarantine"</code>; rejected facts are listed in <code>engine.quarantined_facts</code>.
   See <a href="../../typed-facts/">Typed Facts</a>. <code>fact_pipeline=</code> applies a <code>FactPipeline</code>
   (or any dict-to-dict callable) to each fact in <code>evaluate()</code> before validation;
-  see <a href="../../fact-pipeline/#using-pipelines-with-engines">Fact Pipeline</a>.</li>
-<li><code>BaseEngine</code> (abstract base for custom engines); takes the same typed-fact and <code>fact_pipeline=</code> keywords.</li>
+  see <a href="../../fact-pipeline/#using-pipelines-with-engines">Fact Pipeline</a>.
+  <code>evaluate_batch(facts, workers=None)</code> evaluates many facts and returns one
+  <code>EvaluationResult</code> per fact, in input order; <code>workers=N</code> spreads them over <code>N</code>
+  processes, each rebuilt with the engine's settings. See
+  <a href="../../usage/python-api/#many-facts-at-once">Many facts at once</a>.
+  A change to the engine's <code>EngineConfig</code> object takes effect on its next evaluation,
+  for interpreted and compiled rules alike.</li>
+<li><code>BaseEngine</code> (abstract base for custom engines); takes the same typed-fact and <code>fact_pipeline=</code> keywords.
+  <code>evaluate_batch</code> works with <code>workers=1</code>; override <code>_clone_settings()</code> to allow more.</li>
+</ul>
+<h2 id="runtime-helpers">Runtime Helpers<a class="headerlink" href="#runtime-helpers" title="Permanent link">&para;</a></h2>
+<p>From <code>fluxrules.engine.runtime</code>:</p>
+<ul>
+<li><code>evaluate_batch_parallel(rules, facts, num_workers=None, streaming_mode=False) → list[list[int]]</code>:
+  The older batch helper. Each worker builds a default <code>PhreakEngine</code> with
+  only <code>streaming_mode</code> set, so other engine options (<code>fact_schema</code>,
+  <code>fact_pipeline</code>, <code>EngineConfig</code>, ...) do not apply, and it returns only the
+  fired rule ids per fact. It keeps working unchanged; for new code use
+  <code>engine.evaluate_batch(facts, workers=N)</code>, which keeps every option and
+  returns full results.</li>
+<li><code>DedupEvaluator(engine, backend=LRUDedupBackend())</code>: Wraps a stateless
+  engine and returns a cached result for a fact it has already seen.
+  <code>LRUDedupBackend(max_entries=100_000)</code> keeps results in memory;
+  <code>RedisDedupBackend</code> shares them between processes (needs the <code>redis</code> extra).
+  See <a href="../../evaluating-facts/#6-repeated-facts-dedupevaluator">Ways to Evaluate a Fact</a>.</li>
 </ul>
 <h2 id="typed-facts">Typed Facts<a class="headerlink" href="#typed-facts" title="Permanent link">&para;</a></h2>
 <p>From <code>fluxrules.facts</code>:</p>

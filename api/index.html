@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../usage/http-api/" class="md-nav__link">
         
   
@@ -2337,10 +2365,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#evaluate-rules" class="md-nav__link">
+  <a href="#store-a-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Evaluate rules
+        Store a rule
       
     </span>
   </a>
@@ -2348,10 +2376,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#simulate-rule-changes" class="md-nav__link">
+  <a href="#evaluate-a-fact" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simulate rule changes
+        Evaluate a fact
       
     </span>
   </a>
@@ -2359,10 +2387,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validate-conditions" class="md-nav__link">
+  <a href="#look-up-an-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validate Conditions
+        Look up an evaluation
       
     </span>
   </a>
@@ -2370,10 +2398,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#explain-rule-match" class="md-nav__link">
+  <a href="#dry-run-with-explanations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explain rule match
+        Dry run with explanations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-a-rule-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check a rule set
       
     </span>
   </a>
@@ -2386,10 +2425,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-endpoints" class="md-nav__link">
+  <a href="#more-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional endpoints
+        More endpoints
       
     </span>
   </a>
@@ -2742,10 +2781,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#evaluate-rules" class="md-nav__link">
+  <a href="#store-a-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Evaluate rules
+        Store a rule
       
     </span>
   </a>
@@ -2753,10 +2792,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#simulate-rule-changes" class="md-nav__link">
+  <a href="#evaluate-a-fact" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simulate rule changes
+        Evaluate a fact
       
     </span>
   </a>
@@ -2764,10 +2803,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validate-conditions" class="md-nav__link">
+  <a href="#look-up-an-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validate Conditions
+        Look up an evaluation
       
     </span>
   </a>
@@ -2775,10 +2814,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#explain-rule-match" class="md-nav__link">
+  <a href="#dry-run-with-explanations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explain rule match
+        Dry run with explanations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-a-rule-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check a rule set
       
     </span>
   </a>
@@ -2791,10 +2841,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-endpoints" class="md-nav__link">
+  <a href="#more-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional endpoints
+        More endpoints
       
     </span>
   </a>
@@ -2848,6 +2898,11 @@
 <hr />
 <p>FluxRules exposes a REST API for evaluating rules from other services. The API is built with FastAPI and all endpoints are under <code>/api/v1</code>.</p>
 <h2 id="starting-the-api-server">Starting the API server<a class="headerlink" href="#starting-the-api-server" title="Permanent link">&para;</a></h2>
+<p>Install the <code>api</code> extra, then start the server from the command line:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"fluxrules[api]"</span>
+fluxrules<span class="w"> </span>serve<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
+</code></pre></div>
+<p>Or start it from Python:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.api.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_app</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">uvicorn</span>
 
@@ -2856,76 +2911,79 @@
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">uvicorn</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8000</span><span class="p">)</span>
 </code></pre></div>
-<p>Or run from CLI:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>fluxrules.api.app
-</code></pre></div>
+<p>While it runs, <code>http://localhost:8000/docs</code> lists every endpoint and lets you
+try them.</p>
 <h2 id="core-endpoints">Core endpoints<a class="headerlink" href="#core-endpoints" title="Permanent link">&para;</a></h2>
+<p>Most endpoints need a login token. <a href="../rest-api/#logging-in">REST API</a> shows
+how to get one, and gives the full request and response of each endpoint.</p>
 <h3 id="health-check">Health check<a class="headerlink" href="#health-check" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>GET<span class="w"> </span>/health
 </code></pre></div>
-<p>Returns server status.</p>
-<h3 id="evaluate-rules">Evaluate rules<a class="headerlink" href="#evaluate-rules" title="Permanent link">&para;</a></h3>
+<p>Answers <code>{"status": "healthy"}</code>. No login needed.</p>
+<h3 id="store-a-rule">Store a rule<a class="headerlink" href="#store-a-rule" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>POST<span class="w"> </span>/api/v1/rules
+Content-Type:<span class="w"> </span>application/json
+
+<span class="o">{</span>
+<span class="w">  </span><span class="s2">"name"</span>:<span class="w"> </span><span class="s2">"big_payment"</span>,
+<span class="w">  </span><span class="s2">"group"</span>:<span class="w"> </span><span class="s2">"payments"</span>,
+<span class="w">  </span><span class="s2">"action"</span>:<span class="w"> </span><span class="s2">"review"</span>,
+<span class="w">  </span><span class="s2">"conditions"</span>:<span class="w"> </span><span class="o">{</span><span class="s2">"type"</span>:<span class="w"> </span><span class="s2">"condition"</span>,<span class="w"> </span><span class="s2">"field"</span>:<span class="w"> </span><span class="s2">"amount"</span>,<span class="w"> </span><span class="s2">"op"</span>:<span class="w"> </span><span class="s2">"&gt;"</span>,<span class="w"> </span><span class="s2">"value"</span>:<span class="w"> </span><span class="m">1000</span><span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Rules live in the server's database. Store them before you evaluate.</p>
+<h3 id="evaluate-a-fact">Evaluate a fact<a class="headerlink" href="#evaluate-a-fact" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>POST<span class="w"> </span>/api/v1/evaluate
 Content-Type:<span class="w"> </span>application/json
 
 <span class="o">{</span>
-<span class="w">  </span><span class="s2">"facts"</span>:<span class="w"> </span><span class="o">{</span><span class="s2">"amount"</span>:<span class="w"> </span><span class="m">5000</span>,<span class="w"> </span><span class="s2">"country"</span>:<span class="w"> </span><span class="s2">"US"</span><span class="o">}</span>,
-<span class="w">  </span><span class="s2">"domain"</span>:<span class="w"> </span><span class="s2">"fraud_detection"</span>
+<span class="w">  </span><span class="s2">"facts"</span>:<span class="w"> </span><span class="o">{</span><span class="s2">"amount"</span>:<span class="w"> </span><span class="m">4200</span>,<span class="w"> </span><span class="s2">"country"</span>:<span class="w"> </span><span class="s2">"DE"</span><span class="o">}</span>,
+<span class="w">  </span><span class="s2">"ruleset_id"</span>:<span class="w"> </span><span class="s2">"payments"</span>
 <span class="o">}</span>
 </code></pre></div>
+<p><code>ruleset_id</code> is optional and picks the rules of one <code>group</code>. Without it, all
+stored rules are used.</p>
 <p><strong>Response:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"fired_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"flag_for_review"</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.5</span>
+<span class="w">  </span><span class="nt">"execution_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8ac723da-c93d-40ec-809c-64a244003e9e"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"ruleset_group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payments"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"matched_rules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"review"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"facts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mi">4200</span><span class="p">,</span><span class="w"> </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DE"</span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></p>
-<h3 id="simulate-rule-changes">Simulate rule changes<a class="headerlink" href="#simulate-rule-changes" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>POST<span class="w"> </span>/api/v1/simulate
+<p><code>POST /api/v1/evaluate/bulk</code> takes a list under <code>facts</code> and returns one result
+per fact.</p>
+<h3 id="look-up-an-evaluation">Look up an evaluation<a class="headerlink" href="#look-up-an-evaluation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>GET<span class="w"> </span>/api/v1/explain/<span class="o">{</span>execution_id<span class="o">}</span>
+</code></pre></div>
+<p>Returns an earlier evaluation by the <code>execution_id</code> it answered with.</p>
+<h3 id="dry-run-with-explanations">Dry run with explanations<a class="headerlink" href="#dry-run-with-explanations" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>POST<span class="w"> </span>/api/v1/rules/simulate
 Content-Type:<span class="w"> </span>application/json
 
-<span class="o">{</span>
-<span class="w">  </span><span class="s2">"facts"</span>:<span class="w"> </span><span class="o">{</span><span class="s2">"amount"</span>:<span class="w"> </span><span class="m">5000</span>,<span class="w"> </span><span class="s2">"country"</span>:<span class="w"> </span><span class="s2">"US"</span><span class="o">}</span>,
-<span class="w">  </span><span class="s2">"domain"</span>:<span class="w"> </span><span class="s2">"fraud_detection"</span>
-<span class="o">}</span>
+<span class="o">{</span><span class="s2">"event"</span>:<span class="w"> </span><span class="o">{</span><span class="s2">"amount"</span>:<span class="w"> </span><span class="m">4200</span>,<span class="w"> </span><span class="s2">"country"</span>:<span class="w"> </span><span class="s2">"DE"</span><span class="o">}}</span>
 </code></pre></div>
-<p>Returns potential matches if rules are changed.</p>
-<h3 id="validate-conditions">Validate Conditions<a class="headerlink" href="#validate-conditions" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>POST<span class="w"> </span>/api/v1/validate
+<p>Returns the matched rules in firing order, with an explanation for each.</p>
+<h3 id="check-a-rule-set">Check a rule set<a class="headerlink" href="#check-a-rule-set" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>POST<span class="w"> </span>/validate
 Content-Type:<span class="w"> </span>application/json
 
-<span class="o">{</span>
-<span class="w">  </span><span class="s2">"conditions"</span>:<span class="w"> </span><span class="o">{</span>
-<span class="w">    </span><span class="s2">"type"</span>:<span class="w"> </span><span class="s2">"condition"</span>,
-<span class="w">    </span><span class="s2">"field"</span>:<span class="w"> </span><span class="s2">"amount"</span>,
-<span class="w">    </span><span class="s2">"op"</span>:<span class="w"> </span><span class="s2">"&gt;"</span>,
-<span class="w">    </span><span class="s2">"value"</span>:<span class="w"> </span><span class="m">5000</span>
-<span class="w">  </span><span class="o">}</span>
-<span class="o">}</span>
+<span class="o">{</span><span class="s2">"ruleset"</span>:<span class="w"> </span><span class="o">{</span><span class="s2">"group"</span>:<span class="w"> </span><span class="s2">"payments"</span>,<span class="w"> </span><span class="s2">"rules"</span>:<span class="w"> </span><span class="o">[</span>...<span class="o">]}}</span>
 </code></pre></div>
-<p><strong>Response:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"valid"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"errors"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
-<span class="p">}</span>
-</code></pre></div></p>
-<h3 id="explain-rule-match">Explain rule match<a class="headerlink" href="#explain-rule-match" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>POST<span class="w"> </span>/api/v1/explain
-Content-Type:<span class="w"> </span>application/json
-
-<span class="o">{</span>
-<span class="w">  </span><span class="s2">"rule_id"</span>:<span class="w"> </span><span class="m">1</span>,
-<span class="w">  </span><span class="s2">"facts"</span>:<span class="w"> </span><span class="o">{</span><span class="s2">"amount"</span>:<span class="w"> </span><span class="m">5000</span><span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div>
-<p>Returns why/why-not a rule matched.</p>
-<h2 id="optional-endpoints">Optional endpoints<a class="headerlink" href="#optional-endpoints" title="Permanent link">&para;</a></h2>
-<p>Additional endpoints are available if extras are installed:</p>
+<p>Answers <code>{"issues": [...]}</code>, a list of problems found; an empty list means the
+rule set is fine. No login needed.</p>
+<h2 id="more-endpoints">More endpoints<a class="headerlink" href="#more-endpoints" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Rules management</strong> (<code>/api/v1/rules</code>): CRUD operations (requires <code>[sql]</code>)</li>
-<li><strong>Sessions</strong> (<code>/api/v1/sessions</code>): Stateful evaluation (requires <code>[sql]</code>)</li>
-<li><strong>Audit logging</strong> (<code>/api/v1/audit</code>): Audit trail (requires <code>[sql]</code>)</li>
-<li><strong>Metrics</strong> (<code>/api/v1/metrics</code>): Prometheus metrics (requires <code>[otel]</code>)</li>
+<li><strong>Rules</strong> (<code>/api/v1/rules</code>): list, update, delete, versions and conflict
+  checks.</li>
+<li><strong>Sessions</strong> (<code>/api/v1/sessions</code>): store facts under a session id, and
+  evaluate them later with <code>POST /api/v1/sessions/{id}/evaluate</code>.</li>
+<li><strong>Audit</strong> (<code>/api/v1/audit</code>): the audit trail of rule changes.</li>
+<li><strong>Metrics</strong> (<code>/api/v1/metrics</code>): Prometheus metrics.</li>
+<li><strong>Engines</strong> (<code>/api/v1/engines</code>): evaluate with explanations, and report the
+  engine in use. Some of these endpoints are not finished; see
+  <a href="../rest-api/#engine-endpoints">REST API: Engine endpoints</a>.</li>
 </ul>
 <h2 id="api-versioning">API versioning<a class="headerlink" href="#api-versioning" title="Permanent link">&para;</a></h2>
 <p>All endpoints are under <code>/api/v1</code> for stability. Breaking changes will use <code>/api/v2</code>.</p>

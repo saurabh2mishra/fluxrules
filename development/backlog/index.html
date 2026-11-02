@@ -545,6 +545,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../evaluating-facts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ways to Evaluate a Fact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../usage/http-api/" class="md-nav__link">
         
   
@@ -2563,22 +2591,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#batch-evaluation" class="md-nav__link">
+  <a href="#http-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch evaluation
+        HTTP API
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Batch evaluation">
+    <nav class="md-nav" aria-label="HTTP API">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#engineevaluate_batch-with-full-results-and-engine-options" class="md-nav__link">
+  <a href="#define-what-evaluation_modestateful-means-for-stored-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        engine.evaluate_batch() with full results and engine options
+        Define what evaluation_mode="stateful" means for stored rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compiled-rule-cache-use-the-configured-redis-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiled-rule cache: use the configured Redis server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finish-the-apiv1engines-endpoints-and-clear-the-redis-rule-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finish the /api/v1/engines endpoints, and clear the Redis rule cache
       
     </span>
   </a>
@@ -2808,22 +2858,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#batch-evaluation" class="md-nav__link">
+  <a href="#http-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch evaluation
+        HTTP API
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Batch evaluation">
+    <nav class="md-nav" aria-label="HTTP API">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#engineevaluate_batch-with-full-results-and-engine-options" class="md-nav__link">
+  <a href="#define-what-evaluation_modestateful-means-for-stored-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        engine.evaluate_batch() with full results and engine options
+        Define what evaluation_mode="stateful" means for stored rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compiled-rule-cache-use-the-configured-redis-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiled-rule cache: use the configured Redis server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finish-the-apiv1engines-endpoints-and-clear-the-redis-rule-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finish the /api/v1/engines endpoints, and clear the Redis rule cache
       
     </span>
   </a>
@@ -2912,30 +2984,41 @@ optional and point to <code>fluxrules[api]</code>, although Pydantic is a core
 dependency. Remove the fallback branch and the stale install hint, and consider
 building them on <code>fluxrules.facts</code>.</p>
 <p><strong>Why waiting:</strong> Cosmetic; no behaviour change.</p>
-<h2 id="batch-evaluation">Batch evaluation<a class="headerlink" href="#batch-evaluation" title="Permanent link">&para;</a></h2>
-<h3 id="engineevaluate_batch-with-full-results-and-engine-options"><code>engine.evaluate_batch()</code> with full results and engine options<a class="headerlink" href="#engineevaluate_batch-with-full-results-and-engine-options" title="Permanent link">&para;</a></h3>
-<p><strong>What:</strong> A method on the engine that evaluates many facts and returns one full
-<code>EvaluationResult</code> per fact (fired rules, actions, explanations, grouping by
-domain and tag, latency), in input order:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># python skip: proposed API, not implemented yet</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>              <span class="c1"># one process</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate_batch</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>   <span class="c1"># eight processes</span>
-</code></pre></div>
-<p>With <code>workers=1</code> it loops over <code>evaluate()</code>. With more workers, each worker
-process rebuilds an engine from this engine's own rules and settings, so
-<code>fact_schema</code>, <code>validate_facts</code>, <code>on_invalid</code>, <code>fact_pipeline</code> and
-<code>EngineConfig</code> apply exactly as they do to <code>evaluate()</code>. Facts quarantined in
-the workers are gathered into the calling engine's <code>quarantined_facts</code>.
-<code>fluxrules.engine.runtime.evaluate_batch_parallel</code> becomes a thin wrapper that
-keeps returning fired-rule ids, so existing callers keep working.</p>
-<p><strong>Why waiting:</strong> Today's <code>evaluate_batch_parallel</code> builds a plain
-<code>PhreakEngine(streaming_mode=...)</code> in each worker, so it ignores every other
-engine option, and it returns only fired-rule ids. Fixing that changes the
-engine's public API and its multiprocessing behaviour, so it needs its own PR,
-review and performance run. Open points: settings must be picklable to reach
-worker processes (a <code>Filter</code> with a lambda is not), which needs a clear early
-error; and sending full results back costs more than id lists, which should be
-measured before adding any ids-only option.</p>
+<h2 id="http-api">HTTP API<a class="headerlink" href="#http-api" title="Permanent link">&para;</a></h2>
+<h3 id="define-what-evaluation_modestateful-means-for-stored-rules">Define what <code>evaluation_mode="stateful"</code> means for stored rules<a class="headerlink" href="#define-what-evaluation_modestateful-means-for-stored-rules" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong> Rules stored through the HTTP API have an <code>evaluation_mode</code> field
+(<code>"stateless"</code> by default, or <code>"stateful"</code>). It is saved and returned, but no
+evaluation path reads it, so a "stateful" rule fires like any other. Either
+give it a meaning (for example: such rules run only in a streaming engine or a
+session, and the stateless endpoints skip them) or remove the field.</p>
+<p><strong>Why waiting:</strong> Giving it a meaning changes which rules fire for anyone who
+set it, and needs a design for where stateful rules run in the HTTP API.
+Today's behaviour is documented in <a href="../../rest-api/#post-apiv1rules-login">REST API</a>
+and pinned by
+<code>tests/integration/test_e2e_admin_integration.py::TestExistingFeaturesRegression::test_simulate_event_evaluates_stateful_marked_rules</code>.</p>
+<h3 id="compiled-rule-cache-use-the-configured-redis-server">Compiled-rule cache: use the configured Redis server<a class="headerlink" href="#compiled-rule-cache-use-the-configured-redis-server" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong> <code>src/fluxrules/services/validation/_compiled_cache.py</code> connects with
+<code>redis.Redis()</code>, so it always uses <code>localhost:6379</code>, while the rest of the API
+reads <code>REDIS_HOST</code>, <code>REDIS_PORT</code> and <code>REDIS_DB</code>. A deployment with Redis on
+another host shares rule caches but not compiled rules between processes.
+Pass the connection settings in (the module is in <code>services/</code>, which must not
+import the <code>api</code> package), for example through a small setter the API calls
+at startup.</p>
+<p><strong>Why waiting:</strong> Behaviour is unchanged from 1.0, and a server without the
+cache still works (each process compiles its own rules). Documented in
+<a href="../../deployment/#redis-optional">Deployment</a>.</p>
+<h3 id="finish-the-apiv1engines-endpoints-and-clear-the-redis-rule-cache">Finish the <code>/api/v1/engines</code> endpoints, and clear the Redis rule cache<a class="headerlink" href="#finish-the-apiv1engines-endpoints-and-clear-the-redis-rule-cache" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong> <code>POST /api/v1/engines/switch</code> and <code>/reload</code> answer "success" but
+change nothing; <code>/benchmark</code> and <code>GET /stats</code> describe a new engine with no
+rules. Either make them do what their names say or remove them. Related:
+<code>RuleCache.clear()</code> in <code>src/fluxrules/api/engines/adapter.py</code> empties only the
+in-process copy, so with Redis a rule change can take up to the cache's 5
+minutes to reach <code>/api/v1/engines/*</code> and <code>/api/v1/rules/simulate</code>. Clearing
+should also delete the Redis keys.</p>
+<p><strong>Why waiting:</strong> Behaviour is unchanged from 1.0 and documented as it is in
+<a href="../../rest-api/#endpoints-that-are-not-finished">REST API: Endpoints that are not finished</a>,
+pinned by <code>tests/integration/test_engine_endpoints.py</code>. Removing endpoints or
+changing their answers is an API change that needs its own decision.</p>
 
 
 
