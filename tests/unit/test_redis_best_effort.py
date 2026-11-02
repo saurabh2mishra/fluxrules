@@ -62,6 +62,7 @@ class _Clients:
 def _fresh_state(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(_compiled_cache, "_redis_client", None)
     monkeypatch.setattr(_compiled_cache, "_redis_down_until", 0.0)
+    monkeypatch.setattr(_compiled_cache, "_redis_missing", False)
 
 
 @pytest.fixture()
@@ -72,16 +73,65 @@ def clock(monkeypatch: pytest.MonkeyPatch) -> list[float]:
 
 
 class TestCompiledCacheRedis:
-    def test_down_server_is_tried_once_then_skipped(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
+    def test_reads_and_writes_skip_a_down_server(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
         clients = _Clients(up=False)
         monkeypatch.setattr(redis, "Redis", clients)
 
         for _ in range(5):
             assert _compiled_cache._get_redis("payments") is None
             _compiled_cache._set_redis("payments", [{"id": 1}])
-            _compiled_cache.invalidate("payments")
 
         assert len(clients.built) == 1
+
+    def test_invalidate_always_tries(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
+        # Skipping a delete would leave stale compiled rules in Redis for other
+        # processes, so invalidation ignores the wait (one fast attempt each,
+        # with no retries).
+        clients = _Clients(up=False)
+        monkeypatch.setattr(redis, "Redis", clients)
+        _compiled_cache._get_redis("payments")  # starts the wait
+
+        for _ in range(3):
+            _compiled_cache.invalidate("payments")
+        assert len(clients.built) == 4
+
+    def test_invalidate_during_the_wait_deletes_stale_rules(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
+        clients = _Clients(up=True)
+        monkeypatch.setattr(redis, "Redis", clients)
+        _compiled_cache._set_redis("payments", [{"id": 1}])
+        assert clients.store
+
+        # A brief outage starts the wait; Redis comes back within it.
+        clients.up = False
+        _compiled_cache._get_redis("payments")
+        clients.up = True
+
+        _compiled_cache.invalidate("payments")
+        assert "fluxrules:compiled:payments" not in clients.store
+
+    def test_unreadable_entry_is_not_an_outage(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
+        clients = _Clients(up=True)
+        monkeypatch.setattr(redis, "Redis", clients)
+        clients.store["fluxrules:compiled:payments"] = "{not json"
+
+        assert _compiled_cache._get_redis("payments") is None
+        assert _compiled_cache._get_redis_client() is not None
+        assert _compiled_cache._redis_down_until == 0.0
+
+    def test_missing_redis_package_is_never_retried(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
+        import builtins
+
+        real_import = builtins.__import__
+
+        def no_redis(name, *args, **kwargs):  # type: ignore[no-untyped-def]
+            if name.startswith("redis"):
+                raise ImportError(name)
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", no_redis)
+        assert _compiled_cache._get_redis_client() is None
+        monkeypatch.setattr(builtins, "__import__", real_import)
+        assert _compiled_cache._get_redis_client(ignore_wait=True) is None
 
     def test_tries_again_after_the_wait(self, monkeypatch, clock) -> None:  # type: ignore[no-untyped-def]
         clients = _Clients(up=False)
@@ -127,35 +177,3 @@ class TestCompiledCacheRedis:
         assert _compiled_cache._get_redis("payments") is None
         assert _compiled_cache._get_redis_client() is None
         assert len(clients.built) == 1
-
-
-class TestSharedApiClient:
-    @pytest.fixture(autouse=True)
-    def _fresh_api_state(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        pytest.importorskip("pydantic_settings")
-        from fluxrules.api.utils import redis_client
-
-        monkeypatch.setattr(redis_client, "_redis_client", None)
-        monkeypatch.setattr(redis_client, "_redis_available", None)
-
-    def test_probe_has_no_retries_and_failure_is_remembered(self, monkeypatch) -> None:  # type: ignore[no-untyped-def]
-        from fluxrules.api.utils import redis_client
-
-        clients = _Clients(up=False)
-        monkeypatch.setattr(redis_client.redis, "Redis", clients)
-
-        assert redis_client.get_redis_client() is None
-        assert redis_client.get_redis_client() is None
-        assert len(clients.built) == 1
-        assert clients.built[0]["retry"].get_retries() == 0
-
-    def test_kept_client_uses_default_retries(self, monkeypatch) -> None:  # type: ignore[no-untyped-def]
-        from fluxrules.api.utils import redis_client
-
-        clients = _Clients(up=True)
-        monkeypatch.setattr(redis_client.redis, "Redis", clients)
-
-        assert redis_client.get_redis_client() is not None
-        probe, kept = clients.built
-        assert probe["retry"].get_retries() == 0
-        assert "retry" not in kept

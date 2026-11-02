@@ -49,11 +49,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cache built a new Redis client on every call, with no timeout and redis-py's
   default retries, so each rule create, update or delete waited about 7
   seconds for connections that could not succeed. It now shares one client per
-  process with 0.5-second timeouts and no retries, and after a failure skips
-  Redis for 30 seconds before trying again. The API's shared Redis client also
-  checks the server once without retries (0.5 seconds instead of about 4).
-  With Redis running, nothing changes except that one connection pool is
-  reused instead of a new one per call.
+  process with 0.5-second timeouts and no retries. After a failed read or
+  write, reads and writes skip Redis for 30 seconds; clearing the cache after
+  a rule change always tries, so other processes never keep stale compiled
+  rules. With Redis running, nothing changes except that one connection pool
+  is reused instead of a new one per call.
 - **Matched rules in API evaluation responses have their real names and
   priorities.** `/api/v1/rules/simulate`, `/api/v1/engines/evaluate`,
   `/api/v1/engines/simulate`, `POST /api/v1/event` and the event worker

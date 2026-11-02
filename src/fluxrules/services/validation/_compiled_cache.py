@@ -105,28 +105,33 @@ def _redis_key(group: str | None) -> str:
 
 # The Redis tier is best effort: it must never slow a request down. One client
 # is shared per process, with short timeouts and no retries, and after a
-# failure Redis is skipped for _REDIS_RETRY_SECONDS before the next attempt.
-# (A new client per call, with redis-py's default retries, cost seconds per
-# call on a server without Redis.)
+# failure reads and writes skip Redis for _REDIS_RETRY_SECONDS. (A new client
+# per call, with redis-py's default retries, cost seconds per call on a server
+# without Redis.) Invalidation ignores that wait: skipping a delete would leave
+# stale compiled rules in Redis for other processes.
 _REDIS_TIMEOUT_SECONDS = 0.5
 _REDIS_RETRY_SECONDS = 30.0
 _redis_client: Any = None
 _redis_down_until = 0.0
+_redis_missing = False
 
 
-def _get_redis_client():
-    """Return the shared Redis client, or ``None`` while Redis is unavailable."""
-    global _redis_client, _redis_down_until
+def _get_redis_client(*, ignore_wait: bool = False):
+    """Return the shared Redis client, or ``None`` while Redis is unavailable.
+
+    ``ignore_wait=True`` tries to connect even during the wait after a failure.
+    """
+    global _redis_client, _redis_missing
     if _redis_client is not None:
         return _redis_client
-    if time.monotonic() < _redis_down_until:
+    if _redis_missing or (not ignore_wait and time.monotonic() < _redis_down_until):
         return None
     try:
         import redis as _redis
         from redis.backoff import NoBackoff
         from redis.retry import Retry
     except ImportError:
-        _redis_down_until = float("inf")  # not installed: never try again
+        _redis_missing = True  # not installed: never try again
         return None
     try:
         client = _redis.Redis(
@@ -151,17 +156,23 @@ def _mark_redis_down() -> None:
 
 
 def _get_redis(group: str | None) -> list[dict[str, Any]] | None:
+    client = _get_redis_client()
+    if client is None:
+        return None
     try:
-        client = _get_redis_client()
-        if client is None:
-            return None
         raw = client.get(_redis_key(group))
-        if raw:
-            return json.loads(raw)
     except Exception as exc:
         logger.debug("Redis compiled-cache read failed: %s", exc)
         _mark_redis_down()
-    return None
+        return None
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except ValueError as exc:
+        # A bad entry is not a Redis outage: ignore it and recompile.
+        logger.debug("Redis compiled-cache entry unreadable: %s", exc)
+        return None
 
 
 def _set_redis(group: str | None, payloads: list[dict[str, Any]]) -> None:
@@ -256,7 +267,7 @@ def invalidate(group: str | None = None) -> None:
             _CONTENT_HASH.pop(None, None)
 
     try:
-        client = _get_redis_client()
+        client = _get_redis_client(ignore_wait=True)
         if client is None:
             return
         if group is None:
