@@ -92,7 +92,7 @@ session, and the stateless endpoints skip them) or remove the field.
 
 **Why waiting:** Giving it a meaning changes which rules fire for anyone who
 set it, and needs a design for where stateful rules run in the HTTP API.
-Today's behaviour is documented in [REST API](../rest-api.md#post-apiv1rules-login)
+Today's behaviour is documented in [HTTP API Reference](../rest-api.md#post-apiv1rules-login)
 and pinned by
 `tests/integration/test_e2e_admin_integration.py::TestExistingFeaturesRegression::test_simulate_event_evaluates_stateful_marked_rules`.
 
@@ -121,6 +121,6 @@ minutes to reach `/api/v1/engines/*` and `/api/v1/rules/simulate`. Clearing
 should also delete the Redis keys.
 
 **Why waiting:** Behaviour is unchanged from 1.0 and documented as it is in
-[REST API: Endpoints that are not finished](../rest-api.md#endpoints-that-are-not-finished),
+[HTTP API Reference: Endpoints that are not finished](../rest-api.md#endpoints-that-are-not-finished),
 pinned by `tests/integration/test_engine_endpoints.py`. Removing endpoints or
 changing their answers is an API change that needs its own decision.

@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing yet. Work that is designed but not yet shipped is listed in the
+[backlog](docs/development/backlog.md).
+
 ## [1.1.1] - 2026-11-02
 
-Documentation release. The library code is unchanged.
+Documentation release. The library code is unchanged; only the version
+number moves to 1.1.1.
 
 ### Changed
 
@@ -29,6 +33,28 @@ Documentation release. The library code is unchanged.
   models and raw input reach the engine.
 - Architecture and the Decision Guide link to the engine and extension pages
   instead of repeating them.
+- **Broken links fail the docs build.** `mkdocs.yml` now validates links to
+  missing pages and missing sections, and CI, the deploy workflow and
+  `make docs` build with `--strict`, so a broken link stops the build instead
+  of being published.
+- The Capability Map's examples were all run again on 2026-11-02, and its
+  verification note says so.
+
+### Removed
+
+These pages were merged into others and their old addresses no longer exist
+on the docs site. Their content lives on the page named after each arrow:
+
+- `getting-started/` to Installation and Quickstart
+- `features/` and `usage/` to the home page
+- `usage/engines/` to The PHREAK Engine
+- `usage/http-api/` to HTTP API
+- `usage/examples/` to Examples and Learning Path
+- `usage/advanced-capabilities/` to `advanced-capabilities/` (Capability Map)
+- `reference/http-endpoints/` to HTTP API Reference
+- `action-registry/` to Actions
+- `custom-transforms-cheatsheet/` and `custom-transforms-answered/` to Custom
+  Transforms
 
 ### Fixed
 
@@ -50,6 +76,9 @@ Documentation release. The library code is unchanged.
 - Quickstart sets rule ids, so its printed output matches however the
   examples are run.
 - Example 12 is documented as needing `httpx` as well as the `api` extra.
+- `examples/README.md` linked to a `docs/GETTING_STARTED.md` page that never
+  existed; it now links to Concepts, and its other link labels use the
+  current page names.
 - Sample `/health` and status responses show version 1.1.1.
 - Check-mark symbols and spaced-hyphen dashes replaced with plain words.
 
