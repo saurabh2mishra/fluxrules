@@ -17,6 +17,7 @@ Quick reference for all REST endpoints.
 | POST | `/validate` | Check a rule set without storing it |
 | POST | `/api/v1/sessions` | Create a session that stores facts |
 | POST | `/api/v1/sessions/{id}/evaluate` | Evaluate each fact stored in a session |
+| POST | `/api/v1/engines/evaluate` | Evaluate a fact, with an explanation per matched rule |
 
 ## Setup
 

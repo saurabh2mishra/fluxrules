@@ -127,6 +127,9 @@ rule set is fine. No login needed.
   evaluate them later with `POST /api/v1/sessions/{id}/evaluate`.
 - **Audit** (`/api/v1/audit`): the audit trail of rule changes.
 - **Metrics** (`/api/v1/metrics`): Prometheus metrics.
+- **Engines** (`/api/v1/engines`): evaluate with explanations, and report the
+  engine in use. Some of these endpoints are not finished; see
+  [REST API: Engine endpoints](rest-api.md#engine-endpoints).
 
 ## API versioning
 

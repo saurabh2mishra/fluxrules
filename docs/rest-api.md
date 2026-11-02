@@ -214,6 +214,74 @@ Evaluate a fact as a dry run and get an explanation for each matched rule.
   it took in milliseconds (`evaluation_time_ms`). `total_rules` and
   `optimization` are not filled in.
 
+## Engine endpoints
+
+These endpoints under `/api/v1/engines` need no login.
+
+### POST /api/v1/engines/evaluate
+
+Evaluate a fact against the stored rules and get an explanation for each
+matched rule.
+
+**Request:**
+```json
+{"event": {"amount": 4200, "country": "DE"}, "rule_ids": [1, 2]}
+```
+
+- `event` is the fact. Required.
+- `rule_ids` is optional and limits the run to those rules.
+- `engine_type` is optional. `"PHREAK"`, the only engine, is the default; any
+  other name answers `400`.
+
+**Response:**
+```json
+{
+  "matched_rules": [
+    {"id": 1, "name": "big_payment", "priority": 10},
+    {"id": 2, "name": "german_payment", "priority": 0}
+  ],
+  "execution_order": [1, 2],
+  "explanations": {
+    "1": "Rule big_payment (1) matched via PHREAK (segments: seg_amount, seg_country)",
+    "2": "Rule german_payment (2) matched via PHREAK (segments: seg_amount, seg_country)"
+  },
+  "stats": {"latency_ms": 1.68, "rules_evaluated": 2, "rules_matched": 2},
+  "engine_type": "PHREAK",
+  "dry_run": false
+}
+```
+
+The fields are the same as for `POST /api/v1/rules/simulate`, except for the
+names in `stats`: `rules_evaluated` is the number of rules the engine looked at
+closely after filtering, and `latency_ms` is the time taken.
+
+### POST /api/v1/engines/simulate
+
+The same request and response as `/api/v1/engines/evaluate`, with
+`"dry_run": true`. Neither endpoint runs actions or changes anything, so the
+two give the same answers.
+
+### GET /api/v1/engines/config and GET /api/v1/engines/available
+
+Report the engine in use and the engines available (only `"PHREAK"`), with a
+short description of each.
+
+### Endpoints that are not finished
+
+These endpoints answer, but do not yet do what their names say:
+
+- `POST /api/v1/engines/switch` and `POST /api/v1/engines/reload` check the
+  engine name and answer `"status": "success"`, but change nothing on the
+  server. Without Redis, rules stored with `/api/v1/rules` are used from the
+  next request on. With Redis, these engine endpoints (and
+  `/api/v1/rules/simulate`) read the rule list from a Redis cache that lasts up
+  to 5 minutes, so a new or changed rule can take that long to appear there.
+  `/api/v1/evaluate` always reads the stored rules directly.
+- `POST /api/v1/engines/benchmark` times a new engine with no rules loaded on
+  generated events, so it does not measure your rules.
+- `GET /api/v1/engines/stats` reports a new engine with no rules loaded, so
+  `rules_loaded` is always `0`.
+
 ## Checking a rule set
 
 ### POST /validate

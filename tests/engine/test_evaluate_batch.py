@@ -313,3 +313,27 @@ class TestReviewFixes:
         monkeypatch.setattr(worker_pool, "pickle", _CountingPickle)
         _engine().evaluate_batch(FACTS, workers=2)
         assert dumps == ["tuple"]  # one payload; nothing pickled again per worker
+
+
+class _CountingEngine(BaseEngine):
+    """A custom engine that opts in to workers, as docs/custom-engines.md shows."""
+
+    def __init__(self, threshold: int = 0) -> None:
+        super().__init__()
+        self.threshold = threshold
+
+    def _evaluate_rules(self, candidate_rule_ids, facts):  # type: ignore[no-untyped-def]
+        fired = [rid for rid in candidate_rule_ids if facts.get("amount", 0) > self.threshold]
+        return fired, [], {}
+
+    def _clone_settings(self) -> tuple[type, dict[str, Any]]:
+        return type(self), {"threshold": self.threshold}
+
+
+def test_custom_engine_with_clone_settings_runs_in_workers() -> None:
+    engine = _CountingEngine(threshold=100)
+    engine.load_rules(RULES)
+    expected = [engine.evaluate(f).fired_rules for f in FACTS]
+    got = engine.evaluate_batch(FACTS, workers=2)
+    assert [r.fired_rules for r in got] == expected
+    assert any(expected) and not all(expected)

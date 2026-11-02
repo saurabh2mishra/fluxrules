@@ -126,6 +126,19 @@ assert (result1.fired_rules, result2.fired_rules) == ([2], [])
 
 Use sessions to evaluate the same ruleset independently for different users, transactions, or workflows.
 
+## Sessions over HTTP
+
+The HTTP API has its own sessions, under `/api/v1/sessions`. They work
+differently from the Python sessions on this page:
+
+- **Python session**: each `add_fact(key, value)` adds one field to a single
+  fact, and `evaluate()` checks that one fact.
+- **HTTP session**: each `POST /api/v1/sessions/{id}/facts` stores a whole
+  fact under a `fact_id`, and `POST /api/v1/sessions/{id}/evaluate` evaluates
+  every stored fact on its own, returning one result per fact.
+
+See [REST API: Sessions](rest-api.md#sessions).
+
 ---
 
 ## Next Steps

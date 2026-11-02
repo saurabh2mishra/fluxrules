@@ -95,3 +95,32 @@ set it, and needs a design for where stateful rules run in the HTTP API.
 Today's behaviour is documented in [REST API](../rest-api.md#post-apiv1rules-login)
 and pinned by
 `tests/integration/test_e2e_admin_integration.py::TestExistingFeaturesRegression::test_simulate_event_evaluates_stateful_marked_rules`.
+
+### Compiled-rule cache: use the configured Redis server
+
+**What:** `src/fluxrules/services/validation/_compiled_cache.py` connects with
+`redis.Redis()`, so it always uses `localhost:6379`, while the rest of the API
+reads `REDIS_HOST`, `REDIS_PORT` and `REDIS_DB`. A deployment with Redis on
+another host shares rule caches but not compiled rules between processes.
+Pass the connection settings in (the module is in `services/`, which must not
+import the `api` package), for example through a small setter the API calls
+at startup.
+
+**Why waiting:** Behaviour is unchanged from 1.0, and a server without the
+cache still works (each process compiles its own rules). Documented in
+[Deployment](../deployment.md#redis-optional).
+
+### Finish the `/api/v1/engines` endpoints, and clear the Redis rule cache
+
+**What:** `POST /api/v1/engines/switch` and `/reload` answer "success" but
+change nothing; `/benchmark` and `GET /stats` describe a new engine with no
+rules. Either make them do what their names say or remove them. Related:
+`RuleCache.clear()` in `src/fluxrules/api/engines/adapter.py` empties only the
+in-process copy, so with Redis a rule change can take up to the cache's 5
+minutes to reach `/api/v1/engines/*` and `/api/v1/rules/simulate`. Clearing
+should also delete the Redis keys.
+
+**Why waiting:** Behaviour is unchanged from 1.0 and documented as it is in
+[REST API: Endpoints that are not finished](../rest-api.md#endpoints-that-are-not-finished),
+pinned by `tests/integration/test_engine_endpoints.py`. Removing endpoints or
+changing their answers is an API change that needs its own decision.

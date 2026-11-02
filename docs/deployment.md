@@ -68,6 +68,27 @@ export OTEL_ENABLED=true
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
 ```
 
+## Redis (optional)
+
+The server works without Redis. When a Redis server is reachable, the API
+uses it to share work between server processes:
+
+- `POST /api/v1/event` puts events on a queue for the event worker instead
+  of evaluating them during the request.
+- The rule cache and the compiled rules used for conflict checks are shared
+  between server processes. Without Redis, each process keeps its own copy in
+  memory.
+- Runtime analytics are kept in Redis instead of in each process's memory.
+
+The API connects with `REDIS_HOST`, `REDIS_PORT` and `REDIS_DB` (defaults
+`localhost`, `6379`, `0`). The compiled-rule cache always connects to
+`localhost:6379` for now.
+
+Without Redis, the server checks once at startup and then stops trying, so
+requests are not slowed down. The compiled-rule cache tries again at most
+every 30 seconds, and always tries when it must clear old rules after a rule
+change.
+
 ## Scaling
 
 For high-throughput production:
