@@ -2604,7 +2604,18 @@ worker processes when you call it.</p>
 <span class="n">engine</span> <span class="o">=</span> <span class="n">PhreakEngine</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">({</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mi">100</span><span class="p">},</span> <span class="n">strict_facts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-<p>When enabled, invalid fact structures fail fast.</p>
+<p><code>strict_facts=True</code> checks the fact before any rule runs, and raises
+<code>InvalidFactError</code> (from <code>fluxrules.pipeline.validators</code>, a subclass of
+<code>ValueError</code>) when it is not a valid fact:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules.pipeline.validators</span><span class="w"> </span><span class="kn">import</span> <span class="n">InvalidFactError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">evaluate</span><span class="p">([</span><span class="s2">"not"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="s2">"fact"</span><span class="p">],</span> <span class="n">strict_facts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">InvalidFactError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Rejected: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<p>Without <code>strict_facts</code>, the same input raises <code>TypeError</code> instead. Catch the
+exception that matches the mode you use.</p>
 <h2 id="missing-fields-under-not">Missing Fields Under NOT<a class="headerlink" href="#missing-fields-under-not" title="Permanent link">&para;</a></h2>
 <p><code>EngineConfig.missing_field</code> decides whether <code>~(F("blocked") == True)</code> fires on
 a fact with no <code>blocked</code> key:</p>
