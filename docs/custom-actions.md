@@ -71,12 +71,14 @@ print(outcome)  # {'success': True, 'action': 'send_approval_request', 'result':
 
 The decorator takes these options:
 
-- `name`: the action name that rules use. It must be unique.
+- `name`: the action name that rules use. Registering the same name again
+  replaces the earlier handler without a warning, so keep names unique.
 - `description`: a short text that tools and listings show.
 - `category`: a label for grouping related actions. The default is
   `"general"`.
-- `async_handler`: set to `True` when the function is `async`. The default is
-  `False`.
+- `async_handler`: marks the handler as async. You do not need it for an
+  `async def` function, which the registry detects on its own. Set it only
+  for a plain function that returns an awaitable.
 
 `action_registry.execute(name, **kwargs)` calls the handler with the keyword
 arguments you pass. Before calling, it checks that every required parameter
@@ -89,7 +91,9 @@ logged and returned under `error` with `success` set to `False`.
 
 A common pattern is to evaluate a fact and then run the handler for each
 fired action. A handler that declares `**fact` accepts every field of the
-fact, so you can pass the whole fact to it:
+fact, so you can pass the whole fact to it. A handler with fixed parameters,
+such as `send_approval_request` above, rejects the extra fields with
+`ValueError`, so catch it and carry on with the next action:
 
 ```python
 @action(name="notify_security", category="notifications")
@@ -101,25 +105,30 @@ fact = {"amount": 7500, "ip_risk_score": 90}
 result = engine.evaluate(fact)
 
 for name in result.actions:
-    if action_registry.has(name):
-        print(action_registry.execute(name, **fact))
-    else:
+    if not action_registry.has(name):
         print(f"No handler for {name!r}; the application handles it")
+        continue
+    try:
+        print(action_registry.execute(name, **fact))
+    except ValueError as e:
+        print(f"Could not run {name!r}: {e}")
 ```
 
 `action_registry.has(name)` tells you whether a handler is registered, so
-action names without a handler can fall through to your own code.
+action names without a handler can fall through to your own code. The
+`try` block keeps one action with the wrong parameters, or an async handler
+passed to `execute`, from stopping the rest.
 
 ## Async handlers
 
-Register an `async` function with `async_handler=True`, and run it with
+Register an `async def` function as usual, and run it with
 `execute_async`:
 
 ```python
 import asyncio
 
 
-@action(name="log_to_database", category="logging", async_handler=True)
+@action(name="log_to_database", category="logging")
 async def log_to_database(event_id: str) -> dict:
     return {"logged": True, "event_id": event_id}
 
@@ -186,10 +195,16 @@ def block_transaction(**fact) -> dict:
 
 @action(name="notify_then_block")
 def notify_then_block(**fact) -> dict:
-    action_registry.execute("notify_security", **fact)
-    action_registry.execute("block_transaction", **fact)
+    for step in ("notify_security", "block_transaction"):
+        outcome = action_registry.execute(step, **fact)
+        if not outcome["success"]:
+            raise RuntimeError(f"{step} failed: {outcome['error']}")
     return {"status": "complete"}
 ```
+
+`execute` reports a failed handler in its return value instead of raising,
+so check `success` after each step. Raising here marks the whole chain as
+failed, and the error reaches whoever called `notify_then_block`.
 
 Often it is simpler to list both names in the rule with
 `actions=("notify_security", "block_transaction")` and let the dispatch loop

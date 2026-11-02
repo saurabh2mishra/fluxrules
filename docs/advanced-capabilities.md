@@ -25,7 +25,7 @@ Run any example from the `examples/` folder, for example
 | Rule analysis | Find rules that overlap, conflict or can never fire | [Rule Analysis](rule-analysis.md) | [30_conflict_detection.py][ex30] |
 | Actions | Run code when a rule fires, and describe your actions | [Actions](custom-actions.md) | [15_action_system.py][ex15], [21_action_registry.py][ex21] |
 | Custom engines | Change how matched rules are chosen, and pick an engine by name | [Custom Engines](custom-engines.md) | [09_custom_engines.py][ex09], [10_pluggable_engines.py][ex10] |
-| CLI and HTTP API | Evaluate rules from scripts and from other services | [CLI](cli.md), [HTTP API](api.md) | [11_cli_usage.py][ex11] (needs `fluxrules[cli]`), [12_api_usage.py][ex12] (needs `fluxrules[api]`) |
+| CLI and HTTP API | Evaluate rules from scripts and from other services | [CLI](cli.md), [HTTP API](api.md) | [11_cli_usage.py][ex11] (needs `fluxrules[cli]`), [12_api_usage.py][ex12] (needs `fluxrules[api]` and `httpx`) |
 | A full workflow | Validate, normalize, evaluate, act and explain, end to end | [From Fact to Action](fact-to-action.md) | [22_real_world_workflow.py][ex22] |
 
 ## Where to begin
@@ -41,7 +41,7 @@ If you are new to these features, read them in this order:
 
 ## Verification note
 
-Every example on this page was run successfully on 2026-10-21 with the `dev`
+Every example on this page was run successfully on 2026-11-02 with the `dev`
 dependency group installed.
 
 [ex04]: https://github.com/saurabh2mishra/fluxrules/blob/main/examples/04_validation.py

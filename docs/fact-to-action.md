@@ -55,7 +55,7 @@ flowchart TB
     NETWORK -. "candidates" .-> FIND
 
     ORDER --> RESULT["8. EvaluationResult<br/>fired_rules, actions,<br/>rules_by_domain, rules_by_tag,<br/>explanations, latency_ms"]
-    RESULT --> ACT["9. Act<br/>your code reads actions,<br/>or evaluate_with_actions<br/>runs action handlers"]
+    RESULT --> ACT["9. Act<br/>your code reads actions<br/>and runs their handlers"]
 
     classDef optin stroke-dasharray: 5 4
     classDef stop fill:#fdecea,stroke:#c62828,color:#5f1111
@@ -78,7 +78,7 @@ flowchart TB
 | 6. Conditions | Surviving rules are evaluated. Identical sub-conditions are computed once per call. A rule naming `Amount` against a fact with `amount` raises `FieldNotFoundError` instead of silently not matching; with a fact schema, so does `userAge` against `user_age`. With `missing_field="unknown"`, a `NOT` rule does not fire just because the fact lacks the field. | Always on; `compile_conditions=True`; `EngineConfig(missing_field=...)` | [Conditions](conditions.md#missing-fields-and-not), [Complex Conditions](complex-conditions.md) |
 | 7. Order | Fired rules are ordered by `priority`, highest first, then by rule id. | `Rule(priority=...)` | [Rule Types](rule-types.md) |
 | 8. Result | One `EvaluationResult` for every path: which rules fired, their actions in order, grouping by domain and tag, an explanation per rule, and latency. | Always on; `enable_metrics=True` for percentiles | [Concepts](concepts.md#evaluation-result), [Observability](observability.md) |
-| 9. Act | `evaluate()` never runs side effects: it returns action names. Your code dispatches them, or `await engine.evaluate_with_actions(fact)` runs the registered handlers. | `@action` handlers | [Actions](custom-actions.md) |
+| 9. Act | `evaluate()` never runs side effects: it returns action names. Your code dispatches them, for example by calling `action_registry.execute(name, **fact)` for each name. | `@action` handlers | [Actions](custom-actions.md) |
 
 Rules that join several facts (an order and its customer) take a different
 engine, `CrossFactEngine`, with its own insert and retract contract. See

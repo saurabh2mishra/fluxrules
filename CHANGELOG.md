@@ -42,6 +42,15 @@ Documentation release. The library code is unchanged.
   memory and save to a JSON snapshot.
 - Architecture showed custom transforms overriding `apply()`. They implement
   `__call__` and `metadata`.
+- From Fact to Action said `evaluate_with_actions` runs the `@action`
+  handlers. It does not; the page now shows dispatching through
+  `action_registry`.
+- The action dispatch example no longer stops at the first handler whose
+  parameters do not match, and the chaining example checks each step.
+- Quickstart sets rule ids, so its printed output matches however the
+  examples are run.
+- Example 12 is documented as needing `httpx` as well as the `api` extra.
+- Sample `/health` and status responses show version 1.1.1.
 - Check-mark symbols and spaced-hyphen dashes replaced with plain words.
 
 ## [1.1.0] - 2026-11-02

@@ -583,8 +583,9 @@ for file in [0-3][0-9]_*.py; do
 done
 ```
 
-Examples 11 and 12 need the `cli` and `api` extras. Example 07 needs the
-`yaml` extra.
+Some examples need extras. Example 07 needs `yaml`, and example 11 needs
+`cli`. Example 12 needs `api` and also `httpx`, which its test client uses:
+`pip install 'fluxrules[api]' httpx`.
 
 ## Shared Dataset (`examples/shared_use_case.py`)
 
