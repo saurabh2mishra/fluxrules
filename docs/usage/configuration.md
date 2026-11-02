@@ -53,7 +53,21 @@ engine = PhreakEngine()
 result = engine.evaluate({"amount": 100}, strict_facts=True)
 ```
 
-When enabled, invalid fact structures fail fast.
+`strict_facts=True` checks the fact before any rule runs, and raises
+`InvalidFactError` (from `fluxrules.pipeline.validators`, a subclass of
+`ValueError`) when it is not a valid fact:
+
+```python
+from fluxrules.pipeline.validators import InvalidFactError
+
+try:
+    engine.evaluate(["not", "a", "fact"], strict_facts=True)
+except InvalidFactError as e:
+    print(f"Rejected: {e}")
+```
+
+Without `strict_facts`, the same input raises `TypeError` instead. Catch the
+exception that matches the mode you use.
 
 ## Missing Fields Under NOT
 

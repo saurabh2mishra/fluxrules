@@ -21,7 +21,7 @@ be interchangeable.
 
 | Surface | Label | Entry point | Input/output contract |
 |---|---|---|---|
-| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | Single fact mapping in; `EvaluationResult` out (`fired_rules`, `actions`, explanations, metrics). |
+| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | One fact in (a mapping or a typed model); `EvaluationResult` out (`fired_rules`, `actions`, explanations, metrics). |
 | Reference evaluation | **Stable reference** | `ReferenceEvaluator.evaluate(ruleset, facts)` or top-level `fluxrules.evaluate()` | Rules plus facts in; the same `EvaluationResult` out (`fired_rules`, actions, trace). Used as the oracle for the single-fact subset. |
 | Cross-fact correlation | **Separate contract** | `get_cross_fact_engine()` | `insert`/`update`/`retract` fact handles and activation deltas; not a `BaseEngine` replacement. |
 | Sessions and persistence | **Separate contract** | `RuleService`, persistence ports, session services | Rulesets and snapshots are managed outside the direct PHREAK matcher. |
