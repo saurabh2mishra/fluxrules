@@ -41,7 +41,7 @@ results are independent of ordering and therefore safe to shard.
 from __future__ import annotations
 
 import os
-import pickle
+import pickle  # nosec B403 - only loads bytes this module produced
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any
@@ -82,7 +82,8 @@ def _init_worker_from_payload(payload: bytes) -> None:
     The parent pickles the payload once (see :func:`build_payload`), so it is
     not serialized again for every worker.
     """
-    engine_class, settings, rules = pickle.loads(payload)  # noqa: S301 - our own payload
+    # Bytes from build_payload in the parent process, never outside input.
+    engine_class, settings, rules = pickle.loads(payload)  # noqa: S301  # nosec B301
     _init_worker(engine_class, settings, rules)
 
 
@@ -122,7 +123,8 @@ def _eval_chunk(
 def _picklable(exc: BaseException) -> BaseException:
     """Return ``exc`` if it survives pickling, else a RuntimeError describing it."""
     try:
-        pickle.loads(pickle.dumps(exc))  # noqa: S301 - round-trips our own object
+        # Round-trips an exception this process is holding, never outside input.
+        pickle.loads(pickle.dumps(exc))  # noqa: S301  # nosec B301
     except Exception:  # noqa: BLE001 - any pickling failure
         return RuntimeError(f"{type(exc).__name__}: {exc}")
     return exc
