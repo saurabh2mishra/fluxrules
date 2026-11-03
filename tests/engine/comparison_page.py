@@ -213,18 +213,25 @@ def render(result: MatrixResult | None = None) -> str:
             *_setting_changes(result, setting),
             "",
         ]
-    out += [
-        "## Known differences between paths",
-        "",
-        "Every evaluation path gives the answers above, except in these cases. Each "
-        "one is a known bug, and the tests fail if it is fixed without updating this "
-        "list.",
-        "",
-        "| Paths | Settings | What happens |",
-        "|---|---|---|",
-    ]
-    for known in KNOWN:
-        out.append(f"| {known.paths} | {known.settings} | {known.reason} |")
+    out += ["## Known differences between paths", ""]
+    if KNOWN:
+        out += [
+            "Every evaluation path gives the answers above, except in these cases. "
+            "Each one is a known bug, and the tests fail if it is fixed without "
+            "updating this list.",
+            "",
+            "| Paths | Settings | What happens |",
+            "|---|---|---|",
+        ]
+        out += [f"| {k.paths} | {k.settings} | {k.reason} |" for k in KNOWN]
+    else:
+        out.append(
+            "None. Every evaluation path gives the answers above under every setting: "
+            "`PhreakEngine` with and without the alpha prefilter, compiled conditions, "
+            "streaming mode, `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine` "
+            "(for the rules it can express), the CLI and the HTTP API. The tests fail "
+            "if any of them starts to differ."
+        )
     out += [
         "",
         "## Avoiding surprises",

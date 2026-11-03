@@ -634,13 +634,7 @@ With the matrix's rules and facts, this setting changes no answers.
 
 ## Known differences between paths
 
-Every evaluation path gives the answers above, except in these cases. Each one is a known bug, and the tests fail if it is fixed without updating this list.
-
-| Paths | Settings | What happens |
-|---|---|---|
-| engine (default), compiled, streaming, evaluate_batch | boolean_string_coercion | The alpha prefilter does not apply boolean_string_coercion, so it drops a `== True` or `in [True]` rule for the string `"true"` before the comparison converts the string. A rule inside OR is kept as a candidate, so it agrees. |
-| fluxrules.evaluate(), HTTP API | strict_null_handling, strict_type_comparison, boolean_string_coercion | Both run on the reference evaluator, which never reads these three settings, so they answer as if the settings were off. |
-| CLI (`fluxrules evaluate`) | every setting | `fluxrules evaluate --config` reads only the fact schema from the file. The comparison settings that `fluxrules init` writes into `fluxrules.yaml`, and `missing_field`, are never applied, so the CLI always uses the defaults. |
+None. Every evaluation path gives the answers above under every setting: `PhreakEngine` with and without the alpha prefilter, compiled conditions, streaming mode, `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine` (for the rules it can express), the CLI and the HTTP API. The tests fail if any of them starts to differ.
 
 ## Avoiding surprises
 

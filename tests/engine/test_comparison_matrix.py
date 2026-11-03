@@ -99,6 +99,7 @@ def test_no_unlisted_disagreement(disagreements):
     assert not unlisted, f"{len(unlisted)} paths disagree with {REFERENCE_PATH!r}:\n{report}"
 
 
+@pytest.mark.skipif(not KNOWN, reason="no known disagreements")
 @pytest.mark.parametrize("known", KNOWN, ids=[k.title for k in KNOWN])
 def test_every_listed_disagreement_still_happens(known, disagreements):
     assert any(known.matches(d) for d in disagreements), (

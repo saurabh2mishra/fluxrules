@@ -28,7 +28,6 @@ from tests.engine.comparison_matrix import (
     MISSING,
     OPERATOR_VALUES,
     PATHS,
-    PREFILTERED_PATHS,
     REFERENCE_PATH,
     quiet,
 )
@@ -79,19 +78,11 @@ def _random_fact(rng: random.Random) -> dict[str, Any]:
 
 
 def _skipped_paths(config: EngineConfig) -> set[str]:
-    """Comparisons a known bug breaks; see ``comparison_matrix.KNOWN``."""
-    skipped = set()
-    if config.boolean_string_coercion:
-        # The alpha prefilter ignores boolean_string_coercion.
-        skipped.update(PREFILTERED_PATHS)
-    if (
-        config.strict_null_handling
-        or config.strict_type_comparison
-        or config.boolean_string_coercion
-    ):
-        # fluxrules.evaluate() ignores the three comparison flags.
-        skipped.add("fluxrules.evaluate()")
-    return skipped
+    """Comparisons a known bug breaks; see ``comparison_matrix.KNOWN``.
+
+    None today: every in-process path agrees under every setting.
+    """
+    return set()
 
 
 @pytest.mark.parametrize("seed", range(EXAMPLES))

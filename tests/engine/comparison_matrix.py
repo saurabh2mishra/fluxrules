@@ -354,7 +354,7 @@ def cli_path(workdir: Any) -> EvalPath:
             )
             if result.exit_code != 0:
                 raise AssertionError(f"fluxrules evaluate failed on {fact!r}: {result.output}")
-            body = json.loads(result.output)
+            body = json.loads(result.stdout)
             out.append(frozenset(r["id"] for r in body["matched_rules"]))
         return out
 
@@ -488,42 +488,6 @@ class Known:
     matches: Callable[[Disagreement], bool]
 
 
-KNOWN = [
-    Known(
-        "prefilter-ignores-coercion",
-        "engine (default), compiled, streaming, evaluate_batch",
-        "boolean_string_coercion",
-        "The alpha prefilter does not apply boolean_string_coercion, so it drops "
-        'a `== True` or `in [True]` rule for the string `"true"` before the '
-        "comparison converts the string. A rule inside OR is kept as a candidate, "
-        "so it agrees.",
-        lambda d: (
-            d.config == "boolean_string_coercion"
-            and d.path in PREFILTERED_PATHS
-            and d.fact == "str 'true'"
-            and d.case
-            in {"v == bool True", "AND(v == bool True)", "v in [True]", "AND(v in [True])"}
-        ),
-    ),
-    Known(
-        "reference-evaluator-ignores-flags",
-        "fluxrules.evaluate(), HTTP API",
-        "strict_null_handling, strict_type_comparison, boolean_string_coercion",
-        "Both run on the reference evaluator, which never reads these three settings, "
-        "so they answer as if the settings were off.",
-        lambda d: (
-            d.path in {"fluxrules.evaluate()", "HTTP API"}
-            and d.config
-            in {"strict_null_handling", "strict_type_comparison", "boolean_string_coercion"}
-        ),
-    ),
-    Known(
-        "cli-ignores-config-settings",
-        "CLI (`fluxrules evaluate`)",
-        "every setting",
-        "`fluxrules evaluate --config` reads only the fact schema from the file. The "
-        "comparison settings that `fluxrules init` writes into `fluxrules.yaml`, and "
-        "`missing_field`, are never applied, so the CLI always uses the defaults.",
-        lambda d: d.path == "CLI" and d.config != "default",
-    ),
-]
+# Empty: every path agrees under every setting. Add an entry, with its cause,
+# only for a disagreement that is known and accepted for now.
+KNOWN: list[Known] = []

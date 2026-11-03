@@ -17,6 +17,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not fire for `"U"`. A single value now counts as a one-item list everywhere:
   in the engine, the alpha prefilter, compiled conditions, streaming mode,
   `fluxrules.evaluate()`, raw condition dicts and rules read from storage.
+- **`boolean_string_coercion=True` works with the alpha prefilter.** The
+  prefilter used to compare before converting, so it dropped a `== True` or
+  `in [True]` rule for the string `"true"`, and the rule never fired on the
+  default engine, compiled conditions, streaming mode or `evaluate_batch`. It
+  now converts `"true"` / `"false"` exactly as the comparison does, including
+  when the setting is turned on after the rules load.
+- **`fluxrules.evaluate()` and the HTTP API follow the comparison settings.**
+  Both run on the reference evaluator, which used the default
+  `strict_null_handling`, `strict_type_comparison` and
+  `boolean_string_coercion` whatever the config said. They now read the
+  process-wide config on every call, as they already did for `missing_field`.
+- **`fluxrules evaluate` applies the comparison settings in its config file.**
+  `strict_null_handling`, `strict_type_comparison`, `boolean_string_coercion`
+  and `missing_field` in `fluxrules.yaml` (or the file named with `--config`)
+  used to be ignored, although `fluxrules init` writes the first three there.
+  `missing_field: false` is read as the string `"false"`. A wrong value stops
+  the command for `--config`, and is reported and ignored in a file found
+  automatically.
 
 ### Added
 
@@ -35,18 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the engine with and without the alpha prefilter, compiled, streaming,
   `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine`, the CLI and the
   HTTP API. A new fuzz test does the same for random nested rules. Both fail on
-  any new disagreement between paths.
-
-### Known issues
-
-Found by the new tests and listed on the Comparing Values page; not yet fixed:
-
-- With `boolean_string_coercion=True`, the alpha prefilter drops `== True` and
-  `in [True]` rules for the string `"true"` before the comparison converts it.
-- `fluxrules.evaluate()` and the HTTP API ignore `strict_null_handling`,
-  `strict_type_comparison` and `boolean_string_coercion`.
-- `fluxrules evaluate --config` applies none of the comparison settings in
-  `fluxrules.yaml`, although `fluxrules init` writes them there.
+  any disagreement between paths; today there are none.
 
 ## [1.1.1] - 2026-11-02
 

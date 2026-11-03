@@ -25,6 +25,17 @@ _CONFIG_HELP = (
     "fluxrules.yaml, fluxrules.yml, fluxrules.json (here or under config/), "
     "~/.fluxrules.yaml and /etc/fluxrules/config.yaml."
 )
+_EVALUATE_CONFIG_HELP = (
+    _CONFIG_HELP[:-1] + ". Its comparison settings (strict_null_handling, "
+    "strict_type_comparison, boolean_string_coercion, missing_field) apply too."
+)
+# EngineConfig fields that `fluxrules evaluate` reads from the config file.
+_COMPARISON_SETTINGS = (
+    "strict_null_handling",
+    "strict_type_comparison",
+    "boolean_string_coercion",
+    "missing_field",
+)
 _TRUST_HELP = (
     "Allow importing a fact_schema named inside a rule file or a config file found "
     "automatically. Importing runs that module's code, so pass this only for files "
@@ -79,36 +90,56 @@ class _Named:
     trusted: bool  # named by the person running the command
 
 
-def _config_schema(config: str | None) -> _Named | None:
-    """The config file's ``fact_schema``, or ``None``.
+def _locate_config(config: str | None) -> tuple[Path, bool] | None:
+    """The config file to read and whether it was named with --config, or ``None``."""
+    from fluxrules.config.deployment import find_config_file
 
-    A file named with --config must be readable. A file found automatically
-    is optional: if it cannot be read (for example PyYAML is not installed),
-    a note is printed and it is treated as having no fact_schema.
-    """
-    from fluxrules.config.deployment import find_config_file, read_config_file
-
-    explicit = config is not None
     if config is not None:
         if not Path(config).is_file():
             raise _fail(f"Config file not found: {config}")
-        path = Path(config)
-    else:
-        found = find_config_file()
-        if found is None:
-            return None
-        path = found
+        return Path(config), True
+    found = find_config_file()
+    return None if found is None else (found, False)
+
+
+def _config_problem(path: Path, explicit: bool) -> Any:
+    """Report a config problem: fatal for --config, a note for a found file."""
 
     def problem(message: str) -> None:
         if explicit:
             raise _fail(message)
         err_console.print(f"Ignoring {path}: {message}", style="dim", markup=False)
 
-    try:
-        data = read_config_file(path)
-    except Exception as exc:  # unreadable file, bad YAML/JSON, PyYAML missing
-        problem(f"cannot read config file {path}: {exc}")
+    return problem
+
+
+def _read_config(config: str | None) -> tuple[Path, bool, dict[str, Any]] | None:
+    """Locate and read the config file; ``None`` if there is none or it is unreadable.
+
+    A file named with --config must be readable. A file found automatically
+    is optional: if it cannot be read (for example PyYAML is not installed),
+    a note is printed and it is treated as empty.
+    """
+    from fluxrules.config.deployment import read_config_file
+
+    located = _locate_config(config)
+    if located is None:
         return None
+    path, explicit = located
+    try:
+        return path, explicit, read_config_file(path)
+    except Exception as exc:  # unreadable file, bad YAML/JSON, PyYAML missing
+        _config_problem(path, explicit)(f"cannot read config file {path}: {exc}")
+        return None
+
+
+def _config_schema(config: str | None) -> _Named | None:
+    """The config file's ``fact_schema``, or ``None``."""
+    read = _read_config(config)
+    if read is None:
+        return None
+    path, explicit, data = read
+    problem = _config_problem(path, explicit)
     spec = data.get("fact_schema")
     if spec is None:
         return None
@@ -116,6 +147,40 @@ def _config_schema(config: str | None) -> _Named | None:
         problem(f"{path}: fact_schema must be an import string such as 'myapp.models:Order'")
         return None
     return _Named(spec=spec, base=path.parent, source=f"config {path}", trusted=explicit)
+
+
+def _config_settings(config: str | None) -> Any:
+    """An ``EngineConfig`` with the config file's comparison settings, or ``None``.
+
+    Starts from the process-wide config and overrides each of
+    :data:`_COMPARISON_SETTINGS` the file sets. ``None`` when the file sets
+    none of them, so the engine keeps its default.
+    """
+    from dataclasses import replace
+
+    from fluxrules.engine.configuration import get_config
+
+    read = _read_config(config)
+    if read is None:
+        return None
+    path, explicit, data = read
+    problem = _config_problem(path, explicit)
+    settings: dict[str, Any] = {}
+    for name in _COMPARISON_SETTINGS:
+        if name not in data:
+            continue
+        value = data[name]
+        if name == "missing_field":
+            # YAML reads `missing_field: false` as the boolean False.
+            value = "false" if value is False else value
+            if value not in (None, "false", "unknown"):
+                problem(f"{path}: missing_field must be 'false', 'unknown' or null, got {value!r}")
+                return None
+        elif not isinstance(value, bool):
+            problem(f"{path}: {name} must be true or false, got {value!r}")
+            return None
+        settings[name] = value
+    return replace(get_config(), **settings) if settings else None
 
 
 class _ConfigSchema:
@@ -184,7 +249,7 @@ def evaluate(
     format: str = typer.Option("table", help="Output format: table or json"),
     engine: str = typer.Option("PHREAK", help="Engine to use (any registered engine, e.g. PHREAK)"),
     schema: str | None = typer.Option(None, "--schema", help=_SCHEMA_HELP),
-    config: str | None = typer.Option(None, "--config", help=_CONFIG_HELP),
+    config: str | None = typer.Option(None, "--config", help=_EVALUATE_CONFIG_HELP),
     trust_schema: bool = typer.Option(False, "--trust-schema", help=_TRUST_HELP),
     validate_facts: str = typer.Option(
         "off",
@@ -195,7 +260,9 @@ def evaluate(
     """Evaluate an event against rules.
 
     With a fact schema, rules naming a field the schema lacks are refused
-    (exit 1), and --validate-facts checks the event too.
+    (exit 1), and --validate-facts checks the event too. Comparison settings
+    in the config file (strict_null_handling, strict_type_comparison,
+    boolean_string_coercion, missing_field) apply to the evaluation.
     """
     from fluxrules.domain.errors import FactValidationError, FluxRulesError, UnknownFieldError
     from fluxrules.engine import get_available_engines, get_engine
@@ -212,9 +279,12 @@ def evaluate(
     resolved = _resolve_schema(schema, document, _ConfigSchema(config), trust_schema)
     if validate_facts != "off" and resolved is None:
         raise _fail("--validate-facts needs a fact schema (--schema, or fact_schema in a file)")
-    engine_kwargs = (
+    engine_kwargs: dict[str, Any] = (
         {"fact_schema": resolved.model, "validate_facts": validate_facts} if resolved else {}
     )
+    engine_config = _config_settings(config)
+    if engine_config is not None:
+        engine_kwargs["config"] = engine_config
     try:
         rule_engine = get_engine(engine, **engine_kwargs)
     except (TypeError, ValueError) as exc:
