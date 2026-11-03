@@ -137,7 +137,9 @@ missing_field: unknown          # NOT over a missing field does not fire
 ```
 
 Each setting means what the [`EngineConfig`](usage/configuration.md) field of
-the same name means, and a setting the file leaves out keeps its default. For
+the same name means, and a setting the file leaves out keeps its default. The
+settings apply to whichever engine `--engine` names, including a custom engine
+you registered (see [Custom Engines](custom-engines.md)). For
 `missing_field`, `false` (with or without quotes) keeps the 1.x behaviour,
 `unknown` adopts the 2.0 behaviour, and leaving it out keeps the default.
 A wrong value, such as `strict_type_comparison: maybe`, stops the command

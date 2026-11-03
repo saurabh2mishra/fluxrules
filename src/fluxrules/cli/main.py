@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -183,6 +185,22 @@ def _config_settings(config: str | None) -> Any:
     return replace(get_config(), **settings) if settings else None
 
 
+@contextmanager
+def _settings_installed(settings: Any) -> Iterator[None]:
+    """Install *settings* (an ``EngineConfig`` or ``None``) process-wide, then restore."""
+    from fluxrules.engine.configuration import get_config, set_config
+
+    if settings is None:
+        yield
+        return
+    previous = get_config()
+    set_config(settings)
+    try:
+        yield
+    finally:
+        set_config(previous)
+
+
 class _ConfigSchema:
     """The config file's fact_schema, read only when a command first needs it."""
 
@@ -282,32 +300,34 @@ def evaluate(
     engine_kwargs: dict[str, Any] = (
         {"fact_schema": resolved.model, "validate_facts": validate_facts} if resolved else {}
     )
-    engine_config = _config_settings(config)
-    if engine_config is not None:
-        engine_kwargs["config"] = engine_config
-    try:
-        rule_engine = get_engine(engine, **engine_kwargs)
-    except (TypeError, ValueError) as exc:
-        # e.g. --validate-facts with an attrs schema, or a custom engine that
-        # does not take fact_schema.
-        raise _fail(f"Cannot build engine {engine!r} with this fact schema: {exc}") from None
-    try:
-        rule_engine.load_rules(loaded)
-    except UnknownFieldError as exc:
-        raise _fail(exc.summary, code=1) from None
-
     with open(input) as f:
         event = json.load(f)
 
-    try:
-        result = rule_engine.evaluate(event)
-    except FactValidationError as exc:
-        # Only raised with validate_facts on, which requires a schema.
-        spec = resolved.spec if resolved else ""
-        raise _fail(f"Input does not match fact schema {spec}: {exc}", code=1) from None
-    except FluxRulesError as exc:
-        # e.g. FieldNotFoundError for a nested or misspelled event key.
-        raise _fail(str(exc), code=1) from None
+    # The file's comparison settings are installed process-wide rather than
+    # passed as ``config=``, so they reach every engine, including a registered
+    # BaseEngine subclass whose constructor takes no ``config``.
+    with _settings_installed(_config_settings(config)):
+        try:
+            rule_engine = get_engine(engine, **engine_kwargs)
+        except (TypeError, ValueError) as exc:
+            # e.g. --validate-facts with an attrs schema, or a custom engine that
+            # does not take fact_schema.
+            detail = " with this fact schema" if resolved else ""
+            raise _fail(f"Cannot build engine {engine!r}{detail}: {exc}") from None
+        try:
+            rule_engine.load_rules(loaded)
+        except UnknownFieldError as exc:
+            raise _fail(exc.summary, code=1) from None
+
+        try:
+            result = rule_engine.evaluate(event)
+        except FactValidationError as exc:
+            # Only raised with validate_facts on, which requires a schema.
+            spec = resolved.spec if resolved else ""
+            raise _fail(f"Input does not match fact schema {spec}: {exc}", code=1) from None
+        except FluxRulesError as exc:
+            # e.g. FieldNotFoundError for a nested or misspelled event key.
+            raise _fail(str(exc), code=1) from None
     by_id = {rule.id: rule for rule in loaded}
     matched = [by_id[rid] for rid in result.fired_rules if rid in by_id]
 

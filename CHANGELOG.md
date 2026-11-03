@@ -68,7 +68,13 @@ generated docs page shows how every operator treats each kind of value.
   used to be ignored, although `fluxrules init` writes the first three there.
   `missing_field: false` is read as the string `"false"`. A wrong value stops
   the command for `--config`, and is reported and ignored in a file found
-  automatically.
+  automatically. The settings are installed process-wide for the command, so
+  they reach every engine, including a registered `BaseEngine` subclass whose
+  constructor takes no `config`.
+- **`in` with an unhashable value no longer fails to load.** A list holding a
+  dict or a list (`F("v").isin([{"a": 1}])`), or a single dict, raised
+  `TypeError` when the default engine built its alpha prefilter. The prefilter
+  now tests such members with `==`, as Python's `in` on a list does.
 - **`PreFilteredEvaluator` no longer drops facts the engine would fire on.**
   Its SQL fact store kept only numbers, so a present text value looked like a
   missing field. It dropped a fact for an OR rule over text values

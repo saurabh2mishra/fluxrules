@@ -189,3 +189,62 @@ class TestCliAppliesConfigSettings:
         assert result.exit_code == 0
         assert "missing_field must be 'false', 'unknown' or null" in " ".join(result.stderr.split())
         assert [r["id"] for r in json.loads(result.stdout)["matched_rules"]] == [2]
+
+
+class _DocumentedCustomEngine:
+    """Built lazily: the custom engine docs/custom-engines.md shows, with no ``config``."""
+
+    @staticmethod
+    def build():
+        from fluxrules.engine.base import BaseEngine
+
+        class FirstMatch(BaseEngine):
+            def _evaluate_rules(self, rule_ids, facts):
+                fired, actions, why = [], [], {}
+                for rule_id in rule_ids:
+                    rule = self.rule_repository.get(rule_id)
+                    if rule and evaluate_conditions(rule.conditions, facts):
+                        fired.append(rule_id)
+                        actions.extend(rule.actions)
+                        why[rule_id] = "matched"
+                return fired, actions, why
+
+        return FirstMatch
+
+
+@pytest.fixture
+def custom_engine():
+    from fluxrules.engine import register_engine, unregister_engine
+
+    register_engine("DOCS_CUSTOM", _DocumentedCustomEngine.build())
+    yield "DOCS_CUSTOM"
+    unregister_engine("DOCS_CUSTOM")
+
+
+class TestCliSettingsReachCustomEngines:
+    """A registered BaseEngine subclass takes no ``config``; settings still apply."""
+
+    @pytest.mark.parametrize(
+        ("config_text", "flag_rule_fires"),
+        [
+            (None, False),
+            ("strict_null_handling: false\nstrict_type_comparison: false\n", False),
+            ("boolean_string_coercion: true\n", True),
+        ],
+        ids=["no config", "fluxrules init defaults", "coercion on"],
+    )
+    def test_custom_engine_runs_and_honours_settings(
+        self, project, custom_engine, config_text, flag_rule_fires
+    ):
+        # Only rule 1 (flag == True on the string "true") is checked: a
+        # BaseEngine subclass does not fire NOT over a missing field the way
+        # PhreakEngine does, which is unrelated to the config file.
+        if config_text is not None:
+            (project / "fluxrules.yaml").write_text(config_text)
+        assert (1 in _matched("--engine", custom_engine)) is flag_rule_fires
+
+    def test_the_process_config_is_restored_after_the_command(self, project):
+        before = get_config()
+        (project / "fluxrules.yaml").write_text("boolean_string_coercion: true\n")
+        _matched()
+        assert get_config() is before
