@@ -229,7 +229,8 @@ def render(result: MatrixResult | None = None) -> str:
             "None. Every evaluation path gives the answers above under every setting: "
             "`PhreakEngine` with and without the alpha prefilter, compiled conditions, "
             "streaming mode, `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine` "
-            "(for the rules it can express), the CLI and the HTTP API. The tests fail "
+            "(for the rules it can express), `PreFilteredEvaluator` over a SQL fact "
+            "store, the CLI and the HTTP API. The tests fail "
             "if any of them starts to differ."
         )
     out += [

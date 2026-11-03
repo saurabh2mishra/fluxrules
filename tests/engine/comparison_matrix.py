@@ -252,6 +252,26 @@ def _cross_fact_run(cases, rules, config, facts):
     return out
 
 
+def _sql_prefilter_run(cases, rules, config, facts):
+    """PreFilteredEvaluator over an in-memory SQLite fact store, one fact at a time."""
+    from sqlalchemy import create_engine
+
+    from fluxrules.prefilter import PreFilteredEvaluator
+    from fluxrules.prefilter.sql_store import FactPreFilterStore
+
+    engine = PhreakEngine(config=config)
+    engine.load_rules(rules)
+    out: list[Answer] = []
+    for fact in facts:
+        store = FactPreFilterStore(engine=create_engine("sqlite://"))
+        try:
+            results, _ = PreFilteredEvaluator(engine, store).run([fact])
+        finally:
+            store.dispose()
+        out.append(frozenset(results[0].fired_rules) if results else frozenset())
+    return out
+
+
 PATHS: dict[str, EvalPath] = {
     p.name: p
     for p in (
@@ -262,6 +282,7 @@ PATHS: dict[str, EvalPath] = {
         EvalPath("evaluate_batch", _batch_run),
         EvalPath("fluxrules.evaluate()", _evaluate_run),
         EvalPath("CrossFactEngine", _cross_fact_run, _cross_fact_supports),
+        EvalPath("PreFilteredEvaluator (SQLite)", _sql_prefilter_run),
     )
 }
 

@@ -3,8 +3,9 @@
 ``comparison_matrix`` evaluates each operator against each kind of value
 (numbers, Decimal, booleans, strings, None, NaN, dates, lists, a missing
 field), plain and wrapped in NOT, AND and OR, under each comparison setting.
-It runs on the in-process paths, ``CrossFactEngine``, the CLI and the HTTP
-API, and compares every path with ``engine, no prefilter``. A path is only
+It runs on the in-process paths, ``CrossFactEngine``, ``PreFilteredEvaluator``
+over a SQLite store, the CLI and the HTTP API, and compares every path with
+``engine, no prefilter``. A path is only
 compared on the cases and facts it can express: ``CrossFactEngine`` has no
 NOT or OR, and the CLI and HTTP API take JSON only.
 
@@ -78,7 +79,7 @@ def test_the_matrix_covers_every_path_setting_and_operator():
     word_aliases = {"eq", "ne", "gt", "gte", "lt", "lte"}  # normalised to symbols first
     assert {c.op for c in cases} == VALID_OPERATORS - word_aliases
     assert REFERENCE_PATH in PATHS
-    assert len(PATHS) >= 7 and len(CONFIGS) >= 6
+    assert len(PATHS) >= 8 and len(CONFIGS) >= 6
     assert len(build_facts()) >= 19
 
 
