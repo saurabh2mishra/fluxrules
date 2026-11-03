@@ -150,6 +150,19 @@ These items are designed but not yet shipped. The
 - Make `missing_field="unknown"` the default, so `NOT` over a missing field no
   longer fires. 1.1.0 ships the opt-in and a warning that names affected
   fields.
+- Safer comparison defaults: a comparison that cannot be made is unknown,
+  `True` no longer equals `1`, and types are strict with a fact schema.
+
+**Comparing values (1.2.0)**
+
+- Close the remaining gaps in the comparison matrix: tuples, `F` and YAML
+  rules, `evaluate_batch(workers=2)`, and one set of comparison functions.
+- Report comparisons that cannot be made: a warning by default, and settings
+  to stay silent, treat them as unknown or raise.
+- Check rule values when rules load: against their operator, against the fact
+  schema, and for YAML values read differently from how they look.
+- Make common comparisons easy: `approx`, case-insensitive text operators, and
+  documented date and number conversion with a fact schema.
 
 **Typed facts**
 
