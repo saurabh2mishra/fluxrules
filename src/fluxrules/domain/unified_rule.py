@@ -162,12 +162,17 @@ class Rule(BaseModel):
     @field_validator("conditions", mode="before")
     @classmethod
     def coerce_condition_input(cls, v: Any) -> Any:
-        """Unwrap a Condition object produced by F-expressions into a plain dict."""
+        """Unwrap an F-expression into a plain dict and fix single ``in`` values.
+
+        A single value given to ``in`` / ``not_in`` becomes a one-item list,
+        with a :class:`~fluxrules.MembershipValueWarning` for the author.
+        """
+        from fluxrules.domain.conditions.membership import normalize_membership_values
         from fluxrules.domain.field import Condition
 
         if isinstance(v, Condition):
-            return v.to_dict()
-        return v
+            v = v.to_dict()
+        return normalize_membership_values(v)
 
     @field_validator("conditions")
     @classmethod

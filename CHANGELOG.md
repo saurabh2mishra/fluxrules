@@ -7,8 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet. Work that is designed but not yet shipped is listed in the
-[backlog](docs/development/backlog.md).
+### Fixed
+
+- **`in` and `not_in` with a single value give the same answer on every
+  path.** `F("country").isin("US")` (or `{"op": "in", "value": "US"}`) used to
+  test for a substring on some paths, so `"U"` matched `"US"` through
+  `fluxrules.evaluate()` and an engine without the alpha prefilter, but not
+  through the default engine. `not_in "US"` was wrong on every path: it did
+  not fire for `"U"`. A single value now counts as a one-item list everywhere:
+  in the engine, the alpha prefilter, compiled conditions, streaming mode,
+  `fluxrules.evaluate()`, raw condition dicts and rules read from storage.
+
+### Added
+
+- **`MembershipValueWarning`.** Creating a rule whose `in` / `not_in` value is
+  a single value converts it to a one-item list and warns the author, naming
+  the field and its position in the condition tree. The warning points at
+  the line that wrote the rule.
 
 ## [1.1.1] - 2026-11-02
 

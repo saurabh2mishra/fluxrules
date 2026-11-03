@@ -214,10 +214,11 @@ class TestOrmRuleToDomain:
             "not_in",
         ]
         for op in operators:
+            value = [1] if op in ("in", "not_in") else 1
             rule = EngineRule(
                 id=0,
                 name=f"op_{op}",
-                condition_nodes=(RuleCondition(fact="x", operator=op, value=1),),
+                condition_nodes=(RuleCondition(fact="x", operator=op, value=value),),
             )
             orm = domain_rule_to_orm(rule)
             assert orm.conditions["op"] == op

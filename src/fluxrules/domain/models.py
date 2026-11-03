@@ -131,6 +131,11 @@ class EngineRule:
 
             object.__setattr__(self, "conditions", conditions_to_tree(self.condition_nodes))
         else:
+            # A single ``in`` / ``not_in`` value is a one-item list (rules read
+            # back from storage may predate this rule).
+            from fluxrules.domain.conditions.membership import normalize_membership_values
+
+            object.__setattr__(self, "conditions", normalize_membership_values(self.conditions))
             # The tree is authoritative; re-derive the flat view from it so the
             # two never diverge. Extraction is silent here - the loud
             # lossy-view warning belongs at the public ``Rule.condition_nodes``

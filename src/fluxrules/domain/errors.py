@@ -21,6 +21,7 @@ __all__ = [
     "InvalidRuleError",
     "LossyConditionRebuildError",
     "LossyConditionViewWarning",
+    "MembershipValueWarning",
     "MissingFieldNotWarning",
     "UnknownFieldError",
     "UnknownOperatorError",
@@ -93,6 +94,20 @@ class MissingFieldNotWarning(FutureWarning):
     """
 
     code = "MISSING_FIELD_NOT"
+
+
+class MembershipValueWarning(UserWarning):
+    """An ``in`` / ``not_in`` condition was given a single value, not a list.
+
+    ``F("country").isin("US")`` and ``{"op": "in", "value": "US"}`` mean "is
+    one of these values", so the value should be a list. Given a plain string,
+    Python's ``in`` would test for a substring instead, and ``"U"`` would
+    count as a member of ``"US"``. FluxRules treats a single value as a
+    one-item list (``"US"`` becomes ``["US"]``) on every evaluation path, and
+    emits this warning so the author can write the list explicitly.
+    """
+
+    code = "MEMBERSHIP_VALUE_NOT_LIST"
 
 
 class LossyConditionRebuildError(InvalidRuleError):

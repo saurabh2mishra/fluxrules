@@ -36,6 +36,7 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
+from fluxrules.engine.operators import as_membership_collection
 from fluxrules.prefilter.predicate import (
     LeafPredicate,
     PredicateExtractor,
@@ -67,7 +68,7 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
     if op == "==":
         return lambda v: v is not _MISSING and v == value
     if op == "in":
-        members = set(value) if isinstance(value, (list, tuple, set, frozenset)) else {value}
+        members = set(as_membership_collection(value))
         return lambda v: v is not _MISSING and v in members
     if op == ">":
         return lambda v: v is not _MISSING and v is not None and v > value

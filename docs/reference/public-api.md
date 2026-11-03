@@ -170,6 +170,15 @@ from fluxrules import LossyConditionViewWarning
 warnings.simplefilter("error", LossyConditionViewWarning)
 ```
 
+### `MembershipValueWarning`
+
+A `UserWarning` emitted when an `in` or `not_in` condition is given a single
+value instead of a list, such as `F("country").isin("US")`. The value is
+treated as a one-item list (`["US"]`) on every evaluation path, and the warning
+names the field and its position in the condition tree. Write the list, or use
+`==` / `!=` for a single value, to silence it. See
+[Conditions](../conditions.md#collection-membership).
+
 ### `MissingFieldNotWarning`
 
 A `FutureWarning` emitted once per `NOT` condition when it fires only because a
