@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`MembershipValueWarning`.** Creating a rule whose `in` / `not_in` value is
+  a single value converts it to a one-item list and warns the author, naming
+  the field and its position in the condition tree. The warning points at
+  the line that wrote the rule.
+- **New page: How FluxRules Compares Values.** For every operator, a table of
+  which fact values (numbers, `Decimal`, booleans, numbers stored as text,
+  `None`, `NaN`, dates, lists, a missing field) match which rule values, how
+  `NOT` turns a failed comparison into a match, and exactly which answers each
+  comparison setting changes. The page is generated from the test matrix by
+  `make docs-tables`, and a test fails when it is out of date.
+- **Tests that compare every evaluation path.** A matrix runs every operator
+  against every kind of value, under every comparison setting, on ten paths:
+  the engine with and without the alpha prefilter, compiled, streaming,
+  `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine`,
+  `PreFilteredEvaluator` over a SQL fact store, the CLI and the HTTP API. A new fuzz test does the same for random nested rules. Both fail on
+  any disagreement between paths; today there are none.
+
+### Deprecated
+
+- **`EngineConfig.use_optimized_engine`.** Nothing reads it (there is one
+  engine), so `fluxrules init` no longer writes it into `fluxrules.yaml`. The
+  field stays so code that sets it keeps working, and will be removed in 2.0.
+
 ### Fixed
 
 - **`in` and `not_in` with a single value give the same answer on every
@@ -35,25 +60,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `missing_field: false` is read as the string `"false"`. A wrong value stops
   the command for `--config`, and is reported and ignored in a file found
   automatically.
-
-### Added
-
-- **`MembershipValueWarning`.** Creating a rule whose `in` / `not_in` value is
-  a single value converts it to a one-item list and warns the author, naming
-  the field and its position in the condition tree. The warning points at
-  the line that wrote the rule.
-- **New page: How FluxRules Compares Values.** For every operator, a table of
-  which fact values (numbers, `Decimal`, booleans, numbers stored as text,
-  `None`, `NaN`, dates, lists, a missing field) match which rule values, how
-  `NOT` turns a failed comparison into a match, and exactly which answers each
-  comparison setting changes. The page is generated from the test matrix by
-  `make docs-tables`, and a test fails when it is out of date.
-- **Tests that compare every evaluation path.** A matrix runs every operator
-  against every kind of value, under every comparison setting, on nine paths:
-  the engine with and without the alpha prefilter, compiled, streaming,
-  `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine`, the CLI and the
-  HTTP API. A new fuzz test does the same for random nested rules. Both fail on
-  any disagreement between paths; today there are none.
+- **`PreFilteredEvaluator` no longer drops facts the engine would fire on.**
+  Its SQL fact store kept only numbers, so a present text value looked like a
+  missing field. It dropped a fact for an OR rule over text values
+  (`(x == "a") | (x == "b")` with `x = "a"`), a boolean compared with a number
+  (`x > 0` with `x = True`), a `Decimal`, and an `int` beyond 2**53. Each field
+  now also records whether it is present, and a present value SQL cannot
+  compare exactly always reaches the engine. Facts that cannot match are still
+  screened out.
+- **The SQL fact store saves `Decimal`, dates, times, tuples and sets.** It
+  stored each fact as plain JSON, which raised `TypeError` for a `Decimal` or a
+  date and turned tuples into lists. They now come back exactly as they went
+  in, and a value it cannot save raises a `TypeError` that names the field.
 
 ## [1.1.1] - 2026-11-02
 

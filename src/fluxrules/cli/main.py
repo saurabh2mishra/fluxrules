@@ -461,7 +461,6 @@ def init(
             "strict_null_handling: false\n"
             "strict_type_comparison: false\n"
             "boolean_string_coercion: false\n"
-            "use_optimized_engine: true\n"
             "# Fact schema that `fluxrules validate` and `evaluate` check rule fields\n"
             "# against: 'package.module:Class' or 'path/to/models.py:Class'.\n"
             "# fact_schema: myapp.models:Order\n"

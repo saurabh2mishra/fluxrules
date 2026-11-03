@@ -172,6 +172,7 @@ class TestCliAppliesConfigSettings:
         assert result.exit_code == 0, result.output
         config = project / "new" / "fluxrules.yaml"
         assert "boolean_string_coercion: false" in config.read_text()
+        assert "use_optimized_engine" not in config.read_text(), "nothing reads it"
         assert _matched("--config", str(config)) == [2]
 
     def test_a_bad_value_in_an_explicit_config_fails(self, project):
