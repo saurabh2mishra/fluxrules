@@ -68,7 +68,14 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
     if op == "==":
         return lambda v: v is not _MISSING and v == value
     if op == "in":
-        members = set(as_membership_collection(value))
+        collection = as_membership_collection(value)
+        try:
+            members: set[Any] | tuple[Any, ...] = set(collection)
+        except TypeError:
+            # An unhashable member (a dict or a list) cannot go in a set; test
+            # membership by ``==`` over a tuple instead, as Python's ``in`` on a
+            # list does.
+            members = tuple(collection)
         return lambda v: v is not _MISSING and v in members
     if op == ">":
         return lambda v: v is not _MISSING and v is not None and v > value
@@ -348,9 +355,14 @@ class PredicateIndex:
 
 
 def _hashable(value: Any) -> Any:
-    """Best-effort hashable key for predicate-value dedup."""
+    """Best-effort hashable key for predicate-value dedup.
+
+    A value that still cannot be hashed (a list holding a dict, for example)
+    falls back to its ``repr``. Two equal values with different reprs then get
+    separate nodes, which costs a little speed but never changes an answer.
+    """
     if isinstance(value, (list, set)):
-        return tuple(value)
+        value = tuple(value)
     try:
         hash(value)
     except TypeError:

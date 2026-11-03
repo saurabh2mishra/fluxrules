@@ -64,6 +64,9 @@ MEMBERSHIP_RULE_VALUES: dict[str, Any] = {
     "[True]": [True],
     "[None]": [None],
     "'abc' (single)": "abc",
+    # Unhashable members: the prefilter cannot put them in a set.
+    "[{'a': 5}, [5]]": [{"a": 5}, [5]],
+    "{'a': 5} (single)": {"a": 5},
 }
 TEXT_RULE_VALUES: dict[str, Any] = {"'a'": "a", "'5'": "5", "'('": "("}
 

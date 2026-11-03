@@ -141,3 +141,37 @@ def test_rules_read_back_from_storage_are_normalised():
 def test_normalize_returns_the_same_tree_when_nothing_changes():
     tree = {"type": "group", "op": "AND", "children": [_condition("in", ["US"])]}
     assert normalize_membership_values(tree) is tree
+
+
+# (rule value, fact value, should fire): members that cannot be hashed
+UNHASHABLE = [
+    ([{"a": 1}], {"a": 1}, True),
+    ([{"a": 1}], {"a": 2}, False),
+    ([[1, 2]], [1, 2], True),
+    ([[1, 2]], [2, 1], False),
+    ([{"a": 1}, "US"], "US", True),
+    ([{"a": 1}, "US"], "DE", False),
+]
+
+
+@pytest.mark.parametrize("options", ENGINE_OPTIONS)
+@pytest.mark.parametrize(
+    ("value", "fact", "fires"),
+    UNHASHABLE,
+    ids=[f"in {v!r} fact {f!r}" for v, f, _ in UNHASHABLE],
+)
+def test_unhashable_members_load_and_match_by_equality(options, value, fact, fires):
+    """The alpha prefilter falls back to ``==`` membership instead of raising."""
+    engine = PhreakEngine(**options)
+    engine.load_rules([_rule("in", value)])
+    assert bool(engine.evaluate({"country": fact}).fired_rules) is fires
+
+
+def test_a_single_dict_is_a_one_item_list():
+    with pytest.warns(MembershipValueWarning):
+        rule = Rule(id=1, name="r", conditions=_condition("in", {"a": 1}), action="hit")
+    assert rule.conditions["value"] == [{"a": 1}]
+    engine = PhreakEngine()
+    engine.load_rules([rule])
+    assert engine.evaluate({"country": {"a": 1}}).fired_rules == [1]
+    assert engine.evaluate({"country": "a"}).fired_rules == [], "not a key lookup"

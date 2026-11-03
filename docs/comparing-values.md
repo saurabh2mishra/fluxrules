@@ -167,51 +167,51 @@ Each table is one operator under the default settings. A row is the value in the
 
 ### `in`
 
-| Fact value | `[5, "abc"]` | `[True]` | `[None]` | `"abc"` |
-|---|---|---|---|---|
-| `5` | yes | no | no | no |
-| `0` | no | no | no | no |
-| `5.5` | no | no | no | no |
-| `Decimal("5.5")` | no | no | no | no |
-| `True` | no | yes | no | no |
-| `False` | no | no | no | no |
-| `"5"` | no | no | no | no |
-| `"true"` | no | no | no | no |
-| `"abc"` | yes | no | no | yes |
-| `""` | no | no | no | no |
-| `None` | no | no | no | no |
-| `float("nan")` | no | no | no | no |
-| `float("inf")` | no | no | no | no |
-| `date(2026, 6, 1)` | no | no | no | no |
-| `datetime(2026, 6, 1, 12, 0)` | no | no | no | no |
-| `"2026-06-01"` | no | no | no | no |
-| `[5]` | no | no | no | no |
-| `{"a": 5}` | no | no | no | no |
-| (missing) | no | no | no | no |
+| Fact value | `[5, "abc"]` | `[True]` | `[None]` | `"abc"` | `[{"a": 5}, [5]]` | `{"a": 5}` |
+|---|---|---|---|---|---|---|
+| `5` | yes | no | no | no | no | no |
+| `0` | no | no | no | no | no | no |
+| `5.5` | no | no | no | no | no | no |
+| `Decimal("5.5")` | no | no | no | no | no | no |
+| `True` | no | yes | no | no | no | no |
+| `False` | no | no | no | no | no | no |
+| `"5"` | no | no | no | no | no | no |
+| `"true"` | no | no | no | no | no | no |
+| `"abc"` | yes | no | no | yes | no | no |
+| `""` | no | no | no | no | no | no |
+| `None` | no | no | no | no | no | no |
+| `float("nan")` | no | no | no | no | no | no |
+| `float("inf")` | no | no | no | no | no | no |
+| `date(2026, 6, 1)` | no | no | no | no | no | no |
+| `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no |
+| `"2026-06-01"` | no | no | no | no | no | no |
+| `[5]` | no | no | no | no | yes | no |
+| `{"a": 5}` | no | no | no | no | yes | yes |
+| (missing) | no | no | no | no | no | no |
 
 ### `not_in`
 
-| Fact value | `[5, "abc"]` | `[True]` | `[None]` | `"abc"` |
-|---|---|---|---|---|
-| `5` | no | yes | yes | yes |
-| `0` | yes | yes | yes | yes |
-| `5.5` | yes | yes | yes | yes |
-| `Decimal("5.5")` | yes | yes | yes | yes |
-| `True` | yes | no | yes | yes |
-| `False` | yes | yes | yes | yes |
-| `"5"` | yes | yes | yes | yes |
-| `"true"` | yes | yes | yes | yes |
-| `"abc"` | no | yes | yes | no |
-| `""` | yes | yes | yes | yes |
-| `None` | no | no | no | no |
-| `float("nan")` | yes | yes | yes | yes |
-| `float("inf")` | yes | yes | yes | yes |
-| `date(2026, 6, 1)` | yes | yes | yes | yes |
-| `datetime(2026, 6, 1, 12, 0)` | yes | yes | yes | yes |
-| `"2026-06-01"` | yes | yes | yes | yes |
-| `[5]` | yes | yes | yes | yes |
-| `{"a": 5}` | yes | yes | yes | yes |
-| (missing) | no | no | no | no |
+| Fact value | `[5, "abc"]` | `[True]` | `[None]` | `"abc"` | `[{"a": 5}, [5]]` | `{"a": 5}` |
+|---|---|---|---|---|---|---|
+| `5` | no | yes | yes | yes | yes | yes |
+| `0` | yes | yes | yes | yes | yes | yes |
+| `5.5` | yes | yes | yes | yes | yes | yes |
+| `Decimal("5.5")` | yes | yes | yes | yes | yes | yes |
+| `True` | yes | no | yes | yes | yes | yes |
+| `False` | yes | yes | yes | yes | yes | yes |
+| `"5"` | yes | yes | yes | yes | yes | yes |
+| `"true"` | yes | yes | yes | yes | yes | yes |
+| `"abc"` | no | yes | yes | no | yes | yes |
+| `""` | yes | yes | yes | yes | yes | yes |
+| `None` | no | no | no | no | no | no |
+| `float("nan")` | yes | yes | yes | yes | yes | yes |
+| `float("inf")` | yes | yes | yes | yes | yes | yes |
+| `date(2026, 6, 1)` | yes | yes | yes | yes | yes | yes |
+| `datetime(2026, 6, 1, 12, 0)` | yes | yes | yes | yes | yes | yes |
+| `"2026-06-01"` | yes | yes | yes | yes | yes | yes |
+| `[5]` | yes | yes | yes | yes | no | yes |
+| `{"a": 5}` | yes | yes | yes | yes | no | no |
+| (missing) | no | no | no | no | no | no |
 
 ### `contains`
 
@@ -606,10 +606,14 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `NOT(v in [True])` | (missing) | yes | no |
 | `NOT(v in [None])` | (missing) | yes | no |
 | `NOT(v in "abc")` | (missing) | yes | no |
+| `NOT(v in [{"a": 5}, [5]])` | (missing) | yes | no |
+| `NOT(v in {"a": 5})` | (missing) | yes | no |
 | `NOT(v not_in [5, "abc"])` | (missing) | yes | no |
 | `NOT(v not_in [True])` | (missing) | yes | no |
 | `NOT(v not_in [None])` | (missing) | yes | no |
 | `NOT(v not_in "abc")` | (missing) | yes | no |
+| `NOT(v not_in [{"a": 5}, [5]])` | (missing) | yes | no |
+| `NOT(v not_in {"a": 5})` | (missing) | yes | no |
 | `NOT(v contains "a")` | (missing) | yes | no |
 | `NOT(v contains "5")` | (missing) | yes | no |
 | `NOT(v contains "(")` | (missing) | yes | no |
