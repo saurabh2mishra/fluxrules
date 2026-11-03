@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing yet. Work that is designed but not yet shipped is listed in the
+[backlog](docs/development/backlog.md).
+
+## [1.1.2] - 2026-11-03
+
+Every evaluation path now gives the same answer for the same rule, fact and
+settings. A test matrix that compares ten paths found the bugs below, and a
+generated docs page shows how every operator treats each kind of value.
+
 ### Added
 
 - **`MembershipValueWarning`.** Creating a rule whose `in` / `not_in` value is
