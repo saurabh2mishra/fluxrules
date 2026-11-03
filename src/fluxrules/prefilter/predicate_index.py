@@ -36,7 +36,7 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
-from fluxrules.engine.operators import as_membership_collection
+from fluxrules.engine.operators import as_membership_collection, coerce_bool_string
 from fluxrules.prefilter.predicate import (
     LeafPredicate,
     PredicateExtractor,
@@ -82,10 +82,10 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
     return lambda v: True
 
 
-def _test_or_keep(node: _AlphaNode, value: Any) -> bool:
+def _test_or_keep(test: Callable[[Any], bool], value: Any) -> bool:
     """Run one node test, treating a ``TypeError`` as "keep the candidate"."""
     try:
-        return node.test(value)
+        return test(value)
     except TypeError:
         return True
 
@@ -98,6 +98,9 @@ class _AlphaNode:
     op: str
     value_key: Any  # hashable form of the value, for dedup
     test: Callable[[Any], bool]
+    # The same test with boolean_string_coercion on: the rule value is
+    # converted exactly as the engine operator converts it.
+    coerced_test: Callable[[Any], bool]
 
 
 @dataclass
@@ -200,6 +203,7 @@ class PredicateIndex:
             op=pred.op,
             value_key=value_key,
             test=_make_test(pred.op, pred.value),
+            coerced_test=_make_test(pred.op, coerce_bool_string(pred.value)),
         )
         node_id = len(self._nodes)
         self._nodes.append(node)
@@ -209,7 +213,7 @@ class PredicateIndex:
 
     # streaming screen
 
-    def _eval_nodes(self, fact: dict[str, Any]) -> list[bool]:
+    def _eval_nodes(self, fact: dict[str, Any], coerce_bool_strings: bool = False) -> list[bool]:
         """Evaluate every distinct alpha node once for this fact.
 
         The common case is one list comprehension with no per-node overhead. If
@@ -218,12 +222,25 @@ class PredicateIndex:
         node by node, and a node that raises counts as passing, which keeps its
         rules as candidates for the engine to decide. That is always sound: the
         prefilter may keep extra rules, but must never drop one that could fire.
+
+        With *coerce_bool_strings* (the engine's ``boolean_string_coercion``),
+        the strings ``"true"`` / ``"false"`` on either side are read as booleans
+        first, as the engine operator reads them.
         """
         get = fact.get
+        if coerce_bool_strings:
+            values = [coerce_bool_string(get(node.field, _MISSING)) for node in self._nodes]
+            try:
+                return [node.coerced_test(v) for node, v in zip(self._nodes, values, strict=True)]
+            except TypeError:
+                return [
+                    _test_or_keep(node.coerced_test, v)
+                    for node, v in zip(self._nodes, values, strict=True)
+                ]
         try:
             return [node.test(get(node.field, _MISSING)) for node in self._nodes]
         except TypeError:
-            return [_test_or_keep(node, get(node.field, _MISSING)) for node in self._nodes]
+            return [_test_or_keep(node.test, get(node.field, _MISSING)) for node in self._nodes]
 
     @property
     def signature_count(self) -> int:
@@ -249,7 +266,7 @@ class PredicateIndex:
         """
         return bool(self._signatures)
 
-    def matches(self, fact: dict[str, Any]) -> bool:
+    def matches(self, fact: dict[str, Any], *, coerce_bool_strings: bool = False) -> bool:
         """Return True if ``fact`` could satisfy the necessary conditions of any rule.
 
         Evaluates each *distinct* alpha node at most once, then checks signatures.
@@ -257,13 +274,19 @@ class PredicateIndex:
         """
         if self.pass_through:
             return True
-        node_results = self._eval_nodes(fact)
+        node_results = self._eval_nodes(fact, coerce_bool_strings)
         for sig in self._signatures:
             if all(node_results[nid] for nid in sig):
                 return True
         return False
 
-    def candidate_rule_ids(self, fact: dict[str, Any], universe: Iterable[int]) -> set[int]:
+    def candidate_rule_ids(
+        self,
+        fact: dict[str, Any],
+        universe: Iterable[int],
+        *,
+        coerce_bool_strings: bool = False,
+    ) -> set[int]:
         """Return the subset of ``universe`` whose alpha conditions ``fact`` passes.
 
         This is the **alpha layer** for engine integration: given the rules the
@@ -282,7 +305,7 @@ class PredicateIndex:
         if not self._signatures:
             # Nothing filterable -> cannot prune anything soundly.
             return set(universe)
-        node_results = self._eval_nodes(fact)
+        node_results = self._eval_nodes(fact, coerce_bool_strings)
         sig_pass = [all(node_results[nid] for nid in sig) for sig in self._signatures]
         if all(sig_pass):
             # No signature failed -> nothing to prune. Avoid all set ops.
@@ -294,7 +317,9 @@ class PredicateIndex:
         kept |= self._always_candidate_rules
         return kept & universe
 
-    def prune(self, fact: dict[str, Any], universe: list[int]) -> list[int]:
+    def prune(
+        self, fact: dict[str, Any], universe: list[int], *, coerce_bool_strings: bool = False
+    ) -> list[int]:
         """Engine-facing prune: like :meth:`candidate_rule_ids` but allocation-light.
 
         Returns the *same list object* when nothing can be pruned (the common
@@ -303,7 +328,7 @@ class PredicateIndex:
         """
         if not self._signatures:
             return universe
-        node_results = self._eval_nodes(fact)
+        node_results = self._eval_nodes(fact, coerce_bool_strings)
         sig_pass = [all(node_results[nid] for nid in sig) for sig in self._signatures]
         if all(sig_pass):
             return universe  # nothing pruned -> reuse caller's list, zero copy

@@ -891,14 +891,18 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             n_in = len(candidates)
             engaged = self._alpha_engage and self._alpha_index is not None
             if engaged and self._alpha_index is not None:
-                candidates = self._alpha_index.prune(facts, candidates)
+                candidates = self._alpha_index.prune(
+                    facts, candidates, coerce_bool_strings=self._config.boolean_string_coercion
+                )
         else:
             # Stateless: alpha-first (primary) then a pure presence narrow.
             candidates = self._field_bearing_rule_ids
             n_in = len(candidates)
             engaged = self._alpha_engage and self._alpha_index is not None
             if engaged and self._alpha_index is not None:
-                candidates = self._alpha_index.prune(facts, candidates)
+                candidates = self._alpha_index.prune(
+                    facts, candidates, coerce_bool_strings=self._config.boolean_string_coercion
+                )
             linked_ids = self._bitmask_linker.linked_subset_for(present_fields, candidates)
             if self._linker_unsafe_rule_ids:
                 # Keep alpha-surviving or/not rules the presence linker would drop.
@@ -976,14 +980,24 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         reconciled = propagator & linker
         # Legacy path 3: alpha prune over the reconciliation.
         if self._alpha_engage and self._alpha_index is not None:
-            reconciled = set(self._alpha_index.prune(facts, list(reconciled)))
+            reconciled = set(
+                self._alpha_index.prune(
+                    facts,
+                    list(reconciled),
+                    coerce_bool_strings=self._config.boolean_string_coercion,
+                )
+            )
         # or/not rules bypass the presence linker (F1 + OR-branch variant);
         # mirror that here so parity reflects the corrected contract.
         if self._linker_unsafe_rule_ids:
             alpha_surviving = set(self._field_bearing_rule_ids)
             if self._alpha_engage and self._alpha_index is not None:
                 alpha_surviving = set(
-                    self._alpha_index.prune(facts, list(self._field_bearing_rule_ids))
+                    self._alpha_index.prune(
+                        facts,
+                        list(self._field_bearing_rule_ids),
+                        coerce_bool_strings=self._config.boolean_string_coercion,
+                    )
                 )
             reconciled |= alpha_surviving & self._linker_unsafe_rule_ids
         if filters:

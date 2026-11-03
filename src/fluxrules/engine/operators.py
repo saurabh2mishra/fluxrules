@@ -84,6 +84,15 @@ def _coerce_bool_string(value: Any, enabled: bool) -> Any:
     return value
 
 
+def coerce_bool_string(value: Any) -> Any:
+    """Read ``"true"`` / ``"false"`` (any case, surrounding spaces) as booleans.
+
+    This is what ``boolean_string_coercion`` does to each side of a comparison.
+    Anything else, including a list, is returned unchanged.
+    """
+    return _coerce_bool_string(value, True)
+
+
 def _is_numeric_non_bool(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
