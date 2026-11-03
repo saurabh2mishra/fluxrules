@@ -24,6 +24,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a single value converts it to a one-item list and warns the author, naming
   the field and its position in the condition tree. The warning points at
   the line that wrote the rule.
+- **New page: How FluxRules Compares Values.** For every operator, a table of
+  which fact values (numbers, `Decimal`, booleans, numbers stored as text,
+  `None`, `NaN`, dates, lists, a missing field) match which rule values, how
+  `NOT` turns a failed comparison into a match, and exactly which answers each
+  comparison setting changes. The page is generated from the test matrix by
+  `make docs-tables`, and a test fails when it is out of date.
+- **Tests that compare every evaluation path.** A matrix runs every operator
+  against every kind of value, under every comparison setting, on nine paths:
+  the engine with and without the alpha prefilter, compiled, streaming,
+  `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine`, the CLI and the
+  HTTP API. A new fuzz test does the same for random nested rules. Both fail on
+  any new disagreement between paths.
+
+### Known issues
+
+Found by the new tests and listed on the Comparing Values page; not yet fixed:
+
+- With `boolean_string_coercion=True`, the alpha prefilter drops `== True` and
+  `in [True]` rules for the string `"true"` before the comparison converts it.
+- `fluxrules.evaluate()` and the HTTP API ignore `strict_null_handling`,
+  `strict_type_comparison` and `boolean_string_coercion`.
+- `fluxrules evaluate --config` applies none of the comparison settings in
+  `fluxrules.yaml`, although `fluxrules init` writes them there.
 
 ## [1.1.1] - 2026-11-02
 

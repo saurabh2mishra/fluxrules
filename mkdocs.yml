@@ -62,6 +62,7 @@ nav:
     - Rule Types: rule-types.md
     - Pydantic Rule Guide: pydantic-rule-guide.md
     - Conditions: conditions.md
+    - Comparing Values: comparing-values.md
     - Complex Conditions: complex-conditions.md
     - Domains and Tags: domains-and-tags.md
     - Rule Builder: rule-builder.md

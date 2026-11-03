@@ -255,6 +255,10 @@ The same applies to `{"op": "in", "value": "US"}` in a dict, a YAML file or the
 HTTP API, and to rules read back from a database. To compare one value, `==`
 and `!=` say it more directly.
 
+To see how every operator treats each kind of value (numbers stored as text,
+`None`, dates, booleans, a missing field), see
+[How FluxRules Compares Values](comparing-values.md).
+
 ### String / collection containment
 
 | F expression | Dict `"op"` | Meaning |

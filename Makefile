@@ -1,4 +1,4 @@
-.PHONY: help check-uv install dev lint format test test-fast test-full test-perf test-examples test-sequential test-cov type-check docs docs-serve clean build publish
+.PHONY: help check-uv install dev lint format test test-fast test-full test-perf test-examples test-sequential test-cov type-check docs docs-serve docs-tables clean build publish
 
 UV = env -u VIRTUAL_ENV uv
 
@@ -58,6 +58,9 @@ docs: check-uv
 
 docs-serve: check-uv
 	$(UV) run mkdocs serve
+
+docs-tables: check-uv
+	$(UV) run python scripts/generate_comparison_page.py
 
 clean:
 	rm -rf dist/ build/ *.egg-info .pytest_cache .mypy_cache .ruff_cache htmlcov/
