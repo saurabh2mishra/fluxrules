@@ -91,7 +91,12 @@ class Field:
     __hash__ = None  # type: ignore[assignment]
 
     def _cond(self, op: str, value: Any) -> Condition:
-        return Condition({"type": "condition", "field": self._name, "op": op, "value": value})
+        node = {"type": "condition", "field": self._name, "op": op, "value": value}
+        if op in ("in", "not_in"):
+            from fluxrules.domain.conditions.membership import normalize_membership_values
+
+            node = normalize_membership_values(node, path="")
+        return Condition(node)
 
     # --- comparison operators -------------------------------------------------
 

@@ -10,6 +10,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Nothing yet. Work that is designed but not yet shipped is listed in the
 [backlog](docs/development/backlog.md).
 
+## [1.1.2] - 2026-11-03
+
+Every evaluation path now gives the same answer for the same rule, fact and
+settings. A test matrix that compares ten paths found the bugs below, and a
+generated docs page shows how every operator treats each kind of value.
+
+### Added
+
+- **`MembershipValueWarning`.** Creating a rule whose `in` / `not_in` value is
+  a single value converts it to a one-item list and warns the author, naming
+  the field and its position in the condition tree. The warning points at
+  the line that wrote the rule.
+- **New page: How FluxRules Compares Values.** For every operator, a table of
+  which fact values (numbers, `Decimal`, booleans, numbers stored as text,
+  `None`, `NaN`, dates, lists, a missing field) match which rule values, how
+  `NOT` turns a failed comparison into a match, and exactly which answers each
+  comparison setting changes. The page is generated from the test matrix by
+  `make docs-tables`, and a test fails when it is out of date.
+- **Tests that compare every evaluation path.** A matrix runs every operator
+  against every kind of value, under every comparison setting, on ten paths:
+  the engine with and without the alpha prefilter, compiled, streaming,
+  `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine`,
+  `PreFilteredEvaluator` over a SQL fact store, the CLI and the HTTP API. A new fuzz test does the same for random nested rules. Both fail on
+  any disagreement between paths; today there are none.
+
+### Deprecated
+
+- **`EngineConfig.use_optimized_engine`.** Nothing reads it (there is one
+  engine), so `fluxrules init` no longer writes it into `fluxrules.yaml`. The
+  field stays so code that sets it keeps working, and will be removed in 2.0.
+
+### Fixed
+
+- **`in` and `not_in` with a single value give the same answer on every
+  path.** `F("country").isin("US")` (or `{"op": "in", "value": "US"}`) used to
+  test for a substring on some paths, so `"U"` matched `"US"` through
+  `fluxrules.evaluate()` and an engine without the alpha prefilter, but not
+  through the default engine. `not_in "US"` was wrong on every path: it did
+  not fire for `"U"`. A single value now counts as a one-item list everywhere:
+  in the engine, the alpha prefilter, compiled conditions, streaming mode,
+  `fluxrules.evaluate()`, raw condition dicts and rules read from storage.
+- **`boolean_string_coercion=True` works with the alpha prefilter.** The
+  prefilter used to compare before converting, so it dropped a `== True` or
+  `in [True]` rule for the string `"true"`, and the rule never fired on the
+  default engine, compiled conditions, streaming mode or `evaluate_batch`. It
+  now converts `"true"` / `"false"` exactly as the comparison does, including
+  when the setting is turned on after the rules load.
+- **`fluxrules.evaluate()` and the HTTP API follow the comparison settings.**
+  Both run on the reference evaluator, which used the default
+  `strict_null_handling`, `strict_type_comparison` and
+  `boolean_string_coercion` whatever the config said. They now read the
+  process-wide config on every call, as they already did for `missing_field`.
+- **`fluxrules evaluate` applies the comparison settings in its config file.**
+  `strict_null_handling`, `strict_type_comparison`, `boolean_string_coercion`
+  and `missing_field` in `fluxrules.yaml` (or the file named with `--config`)
+  used to be ignored, although `fluxrules init` writes the first three there.
+  `missing_field: false` is read as the string `"false"`. A wrong value stops
+  the command for `--config`, and is reported and ignored in a file found
+  automatically. The settings are installed process-wide for the command, so
+  they reach every engine, including a registered `BaseEngine` subclass whose
+  constructor takes no `config`.
+- **`in` with an unhashable value no longer fails to load.** A list holding a
+  dict or a list (`F("v").isin([{"a": 1}])`), or a single dict, raised
+  `TypeError` when the default engine built its alpha prefilter. The prefilter
+  now tests such members with `==`, as Python's `in` on a list does.
+- **`PreFilteredEvaluator` no longer drops facts the engine would fire on.**
+  Its SQL fact store kept only numbers, so a present text value looked like a
+  missing field. It dropped a fact for an OR rule over text values
+  (`(x == "a") | (x == "b")` with `x = "a"`), a boolean compared with a number
+  (`x > 0` with `x = True`), a `Decimal`, and an `int` beyond 2**53. Each field
+  now also records whether it is present, and a present value SQL cannot
+  compare exactly always reaches the engine. Facts that cannot match are still
+  screened out.
+- **The SQL fact store saves `Decimal`, dates, times, tuples and sets.** It
+  stored each fact as plain JSON, which raised `TypeError` for a `Decimal` or a
+  date and turned tuples into lists. They now come back exactly as they went
+  in, and a value it cannot save raises a `TypeError` that names the field.
+
 ## [1.1.1] - 2026-11-02
 
 Documentation release. The library code is unchanged; only the version

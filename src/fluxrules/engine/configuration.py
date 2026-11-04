@@ -11,6 +11,8 @@ class EngineConfig:
     strict_type_comparison: bool = False
     boolean_string_coercion: bool = False
     validation_strict_bool_numeric: bool = False
+    # Unused: nothing reads it (there is one engine). Kept so existing code that
+    # sets it keeps working; it will be removed in 2.0.
     use_optimized_engine: bool = True
     rule_engine_type: str = "PHREAK"
     session_max_facts: int = 1000

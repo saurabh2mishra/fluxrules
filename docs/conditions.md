@@ -232,6 +232,33 @@ The six comparison operators also accept their word-form aliases in dict/YAML
 | `F("x").isin(["a", "b"])` | `"in"` | Value is a member of the list |
 | `F("x").not_in(["a"])` | `"not_in"` | Value is not a member |
 
+Give `isin` and `not_in` a list. A single value counts as a list with one item,
+so `F("country").isin("US")` means the same as `F("country").isin(["US"])`. It
+does not search inside the text: `"U"` is not a member of `"US"`. FluxRules
+converts the value when the rule is created and warns you with
+`MembershipValueWarning`, so you can write the list yourself:
+
+```python
+import warnings
+
+from fluxrules import F, MembershipValueWarning
+
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter("always")
+    condition = F("country").isin("US")
+
+print(condition.to_dict()["value"])  # ['US']
+print(caught[0].category is MembershipValueWarning)  # True
+```
+
+The same applies to `{"op": "in", "value": "US"}` in a dict, a YAML file or the
+HTTP API, and to rules read back from a database. To compare one value, `==`
+and `!=` say it more directly.
+
+To see how every operator treats each kind of value (numbers stored as text,
+`None`, dates, booleans, a missing field), see
+[How FluxRules Compares Values](comparing-values.md).
+
 ### String / collection containment
 
 | F expression | Dict `"op"` | Meaning |

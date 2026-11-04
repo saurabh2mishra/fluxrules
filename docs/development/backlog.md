@@ -80,6 +80,129 @@ building them on `fluxrules.facts`.
 
 **Why waiting:** Cosmetic; no behaviour change.
 
+## Comparing values
+
+1.1.2 made every evaluation path give the same answer (Phases 0 and 1 of the
+comparison plan). The items below are the rest of that plan. They are aimed at
+**1.2.0**, except the last, which changes defaults and waits for **2.0**.
+[How FluxRules Compares Values](../comparing-values.md) shows today's behaviour,
+and the comparison matrix (`tests/engine/comparison_matrix.py`) must keep every
+path in agreement as each item lands: run `make docs-tables` after any change
+to how values compare.
+
+Decisions already made (2026-11-03):
+
+- A comparison that cannot be made keeps its answer (no match) in 1.x, but
+  **warns by default**.
+- Text that looks like a number is converted **only when a fact schema asks**
+  for it, never silently.
+- Under `strict_type_comparison`, values of different types are never equal, so
+  **`5 != "5"` is a match**. Only ordering (`>`, `<` and the like) across types
+  cannot be made.
+- Safer defaults wait for 2.0.
+
+### Close the remaining matrix gaps (1.2.0)
+
+**What:** Add to the comparison matrix what 1.1.2 left out:
+
+- `tuple` fact values;
+- rules written as `F` expressions and loaded from YAML, not only as dicts;
+- `evaluate_batch(workers=2)`, which runs in worker processes.
+
+Also make the alpha prefilter call the same comparison functions as the engine
+(for example one `operator.gt` table in `fluxrules.engine.operators`) instead of
+its own copies.
+
+**Why waiting:** The matrix already proves the paths agree, so these close
+coverage gaps rather than fix known bugs. Do them first in 1.2.0, so every
+later item is tested on every path.
+
+### Report comparisons that cannot be made (1.2.0)
+
+**What:** A comparison that cannot be made, such as `"abc" > 5`, `None > 5`, a
+`date` against a `datetime`, `NaN` or an invalid regex, is no match today, and
+`NOT` then fires. Make it visible:
+
+- Add `EngineConfig.uncomparable`, modelled on `missing_field`:
+  - `None` (default): no match, as today, plus a warning once per field,
+    operator and pair of types.
+  - `"false"`: no match, silently (1.1 behaviour).
+  - `"unknown"`: the check is unknown, so `NOT` over it does not fire, and
+    `AND` / `OR` follow three-valued logic.
+  - `"raise"`: raise an error naming the field, operator and both types.
+- Add a `ComparisonWarning` class and list each case in the result (for
+  example `result.comparison_issues`), with the field, operator, both types
+  and the reason.
+- Apply it on every path. The comparison matrix grows a column per mode, and
+  the reference page shows each mode.
+
+Under `strict_type_comparison`, make `!=` between different types a match
+(decided above). Today it is no match, so this changes the answer for anyone
+who set that flag.
+
+**Why waiting:** It adds a setting and a warning that existing users will see,
+and the `"unknown"` mode needs three-valued logic in the engine, compiled
+conditions, streaming mode and the reference evaluator. Reuse the
+`missing_field="unknown"` machinery in `fluxrules.domain.conditions.missing_fields`
+rather than adding a second one.
+
+### Check rule values when rules load (1.2.0)
+
+**What:** Catch rules that can never match, before they run:
+
+- **Value against operator:** `>`, `>=`, `<` and `<=` need a number, text or a
+  date; `starts_with` and `ends_with` need text; a `regex` must compile.
+  Anything else warns when the rule is created.
+- **Value against the fact schema:** with `fact_schema=`, compare each rule
+  value with its field's type. `amount: float` compared with `"100.1"` is an
+  error that suggests writing `100.1`. An ISO date string compared with a
+  `date` field is converted to a date, because JSON rule files have no other
+  way to write one. Unclear annotations (unions, `Any`) are skipped.
+- **YAML traps:** warn when a rule value in a YAML file was read differently
+  from how it looks: `NO` / `yes` / `on` became a boolean, `0755` an octal
+  number, `1:30` a number of seconds, or `1e3` text. Detect these from the YAML
+  node text, before the values are built.
+- Report every one of these through `validate()` and `fluxrules validate`.
+
+**Why waiting:** A rule that loaded quietly in 1.1 may now warn or, with a fact
+schema, refuse to load. That needs a minor release and a changelog entry
+under Changed.
+
+### Make common comparisons easy (1.2.0)
+
+**What:**
+
+- **Floats and money:** an `approx` operator, `F("total").approx(0.3)`, using
+  `math.isclose` with optional absolute and relative tolerances, plus guidance
+  to keep money in `Decimal`.
+- **Text:** case-insensitive operators: `equals_ignore_case`,
+  `in_ignore_case`, `contains_ignore_case`, `starts_with_ignore_case` and
+  `ends_with_ignore_case`, comparing with `str.casefold()`.
+- **Dates and numeric text in facts:** with a fact schema and
+  `validate_facts="normalize"`, ISO date strings already become dates and
+  numeric text becomes numbers. Add tests and a section on the Comparing
+  Values page; no conversion happens without a schema (decided above).
+
+Every new operator needs an `F` method, a dict and YAML form, an entry in the
+matrix and the reference page, and a sound rule in the alpha prefilter (it may
+simply leave the rule unscreened).
+
+**Why waiting:** New operators are new public API, so they belong in a minor
+release.
+
+### Safer comparison defaults (2.0)
+
+**What:** Flip the defaults that 1.2.0 makes opt-in:
+
+- `uncomparable="unknown"` by default, so `NOT` never fires because a
+  comparison could not be made (alongside `missing_field="unknown"` above);
+- `True` no longer equals `1` (a boolean is not a number);
+- strict types whenever a fact schema is given.
+
+**Why waiting:** Each one changes which rules fire. Ship the opt-in settings
+and warnings in 1.2.0 first, so users can find affected rules before the
+defaults change.
+
 ## HTTP API
 
 ### Define what `evaluation_mode="stateful"` means for stored rules

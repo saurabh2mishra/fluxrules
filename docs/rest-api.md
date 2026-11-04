@@ -431,7 +431,7 @@ The version and the state of each part of the server. No login needed.
 ```json
 {
   "status": "running",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "engine": "fluxrules",
   "healthy": true,
   "components": {

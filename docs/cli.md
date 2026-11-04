@@ -113,13 +113,41 @@ rules (a table by default, or JSON with `--format json`).
 | `--format table\|json` | Output format. Default `table`. |
 | `--engine NAME` | Registered engine to use. Default `PHREAK`. |
 | `--schema SPEC` | Fact schema. Rules naming a field it lacks are refused. |
-| `--config PATH` | Config file to read `fact_schema` from. |
+| `--config PATH` | Config file to read `fact_schema` and the comparison settings from. See [Comparison settings](#comparison-settings). |
 | `--validate-facts off\|normalize\|strict` | Validate the event against the schema first, as [`validate_facts`](typed-facts.md#normalize-incoming-keys) does. `normalize` accepts `ageDays` for `age_days` and `"5"` for `5`, and flattens a nested event. Needs a schema. Default `off`. |
 
 `evaluate` exits `1` with a one-line message when a rule names an unknown
 field, when the event fails validation, or when the engine reports an error
 such as a nested event without `--validate-facts` (`FieldNotFoundError`). It
 exits `2` when a file or the schema cannot be loaded.
+
+### Comparison settings
+
+`evaluate` applies the comparison settings it finds in the config file, the
+same file it reads `fact_schema` from (see
+[Where the schema comes from](#where-the-schema-comes-from) for how it is
+found):
+
+```yaml
+# fluxrules.yaml
+strict_null_handling: false     # true: == None matches a None value
+strict_type_comparison: false   # true: values of different types never match
+boolean_string_coercion: false  # true: "true" / "false" are read as booleans
+missing_field: unknown          # NOT over a missing field does not fire
+```
+
+Each setting means what the [`EngineConfig`](usage/configuration.md) field of
+the same name means, and a setting the file leaves out keeps its default. The
+settings apply to whichever engine `--engine` names, including a custom engine
+you registered (see [Custom Engines](custom-engines.md)). For
+`missing_field`, `false` (with or without quotes) keeps the 1.x behaviour,
+`unknown` adopts the 2.0 behaviour, and leaving it out keeps the default.
+A wrong value, such as `strict_type_comparison: maybe`, stops the command
+when the file was named with `--config`. In a file found automatically, it is
+reported and the file's settings are ignored.
+
+[How FluxRules Compares Values](comparing-values.md) shows exactly which
+answers each setting changes.
 
 ## Fact schemas
 
@@ -190,10 +218,14 @@ fluxrules init --dir my-project
 ```
 
 Writes `rules.json`, `input.json` and `fluxrules.yaml` into the directory,
-skipping any that already exist. The config includes a commented-out
-`fact_schema` line to fill in:
+skipping any that already exist. The config sets the three comparison flags to
+their defaults, ready to change (see [Comparison settings](#comparison-settings)),
+and includes a commented-out `fact_schema` line to fill in:
 
 ```yaml
+strict_null_handling: false
+strict_type_comparison: false
+boolean_string_coercion: false
 # fact_schema: myapp.models:Order
 ```
 

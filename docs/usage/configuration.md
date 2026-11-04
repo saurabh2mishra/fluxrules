@@ -36,8 +36,12 @@ assert engine.evaluate({"amount": 1}).fired_rules == []
 
 `set_config(new_config)` is different: it replaces the process-wide object
 instead of changing it. Engines created before the call keep the object they
-already had. Engines created afterwards, and `fluxrules.evaluate()`, use the
-new one.
+already had. Engines created afterwards use the new one. `fluxrules.evaluate()`
+and the HTTP API read the process-wide config on every call, so they follow
+`set_config` straight away.
+
+The CLI reads the comparison settings from its config file; see
+[CLI: Comparison settings](../cli.md#comparison-settings).
 
 `evaluate_batch(facts, workers=N)` sends the config's current values to its
 worker processes when you call it.

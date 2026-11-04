@@ -55,6 +55,23 @@ _ALIAS_TO_SYMBOL: dict[str, str] = {
     "lte": "<=",
 }
 
+# ``in`` / ``not_in`` test membership of a list of values. A single value is a
+# one-item list, never a container to search: ``"U"`` is not a member of
+# ``"US"``. The engine operator, the alpha prefilter and the rule-time
+# normalisation all use these helpers, so every path agrees.
+MEMBERSHIP_OPS: frozenset[str] = frozenset({"in", "not_in"})
+_MEMBERSHIP_COLLECTIONS = (list, tuple, set, frozenset)
+
+
+def is_membership_collection(value: Any) -> bool:
+    """True when *value* is a list of members (list, tuple, set or frozenset)."""
+    return isinstance(value, _MEMBERSHIP_COLLECTIONS)
+
+
+def as_membership_collection(value: Any) -> Any:
+    """Return *value* if it is a list of members, otherwise a one-item tuple."""
+    return value if is_membership_collection(value) else (value,)
+
 
 def _coerce_bool_string(value: Any, enabled: bool) -> Any:
     if not enabled or not isinstance(value, str):
@@ -65,6 +82,15 @@ def _coerce_bool_string(value: Any, enabled: bool) -> Any:
     if lowered == "false":
         return False
     return value
+
+
+def coerce_bool_string(value: Any) -> Any:
+    """Read ``"true"`` / ``"false"`` (any case, surrounding spaces) as booleans.
+
+    This is what ``boolean_string_coercion`` does to each side of a comparison.
+    Anything else, including a list, is returned unchanged.
+    """
+    return _coerce_bool_string(value, True)
 
 
 def _is_numeric_non_bool(value: Any) -> bool:
@@ -150,9 +176,9 @@ def evaluate_operator(
         if op == "!=":
             return left != right
         if op == "in":
-            return left in right
+            return left in as_membership_collection(right)
         if op == "not_in":
-            return left not in right
+            return left not in as_membership_collection(right)
         if op == "contains":
             return right in left
         if op == "not_contains":

@@ -5,9 +5,24 @@ summarizes each release. The full list of changes, with migration notes, is in
 [`CHANGELOG.md`](https://github.com/saurabh2mishra/fluxrules/blob/main/CHANGELOG.md)
 in the repository.
 
-**Current release: 1.1.1** (2026-11-02).
+**Current release: 1.1.2** (2026-11-03).
 
 ## Releases
+
+### 1.1.2 (2026-11-03): Every evaluation path agrees
+
+- A single `in` / `not_in` value counts as a one-item list on every path, so
+  `isin("US")` no longer matches `"U"`, and a `MembershipValueWarning` tells
+  the author to write the list.
+- `boolean_string_coercion` works with the alpha prefilter;
+  `fluxrules.evaluate()` and the HTTP API follow all comparison settings; and
+  `fluxrules evaluate` applies the settings in its config file.
+- `PreFilteredEvaluator` no longer drops facts with text, boolean, `Decimal`
+  or very large integer values, and its SQL fact store saves `Decimal`, dates
+  and tuples exactly.
+- New page: [How FluxRules Compares Values](comparing-values.md), generated
+  from a test matrix that compares ten evaluation paths.
+- `EngineConfig.use_optimized_engine` is deprecated: nothing reads it.
 
 ### 1.1.1 (2026-11-02): Documentation reorganized
 
@@ -135,6 +150,19 @@ These items are designed but not yet shipped. The
 - Make `missing_field="unknown"` the default, so `NOT` over a missing field no
   longer fires. 1.1.0 ships the opt-in and a warning that names affected
   fields.
+- Safer comparison defaults: a comparison that cannot be made is unknown,
+  `True` no longer equals `1`, and types are strict with a fact schema.
+
+**Comparing values (1.2.0)**
+
+- Close the remaining gaps in the comparison matrix: tuples, `F` and YAML
+  rules, `evaluate_batch(workers=2)`, and one set of comparison functions.
+- Report comparisons that cannot be made: a warning by default, and settings
+  to stay silent, treat them as unknown or raise.
+- Check rule values when rules load: against their operator, against the fact
+  schema, and for YAML values read differently from how they look.
+- Make common comparisons easy: `approx`, case-insensitive text operators, and
+  documented date and number conversion with a fact schema.
 
 **Typed facts**
 

@@ -67,8 +67,8 @@ CASES = [
     # type mismatches return no match instead of raising
     ("contains on an int", F("s").contains("a"), {"s": 5}, []),
     ("> on a string", F("s") > 5, {"s": "x"}, []),
-    ("isin with a non-list", F("s").isin(5), {"s": 1}, []),
     ("invalid regex pattern", F("s").regex("("), {"s": "x"}, []),
+    # a single value given to isin is a one-item list: see test_membership_value.py
     # a missing field that is not a typo of a present key
     ("missing field", F("absent") > 5, {"other": 1}, []),
 ]
