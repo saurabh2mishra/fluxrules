@@ -39,8 +39,12 @@ FIELDS = ("f0", "f1", "f2")
 RULES_PER_SET = 8
 FACTS_PER_SET = 6
 EXAMPLES = int(os.environ.get("FLUXRULES_FUZZ_EXAMPLES", "60"))
-# CrossFactEngine has no OR or NOT, so it cannot express a random tree.
-TREE_PATHS = {name: path for name, path in PATHS.items() if name != "CrossFactEngine"}
+# Paths left out: CrossFactEngine has no OR or NOT, so it cannot express a
+# random tree; "rules written with F" rebuilds rules from matrix cases, which a
+# random tree has none of; and worker processes cost a second to start for each
+# example, so the matrix covers them instead.
+_NOT_FUZZED = {"CrossFactEngine", "rules written with F", "evaluate_batch(workers=2)"}
+TREE_PATHS = {name: path for name, path in PATHS.items() if name not in _NOT_FUZZED}
 
 
 def _random_config(rng: random.Random) -> EngineConfig:

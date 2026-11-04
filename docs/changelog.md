@@ -155,8 +155,6 @@ These items are designed but not yet shipped. The
 
 **Comparing values (1.2.0)**
 
-- Close the remaining gaps in the comparison matrix: tuples, `F` and YAML
-  rules, `evaluate_batch(workers=2)`, and one set of comparison functions.
 - Report comparisons that cannot be made: a warning by default, and settings
   to stay silent, treat them as unknown or raise.
 - Check rule values when rules load: against their operator, against the fact
