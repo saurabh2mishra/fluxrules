@@ -264,3 +264,22 @@ class TestSecondReviewFixes:
         facts = [{"v": "abc"}, {"v": 1}, {"v": "abc"}, {"v": 1}]
         # Under "unknown", NOT over "abc" > 5 does not fire; over 1 > 5 it does.
         assert evaluate_batch_parallel(rules, facts, num_workers=2) == [[], [1], [], [1]]
+
+
+class TestThirdReviewFixes:
+    @pytest.mark.parametrize(
+        ("condition", "message"),
+        [
+            (F("country").equals_ignore_case(7), 'Write "7" in quotes'),
+            (F("country").in_ignore_case(["NO", 7]), "compares it with the number 7"),
+            (F("country").starts_with_ignore_case(None), "compares it with None"),
+        ],
+    )
+    def test_ignore_case_operands_must_be_text_on_a_text_field(self, condition, message):
+        with pytest.raises(RuleValueError, match=message):
+            PhreakEngine(fact_schema=Event).load_rules([_rule(condition)])
+
+    def test_text_operands_load(self):
+        PhreakEngine(fact_schema=Event).load_rules(
+            [_rule(F("country").in_ignore_case(["no", "se"]))]
+        )

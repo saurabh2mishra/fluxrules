@@ -147,6 +147,15 @@ def _check_condition(
     if op in CASE_INSENSITIVE_OPS:
         if kind[0] != "text":
             problem(f"'{op}' tests text", "Compare it with '==' or an ordering operator instead.")
+            return node
+        # They never convert, so a value that is not text can never match.
+        members = value if op == "in_ignore_case" and isinstance(value, (list, tuple)) else [value]
+        for member in members:
+            if not isinstance(member, str):
+                problem(
+                    f"the rule compares it with {describe_value(member)}",
+                    f"Write \"{member}\" in quotes; '{op}' compares text only.",
+                )
         return node
     if op == "approx":
         if kind[0] != "number":

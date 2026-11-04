@@ -431,6 +431,7 @@ class APIEngineAdapter:
             "rules_by_tag": result.rules_by_tag,
             "actions": result.actions,
             "explanations": result.explanations,
+            "comparison_issues": [issue.to_dict() for issue in result.comparison_issues],
             "engine_type": self._engine_type,
             "stats": {
                 "latency_ms": round(latency_ms, 2),

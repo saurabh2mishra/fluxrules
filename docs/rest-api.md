@@ -246,6 +246,9 @@ Evaluate a fact as a dry run and get an explanation for each matched rule.
   (`candidates_evaluated`), how many matched (`rules_matched`), and how long
   it took in milliseconds (`evaluation_time_ms`). `total_rules` and
   `optimization` are not filled in.
+- `comparison_issues`: comparisons that could not be made and left a rule
+  undecided, as for `POST /api/v1/evaluate`. Under `uncomparable="raise"`
+  the request answers `422` instead (see [Errors](#errors)).
 
 ## Engine endpoints
 

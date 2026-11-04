@@ -720,6 +720,49 @@ class TestHttpApi:
         assert [i["reason"] for i in body["comparison_issues"]] == ["these types cannot be ordered"]
         assert client.post("/v1/rulesets/nope/simulate", json={"samples": []}).status_code == 404
 
+    @pytest.mark.parametrize("path", ["/api/v1/engines/evaluate", "/api/v1/engines/simulate"])
+    def test_the_engine_routes_answer_422(self, monkeypatch, path):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from fluxrules.api.database import get_db
+        from fluxrules.api.handlers import register_exception_handlers
+        from fluxrules.api.routes import engines as route
+
+        class Raising:
+            def __init__(self, *_args, **_kwargs):
+                pass
+
+            def evaluate(self, *_args, **_kwargs):
+                raise UncomparableValuesError(ComparisonIssue("v", ">", "str", "int", "x"))
+
+        monkeypatch.setattr(route, "APIEngineAdapter", Raising)
+        app = FastAPI()
+        register_exception_handlers(app)
+        app.include_router(route.router)  # its own prefix is /api/v1/engines
+        app.dependency_overrides[get_db] = lambda: None
+        response = TestClient(app).post(path, json={"event": {"v": "abc"}})
+        assert response.status_code == 422, response.text
+        assert response.json()["comparison_issue"]["field"] == "v"
+
+    def test_the_engine_adapter_lists_the_issues(self):
+        from fluxrules.api.engines.adapter import APIEngineAdapter
+        from fluxrules.api.routes.engines import EvaluationResponse
+        from fluxrules.api.schemas.rule import SimulateResponse
+        from fluxrules.domain.models import EvaluationResult
+
+        issue = ComparisonIssue("v", ">", "str", "int", "these types cannot be ordered")
+        result = EvaluationResult(
+            execution_id="x", ruleset_group="g", fired_rules=[], comparison_issues=[issue]
+        )
+        adapter = APIEngineAdapter.__new__(APIEngineAdapter)
+        adapter._engine_type = "PHREAK"
+        body = adapter._format_response(result, 1.0)
+        assert body["comparison_issues"] == [issue.to_dict()]
+        engine_body = EvaluationResponse(**{**body, "dry_run": False, "engine_type": "PHREAK"})
+        assert engine_body.comparison_issues[0].reason == "these types cannot be ordered"
+        assert SimulateResponse(**body).comparison_issues == [issue.to_dict()]
+
     def test_the_sdk_evaluate_route_answers_422(self, monkeypatch):
         # fluxrules.api.routes.evaluate is not mounted by create_app(); mounted
         # on its own, its catch-all must still let the 422 handler answer.
