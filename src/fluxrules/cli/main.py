@@ -405,10 +405,17 @@ def validate(
     from fluxrules.domain import Ruleset
     from fluxrules.domain.conditions.rule_values import value_problems
     from fluxrules.domain.errors import YamlValueWarning
+    from fluxrules.engine.configuration import get_config
     from fluxrules.facts import schema_info
     from fluxrules.services.validation_service import ValidationService
 
     config_schema = _ConfigSchema(config)
+    # The config file's boolean_string_coercion decides whether "true" fits a
+    # bool field, as it does for `fluxrules evaluate`. A config file found
+    # automatically is not read when --schema is given, so then the process
+    # setting applies.
+    settings = _config_settings(config) if config is not None or schema is None else None
+    coerce = (settings or get_config()).boolean_string_coercion
     issues: list[str] = []
     schemas: list[dict[str, str | None]] = []
     for path in rules:
@@ -416,8 +423,14 @@ def validate(
             warnings.simplefilter("always", YamlValueWarning)
             document, loaded = _read_rules(path)
         prefix = f"{path}: " if len(rules) > 1 else ""
-        # The file and line are in the message already.
-        issues.extend(str(w.message) for w in caught if issubclass(w.category, YamlValueWarning))
+        for w in caught:
+            if issubclass(w.category, YamlValueWarning):
+                # The file and line are in the message already.
+                issues.append(str(w.message))
+            else:
+                # Other warnings (MembershipValueWarning and the like) are shown
+                # as they would be without the capture.
+                warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
         ruleset = Ruleset(
             group="cli",
             rules=tuple(rule.to_engine_rule() for rule in loaded),
@@ -432,7 +445,10 @@ def validate(
         if resolved is not None:
             info = schema_info(resolved.model)
             issues.extend(prefix + error.summary for error in info.unknown_fields(loaded))
-            issues.extend(prefix + error.summary for error in info.value_errors(loaded))
+            issues.extend(
+                prefix + error.summary
+                for error in info.value_errors(loaded, coerce_bool_strings=coerce)
+            )
         schemas.append(
             {
                 "file": path,

@@ -531,3 +531,24 @@ class TestCli:
         result = runner.invoke(app, ["evaluate", "rules.yaml", "fact.json", "--config", "cfg.yaml"])
         assert result.exit_code == 2
         assert "strict_type_comparison must be true or false, got 'yes'" in result.output
+
+
+class TestCliValidateSettings:
+    def test_validate_follows_the_config_files_coercion(self, project: Path):
+        (project / "flags.py").write_text(
+            "from pydantic import BaseModel\n\n\nclass Flags(BaseModel):\n    active: bool\n"
+        )
+        (project / "rules.yaml").write_text(_yaml_rule("active", "==", "'true'"))
+        args = ["validate", "rules.yaml", "--schema", "flags.py:Flags"]
+        assert runner.invoke(app, args).exit_code == 1
+        (project / "cfg.yaml").write_text("boolean_string_coercion: true\n")
+        result = runner.invoke(app, [*args, "--config", "cfg.yaml"])
+        assert result.exit_code == 0, result.output
+
+    def test_validate_still_shows_other_warnings(self, project: Path):
+        from fluxrules import MembershipValueWarning
+
+        (project / "rules.yaml").write_text(_yaml_rule("country", "in", "US"))
+        with pytest.warns(MembershipValueWarning):
+            result = runner.invoke(app, ["validate", "rules.yaml"])
+        assert result.exit_code == 0, result.output

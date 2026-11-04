@@ -58,8 +58,10 @@ def describe_value(value: Any) -> str:
     return f"{value!r} ({kind})"
 
 
-# A problem whose condition still matches some facts: the value is read as text.
-_READ_AS_TEXT = "read as text"
+# Marks a problem whose condition still matches some facts (a value read as
+# text, or one bad member of a list), so its message does not end with
+# "The condition can never match."
+_READ_AS_TEXT = "still matches"
 
 
 def _problem(op: str, value: Any) -> str | None:
@@ -89,9 +91,13 @@ def _problem(op: str, value: Any) -> str | None:
     if op == "in_ignore_case":
         members = value if is_membership_collection(value) else (value,)
         others = [m for m in members if not isinstance(m, str)]
-        if others:
-            return f"'in_ignore_case' compares text, but got {describe_value(others[0])}"
-        return None
+        if not others:
+            return None
+        problem = f"'in_ignore_case' compares text, but got {describe_value(others[0])}"
+        if len(others) < len(members):
+            # The text members still match; only this one never does.
+            return f"{_READ_AS_TEXT}{problem}, which never matches. Write it as text or remove it"
+        return problem
     if op in CASE_INSENSITIVE_OPS:
         if not isinstance(value, str):
             return f"'{op}' needs text, but got {describe_value(value)}"

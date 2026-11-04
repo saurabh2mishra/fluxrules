@@ -1244,7 +1244,10 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             # rule (report its issues; under "unknown", fire it only when
             # definitely true). A fact whose comparisons all have answers never
             # gets here, so the loops above pay nothing per rule. The leaf memo
-            # makes this second pass cheap.
+            # makes this second pass cheap; after the thread pool, which turns
+            # the memo off, start a fresh one.
+            if self._leaf_memo is None:
+                self._leaf_memo = {}
             fired, actions, explanations = self._evaluate_sequential(
                 rules_with_priority, facts, affected_segments, settled=True
             )
@@ -1500,7 +1503,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         field = condition.get("field", "")
         op = condition.get("op", "==")
         value = condition.get("value")
-        value_key = _value_key(value)
+        # The same key as _eval_leaf builds, so the two paths share entries.
+        value_class = value.__class__
+        value_key = _hashable(value) if value_class is not dict else _value_key(value)
         snh = flags.strict_null_handling
         stc = flags.strict_type_comparison
         bsc = flags.boolean_string_coercion
@@ -1517,7 +1522,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             if memo is not None and value_memoizable:
                 fact_key = _hashable(fact_val)
                 if fact_key is not _UNHASHABLE:
-                    memo_key = (field, op, value_key, present, fact_key)
+                    memo_key = (field, op, value_class, value_key, present, fact_key)
                     cached = memo.get(memo_key)
                     if cached is not None:
                         if self._metrics is not None:

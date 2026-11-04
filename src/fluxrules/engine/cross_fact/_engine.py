@@ -416,14 +416,21 @@ class CrossFactEngine:
             _fact_ids, binding, _aggs = token
             found = False
             undecided = False
+            pending: list[Uncomparable] = []
             for fact in self._candidates(quant, binding):
                 if fact.id in _fact_ids:
                     continue
-                state = self._match_state(quant, fact, binding)
+                state, unmade = self._match(quant, fact, binding)
                 if state:
                     found = True
                     break
-                undecided = undecided or state is None
+                if state is None:
+                    undecided = True
+                    pending += unmade
+            # A matching candidate decides the quantifier, whatever the others
+            # say; only an undecided quantifier reports its candidates' issues.
+            if not found and pending:
+                self._report(pending)
             if quant.negated:
                 # "No such fact": with uncomparable="unknown", a fact whose
                 # comparison could not be made might be one, so the negation
@@ -437,27 +444,33 @@ class CrossFactEngine:
 
     def _match_state(self, pattern: Any, fact: Any, binding: dict[str, Any]) -> bool | None:
         """Whether ``fact`` matches ``pattern``: ``None`` when a comparison that
-        could not be made leaves it undecided.
+        could not be made leaves it undecided, which is then reported."""
+        state, unmade = self._match(pattern, fact, binding)
+        if unmade:
+            self._report(unmade)
+        return state
 
-        Its alpha, join and temporal checks are one conjunction, so a
-        comparison that cannot be made is reported only once all of them have
+    def _match(
+        self, pattern: Any, fact: Any, binding: dict[str, Any]
+    ) -> tuple[bool | None, list[Uncomparable]]:
+        """``(state, unmade)`` for ``fact`` against ``pattern``, reporting nothing.
+
+        Its alpha, join and temporal checks are one conjunction, so the
+        comparisons that could not be made count only when all of them have
         run and none failed: a candidate that fails a join is no match whatever
-        its alpha checks say.
+        its alpha checks say, and *unmade* is then empty.
         """
         alphas, unmade = self._check(self._alpha_checks(pattern, fact))
         if alphas is False:
-            return False
+            return False, []
         joins = self._join_checks(pattern, fact, binding)
         if joins is None:
-            return False
+            return False, []
         joined, unmade_joins = self._check(joins)
         if joined is False or not self._temporals_hold(pattern, fact, binding):
-            return False
+            return False, []
         unmade += unmade_joins
-        if unmade:
-            self._report(unmade)
-            return None
-        return True
+        return (None, unmade) if unmade else (True, [])
 
     def _apply_accumulate(
         self,

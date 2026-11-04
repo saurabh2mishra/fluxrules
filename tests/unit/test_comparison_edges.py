@@ -293,3 +293,95 @@ class TestFifthReviewFixes:
         engine.load_rules([_rule(F("vip").isin([member]))])
         (rule,) = engine.rule_repository.rules.values()
         assert rule.conditions["value"] == [True]
+
+
+class TestOwnReviewFixes:
+    """Findings of the code review run when the Codex quota ran out."""
+
+    def _quantifier_engine(self, negated: bool) -> Any:
+        from fluxrules.engine.cross_fact import CrossFactEngine, CrossFactRule, Exists, Pattern
+
+        engine = CrossFactEngine()
+        engine.load_rules(
+            [
+                CrossFactRule(
+                    id=1,
+                    name="r",
+                    patterns=[
+                        Pattern("c", "Customer"),
+                        Exists(
+                            fact_type="Order",
+                            constraints=[("amount", ">", 5)],
+                            joins=[("customer_id", "==", "c", "id")],
+                            negated=negated,
+                        ),
+                    ],
+                )
+            ]
+        )
+        return engine
+
+    @pytest.mark.parametrize(("negated", "fires"), [(False, True), (True, False)])
+    def test_a_quantifier_decided_by_a_later_candidate_reports_nothing(self, negated, fires):
+        set_config(EngineConfig(uncomparable="raise"))
+        engine = self._quantifier_engine(negated)
+        engine.insert("Order", {"customer_id": 1, "amount": "abc"})
+        engine.insert("Order", {"customer_id": 1, "amount": 10})
+        engine.insert("Customer", {"id": 1})  # decided by the second order: no raise
+        assert bool(engine.activations()) is fires
+
+    def test_an_undecided_quantifier_still_reports(self):
+        set_config(EngineConfig(uncomparable="raise"))
+        engine = self._quantifier_engine(False)
+        engine.insert("Order", {"customer_id": 1, "amount": "abc"})
+        with pytest.raises(UncomparableValuesError):
+            engine.insert("Customer", {"id": 1})
+
+    def test_in_ignore_case_takes_a_set_with_a_schema(self):
+        PhreakEngine(fact_schema=Event).load_rules(
+            [_rule(F("country").in_ignore_case({"no", "se"}))]
+        )
+
+    def test_one_non_text_member_does_not_make_the_condition_dead(self):
+        (message,) = value_problems(F("c").in_ignore_case(["US", 5]).to_dict())
+        assert "which never matches" in message and "can never match" not in message
+        (message,) = value_problems(F("c").in_ignore_case([5]).to_dict())
+        assert message.endswith("The condition can never match.")
+
+    def test_the_yaml_loader_follows_boolean_string_coercion(self, tmp_path):
+        from fluxrules.adapters.loaders.yaml_loader import load_rules_from_yaml
+
+        path = tmp_path / "rules.yaml"
+        path.write_text(
+            "- id: 1\n  name: r\n  action: a\n"
+            "  conditions: {type: condition, field: vip, op: '==', value: 'true'}\n"
+        )
+        with pytest.raises(RuleValueError):
+            load_rules_from_yaml(str(path), fact_schema=Account)
+        set_config(EngineConfig(boolean_string_coercion=True))
+        (rule,) = load_rules_from_yaml(str(path), fact_schema=Account)
+        assert rule["conditions"]["value"] is True
+
+    def test_an_engine_without_its_own_config_follows_the_process_config(self):
+        from fluxrules.engine.base import BaseEngine
+
+        class Minimal(BaseEngine):
+            def _candidate_rule_ids(self, facts, filters=None):
+                return []
+
+            def _evaluate_rules(self, rule_ids, facts):
+                return [], [], {}
+
+        set_config(EngineConfig(boolean_string_coercion=True))
+        engine = Minimal(fact_schema=Account)
+        assert getattr(engine, "_config", None) is None
+        engine.load_rules([_rule(F("vip") == "true")])
+
+    def test_the_second_pass_after_the_thread_pool_has_a_memo(self):
+        engine = PhreakEngine(config=EngineConfig(parallel_threshold=0))
+        engine.load_rules([_rule(~(F("v") > 5), 1), _rule(F("v") == "abc", 2)])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            result = engine.evaluate({"v": "abc"})
+        assert sorted(result.fired_rules) == [1, 2]
+        assert engine._leaf_memo  # the settling pass filled a fresh memo

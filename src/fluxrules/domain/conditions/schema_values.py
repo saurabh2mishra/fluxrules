@@ -149,7 +149,11 @@ def _check_condition(
             problem(f"'{op}' tests text", "Compare it with '==' or an ordering operator instead.")
             return node
         # They never convert, so a value that is not text can never match.
-        members = value if op == "in_ignore_case" and isinstance(value, (list, tuple)) else [value]
+        members = (
+            value
+            if op == "in_ignore_case" and isinstance(value, (list, tuple, set, frozenset))
+            else [value]
+        )
         for member in members:
             if not isinstance(member, str):
                 problem(

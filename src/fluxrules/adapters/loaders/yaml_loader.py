@@ -76,7 +76,11 @@ def load_rules_from_yaml(
         info = schema_info(model)
         info.check_rules(document.rules)
         # Refuse values that do not fit their field; ISO dates become dates.
-        prepared = info.prepare_rules(document.rules)
+        from fluxrules.engine.configuration import get_config
+
+        prepared = info.prepare_rules(
+            document.rules, coerce_bool_strings=get_config().boolean_string_coercion
+        )
         return [
             {**original, "conditions": rule.conditions}
             if isinstance(original, dict) and "conditions" in original

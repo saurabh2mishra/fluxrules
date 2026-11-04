@@ -145,7 +145,10 @@ class BaseEngine(ABC):
         """
         if self._fact_schema_info is not None:
             self._fact_schema_info.check_rules(rules)
-            config = getattr(self, "_config", None)
+            from fluxrules.engine.configuration import get_config
+
+            # An engine without its own config follows the process-wide one.
+            config = getattr(self, "_config", None) or get_config()
             rules = self._fact_schema_info.prepare_rules(
                 rules,
                 coerce_bool_strings=bool(getattr(config, "boolean_string_coercion", False)),

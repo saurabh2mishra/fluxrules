@@ -86,10 +86,13 @@ class ComparisonScope:
 _scope: ContextVar[ComparisonScope | None] = ContextVar("fluxrules_comparison_scope", default=None)
 
 # Counts every comparison that could not be made. A rule's evaluation reads it
-# before and after: only if it moved does the rule need settling. Only a
-# trigger for extra work, so a race between threads costs at most one extra
-# walk, never a wrong answer.
+# before and after: only if it moved does the rule need settling. Another
+# thread's count can only move it more, which costs an extra walk, never a
+# wrong answer; the lock keeps an increment from being lost, which would skip
+# a walk that was needed. note() runs only when a comparison fails, so the
+# lock is off the common path.
 _events = 0
+_events_lock = threading.Lock()
 
 # Issues already warned about in this process.
 _warned: set[ComparisonIssue] = set()
@@ -103,7 +106,8 @@ def events() -> int:
 def note() -> None:
     """Count one comparison that could not be made."""
     global _events
-    _events += 1
+    with _events_lock:
+        _events += 1
 
 
 @contextmanager
