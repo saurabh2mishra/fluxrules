@@ -7,8 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet. Work that is designed but not yet shipped is listed in the
+Work that is designed but not yet shipped is listed in the
 [backlog](docs/development/backlog.md).
+
+### Added
+
+- Comparisons that cannot be made are now reported. `"abc" > 5`, `None > 5`,
+  `float("nan") > 5`, a `date` against a `datetime`, `contains` on a number and
+  an invalid regex have no answer; the condition is still no match, and:
+  - `EvaluationResult.comparison_issues` lists each one that leaves a rule
+    undecided, as a `ComparisonIssue` (field, operator, fact type, rule type,
+    reason). A comparison that decides nothing, such as one inside an `AND`
+    that another check already failed, is not listed.
+  - A `ComparisonWarning` is emitted once per field, operator and pair of
+    types.
+  - The new `EngineConfig.uncomparable` setting chooses what happens:
+    `None` (default) warns, `"false"` stays silent, `"unknown"` treats the
+    comparison as unknown so `NOT` over it does not fire, and `"raise"` raises
+    `UncomparableValuesError`.
+  - Every evaluation path follows it: `PhreakEngine` (interpreted, compiled,
+    streaming, the thread pool), `evaluate_batch` with and without worker
+    processes, `fluxrules.evaluate()`, `CrossFactEngine` (warns and raises),
+    `PreFilteredEvaluator`, the CLI (`uncomparable` in the config file, and
+    `comparison_issues` in its output) and the HTTP API (`comparison_issues` in
+    each evaluation response, and `422` under `"raise"`).
+  - [How FluxRules Compares Values](docs/comparing-values.md) lists every case.
+
+### Changed
+
+- Under `strict_type_comparison`, values of different types are never equal,
+  so `5 != "5"` is now a match (it was no match). `5 == "5"` is still no
+  match.
+- A `ComparisonWarning` now appears where such a comparison failed silently
+  before. No answer changes under the default settings; set
+  `EngineConfig(uncomparable="false")` to silence the warning.
+- `PreFilteredEvaluator`'s SQL store no longer screens out facts by a boolean
+  value, so the engine can report a boolean that strict types cannot order.
+
+### Fixed
+
+- A `Decimal("NaN")` fact value no longer makes the default engine raise
+  `decimal.InvalidOperation`: the alpha prefilter now keeps the rule for the
+  engine to decide, as it does for other values it cannot compare.
 
 ## [1.1.3] - 2026-11-04
 

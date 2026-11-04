@@ -168,8 +168,6 @@ These items are designed but not yet shipped. The
 
 **Comparing values (1.2.0)**
 
-- Report comparisons that cannot be made: a warning by default, and settings
-  to stay silent, treat them as unknown or raise.
 - Check rule values when rules load: against their operator, against the fact
   schema, and for YAML values read differently from how they look.
 - Make common comparisons easy: `approx`, case-insensitive text operators, and

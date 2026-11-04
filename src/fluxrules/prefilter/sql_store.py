@@ -157,7 +157,10 @@ class FactPreFilterStore:
         row: dict[str, Any] = {_PAYLOAD: encode_fact(fact)}
         for f in self._fields:
             v = fact.get(f)
-            row[_col(f)] = _sql_number(v)
+            # A boolean fact is never screened out: under strict_type_comparison
+            # the engine cannot order it against a number, and must see it to
+            # report that. The rule side still screens numbers with True / False.
+            row[_col(f)] = None if isinstance(v, bool) else _sql_number(v)
             row[_present_col(f)] = 1 if f in fact else 0
         return row
 

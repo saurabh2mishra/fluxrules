@@ -11,7 +11,7 @@ Safety
 ------
 There is **no arbitrary string ``eval`` of user input**. Boolean structure
 (``and`` / ``or`` / ``not`` / ``exists``) is realized as nested Python closures;
-every leaf delegates to the exact same :func:`fluxrules.engine.operators.evaluate_operator`
+every leaf delegates to the exact same :func:`fluxrules.engine.operators.compare_operator`
 the interpreter uses, with the same hardening flags. So compiled and interpreted
 evaluation are guaranteed to agree (a property the parity test enforces).
 
@@ -28,12 +28,13 @@ from functools import partial
 from typing import Any, Protocol
 
 from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
-from fluxrules.engine.operators import evaluate_operator
+from fluxrules.engine.operators import compare_operator
 
 logger = logging.getLogger(__name__)
 
-# A compiled condition is a unary predicate over the fact dict.
-CompiledCondition = Callable[[dict[str, Any]], bool]
+# A compiled condition is a unary predicate over the fact dict. A leaf returns
+# True, False or an Uncomparable (falsy); boolean nodes return plain bools.
+CompiledCondition = Callable[[dict[str, Any]], Any]
 
 
 class _Flags(Protocol):
@@ -66,7 +67,7 @@ def compile_condition(
             **memo-aware** leaf compiler so the compiled boolean structure still
             shares the per-cycle leaf cache (identical ``(field, op, value)``
             leaves are evaluated once across all rules). If ``None``, leaves are
-            compiled to a direct :func:`evaluate_operator` call - correct, but
+            compiled to a direct :func:`compare_operator` call - correct, but
             without the cross-rule memo.
 
     Returns:
@@ -193,9 +194,9 @@ def _guard_not(
 
 
 def _compile_leaf(condition: dict[str, Any], flags: _Flags) -> CompiledCondition:
-    """Compile a single leaf to a captured ``evaluate_operator`` call.
+    """Compile a single leaf to a captured ``compare_operator`` call.
 
-    Semantics are preserved exactly by reusing ``evaluate_operator`` with the
+    Semantics are preserved exactly by reusing ``compare_operator`` with the
     same flags as the interpreter - only the dict lookups and the call's keyword
     binding are hoisted out of the per-fact path.
     """
@@ -206,15 +207,16 @@ def _compile_leaf(condition: dict[str, Any], flags: _Flags) -> CompiledCondition
     # Bind the operator call once with all the constant arguments. Per fact we
     # only supply the present-flag and the field value.
     op_call = partial(
-        evaluate_operator,
+        compare_operator,
         op,
         rule_value=value,
         strict_null_handling=flags.strict_null_handling,
         strict_type_comparison=flags.strict_type_comparison,
         boolean_string_coercion=flags.boolean_string_coercion,
+        field=field,
     )
 
-    def _leaf(facts: dict[str, Any]) -> bool:
+    def _leaf(facts: dict[str, Any]) -> Any:
         if field not in facts:
             from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
 

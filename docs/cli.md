@@ -131,9 +131,10 @@ found):
 ```yaml
 # fluxrules.yaml
 strict_null_handling: false     # true: == None matches a None value
-strict_type_comparison: false   # true: values of different types never match
+strict_type_comparison: false   # true: values of different types are never equal
 boolean_string_coercion: false  # true: "true" / "false" are read as booleans
 missing_field: unknown          # NOT over a missing field does not fire
+uncomparable: unknown           # NOT over "abc" > 5 and the like does not fire
 ```
 
 Each setting means what the [`EngineConfig`](usage/configuration.md) field of
@@ -142,12 +143,37 @@ settings apply to whichever engine `--engine` names, including a custom engine
 you registered (see [Custom Engines](custom-engines.md)). For
 `missing_field`, `false` (with or without quotes) keeps the 1.x behaviour,
 `unknown` adopts the 2.0 behaviour, and leaving it out keeps the default.
+For `uncomparable`, `false` silences the warning, `unknown` makes such a
+comparison unknown, and `raise` stops the command with exit code `1` and a
+message naming the field, the operator and both types.
 A wrong value, such as `strict_type_comparison: maybe`, stops the command
 when the file was named with `--config`. In a file found automatically, it is
 reported and the file's settings are ignored.
 
 [How FluxRules Compares Values](comparing-values.md) shows exactly which
 answers each setting changes.
+
+A comparison that cannot be made, such as `"abc" > 5`, is listed after the
+matches. With `--format json` the output has a `comparison_issues` list, each
+entry with `field`, `operator`, `fact_type`, `rule_type` and `reason`:
+
+```json
+{
+  "matched_rules": [],
+  "actions": [],
+  "comparison_issues": [
+    {
+      "field": "amount",
+      "operator": ">",
+      "fact_type": "str",
+      "rule_type": "int",
+      "reason": "these types cannot be ordered"
+    }
+  ]
+}
+```
+
+See [Comparisons that cannot be made](comparing-values.md#comparisons-that-cannot-be-made).
 
 ## Fact schemas
 

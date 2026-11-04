@@ -11,8 +11,12 @@ import logging
 import operator
 import re
 from collections.abc import Callable
+from decimal import Decimal
 from typing import Any
 
+from fluxrules.domain.comparison_issues import ComparisonIssue, type_label
+from fluxrules.engine import uncomparable
+from fluxrules.engine.uncomparable import Uncomparable
 from fluxrules.utils.metrics import get_metrics
 
 logger = logging.getLogger(__name__)
@@ -107,26 +111,67 @@ def coerce_bool_string(value: Any) -> Any:
     return _coerce_bool_string(value, True)
 
 
-def _is_numeric_non_bool(value: Any) -> bool:
+def is_plain_number(value: Any) -> bool:
+    """An ``int`` or ``float`` that is not a ``bool``: what strict types can order."""
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 def _strict_type_compatible(op: str, left: Any, right: Any) -> bool:
     if op in ORDERING_OPS:
-        return _is_numeric_non_bool(left) and _is_numeric_non_bool(right)
+        return is_plain_number(left) and is_plain_number(right)
 
     if op in {"==", "!="}:
         # Allow exact-type comparisons or int/float interop (excluding bool).
         if isinstance(left, bool) or isinstance(right, bool):
             return isinstance(left, bool) and isinstance(right, bool)
-        if _is_numeric_non_bool(left) and _is_numeric_non_bool(right):
+        if is_plain_number(left) and is_plain_number(right):
             return True
         return type(left) is type(right)
 
     return True
 
 
-def evaluate_operator(
+def is_nan(value: Any) -> bool:
+    """A float or ``Decimal`` NaN, which cannot be ordered."""
+    if isinstance(value, float):
+        return value != value
+    return isinstance(value, Decimal) and value.is_nan()
+
+
+# Why a comparison could not be made. Fixed strings, so every evaluation path
+# reports the same reason for the same case.
+REASON_NONE = "None cannot be ordered"
+REASON_NAN = "NaN cannot be ordered"
+REASON_STRICT = "strict_type_comparison orders two numbers only"
+REASON_ORDER = "these types cannot be ordered"
+REASON_CONTAINS = "the fact value cannot contain the rule value"
+REASON_MEMBERSHIP = "the fact value cannot be looked up in the rule's values"
+REASON_REGEX = "the rule value is not a valid regular expression"
+
+
+def _uncomparable(field: str, op: str, left: Any, right: Any, reason: str) -> Uncomparable:
+    uncomparable.note()
+    return Uncomparable(ComparisonIssue(field, op, type_label(left), type_label(right), reason))
+
+
+def _failure_reason(op: str, left: Any, right: Any, exc: Exception) -> str:
+    if op in ORDERING_OPS:
+        if left is None or right is None:
+            return REASON_NONE
+        if is_nan(left) or is_nan(right):
+            return REASON_NAN
+        if isinstance(exc, TypeError):
+            return REASON_ORDER
+    elif op in ("contains", "not_contains") and isinstance(exc, TypeError):
+        return REASON_CONTAINS
+    elif op in MEMBERSHIP_OPS and isinstance(exc, TypeError):
+        return REASON_MEMBERSHIP
+    elif op == "regex" and isinstance(exc, re.error):
+        return REASON_REGEX
+    return f"the comparison raised {type(exc).__name__}"
+
+
+def compare_operator(
     op: str,
     event_value: Any,
     rule_value: Any,
@@ -136,8 +181,28 @@ def evaluate_operator(
     strict_type_comparison: bool,
     boolean_string_coercion: bool,
     emit_metrics: bool = True,
-) -> bool:
-    """Evaluate a single operator with optional strict hardening."""
+    field: str = "",
+) -> bool | Uncomparable:
+    """Evaluate a single operator: ``True``, ``False`` or :class:`Uncomparable`.
+
+    A comparison with no answer returns a falsy :class:`Uncomparable` holding
+    its issue, and is counted (see :mod:`fluxrules.engine.uncomparable`). It is
+    reported (listed, warned about or raised) once per rule, when it leaves the
+    rule undecided. These have no answer:
+
+    - ordering (``>``, ``>=``, ``<``, ``<=``) with ``None`` or ``NaN`` on either
+      side, or with types Python cannot order (``"abc" > 5``, a ``date``
+      against a ``datetime``);
+    - ordering two values that are not both numbers, under
+      ``strict_type_comparison``;
+    - ``contains`` / ``not_contains``, ``in`` / ``not_in`` or ``regex`` that
+      raise (a number has no contents, a pattern does not compile).
+
+    ``==`` and ``!=`` always have an answer: values that differ, including
+    ``None``, ``NaN`` and values of different types, are not equal.
+
+    *field* names the fact field in the reported issue.
+    """
     # Normalize canonical word-aliases (eq/ne/gt/gte/lt/lte) to symbols so a
     # single code path implements them for every engine sharing this evaluator.
     op = _ALIAS_TO_SYMBOL.get(op, op)
@@ -153,6 +218,8 @@ def evaluate_operator(
                 return rule_value is None
             if op == "!=":
                 return rule_value is not None
+        if op in ORDERING_OPS:
+            return _uncomparable(field, op, None, rule_value, REASON_NONE)
         return False
 
     left = _coerce_bool_string(event_value, boolean_string_coercion)
@@ -174,12 +241,25 @@ def evaluate_operator(
             right,
             type(right).__name__,
         )
-        return False
+        if op in ORDERING_OPS:
+            reason = REASON_NONE if right is None else REASON_STRICT
+            return _uncomparable(field, op, left, right, reason)
+        # Values of different types are never equal.
+        return op == "!="
 
     try:
         compare = COMPARISONS.get(op)
         if compare is not None:
-            return bool(compare(left, right))
+            if compare(left, right):
+                return True
+            # Ordering NaN is always False, so only a False result needs the
+            # NaN test; an int is never NaN, so its class skips the call.
+            if op in ORDERING_OPS and (
+                (left.__class__ is not int and is_nan(left))
+                or (right.__class__ is not int and is_nan(right))
+            ):
+                return _uncomparable(field, op, left, right, REASON_NAN)
+            return False
         if op == "in":
             return left in as_membership_collection(right)
         if op == "not_in":
@@ -195,12 +275,45 @@ def evaluate_operator(
         if op == "regex":
             return bool(re.search(str(right), str(left)))
         return False
-    except Exception:
+    except Exception as exc:
         logger.debug(
-            "evaluate_operator raised unexpectedly: op=%r left=%r right=%r",
+            "compare_operator could not compare: op=%r left=%r right=%r",
             op,
             event_value,
             rule_value,
             exc_info=True,
         )
-        return False
+        return _uncomparable(field, op, left, right, _failure_reason(op, left, right, exc))
+
+
+def evaluate_operator(
+    op: str,
+    event_value: Any,
+    rule_value: Any,
+    *,
+    field_present: bool,
+    strict_null_handling: bool,
+    strict_type_comparison: bool,
+    boolean_string_coercion: bool,
+    emit_metrics: bool = True,
+    field: str = "",
+) -> bool:
+    """Evaluate a single operator with optional strict hardening.
+
+    Like :func:`compare_operator`, but a comparison with no answer is
+    ``False``.
+    """
+    return (
+        compare_operator(
+            op,
+            event_value,
+            rule_value,
+            field_present=field_present,
+            strict_null_handling=strict_null_handling,
+            strict_type_comparison=strict_type_comparison,
+            boolean_string_coercion=boolean_string_coercion,
+            emit_metrics=emit_metrics,
+            field=field,
+        )
+        is True
+    )

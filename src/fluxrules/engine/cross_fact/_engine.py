@@ -76,7 +76,8 @@ from fluxrules.engine.cross_fact.models import (
     Pattern,
 )
 from fluxrules.engine.cross_fact.working_memory import CrossFactWorkingMemory
-from fluxrules.engine.operators import evaluate_operator
+from fluxrules.engine.operators import compare_operator
+from fluxrules.engine.uncomparable import Uncomparable, report
 
 logger = logging.getLogger(__name__)
 
@@ -447,7 +448,7 @@ class CrossFactEngine:
             value = self._aggregate(acc, matched)
             if acc.having is not None:
                 op, threshold = acc.having
-                if not self._op(op, value, threshold, present=True):
+                if not self._all_hold([(op, value, threshold, True, acc.var)]):
                     continue
             new_aggs = dict(aggregates)
             new_aggs[acc.var] = value
@@ -498,13 +499,13 @@ class CrossFactEngine:
         return self.wm.by_type(pattern.fact_type)
 
     def _alphas_hold(self, pattern: Any, fact: Any) -> bool:
-        for c in pattern.constraints:
-            present = c.field in fact.fields
-            if not self._op(c.op, fact.fields.get(c.field), c.value, present):
-                return False
-        return True
+        return self._all_hold(
+            (c.op, fact.fields.get(c.field), c.value, c.field in fact.fields, c.field)
+            for c in pattern.constraints
+        )
 
     def _joins_hold(self, pattern: Any, fact: Any, binding: dict[str, Any]) -> bool:
+        checks = []
         for join in pattern.joins:
             other = binding.get(join.other_var)
             if other is None:
@@ -517,9 +518,8 @@ class CrossFactEngine:
             present = join.this_field in fact.fields and join.other_field in other.fields
             left = fact.fields.get(join.this_field)
             right = other.fields.get(join.other_field)
-            if not self._op(join.op, left, right, present):
-                return False
-        return True
+            checks.append((join.op, left, right, present, join.this_field))
+        return self._all_hold(checks)
 
     def _temporals_hold(self, element: Any, fact: Any, binding: dict[str, Any]) -> bool:
         """Whether ``fact`` satisfies every temporal window of ``element`` (B-δ).
@@ -557,9 +557,30 @@ class CrossFactEngine:
                     return False
         return True
 
-    def _op(self, op: str, left: Any, right: Any, present: bool) -> bool:
+    def _all_hold(self, checks: Any) -> bool:
+        """Whether every ``(op, left, right, present, field)`` check holds.
+
+        The checks are a conjunction: one definite failure decides it. A
+        comparison that cannot be made counts as no match, and is reported
+        (warned about or raised, as the process-wide ``EngineConfig.uncomparable``
+        says) only when no other check already failed, as on the other paths.
+        """
+        unmade: list[Uncomparable] = []
+        for op, left, right, present, field in checks:
+            outcome = self._op(op, left, right, present, field=field)
+            if outcome.__class__ is Uncomparable:
+                unmade.append(outcome)  # type: ignore[arg-type]
+            elif not outcome:
+                return False
+        for outcome in unmade:
+            report(outcome.issue)
+        return not unmade
+
+    def _op(
+        self, op: str, left: Any, right: Any, present: bool, *, field: str = ""
+    ) -> bool | Uncomparable:
         """Evaluate one comparison, sharing the engine-wide operator semantics."""
-        return evaluate_operator(
+        return compare_operator(
             op,
             left,
             right,
@@ -568,6 +589,7 @@ class CrossFactEngine:
             strict_type_comparison=self._cfg.strict_type_comparison,
             boolean_string_coercion=self._cfg.boolean_string_coercion,
             emit_metrics=False,
+            field=field,
         )
 
 

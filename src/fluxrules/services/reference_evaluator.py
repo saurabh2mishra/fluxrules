@@ -12,11 +12,12 @@ For rule evaluation, use:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fluxrules.domain.models import EngineRule, EvaluationResult, Ruleset
-from fluxrules.domain.predicates import evaluate_operator
+from fluxrules.domain.predicates import compare
 from fluxrules.engine.interfaces import EnginePort
+from fluxrules.engine.uncomparable import Uncomparable, report
 
 if TYPE_CHECKING:
     from fluxrules.domain.unified_rule import Rule as CanonicalRule
@@ -51,17 +52,23 @@ class ReferenceEvaluator(EnginePort):
 
     def evaluate(self, ruleset: Ruleset, facts: dict[str, object]) -> EvaluationResult:
         # Models (Pydantic, dataclass, attrs, msgspec) become a flat dict.
+        from fluxrules.engine.configuration import get_config
+        from fluxrules.engine.uncomparable import comparison_scope
         from fluxrules.facts import to_fact_dict
 
         facts = to_fact_dict(facts)
         matched: list[EngineRule] = []
         trace: list[dict[str, object]] = []
         engine_rules = [_as_engine_rule(rule) for rule in ruleset.rules]
-        for rule in sorted(engine_rules, key=lambda item: (item.priority, item.id), reverse=True):
-            outcome = self._evaluate_rule(rule, facts)
-            trace.append({"rule_id": rule.id, "matched": outcome})
-            if outcome:
-                matched.append(rule)
+        # Follows the process-wide config, as the comparison settings do.
+        with comparison_scope(get_config().uncomparable) as comparisons:
+            for rule in sorted(
+                engine_rules, key=lambda item: (item.priority, item.id), reverse=True
+            ):
+                outcome = self._evaluate_rule(rule, facts)
+                trace.append({"rule_id": rule.id, "matched": outcome})
+                if outcome:
+                    matched.append(rule)
 
         actions = [action for rule in matched for action in rule.actions]
         return EvaluationResult(
@@ -74,6 +81,7 @@ class ReferenceEvaluator(EnginePort):
             # every evaluation path, not just the engine ones.
             candidate_rule_ids=[rule.id for rule in engine_rules],
             engine_type=type(self).__name__,
+            comparison_issues=comparisons.issues,
         )
 
     def _evaluate_rule(self, rule: EngineRule, facts: dict[str, object]) -> bool:
@@ -113,6 +121,10 @@ class ReferenceEvaluator(EnginePort):
                 rule.id,
             )
             return False
+        # A flat conjunction: one definite False decides it. A comparison that
+        # cannot be made is unknown, and is reported only when nothing else
+        # decided the rule, as for a condition tree.
+        unmade: list[Any] = []
         for condition in rule.condition_nodes:
             if condition.fact not in facts:
                 from fluxrules.domain.errors import FieldNotFoundError, is_field_typo
@@ -120,6 +132,15 @@ class ReferenceEvaluator(EnginePort):
                 if is_field_typo(condition.fact, facts):
                     raise FieldNotFoundError.for_field(condition.fact, facts)
                 return False
-            if not evaluate_operator(condition.operator, facts[condition.fact], condition.value):
+            outcome = compare(
+                condition.operator, facts[condition.fact], condition.value, field=condition.fact
+            )
+            if outcome.__class__ is Uncomparable:
+                unmade.append(outcome)
+            elif not outcome:
                 return False
+        if unmade:
+            for outcome in unmade:
+                report(outcome.issue)
+            return False
         return True

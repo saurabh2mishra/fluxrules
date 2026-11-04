@@ -21,7 +21,7 @@ be interchangeable.
 
 | Surface | Label | Entry point | Input/output contract |
 |---|---|---|---|
-| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | One fact in (a mapping or a typed model); `EvaluationResult` out (`fired_rules`, `actions`, explanations, metrics). |
+| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | One fact in (a mapping or a typed model); `EvaluationResult` out (`fired_rules`, `actions`, `comparison_issues`, explanations, metrics). |
 | Reference evaluation | **Stable reference** | `ReferenceEvaluator.evaluate(ruleset, facts)` or top-level `fluxrules.evaluate()` | Rules plus facts in; the same `EvaluationResult` out (`fired_rules`, actions, trace). Used as the oracle for the single-fact subset. |
 | Cross-fact correlation | **Separate contract** | `get_cross_fact_engine()` | `insert`/`update`/`retract` fact handles and activation deltas; not a `BaseEngine` replacement. |
 | Sessions and persistence | **Separate contract** | `RuleService`, persistence ports, session services | Rulesets and snapshots are managed outside the direct PHREAK matcher. |
@@ -169,6 +169,32 @@ from fluxrules import LossyConditionViewWarning
 
 warnings.simplefilter("error", LossyConditionViewWarning)
 ```
+
+### `ComparisonWarning`
+
+A `UserWarning` emitted when a comparison cannot be made and leaves a rule
+undecided, such as `"abc" > 5`, `None > 5` or `float("nan") > 5`. The condition
+is no match. It is emitted once per process for each field, operator and pair
+of types, under the default `EngineConfig(uncomparable=None)`. Set
+`uncomparable="false"` to silence it, `"unknown"` so `NOT` over such a
+comparison does not fire, or `"raise"` to raise `UncomparableValuesError`
+instead. See
+[Comparisons that cannot be made](../comparing-values.md#comparisons-that-cannot-be-made).
+
+### `UncomparableValuesError`
+
+Raised under `EngineConfig(uncomparable="raise")` when a comparison cannot be
+made and leaves a rule undecided. It is a `FluxRulesError` and a `ValueError`,
+with code `UNCOMPARABLE_VALUES`. Its `issue` attribute is the
+`ComparisonIssue`. The HTTP API answers it with `422`.
+
+### `ComparisonIssue`
+
+One comparison that could not be made, as listed in
+`EvaluationResult.comparison_issues`. A frozen dataclass with `field`,
+`operator`, `fact_type`, `rule_type` and `reason`, plus `to_dict()` and
+`describe()`. Each field, operator and pair of types is listed once per
+evaluation.
 
 ### `MembershipValueWarning`
 

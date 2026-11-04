@@ -32,7 +32,9 @@ from fluxrules.config.deployment import (
     DeploymentConfig,
     DeploymentType,
 )
+from fluxrules.domain.comparison_issues import ComparisonIssue
 from fluxrules.domain.errors import (
+    ComparisonWarning,
     ConditionValidationError,
     CorruptStoredRuleError,
     CyclicDependencyError,
@@ -45,6 +47,7 @@ from fluxrules.domain.errors import (
     LossyConditionViewWarning,
     MembershipValueWarning,
     MissingFieldNotWarning,
+    UncomparableValuesError,
     UnknownFieldError,
     UnknownOperatorError,
 )
@@ -162,6 +165,8 @@ def explain(execution_id: str) -> dict[str, object]:
 __all__ = [
     "AuditService",
     "BaseEngine",
+    "ComparisonIssue",
+    "ComparisonWarning",
     "Condition",
     "ConditionBuilder",
     "ConfigValidationError",
@@ -197,6 +202,7 @@ __all__ = [
     "RuleService",
     "Rules",
     "Ruleset",
+    "UncomparableValuesError",
     "UnknownFieldError",
     "UnknownOperatorError",
     "ValidationIssue",

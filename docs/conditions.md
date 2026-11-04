@@ -418,7 +418,7 @@ config object takes effect on that engine's next evaluation. See
 
 ### Value types must match
 
-A numeric field compared with a string will not raise, but will silently not
+A numeric field compared with a string will not raise: the condition does not
 match. Match the value type to the field type:
 
 ```python
@@ -426,6 +426,12 @@ F("amount") > 5000      # number field → number value
 F("status") == "active" # string field → string value
 F("tags").contains("vip")  # list field → scalar value to find in it
 ```
+
+When a comparison cannot be made, such as `"abc" > 5000` or `None > 5000`,
+FluxRules emits a `ComparisonWarning` and lists it in the result's
+`comparison_issues`. `EngineConfig(uncomparable="unknown")` stops `NOT` from
+firing over such a comparison, and `uncomparable="raise"` makes it an error.
+See [Comparisons that cannot be made](comparing-values.md#comparisons-that-cannot-be-made).
 
 ### `isin` takes a list, not positional args
 

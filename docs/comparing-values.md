@@ -9,7 +9,7 @@ This page shows, for every operator, which fact values match which rule values. 
 
 A comparison is plain Python: `v > 5` runs `fact_value > 5`. FluxRules does not convert between types, so the text `"5"` is not the number `5`. Three rules follow from that:
 
-- **A comparison Python cannot make is no match, not an error.** `"abc" > 5` raises `TypeError` in Python; in a rule it is simply no match. Nothing tells you this happened.
+- **A comparison Python cannot make is no match, not an error.** `"abc" > 5` raises `TypeError` in Python; in a rule it is no match, and a `ComparisonWarning` tells you. See [Comparisons that cannot be made](#comparisons-that-cannot-be-made).
 - **`NOT` turns that no match into a match.** `NOT(v > 5)` fires for `"abc"`, `None` and a missing field, because the check inside failed. See [NOT over a comparison](#not-over-a-comparison).
 - **A missing field, or a `None` value, matches nothing** unless you change the [settings](#how-each-setting-changes-the-answers).
 
@@ -37,6 +37,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no | no | no | no | no |
 | `None` | no | no | no | no | no | no | no |
 | `float("nan")` | no | no | no | no | no | no | no |
+| `Decimal("NaN")` | no | no | no | no | no | no | no |
 | `float("inf")` | no | no | no | no | no | no | no |
 | `date(2026, 6, 1)` | no | no | no | no | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
@@ -62,6 +63,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | yes | yes | yes | yes | yes | yes | yes |
 | `None` | no | no | no | no | no | no | no |
 | `float("nan")` | yes | yes | yes | yes | yes | yes | yes |
+| `Decimal("NaN")` | yes | yes | yes | yes | yes | yes | yes |
 | `float("inf")` | yes | yes | yes | yes | yes | yes | yes |
 | `date(2026, 6, 1)` | yes | yes | yes | yes | yes | yes | yes |
 | `datetime(2026, 6, 1, 12, 0)` | yes | yes | yes | yes | yes | yes | yes |
@@ -87,6 +89,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no | no | no | no | no |
 | `None` | no | no | no | no | no | no | no |
 | `float("nan")` | no | no | no | no | no | no | no |
+| `Decimal("NaN")` | no | no | no | no | no | no | no |
 | `float("inf")` | yes | yes | no | no | yes | no | no |
 | `date(2026, 6, 1)` | no | no | no | no | no | yes | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
@@ -112,6 +115,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no | no | no | no | no |
 | `None` | no | no | no | no | no | no | no |
 | `float("nan")` | no | no | no | no | no | no | no |
+| `Decimal("NaN")` | no | no | no | no | no | no | no |
 | `float("inf")` | yes | yes | no | no | yes | no | no |
 | `date(2026, 6, 1)` | no | no | no | no | no | yes | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
@@ -137,6 +141,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | yes | yes | no | no | no |
 | `None` | no | no | no | no | no | no | no |
 | `float("nan")` | no | no | no | no | no | no | no |
+| `Decimal("NaN")` | no | no | no | no | no | no | no |
 | `float("inf")` | no | no | no | no | no | no | no |
 | `date(2026, 6, 1)` | no | no | no | no | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
@@ -162,6 +167,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | yes | yes | no | no | no |
 | `None` | no | no | no | no | no | no | no |
 | `float("nan")` | no | no | no | no | no | no | no |
+| `Decimal("NaN")` | no | no | no | no | no | no | no |
 | `float("inf")` | no | no | no | no | no | no | no |
 | `date(2026, 6, 1)` | no | no | no | no | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
@@ -187,6 +193,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no | no | no | no |
 | `None` | no | no | no | no | no | no |
 | `float("nan")` | no | no | no | no | no | no |
+| `Decimal("NaN")` | no | no | no | no | no | no |
 | `float("inf")` | no | no | no | no | no | no |
 | `date(2026, 6, 1)` | no | no | no | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no |
@@ -212,6 +219,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | yes | yes | yes | yes | yes | yes |
 | `None` | no | no | no | no | no | no |
 | `float("nan")` | yes | yes | yes | yes | yes | yes |
+| `Decimal("NaN")` | yes | yes | yes | yes | yes | yes |
 | `float("inf")` | yes | yes | yes | yes | yes | yes |
 | `date(2026, 6, 1)` | yes | yes | yes | yes | yes | yes |
 | `datetime(2026, 6, 1, 12, 0)` | yes | yes | yes | yes | yes | yes |
@@ -237,6 +245,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no |
 | `None` | no | no | no |
 | `float("nan")` | no | no | no |
+| `Decimal("NaN")` | no | no | no |
 | `float("inf")` | no | no | no |
 | `date(2026, 6, 1)` | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
@@ -262,6 +271,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | yes | yes | yes |
 | `None` | no | no | no |
 | `float("nan")` | no | no | no |
+| `Decimal("NaN")` | no | no | no |
 | `float("inf")` | no | no | no |
 | `date(2026, 6, 1)` | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
@@ -287,6 +297,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no |
 | `None` | no | no | no |
 | `float("nan")` | no | no | no |
+| `Decimal("NaN")` | no | no | no |
 | `float("inf")` | no | no | no |
 | `date(2026, 6, 1)` | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
@@ -312,6 +323,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no |
 | `None` | no | no | no |
 | `float("nan")` | no | no | no |
+| `Decimal("NaN")` | no | no | no |
 | `float("inf")` | no | no | no |
 | `date(2026, 6, 1)` | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
@@ -337,6 +349,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | no | no | no |
 | `None` | no | no | no |
 | `float("nan")` | yes | no | no |
+| `Decimal("NaN")` | yes | no | no |
 | `float("inf")` | no | no | no |
 | `date(2026, 6, 1)` | no | no | no |
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
@@ -364,6 +377,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `""` | yes | no | yes | yes | yes | yes |
 | `None` | yes | yes | yes | yes | yes | yes |
 | `float("nan")` | yes | no | yes | yes | yes | yes |
+| `Decimal("NaN")` | yes | no | yes | yes | yes | yes |
 | `float("inf")` | yes | no | no | no | yes | yes |
 | `date(2026, 6, 1)` | yes | no | yes | yes | yes | yes |
 | `datetime(2026, 6, 1, 12, 0)` | yes | no | yes | yes | yes | yes |
@@ -373,7 +387,67 @@ Each table is one operator under the default settings. A row is the value in the
 | `{"a": 5}` | yes | no | yes | yes | yes | yes |
 | (missing) | yes | yes | yes | yes | yes | yes |
 
-To stop `NOT` from firing on a missing field, set `EngineConfig(missing_field="unknown")`. To stop it from firing on values of the wrong type, give the engine a fact schema so values arrive with the right type (see [Avoiding surprises](#avoiding-surprises)).
+To stop `NOT` from firing on a missing field, set `EngineConfig(missing_field="unknown")`. To stop it from firing on a comparison that cannot be made, set `EngineConfig(uncomparable="unknown")`. Better still, give the engine a fact schema so values arrive with the right type (see [Avoiding surprises](#avoiding-surprises)).
+
+## Comparisons that cannot be made
+
+Some comparisons have no answer: `"abc" > 5`, `None > 5`, `float("nan") > 5`, a `date` against a `datetime`, `contains` on a number, an invalid regex. The condition is no match, as the tables above show. When such a comparison leaves a rule undecided, the result lists it in `comparison_issues`, with the field, the operator, both types and the reason, and `EngineConfig(uncomparable=...)` chooses what else happens:
+
+| `uncomparable` | What happens |
+|---|---|
+| `None` (default) | No match, and a `ComparisonWarning` once per field, operator and pair of types. |
+| `"false"` | No match, with no warning. |
+| `"unknown"` | Unknown: a rule fires only when its condition is definitely true, so `NOT` over it does not fire. |
+| `"raise"` | `UncomparableValuesError`, naming the field, the operator and both types. |
+
+A comparison that decides nothing is not reported: in `(F("v") > 5) & (F("country") == "US")` with `country` set to `"DE"`, the rule is no match whatever `v` holds, so `v = "abc"` is not reported. `==` and `!=` always have an answer: different values, `None`, `NaN` and values of different types are not equal.
+
+These are every comparison in the tables above that has no answer, under the default settings:
+
+| Fact value | Cannot be ordered (`>`, `>=`, `<`, `<=`) against | Why |
+|---|---|---|
+| `5` | `str`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `0` | `str`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `5.5` | `str`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `Decimal("5.5")` | `str`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `True` | `str`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `False` | `str`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `"5"` | `int`, `float`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `"true"` | `int`, `float`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `"abc"` | `int`, `float`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `""` | `int`, `float`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `None` | `int`, `float`, `str`, `bool`, `date`, `None` | None cannot be ordered |
+| `float("nan")` | `int`, `float`, `str`, `bool`, `date`, `None` | NaN cannot be ordered; None cannot be ordered |
+| `Decimal("NaN")` | `int`, `float`, `str`, `bool`, `date`, `None` | NaN cannot be ordered; None cannot be ordered |
+| `float("inf")` | `str`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `date(2026, 6, 1)` | `int`, `float`, `str`, `bool`, `None` | None cannot be ordered; these types cannot be ordered |
+| `datetime(2026, 6, 1, 12, 0)` | `int`, `float`, `str`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `"2026-06-01"` | `int`, `float`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `[5]` | `int`, `float`, `str`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `(5,)` | `int`, `float`, `str`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+| `{"a": 5}` | `int`, `float`, `str`, `bool`, `date`, `None` | None cannot be ordered; these types cannot be ordered |
+
+| Fact value | Operator | Why |
+|---|---|---|
+| `5` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `0` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `5.5` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `Decimal("5.5")` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `True` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `False` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `"5"` | `regex` | the rule value is not a valid regular expression |
+| `"true"` | `regex` | the rule value is not a valid regular expression |
+| `"abc"` | `regex` | the rule value is not a valid regular expression |
+| `""` | `regex` | the rule value is not a valid regular expression |
+| `float("nan")` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `Decimal("NaN")` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `float("inf")` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `date(2026, 6, 1)` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `datetime(2026, 6, 1, 12, 0)` | `contains`, `not_contains`, `regex` | the fact value cannot contain the rule value; the rule value is not a valid regular expression |
+| `"2026-06-01"` | `regex` | the rule value is not a valid regular expression |
+| `[5]` | `regex` | the rule value is not a valid regular expression |
+| `(5,)` | `regex` | the rule value is not a valid regular expression |
+| `{"a": 5}` | `regex` | the rule value is not a valid regular expression |
 
 ## How each setting changes the answers
 
@@ -395,113 +469,12 @@ Each table lists the answers that differ from the default settings. Where a sett
 
 ### `strict_type_comparison`
 
-`EngineConfig(strict_type_comparison=True)` refuses to compare values of different types, and treats a boolean as a different type from a number. A refused comparison is no match, even for `!=`.
+`EngineConfig(strict_type_comparison=True)` treats values of different types as never equal, and a boolean as a different type from a number: `5 == "5"` is no match and `5 != "5"` is a match. It orders (`>`, `<` and the like) two numbers only; any other ordering cannot be made, so it is no match and is reported (see [Comparisons that cannot be made](#comparisons-that-cannot-be-made)).
 
 | Rule | Fact value | Default | With this setting |
 |---|---|---|---|
 | `v == 5.5` | `Decimal("5.5")` | yes | no |
-| `v != 5` | `Decimal("5.5")` | yes | no |
-| `v != 5` | `True` | yes | no |
-| `v != 5` | `False` | yes | no |
-| `v != 5` | `"5"` | yes | no |
-| `v != 5` | `"true"` | yes | no |
-| `v != 5` | `"abc"` | yes | no |
-| `v != 5` | `""` | yes | no |
-| `v != 5` | `date(2026, 6, 1)` | yes | no |
-| `v != 5` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
-| `v != 5` | `"2026-06-01"` | yes | no |
-| `v != 5` | `[5]` | yes | no |
-| `v != 5` | `(5,)` | yes | no |
-| `v != 5` | `{"a": 5}` | yes | no |
-| `v != 5.5` | `True` | yes | no |
-| `v != 5.5` | `False` | yes | no |
-| `v != 5.5` | `"5"` | yes | no |
-| `v != 5.5` | `"true"` | yes | no |
-| `v != 5.5` | `"abc"` | yes | no |
-| `v != 5.5` | `""` | yes | no |
-| `v != 5.5` | `date(2026, 6, 1)` | yes | no |
-| `v != 5.5` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
-| `v != 5.5` | `"2026-06-01"` | yes | no |
-| `v != 5.5` | `[5]` | yes | no |
-| `v != 5.5` | `(5,)` | yes | no |
-| `v != 5.5` | `{"a": 5}` | yes | no |
-| `v != "5"` | `5` | yes | no |
-| `v != "5"` | `0` | yes | no |
-| `v != "5"` | `5.5` | yes | no |
-| `v != "5"` | `Decimal("5.5")` | yes | no |
-| `v != "5"` | `True` | yes | no |
-| `v != "5"` | `False` | yes | no |
-| `v != "5"` | `float("nan")` | yes | no |
-| `v != "5"` | `float("inf")` | yes | no |
-| `v != "5"` | `date(2026, 6, 1)` | yes | no |
-| `v != "5"` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
-| `v != "5"` | `[5]` | yes | no |
-| `v != "5"` | `(5,)` | yes | no |
-| `v != "5"` | `{"a": 5}` | yes | no |
-| `v != "abc"` | `5` | yes | no |
-| `v != "abc"` | `0` | yes | no |
-| `v != "abc"` | `5.5` | yes | no |
-| `v != "abc"` | `Decimal("5.5")` | yes | no |
-| `v != "abc"` | `True` | yes | no |
-| `v != "abc"` | `False` | yes | no |
-| `v != "abc"` | `float("nan")` | yes | no |
-| `v != "abc"` | `float("inf")` | yes | no |
-| `v != "abc"` | `date(2026, 6, 1)` | yes | no |
-| `v != "abc"` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
-| `v != "abc"` | `[5]` | yes | no |
-| `v != "abc"` | `(5,)` | yes | no |
-| `v != "abc"` | `{"a": 5}` | yes | no |
-| `v != True` | `5` | yes | no |
-| `v != True` | `0` | yes | no |
-| `v != True` | `5.5` | yes | no |
-| `v != True` | `Decimal("5.5")` | yes | no |
-| `v != True` | `"5"` | yes | no |
-| `v != True` | `"true"` | yes | no |
-| `v != True` | `"abc"` | yes | no |
-| `v != True` | `""` | yes | no |
-| `v != True` | `float("nan")` | yes | no |
-| `v != True` | `float("inf")` | yes | no |
-| `v != True` | `date(2026, 6, 1)` | yes | no |
-| `v != True` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
-| `v != True` | `"2026-06-01"` | yes | no |
-| `v != True` | `[5]` | yes | no |
-| `v != True` | `(5,)` | yes | no |
-| `v != True` | `{"a": 5}` | yes | no |
-| `v != date(2026, 1, 1)` | `5` | yes | no |
-| `v != date(2026, 1, 1)` | `0` | yes | no |
-| `v != date(2026, 1, 1)` | `5.5` | yes | no |
-| `v != date(2026, 1, 1)` | `Decimal("5.5")` | yes | no |
-| `v != date(2026, 1, 1)` | `True` | yes | no |
-| `v != date(2026, 1, 1)` | `False` | yes | no |
-| `v != date(2026, 1, 1)` | `"5"` | yes | no |
-| `v != date(2026, 1, 1)` | `"true"` | yes | no |
-| `v != date(2026, 1, 1)` | `"abc"` | yes | no |
-| `v != date(2026, 1, 1)` | `""` | yes | no |
-| `v != date(2026, 1, 1)` | `float("nan")` | yes | no |
-| `v != date(2026, 1, 1)` | `float("inf")` | yes | no |
-| `v != date(2026, 1, 1)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
-| `v != date(2026, 1, 1)` | `"2026-06-01"` | yes | no |
-| `v != date(2026, 1, 1)` | `[5]` | yes | no |
-| `v != date(2026, 1, 1)` | `(5,)` | yes | no |
-| `v != date(2026, 1, 1)` | `{"a": 5}` | yes | no |
-| `v != None` | `5` | yes | no |
-| `v != None` | `0` | yes | no |
-| `v != None` | `5.5` | yes | no |
-| `v != None` | `Decimal("5.5")` | yes | no |
-| `v != None` | `True` | yes | no |
-| `v != None` | `False` | yes | no |
-| `v != None` | `"5"` | yes | no |
-| `v != None` | `"true"` | yes | no |
-| `v != None` | `"abc"` | yes | no |
-| `v != None` | `""` | yes | no |
-| `v != None` | `float("nan")` | yes | no |
-| `v != None` | `float("inf")` | yes | no |
-| `v != None` | `date(2026, 6, 1)` | yes | no |
-| `v != None` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
-| `v != None` | `"2026-06-01"` | yes | no |
-| `v != None` | `[5]` | yes | no |
-| `v != None` | `(5,)` | yes | no |
-| `v != None` | `{"a": 5}` | yes | no |
+| `v != 5.5` | `Decimal("5.5")` | no | yes |
 | `v > 5` | `Decimal("5.5")` | yes | no |
 | `v > "5"` | `"true"` | yes | no |
 | `v > "5"` | `"abc"` | yes | no |
@@ -654,6 +627,536 @@ Each table lists the answers that differ from the default settings. Where a sett
 ### `missing_field=false`
 
 `EngineConfig(missing_field="false")` keeps the 1.x behaviour, where `NOT` over a missing field fires, and turns off the warning about it.
+
+With the matrix's rules and facts, this setting changes no answers.
+
+### `uncomparable=unknown`
+
+`EngineConfig(uncomparable="unknown")` treats a comparison that cannot be made as unknown rather than as a failed check, so a rule fires only when its condition is definitely true: `NOT` over such a comparison does not fire. It changes no plain comparison, only `NOT`.
+
+| Rule | Fact value | Default | With this setting |
+|---|---|---|---|
+| `NOT(v > 5)` | `"5"` | yes | no |
+| `NOT(v > 5)` | `"true"` | yes | no |
+| `NOT(v > 5)` | `"abc"` | yes | no |
+| `NOT(v > 5)` | `""` | yes | no |
+| `NOT(v > 5)` | `None` | yes | no |
+| `NOT(v > 5)` | `float("nan")` | yes | no |
+| `NOT(v > 5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v > 5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v > 5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v > 5)` | `"2026-06-01"` | yes | no |
+| `NOT(v > 5)` | `[5]` | yes | no |
+| `NOT(v > 5)` | `(5,)` | yes | no |
+| `NOT(v > 5)` | `{"a": 5}` | yes | no |
+| `NOT(v > 5.5)` | `"5"` | yes | no |
+| `NOT(v > 5.5)` | `"true"` | yes | no |
+| `NOT(v > 5.5)` | `"abc"` | yes | no |
+| `NOT(v > 5.5)` | `""` | yes | no |
+| `NOT(v > 5.5)` | `None` | yes | no |
+| `NOT(v > 5.5)` | `float("nan")` | yes | no |
+| `NOT(v > 5.5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v > 5.5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v > 5.5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v > 5.5)` | `"2026-06-01"` | yes | no |
+| `NOT(v > 5.5)` | `[5]` | yes | no |
+| `NOT(v > 5.5)` | `(5,)` | yes | no |
+| `NOT(v > 5.5)` | `{"a": 5}` | yes | no |
+| `NOT(v > "5")` | `5` | yes | no |
+| `NOT(v > "5")` | `0` | yes | no |
+| `NOT(v > "5")` | `5.5` | yes | no |
+| `NOT(v > "5")` | `Decimal("5.5")` | yes | no |
+| `NOT(v > "5")` | `True` | yes | no |
+| `NOT(v > "5")` | `False` | yes | no |
+| `NOT(v > "5")` | `None` | yes | no |
+| `NOT(v > "5")` | `float("nan")` | yes | no |
+| `NOT(v > "5")` | `Decimal("NaN")` | yes | no |
+| `NOT(v > "5")` | `float("inf")` | yes | no |
+| `NOT(v > "5")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v > "5")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v > "5")` | `[5]` | yes | no |
+| `NOT(v > "5")` | `(5,)` | yes | no |
+| `NOT(v > "5")` | `{"a": 5}` | yes | no |
+| `NOT(v > "abc")` | `5` | yes | no |
+| `NOT(v > "abc")` | `0` | yes | no |
+| `NOT(v > "abc")` | `5.5` | yes | no |
+| `NOT(v > "abc")` | `Decimal("5.5")` | yes | no |
+| `NOT(v > "abc")` | `True` | yes | no |
+| `NOT(v > "abc")` | `False` | yes | no |
+| `NOT(v > "abc")` | `None` | yes | no |
+| `NOT(v > "abc")` | `float("nan")` | yes | no |
+| `NOT(v > "abc")` | `Decimal("NaN")` | yes | no |
+| `NOT(v > "abc")` | `float("inf")` | yes | no |
+| `NOT(v > "abc")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v > "abc")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v > "abc")` | `[5]` | yes | no |
+| `NOT(v > "abc")` | `(5,)` | yes | no |
+| `NOT(v > "abc")` | `{"a": 5}` | yes | no |
+| `NOT(v > True)` | `"5"` | yes | no |
+| `NOT(v > True)` | `"true"` | yes | no |
+| `NOT(v > True)` | `"abc"` | yes | no |
+| `NOT(v > True)` | `""` | yes | no |
+| `NOT(v > True)` | `None` | yes | no |
+| `NOT(v > True)` | `float("nan")` | yes | no |
+| `NOT(v > True)` | `Decimal("NaN")` | yes | no |
+| `NOT(v > True)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v > True)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v > True)` | `"2026-06-01"` | yes | no |
+| `NOT(v > True)` | `[5]` | yes | no |
+| `NOT(v > True)` | `(5,)` | yes | no |
+| `NOT(v > True)` | `{"a": 5}` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `5` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `0` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `5.5` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `Decimal("5.5")` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `True` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `False` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `"5"` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `"true"` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `"abc"` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `""` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `None` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `float("nan")` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `Decimal("NaN")` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `float("inf")` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `"2026-06-01"` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `[5]` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `(5,)` | yes | no |
+| `NOT(v > date(2026, 1, 1))` | `{"a": 5}` | yes | no |
+| `NOT(v > None)` | `5` | yes | no |
+| `NOT(v > None)` | `0` | yes | no |
+| `NOT(v > None)` | `5.5` | yes | no |
+| `NOT(v > None)` | `Decimal("5.5")` | yes | no |
+| `NOT(v > None)` | `True` | yes | no |
+| `NOT(v > None)` | `False` | yes | no |
+| `NOT(v > None)` | `"5"` | yes | no |
+| `NOT(v > None)` | `"true"` | yes | no |
+| `NOT(v > None)` | `"abc"` | yes | no |
+| `NOT(v > None)` | `""` | yes | no |
+| `NOT(v > None)` | `None` | yes | no |
+| `NOT(v > None)` | `float("nan")` | yes | no |
+| `NOT(v > None)` | `Decimal("NaN")` | yes | no |
+| `NOT(v > None)` | `float("inf")` | yes | no |
+| `NOT(v > None)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v > None)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v > None)` | `"2026-06-01"` | yes | no |
+| `NOT(v > None)` | `[5]` | yes | no |
+| `NOT(v > None)` | `(5,)` | yes | no |
+| `NOT(v > None)` | `{"a": 5}` | yes | no |
+| `NOT(v >= 5)` | `"5"` | yes | no |
+| `NOT(v >= 5)` | `"true"` | yes | no |
+| `NOT(v >= 5)` | `"abc"` | yes | no |
+| `NOT(v >= 5)` | `""` | yes | no |
+| `NOT(v >= 5)` | `None` | yes | no |
+| `NOT(v >= 5)` | `float("nan")` | yes | no |
+| `NOT(v >= 5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v >= 5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v >= 5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v >= 5)` | `"2026-06-01"` | yes | no |
+| `NOT(v >= 5)` | `[5]` | yes | no |
+| `NOT(v >= 5)` | `(5,)` | yes | no |
+| `NOT(v >= 5)` | `{"a": 5}` | yes | no |
+| `NOT(v >= 5.5)` | `"5"` | yes | no |
+| `NOT(v >= 5.5)` | `"true"` | yes | no |
+| `NOT(v >= 5.5)` | `"abc"` | yes | no |
+| `NOT(v >= 5.5)` | `""` | yes | no |
+| `NOT(v >= 5.5)` | `None` | yes | no |
+| `NOT(v >= 5.5)` | `float("nan")` | yes | no |
+| `NOT(v >= 5.5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v >= 5.5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v >= 5.5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v >= 5.5)` | `"2026-06-01"` | yes | no |
+| `NOT(v >= 5.5)` | `[5]` | yes | no |
+| `NOT(v >= 5.5)` | `(5,)` | yes | no |
+| `NOT(v >= 5.5)` | `{"a": 5}` | yes | no |
+| `NOT(v >= "5")` | `5` | yes | no |
+| `NOT(v >= "5")` | `0` | yes | no |
+| `NOT(v >= "5")` | `5.5` | yes | no |
+| `NOT(v >= "5")` | `Decimal("5.5")` | yes | no |
+| `NOT(v >= "5")` | `True` | yes | no |
+| `NOT(v >= "5")` | `False` | yes | no |
+| `NOT(v >= "5")` | `None` | yes | no |
+| `NOT(v >= "5")` | `float("nan")` | yes | no |
+| `NOT(v >= "5")` | `Decimal("NaN")` | yes | no |
+| `NOT(v >= "5")` | `float("inf")` | yes | no |
+| `NOT(v >= "5")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v >= "5")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v >= "5")` | `[5]` | yes | no |
+| `NOT(v >= "5")` | `(5,)` | yes | no |
+| `NOT(v >= "5")` | `{"a": 5}` | yes | no |
+| `NOT(v >= "abc")` | `5` | yes | no |
+| `NOT(v >= "abc")` | `0` | yes | no |
+| `NOT(v >= "abc")` | `5.5` | yes | no |
+| `NOT(v >= "abc")` | `Decimal("5.5")` | yes | no |
+| `NOT(v >= "abc")` | `True` | yes | no |
+| `NOT(v >= "abc")` | `False` | yes | no |
+| `NOT(v >= "abc")` | `None` | yes | no |
+| `NOT(v >= "abc")` | `float("nan")` | yes | no |
+| `NOT(v >= "abc")` | `Decimal("NaN")` | yes | no |
+| `NOT(v >= "abc")` | `float("inf")` | yes | no |
+| `NOT(v >= "abc")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v >= "abc")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v >= "abc")` | `[5]` | yes | no |
+| `NOT(v >= "abc")` | `(5,)` | yes | no |
+| `NOT(v >= "abc")` | `{"a": 5}` | yes | no |
+| `NOT(v >= True)` | `"5"` | yes | no |
+| `NOT(v >= True)` | `"true"` | yes | no |
+| `NOT(v >= True)` | `"abc"` | yes | no |
+| `NOT(v >= True)` | `""` | yes | no |
+| `NOT(v >= True)` | `None` | yes | no |
+| `NOT(v >= True)` | `float("nan")` | yes | no |
+| `NOT(v >= True)` | `Decimal("NaN")` | yes | no |
+| `NOT(v >= True)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v >= True)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v >= True)` | `"2026-06-01"` | yes | no |
+| `NOT(v >= True)` | `[5]` | yes | no |
+| `NOT(v >= True)` | `(5,)` | yes | no |
+| `NOT(v >= True)` | `{"a": 5}` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `5` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `0` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `5.5` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `Decimal("5.5")` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `True` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `False` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `"5"` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `"true"` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `"abc"` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `""` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `None` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `float("nan")` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `Decimal("NaN")` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `float("inf")` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `"2026-06-01"` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `[5]` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `(5,)` | yes | no |
+| `NOT(v >= date(2026, 1, 1))` | `{"a": 5}` | yes | no |
+| `NOT(v >= None)` | `5` | yes | no |
+| `NOT(v >= None)` | `0` | yes | no |
+| `NOT(v >= None)` | `5.5` | yes | no |
+| `NOT(v >= None)` | `Decimal("5.5")` | yes | no |
+| `NOT(v >= None)` | `True` | yes | no |
+| `NOT(v >= None)` | `False` | yes | no |
+| `NOT(v >= None)` | `"5"` | yes | no |
+| `NOT(v >= None)` | `"true"` | yes | no |
+| `NOT(v >= None)` | `"abc"` | yes | no |
+| `NOT(v >= None)` | `""` | yes | no |
+| `NOT(v >= None)` | `None` | yes | no |
+| `NOT(v >= None)` | `float("nan")` | yes | no |
+| `NOT(v >= None)` | `Decimal("NaN")` | yes | no |
+| `NOT(v >= None)` | `float("inf")` | yes | no |
+| `NOT(v >= None)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v >= None)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v >= None)` | `"2026-06-01"` | yes | no |
+| `NOT(v >= None)` | `[5]` | yes | no |
+| `NOT(v >= None)` | `(5,)` | yes | no |
+| `NOT(v >= None)` | `{"a": 5}` | yes | no |
+| `NOT(v < 5)` | `"5"` | yes | no |
+| `NOT(v < 5)` | `"true"` | yes | no |
+| `NOT(v < 5)` | `"abc"` | yes | no |
+| `NOT(v < 5)` | `""` | yes | no |
+| `NOT(v < 5)` | `None` | yes | no |
+| `NOT(v < 5)` | `float("nan")` | yes | no |
+| `NOT(v < 5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v < 5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v < 5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v < 5)` | `"2026-06-01"` | yes | no |
+| `NOT(v < 5)` | `[5]` | yes | no |
+| `NOT(v < 5)` | `(5,)` | yes | no |
+| `NOT(v < 5)` | `{"a": 5}` | yes | no |
+| `NOT(v < 5.5)` | `"5"` | yes | no |
+| `NOT(v < 5.5)` | `"true"` | yes | no |
+| `NOT(v < 5.5)` | `"abc"` | yes | no |
+| `NOT(v < 5.5)` | `""` | yes | no |
+| `NOT(v < 5.5)` | `None` | yes | no |
+| `NOT(v < 5.5)` | `float("nan")` | yes | no |
+| `NOT(v < 5.5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v < 5.5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v < 5.5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v < 5.5)` | `"2026-06-01"` | yes | no |
+| `NOT(v < 5.5)` | `[5]` | yes | no |
+| `NOT(v < 5.5)` | `(5,)` | yes | no |
+| `NOT(v < 5.5)` | `{"a": 5}` | yes | no |
+| `NOT(v < "5")` | `5` | yes | no |
+| `NOT(v < "5")` | `0` | yes | no |
+| `NOT(v < "5")` | `5.5` | yes | no |
+| `NOT(v < "5")` | `Decimal("5.5")` | yes | no |
+| `NOT(v < "5")` | `True` | yes | no |
+| `NOT(v < "5")` | `False` | yes | no |
+| `NOT(v < "5")` | `None` | yes | no |
+| `NOT(v < "5")` | `float("nan")` | yes | no |
+| `NOT(v < "5")` | `Decimal("NaN")` | yes | no |
+| `NOT(v < "5")` | `float("inf")` | yes | no |
+| `NOT(v < "5")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v < "5")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v < "5")` | `[5]` | yes | no |
+| `NOT(v < "5")` | `(5,)` | yes | no |
+| `NOT(v < "5")` | `{"a": 5}` | yes | no |
+| `NOT(v < "abc")` | `5` | yes | no |
+| `NOT(v < "abc")` | `0` | yes | no |
+| `NOT(v < "abc")` | `5.5` | yes | no |
+| `NOT(v < "abc")` | `Decimal("5.5")` | yes | no |
+| `NOT(v < "abc")` | `True` | yes | no |
+| `NOT(v < "abc")` | `False` | yes | no |
+| `NOT(v < "abc")` | `None` | yes | no |
+| `NOT(v < "abc")` | `float("nan")` | yes | no |
+| `NOT(v < "abc")` | `Decimal("NaN")` | yes | no |
+| `NOT(v < "abc")` | `float("inf")` | yes | no |
+| `NOT(v < "abc")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v < "abc")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v < "abc")` | `[5]` | yes | no |
+| `NOT(v < "abc")` | `(5,)` | yes | no |
+| `NOT(v < "abc")` | `{"a": 5}` | yes | no |
+| `NOT(v < True)` | `"5"` | yes | no |
+| `NOT(v < True)` | `"true"` | yes | no |
+| `NOT(v < True)` | `"abc"` | yes | no |
+| `NOT(v < True)` | `""` | yes | no |
+| `NOT(v < True)` | `None` | yes | no |
+| `NOT(v < True)` | `float("nan")` | yes | no |
+| `NOT(v < True)` | `Decimal("NaN")` | yes | no |
+| `NOT(v < True)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v < True)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v < True)` | `"2026-06-01"` | yes | no |
+| `NOT(v < True)` | `[5]` | yes | no |
+| `NOT(v < True)` | `(5,)` | yes | no |
+| `NOT(v < True)` | `{"a": 5}` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `5` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `0` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `5.5` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `Decimal("5.5")` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `True` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `False` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `"5"` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `"true"` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `"abc"` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `""` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `None` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `float("nan")` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `Decimal("NaN")` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `float("inf")` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `"2026-06-01"` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `[5]` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `(5,)` | yes | no |
+| `NOT(v < date(2026, 1, 1))` | `{"a": 5}` | yes | no |
+| `NOT(v < None)` | `5` | yes | no |
+| `NOT(v < None)` | `0` | yes | no |
+| `NOT(v < None)` | `5.5` | yes | no |
+| `NOT(v < None)` | `Decimal("5.5")` | yes | no |
+| `NOT(v < None)` | `True` | yes | no |
+| `NOT(v < None)` | `False` | yes | no |
+| `NOT(v < None)` | `"5"` | yes | no |
+| `NOT(v < None)` | `"true"` | yes | no |
+| `NOT(v < None)` | `"abc"` | yes | no |
+| `NOT(v < None)` | `""` | yes | no |
+| `NOT(v < None)` | `None` | yes | no |
+| `NOT(v < None)` | `float("nan")` | yes | no |
+| `NOT(v < None)` | `Decimal("NaN")` | yes | no |
+| `NOT(v < None)` | `float("inf")` | yes | no |
+| `NOT(v < None)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v < None)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v < None)` | `"2026-06-01"` | yes | no |
+| `NOT(v < None)` | `[5]` | yes | no |
+| `NOT(v < None)` | `(5,)` | yes | no |
+| `NOT(v < None)` | `{"a": 5}` | yes | no |
+| `NOT(v <= 5)` | `"5"` | yes | no |
+| `NOT(v <= 5)` | `"true"` | yes | no |
+| `NOT(v <= 5)` | `"abc"` | yes | no |
+| `NOT(v <= 5)` | `""` | yes | no |
+| `NOT(v <= 5)` | `None` | yes | no |
+| `NOT(v <= 5)` | `float("nan")` | yes | no |
+| `NOT(v <= 5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v <= 5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v <= 5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v <= 5)` | `"2026-06-01"` | yes | no |
+| `NOT(v <= 5)` | `[5]` | yes | no |
+| `NOT(v <= 5)` | `(5,)` | yes | no |
+| `NOT(v <= 5)` | `{"a": 5}` | yes | no |
+| `NOT(v <= 5.5)` | `"5"` | yes | no |
+| `NOT(v <= 5.5)` | `"true"` | yes | no |
+| `NOT(v <= 5.5)` | `"abc"` | yes | no |
+| `NOT(v <= 5.5)` | `""` | yes | no |
+| `NOT(v <= 5.5)` | `None` | yes | no |
+| `NOT(v <= 5.5)` | `float("nan")` | yes | no |
+| `NOT(v <= 5.5)` | `Decimal("NaN")` | yes | no |
+| `NOT(v <= 5.5)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v <= 5.5)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v <= 5.5)` | `"2026-06-01"` | yes | no |
+| `NOT(v <= 5.5)` | `[5]` | yes | no |
+| `NOT(v <= 5.5)` | `(5,)` | yes | no |
+| `NOT(v <= 5.5)` | `{"a": 5}` | yes | no |
+| `NOT(v <= "5")` | `5` | yes | no |
+| `NOT(v <= "5")` | `0` | yes | no |
+| `NOT(v <= "5")` | `5.5` | yes | no |
+| `NOT(v <= "5")` | `Decimal("5.5")` | yes | no |
+| `NOT(v <= "5")` | `True` | yes | no |
+| `NOT(v <= "5")` | `False` | yes | no |
+| `NOT(v <= "5")` | `None` | yes | no |
+| `NOT(v <= "5")` | `float("nan")` | yes | no |
+| `NOT(v <= "5")` | `Decimal("NaN")` | yes | no |
+| `NOT(v <= "5")` | `float("inf")` | yes | no |
+| `NOT(v <= "5")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v <= "5")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v <= "5")` | `[5]` | yes | no |
+| `NOT(v <= "5")` | `(5,)` | yes | no |
+| `NOT(v <= "5")` | `{"a": 5}` | yes | no |
+| `NOT(v <= "abc")` | `5` | yes | no |
+| `NOT(v <= "abc")` | `0` | yes | no |
+| `NOT(v <= "abc")` | `5.5` | yes | no |
+| `NOT(v <= "abc")` | `Decimal("5.5")` | yes | no |
+| `NOT(v <= "abc")` | `True` | yes | no |
+| `NOT(v <= "abc")` | `False` | yes | no |
+| `NOT(v <= "abc")` | `None` | yes | no |
+| `NOT(v <= "abc")` | `float("nan")` | yes | no |
+| `NOT(v <= "abc")` | `Decimal("NaN")` | yes | no |
+| `NOT(v <= "abc")` | `float("inf")` | yes | no |
+| `NOT(v <= "abc")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v <= "abc")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v <= "abc")` | `[5]` | yes | no |
+| `NOT(v <= "abc")` | `(5,)` | yes | no |
+| `NOT(v <= "abc")` | `{"a": 5}` | yes | no |
+| `NOT(v <= True)` | `"5"` | yes | no |
+| `NOT(v <= True)` | `"true"` | yes | no |
+| `NOT(v <= True)` | `"abc"` | yes | no |
+| `NOT(v <= True)` | `""` | yes | no |
+| `NOT(v <= True)` | `None` | yes | no |
+| `NOT(v <= True)` | `float("nan")` | yes | no |
+| `NOT(v <= True)` | `Decimal("NaN")` | yes | no |
+| `NOT(v <= True)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v <= True)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v <= True)` | `"2026-06-01"` | yes | no |
+| `NOT(v <= True)` | `[5]` | yes | no |
+| `NOT(v <= True)` | `(5,)` | yes | no |
+| `NOT(v <= True)` | `{"a": 5}` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `5` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `0` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `5.5` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `Decimal("5.5")` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `True` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `False` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `"5"` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `"true"` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `"abc"` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `""` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `None` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `float("nan")` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `Decimal("NaN")` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `float("inf")` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `"2026-06-01"` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `[5]` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `(5,)` | yes | no |
+| `NOT(v <= date(2026, 1, 1))` | `{"a": 5}` | yes | no |
+| `NOT(v <= None)` | `5` | yes | no |
+| `NOT(v <= None)` | `0` | yes | no |
+| `NOT(v <= None)` | `5.5` | yes | no |
+| `NOT(v <= None)` | `Decimal("5.5")` | yes | no |
+| `NOT(v <= None)` | `True` | yes | no |
+| `NOT(v <= None)` | `False` | yes | no |
+| `NOT(v <= None)` | `"5"` | yes | no |
+| `NOT(v <= None)` | `"true"` | yes | no |
+| `NOT(v <= None)` | `"abc"` | yes | no |
+| `NOT(v <= None)` | `""` | yes | no |
+| `NOT(v <= None)` | `None` | yes | no |
+| `NOT(v <= None)` | `float("nan")` | yes | no |
+| `NOT(v <= None)` | `Decimal("NaN")` | yes | no |
+| `NOT(v <= None)` | `float("inf")` | yes | no |
+| `NOT(v <= None)` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v <= None)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v <= None)` | `"2026-06-01"` | yes | no |
+| `NOT(v <= None)` | `[5]` | yes | no |
+| `NOT(v <= None)` | `(5,)` | yes | no |
+| `NOT(v <= None)` | `{"a": 5}` | yes | no |
+| `NOT(v contains "a")` | `5` | yes | no |
+| `NOT(v contains "a")` | `0` | yes | no |
+| `NOT(v contains "a")` | `5.5` | yes | no |
+| `NOT(v contains "a")` | `Decimal("5.5")` | yes | no |
+| `NOT(v contains "a")` | `True` | yes | no |
+| `NOT(v contains "a")` | `False` | yes | no |
+| `NOT(v contains "a")` | `float("nan")` | yes | no |
+| `NOT(v contains "a")` | `Decimal("NaN")` | yes | no |
+| `NOT(v contains "a")` | `float("inf")` | yes | no |
+| `NOT(v contains "a")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v contains "a")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v contains "5")` | `5` | yes | no |
+| `NOT(v contains "5")` | `0` | yes | no |
+| `NOT(v contains "5")` | `5.5` | yes | no |
+| `NOT(v contains "5")` | `Decimal("5.5")` | yes | no |
+| `NOT(v contains "5")` | `True` | yes | no |
+| `NOT(v contains "5")` | `False` | yes | no |
+| `NOT(v contains "5")` | `float("nan")` | yes | no |
+| `NOT(v contains "5")` | `Decimal("NaN")` | yes | no |
+| `NOT(v contains "5")` | `float("inf")` | yes | no |
+| `NOT(v contains "5")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v contains "5")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v contains "(")` | `5` | yes | no |
+| `NOT(v contains "(")` | `0` | yes | no |
+| `NOT(v contains "(")` | `5.5` | yes | no |
+| `NOT(v contains "(")` | `Decimal("5.5")` | yes | no |
+| `NOT(v contains "(")` | `True` | yes | no |
+| `NOT(v contains "(")` | `False` | yes | no |
+| `NOT(v contains "(")` | `float("nan")` | yes | no |
+| `NOT(v contains "(")` | `Decimal("NaN")` | yes | no |
+| `NOT(v contains "(")` | `float("inf")` | yes | no |
+| `NOT(v contains "(")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v contains "(")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v not_contains "a")` | `5` | yes | no |
+| `NOT(v not_contains "a")` | `0` | yes | no |
+| `NOT(v not_contains "a")` | `5.5` | yes | no |
+| `NOT(v not_contains "a")` | `Decimal("5.5")` | yes | no |
+| `NOT(v not_contains "a")` | `True` | yes | no |
+| `NOT(v not_contains "a")` | `False` | yes | no |
+| `NOT(v not_contains "a")` | `float("nan")` | yes | no |
+| `NOT(v not_contains "a")` | `Decimal("NaN")` | yes | no |
+| `NOT(v not_contains "a")` | `float("inf")` | yes | no |
+| `NOT(v not_contains "a")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v not_contains "a")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v not_contains "5")` | `5` | yes | no |
+| `NOT(v not_contains "5")` | `0` | yes | no |
+| `NOT(v not_contains "5")` | `5.5` | yes | no |
+| `NOT(v not_contains "5")` | `Decimal("5.5")` | yes | no |
+| `NOT(v not_contains "5")` | `True` | yes | no |
+| `NOT(v not_contains "5")` | `False` | yes | no |
+| `NOT(v not_contains "5")` | `float("nan")` | yes | no |
+| `NOT(v not_contains "5")` | `Decimal("NaN")` | yes | no |
+| `NOT(v not_contains "5")` | `float("inf")` | yes | no |
+| `NOT(v not_contains "5")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v not_contains "5")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v not_contains "(")` | `5` | yes | no |
+| `NOT(v not_contains "(")` | `0` | yes | no |
+| `NOT(v not_contains "(")` | `5.5` | yes | no |
+| `NOT(v not_contains "(")` | `Decimal("5.5")` | yes | no |
+| `NOT(v not_contains "(")` | `True` | yes | no |
+| `NOT(v not_contains "(")` | `False` | yes | no |
+| `NOT(v not_contains "(")` | `float("nan")` | yes | no |
+| `NOT(v not_contains "(")` | `Decimal("NaN")` | yes | no |
+| `NOT(v not_contains "(")` | `float("inf")` | yes | no |
+| `NOT(v not_contains "(")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v not_contains "(")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v regex "(")` | `5` | yes | no |
+| `NOT(v regex "(")` | `0` | yes | no |
+| `NOT(v regex "(")` | `5.5` | yes | no |
+| `NOT(v regex "(")` | `Decimal("5.5")` | yes | no |
+| `NOT(v regex "(")` | `True` | yes | no |
+| `NOT(v regex "(")` | `False` | yes | no |
+| `NOT(v regex "(")` | `"5"` | yes | no |
+| `NOT(v regex "(")` | `"true"` | yes | no |
+| `NOT(v regex "(")` | `"abc"` | yes | no |
+| `NOT(v regex "(")` | `""` | yes | no |
+| `NOT(v regex "(")` | `float("nan")` | yes | no |
+| `NOT(v regex "(")` | `Decimal("NaN")` | yes | no |
+| `NOT(v regex "(")` | `float("inf")` | yes | no |
+| `NOT(v regex "(")` | `date(2026, 6, 1)` | yes | no |
+| `NOT(v regex "(")` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
+| `NOT(v regex "(")` | `"2026-06-01"` | yes | no |
+| `NOT(v regex "(")` | `[5]` | yes | no |
+| `NOT(v regex "(")` | `(5,)` | yes | no |
+| `NOT(v regex "(")` | `{"a": 5}` | yes | no |
+
+### `uncomparable=false`
+
+`EngineConfig(uncomparable="false")` keeps the default answers and turns off the `ComparisonWarning`. The issues are still listed in the result.
 
 With the matrix's rules and facts, this setting changes no answers.
 

@@ -2,9 +2,11 @@
 
 Each setting builds one rule set holding a rule per (operator, rule value,
 wrapper) case, so a path evaluates every case in one call per fact. A path's
-answer for a fact is the set of rule ids that fired; two paths agree when the
-sets are equal. ``tests/engine/test_comparison_matrix.py`` asserts the paths
-agree, and ``scripts/comparison_table.py`` prints what they answer.
+answer for a fact is an :class:`Outcome`: the rule ids that fired, the
+comparisons that could not be made, and whether the evaluation raised. Two
+paths agree when their outcomes are equal.
+``tests/engine/test_comparison_matrix.py`` asserts the paths agree, and
+``tests/engine/comparison_page.py`` renders what they answer.
 """
 
 from __future__ import annotations
@@ -13,13 +15,19 @@ import math
 import warnings
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
 from fluxrules import Rule, evaluate
-from fluxrules.domain.errors import MembershipValueWarning, MissingFieldNotWarning
+from fluxrules.domain.comparison_issues import ComparisonIssue
+from fluxrules.domain.errors import (
+    ComparisonWarning,
+    MembershipValueWarning,
+    MissingFieldNotWarning,
+    UncomparableValuesError,
+)
 from fluxrules.engine.configuration import EngineConfig, get_config, set_config
 from fluxrules.engine.phreak import PhreakEngine
 
@@ -40,6 +48,7 @@ FACT_VALUES: dict[str, Any] = {
     "str ''": "",
     "None": None,
     "NaN": math.nan,
+    "Decimal NaN": Decimal("NaN"),
     "inf": math.inf,
     "date": date(2026, 6, 1),
     "datetime": datetime(2026, 6, 1, 12, 0),
@@ -88,6 +97,9 @@ CONFIGS: dict[str, EngineConfig] = {
     "boolean_string_coercion": EngineConfig(boolean_string_coercion=True),
     "missing_field=unknown": EngineConfig(missing_field="unknown"),
     "missing_field=false": EngineConfig(missing_field="false"),
+    "uncomparable=unknown": EngineConfig(uncomparable="unknown"),
+    "uncomparable=false": EngineConfig(uncomparable="false"),
+    "uncomparable=raise": EngineConfig(uncomparable="raise"),
 }
 
 WRAPPERS = ("plain", "NOT", "AND", "OR")
@@ -166,6 +178,7 @@ def quiet() -> Iterator[None]:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", MembershipValueWarning)
         warnings.simplefilter("ignore", MissingFieldNotWarning)
+        warnings.simplefilter("ignore", ComparisonWarning)
         yield
 
 
@@ -180,9 +193,34 @@ def process_config(config: EngineConfig) -> Iterator[None]:
         set_config(old)
 
 
-# A path's answer for one fact: the ids of the rules that fired, or None when
-# the path cannot take that fact (a JSON path given a Decimal, for example).
-Answer = frozenset[int] | None
+@dataclass(frozen=True)
+class Outcome:
+    """What a path answered for one fact."""
+
+    fired: frozenset[int] = frozenset()
+    # The comparisons that could not be made, or None when the path does not
+    # list them (CrossFactEngine).
+    issues: frozenset[ComparisonIssue] | None = None
+    # The evaluation raised UncomparableValuesError (uncomparable="raise").
+    raised: bool = False
+
+
+# A path's answer for one fact, or None when the path cannot take that fact
+# (a JSON path given a Decimal, for example).
+Answer = Outcome | None
+
+
+def outcome_of(result: Any) -> Outcome:
+    """The :class:`Outcome` of an ``EvaluationResult``."""
+    return Outcome(frozenset(result.fired_rules), frozenset(result.comparison_issues))
+
+
+def evaluated(run: Callable[[], Any]) -> Outcome:
+    """Run one evaluation; an ``UncomparableValuesError`` is a raised outcome."""
+    try:
+        return outcome_of(run())
+    except UncomparableValuesError:
+        return Outcome(raised=True)
 
 
 @dataclass(frozen=True)
@@ -206,7 +244,7 @@ def _engine_path(name: str, **options: Any) -> EvalPath:
             # Streaming must see each fact first, so it gets a fresh engine.
             engine = PhreakEngine(config=config, **options)
             engine.load_rules(rules)
-            out.append(frozenset(engine.evaluate(fact).fired_rules))
+            out.append(evaluated(lambda: engine.evaluate(fact)))  # noqa: B023
         return out
 
     return EvalPath(name, run)
@@ -216,7 +254,15 @@ def _batch_path(name: str, workers: int | None) -> EvalPath:
     def run(cases, rules, config, facts):
         engine = PhreakEngine(config=config)
         engine.load_rules(rules)
-        return [frozenset(r.fired_rules) for r in engine.evaluate_batch(facts, workers=workers)]
+        if config.uncomparable == "raise":
+            # A batch stops at its first error, so each fact gets its own call.
+            # One fact runs in this process even with workers; that workers
+            # pass the error back is tested in tests/unit/test_uncomparable.py.
+            return [
+                evaluated(lambda: engine.evaluate_batch([fact], workers=workers)[0])  # noqa: B023
+                for fact in facts
+            ]
+        return [outcome_of(r) for r in engine.evaluate_batch(facts, workers=workers)]
 
     return EvalPath(name, run)
 
@@ -305,7 +351,7 @@ def yaml_path(workdir: Any) -> EvalPath:
 
 def _evaluate_run(cases, rules, config, facts):
     with process_config(config):
-        return [frozenset(evaluate(rules, fact).fired_rules) for fact in facts]
+        return [evaluated(lambda: evaluate(rules, fact)) for fact in facts]  # noqa: B023
 
 
 def _cross_fact_supports(case: Case) -> bool:
@@ -336,8 +382,13 @@ def _cross_fact_run(cases, rules, config, facts):
         for fact in facts:
             engine = CrossFactEngine()
             engine.load_rules(cross_rules)
-            engine.insert("Fact", fact)
-            out.append(frozenset(a.rule_id for a in engine.activations()))
+            try:
+                engine.insert("Fact", fact)
+            except UncomparableValuesError:
+                out.append(Outcome(raised=True))
+                continue
+            # CrossFactEngine warns and raises, but does not list issues.
+            out.append(Outcome(frozenset(a.rule_id for a in engine.activations())))
     return out
 
 
@@ -354,10 +405,20 @@ def _sql_prefilter_run(cases, rules, config, facts):
     for fact in facts:
         store = FactPreFilterStore(engine=create_engine("sqlite://"))
         try:
-            results, _ = PreFilteredEvaluator(engine, store).run([fact])
+            results, stats = PreFilteredEvaluator(engine, store).run([fact])
+        except UncomparableValuesError:
+            out.append(Outcome(raised=True))
+            continue
         finally:
             store.dispose()
-        out.append(frozenset(results[0].fired_rules) if results else frozenset())
+        if results:
+            out.append(outcome_of(results[0]))
+        elif stats.candidate_facts == 0 and config.uncomparable == "raise":
+            # Screened out, so never evaluated: it cannot raise.
+            out.append(None)
+        else:
+            # run() returns only facts that fired, so their issues are unknown.
+            out.append(Outcome(frozenset()))
     return out
 
 
@@ -424,6 +485,8 @@ def _config_yaml(config: EngineConfig) -> str:
     ]
     if config.missing_field is not None:
         lines.append(f"missing_field: {config.missing_field}")
+    if config.uncomparable is not None:
+        lines.append(f"uncomparable: {config.uncomparable}")
     return "\n".join(lines) + "\n"
 
 
@@ -464,10 +527,18 @@ def cli_path(workdir: Any) -> EvalPath:
                     str(config_file),
                 ],
             )
+            if result.exit_code == 1 and "Cannot compare" in result.output:
+                out.append(Outcome(raised=True))
+                continue
             if result.exit_code != 0:
                 raise AssertionError(f"fluxrules evaluate failed on {fact!r}: {result.output}")
             body = json.loads(result.stdout)
-            out.append(frozenset(r["id"] for r in body["matched_rules"]))
+            out.append(
+                Outcome(
+                    frozenset(r["id"] for r in body["matched_rules"]),
+                    frozenset(ComparisonIssue(**i) for i in body["comparison_issues"]),
+                )
+            )
         return out
 
     return EvalPath("CLI", run, _json_supports)
@@ -482,10 +553,11 @@ def http_path(client: Any, session_factory: Any) -> EvalPath:
     """
     from fluxrules.persistence.mappers import domain_rule_to_orm
 
-    group = "comparison_matrix"
+    # One stored ruleset per set of cases the matrix sends.
+    rulesets: dict[frozenset[int], str] = {}
     orm_id_to_case: dict[int, int] = {}
 
-    def store(cases: list[Case]) -> None:
+    def store(cases: list[Case], group: str) -> None:
         with quiet():
             json_rules = [Rule(**doc) for doc in rule_document(cases)]
         db = session_factory()
@@ -500,20 +572,44 @@ def http_path(client: Any, session_factory: Any) -> EvalPath:
         finally:
             db.close()
 
+    def outcome(result: dict[str, Any]) -> Outcome:
+        return Outcome(
+            frozenset(orm_id_to_case[rid] for rid in result["matched_rules"]),
+            frozenset(ComparisonIssue(**i) for i in result["comparison_issues"]),
+        )
+
     def run(cases, rules, config, facts):
-        if not orm_id_to_case:
-            store(cases)
-        sendable = [i for i, fact in enumerate(facts) if is_json_value(fact)]
-        with process_config(config):  # the server runs in this process
-            response = client.post(
-                "/api/v1/evaluate/bulk",
-                json={"facts": [facts[i] for i in sendable], "ruleset_id": group},
+        ids = frozenset(c.rule_id for c in cases)
+        if ids not in rulesets:
+            rulesets[ids] = f"comparison_matrix_{len(rulesets)}"
+            store(cases, rulesets[ids])
+        group = rulesets[ids]
+
+        def post(fact_list: list[dict[str, Any]]) -> Any:
+            return client.post(
+                "/api/v1/evaluate/bulk", json={"facts": fact_list, "ruleset_id": group}
             )
+
+        sendable = [i for i, fact in enumerate(facts) if is_json_value(fact)]
+        out: list[Answer] = [None] * len(facts)
+        with process_config(config):  # the server runs in this process
+            if config.uncomparable == "raise":
+                # The request fails at the first fact that raises, so send
+                # each fact on its own.
+                for i in sendable:
+                    response = post([facts[i]])
+                    if response.status_code == 422:
+                        assert response.json()["error"] == "UNCOMPARABLE_VALUES"
+                        out[i] = Outcome(raised=True)
+                    else:
+                        assert response.status_code == 200, response.text
+                        out[i] = outcome(response.json()["results"][0])
+                return out
+            response = post([facts[i] for i in sendable])
         assert response.status_code == 200, response.text
         results = response.json()["results"]
-        out: list[Answer] = [None] * len(facts)
         for i, result in zip(sendable, results, strict=True):
-            out[i] = frozenset(orm_id_to_case[rid] for rid in result["matched_rules"])
+            out[i] = outcome(result)
         return out
 
     return EvalPath("HTTP API", run, _json_supports)
@@ -527,6 +623,7 @@ class Disagreement:
     case: str
     reference: bool
     got: bool
+    detail: str = ""
 
 
 @dataclass
@@ -537,46 +634,137 @@ class MatrixResult:
     disagreements: list[Disagreement]
     # (path name, config label) -> number of (fact, case) answers compared
     compared: dict[tuple[str, str], int]
+    # (config label, fact label) -> the reference path's comparison issues
+    issues: dict[tuple[str, str], frozenset[ComparisonIssue]] = field(default_factory=dict)
+    # (config label, fact label) -> did the reference path raise
+    raised: dict[tuple[str, str], bool] = field(default_factory=dict)
+
+
+def _describe_issues(issues: frozenset[ComparisonIssue] | None) -> str:
+    if not issues:
+        return "none"
+    return "; ".join(
+        sorted(f"{i.operator} {i.fact_type}/{i.rule_type}: {i.reason}" for i in issues)
+    )
 
 
 def run_matrix(
     configs: dict[str, EngineConfig] | None = None,
     extra_paths: list[EvalPath] | None = None,
 ) -> MatrixResult:
-    """Evaluate every case on every path and compare each with the reference."""
+    """Evaluate every case on every path and compare each with the reference.
+
+    A path is compared on the rules that fired for each case it supports, on
+    whether it raised, and, when it lists them, on its comparison issues. A
+    path that supports only some cases is compared with the reference path
+    run on those cases alone, since issues are per evaluation, not per rule.
+
+    Each wrapper (plain, NOT, AND, OR) is evaluated on its own. In one engine
+    the NOT rule, which the alpha prefilter never skips, reports the same issue
+    as its plain twin, and so would hide a prefilter that wrongly skips the
+    plain rule.
+    """
     cases, rules = build_cases()
+    rules_by_id = {rule.id: rule for rule in rules}
     facts = build_facts()
-    fact_dicts = [fact for _, fact in facts]
     paths = {**PATHS, **{p.name: p for p in extra_paths or []}}
-    reference_answers: dict[tuple[str, str, int], bool] = {}
-    disagreements: list[Disagreement] = []
-    compared: dict[tuple[str, str], int] = {}
+    result = MatrixResult(cases, {}, [], {})
     with quiet():
         for config_label, config in (configs or CONFIGS).items():
-            results = {
-                name: path.run(cases, rules, config, fact_dicts) for name, path in paths.items()
-            }
-            reference = results[REFERENCE_PATH]
-            for (fact_label, _), ref in zip(facts, reference, strict=True):
-                for case in cases:
-                    reference_answers[(config_label, fact_label, case.rule_id)] = (
-                        case.rule_id in ref
+            for wrapper in WRAPPERS:
+                group = [c for c in cases if c.wrapper == wrapper]
+                group_rules = [rules_by_id[c.rule_id] for c in group]
+                _compare_group(
+                    result, paths, config_label, config, wrapper, group, group_rules, facts
+                )
+    return result
+
+
+def _compare_group(
+    result: MatrixResult,
+    paths: dict[str, EvalPath],
+    config_label: str,
+    config: EngineConfig,
+    wrapper: str,
+    cases: list[Case],
+    rules: list[Rule],
+    facts: list[tuple[str, dict[str, Any]]],
+) -> None:
+    """Run the cases of one wrapper on every path and record what differs."""
+    fact_dicts = [fact for _, fact in facts]
+    reference_path = paths[REFERENCE_PATH]
+    supported_by = {name: [c for c in cases if path.supports(c)] for name, path in paths.items()}
+    answers = {
+        name: path.run(cases, rules, config, fact_dicts)
+        for name, path in paths.items()
+        if supported_by[name]
+    }
+    reference = answers[REFERENCE_PATH]
+    for (fact_label, _), ref in zip(facts, reference, strict=True):
+        assert ref is not None
+        key = (config_label, fact_label)
+        result.issues[key] = result.issues.get(key, frozenset()) | (ref.issues or frozenset())
+        result.raised[key] = result.raised.get(key, False) or ref.raised
+        for case in cases:
+            result.reference[(config_label, fact_label, case.rule_id)] = case.rule_id in ref.fired
+    # The reference run on a subset of cases, for paths that take only some.
+    subset_reference: dict[frozenset[int], list[Answer]] = {}
+    for name, got_answers in answers.items():
+        supported = supported_by[name]
+        ids = frozenset(c.rule_id for c in supported)
+        if len(supported) == len(cases):
+            issue_reference = reference
+        else:
+            if ids not in subset_reference:
+                subset_rules = [r for r in rules if r.id in ids]
+                subset_reference[ids] = reference_path.run(
+                    supported, subset_rules, config, fact_dicts
+                )
+            issue_reference = subset_reference[ids]
+        count = 0
+        for (fact_label, _), ref, sub, got in zip(
+            facts, reference, issue_reference, got_answers, strict=True
+        ):
+            if got is None:
+                continue
+            assert ref is not None and sub is not None
+            count += 1
+            if sub.raised != got.raised:
+                result.disagreements.append(
+                    Disagreement(
+                        config_label,
+                        name,
+                        fact_label,
+                        f"(raised, {wrapper})",
+                        sub.raised,
+                        got.raised,
                     )
-            for name, answers in results.items():
-                supported = [c for c in cases if paths[name].supports(c)]
-                count = 0
-                for (fact_label, _), ref, got in zip(facts, reference, answers, strict=True):
-                    if got is None:
-                        continue
-                    for case in supported:
-                        count += 1
-                        r, g = case.rule_id in ref, case.rule_id in got
-                        if r != g:
-                            disagreements.append(
-                                Disagreement(config_label, name, fact_label, case.label, r, g)
-                            )
-                compared[(name, config_label)] = count
-    return MatrixResult(cases, reference_answers, disagreements, compared)
+                )
+                continue
+            if got.raised:
+                continue
+            if got.issues is not None and got.issues != sub.issues:
+                result.disagreements.append(
+                    Disagreement(
+                        config_label,
+                        name,
+                        fact_label,
+                        f"(comparison issues, {wrapper})",
+                        True,
+                        False,
+                        f"reference: {_describe_issues(sub.issues)}; "
+                        f"got: {_describe_issues(got.issues)}",
+                    )
+                )
+            for case in supported:
+                count += 1
+                r, g = case.rule_id in ref.fired, case.rule_id in got.fired
+                if r != g:
+                    result.disagreements.append(
+                        Disagreement(config_label, name, fact_label, case.label, r, g)
+                    )
+        key = (name, config_label)
+        result.compared[key] = result.compared.get(key, 0) + count
 
 
 # --- known disagreements ----------------------------------------------------

@@ -91,6 +91,43 @@ engine = PhreakEngine(config=EngineConfig(missing_field="unknown"))  # 2.0 behav
 
 See [Missing fields and NOT](../conditions.md#missing-fields-and-not).
 
+## Comparisons That Cannot Be Made
+
+Some comparisons have no answer: `"abc" > 5`, `None > 5`, `float("nan") > 5`,
+a `date` against a `datetime`, `contains` on a number, an invalid regex. The
+condition is no match. When such a comparison leaves a rule undecided, the
+result lists it in `comparison_issues`, and `EngineConfig.uncomparable` chooses
+what else happens:
+
+```python
+from fluxrules import EngineConfig, F, Rule
+from fluxrules.engine.phreak import PhreakEngine
+
+engine = PhreakEngine(config=EngineConfig(uncomparable="unknown"))
+engine.load_rules([Rule(id=1, name="small", conditions=~(F("amount") > 100), action="ok")])
+
+result = engine.evaluate({"amount": "abc"})
+assert result.fired_rules == []  # NOT over an unknown does not fire
+print(result.comparison_issues[0].describe())
+# Cannot compare field 'amount' with '>': these types cannot be ordered
+# (fact value is str, rule value is int).
+```
+
+- `None` (default): no match, and a `ComparisonWarning` once per field,
+  operator and pair of types.
+- `"false"`: no match, with no warning.
+- `"unknown"`: unknown, so a rule fires only when its condition is definitely
+  true: `NOT` over such a comparison does not fire.
+- `"raise"`: raise `UncomparableValuesError`, naming the field, the operator
+  and both types.
+
+Each entry in `comparison_issues` is a `ComparisonIssue` with `field`,
+`operator`, `fact_type`, `rule_type` and `reason`. A comparison that decides
+nothing is not reported: in `(F("amount") > 100) & (F("country") == "US")` with
+`country` set to `"DE"`, the rule is no match whatever `amount` holds. See
+[Comparisons that cannot be made](../comparing-values.md#comparisons-that-cannot-be-made)
+for every case.
+
 ## Typed Facts
 
 Engines take optional keywords for typed facts:

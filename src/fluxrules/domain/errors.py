@@ -11,6 +11,7 @@ These names are part of the public API and are re-exported from
 from typing import Any
 
 __all__ = [
+    "ComparisonWarning",
     "ConditionValidationError",
     "CorruptStoredRuleError",
     "CyclicDependencyError",
@@ -23,6 +24,7 @@ __all__ = [
     "LossyConditionViewWarning",
     "MembershipValueWarning",
     "MissingFieldNotWarning",
+    "UncomparableValuesError",
     "UnknownFieldError",
     "UnknownOperatorError",
     "canonical_field_name",
@@ -108,6 +110,40 @@ class MembershipValueWarning(UserWarning):
     """
 
     code = "MEMBERSHIP_VALUE_NOT_LIST"
+
+
+class ComparisonWarning(UserWarning):
+    """A comparison could not be made, so its condition was no match.
+
+    ``"abc" > 5``, ``None > 5``, ``float("nan") > 5``, a ``date`` ordered
+    against a ``datetime``, ``contains`` on a number and an invalid regex have
+    no answer. The condition is no match, and ``NOT`` over it fires. Emitted
+    once per field, operator and pair of types under the default
+    ``EngineConfig(uncomparable=None)``. Set ``uncomparable="false"`` to
+    silence it, ``"unknown"`` so ``NOT`` over such a comparison does not fire,
+    or ``"raise"`` to raise :class:`UncomparableValuesError` instead.
+    """
+
+    code = "UNCOMPARABLE_VALUES"
+
+
+class UncomparableValuesError(FluxRulesError, ValueError):
+    """A comparison could not be made, under ``EngineConfig(uncomparable="raise")``.
+
+    Attributes:
+        issue: The :class:`~fluxrules.domain.comparison_issues.ComparisonIssue`
+            naming the field, the operator, both types and the reason.
+    """
+
+    code = "UNCOMPARABLE_VALUES"
+
+    def __init__(self, issue: Any) -> None:
+        super().__init__(issue.describe())
+        self.issue = issue
+
+    def __reduce__(self) -> tuple[Any, ...]:
+        # Rebuilt from the issue, so the error survives a worker process.
+        return (type(self), (self.issue,))
 
 
 class LossyConditionRebuildError(InvalidRuleError):

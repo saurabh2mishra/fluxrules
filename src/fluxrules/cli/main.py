@@ -29,7 +29,8 @@ _CONFIG_HELP = (
 )
 _EVALUATE_CONFIG_HELP = (
     _CONFIG_HELP[:-1] + ". Its comparison settings (strict_null_handling, "
-    "strict_type_comparison, boolean_string_coercion, missing_field) apply too."
+    "strict_type_comparison, boolean_string_coercion, missing_field, uncomparable) apply "
+    "too."
 )
 # EngineConfig fields that `fluxrules evaluate` reads from the config file.
 _COMPARISON_SETTINGS = (
@@ -37,6 +38,7 @@ _COMPARISON_SETTINGS = (
     "strict_type_comparison",
     "boolean_string_coercion",
     "missing_field",
+    "uncomparable",
 )
 _TRUST_HELP = (
     "Allow importing a fact_schema named inside a rule file or a config file found "
@@ -178,6 +180,14 @@ def _config_settings(config: str | None) -> Any:
             if value not in (None, "false", "unknown"):
                 problem(f"{path}: missing_field must be 'false', 'unknown' or null, got {value!r}")
                 return None
+        elif name == "uncomparable":
+            value = "false" if value is False else value
+            if value not in (None, "false", "unknown", "raise"):
+                problem(
+                    f"{path}: uncomparable must be 'false', 'unknown', 'raise' or null, "
+                    f"got {value!r}"
+                )
+                return None
         elif not isinstance(value, bool):
             problem(f"{path}: {name} must be true or false, got {value!r}")
             return None
@@ -280,7 +290,9 @@ def evaluate(
     With a fact schema, rules naming a field the schema lacks are refused
     (exit 1), and --validate-facts checks the event too. Comparison settings
     in the config file (strict_null_handling, strict_type_comparison,
-    boolean_string_coercion, missing_field) apply to the evaluation.
+    boolean_string_coercion, missing_field, uncomparable) apply to the evaluation.
+    Comparisons that could not be made (such as "abc" > 5) are listed after the
+    matches.
     """
     from fluxrules.domain.errors import FactValidationError, FluxRulesError, UnknownFieldError
     from fluxrules.engine import get_available_engines, get_engine
@@ -344,6 +356,7 @@ def evaluate(
                     for rule in matched
                 ],
                 "actions": result.actions,
+                "comparison_issues": [issue.to_dict() for issue in result.comparison_issues],
             }
         )
     else:
@@ -361,6 +374,10 @@ def evaluate(
             )
         console.print(table)
         console.print(f"\n[dim]Actions: {result.actions}[/dim]")
+        if result.comparison_issues:
+            console.print("\n[yellow]Comparisons that could not be made (no match):[/yellow]")
+            for issue in result.comparison_issues:
+                console.print(f"  {issue.describe()}", markup=False)
 
 
 @app.command()

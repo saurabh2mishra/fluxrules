@@ -84,8 +84,9 @@ building them on `fluxrules.facts`.
 
 1.1.2 made every evaluation path give the same answer (Phases 0 and 1 of the
 comparison plan), and the comparison matrix now also covers tuples,
-`evaluate_batch(workers=2)` and rules written with `F` or in YAML. The items
-below are the rest of that plan. They are aimed at
+`evaluate_batch(workers=2)` and rules written with `F` or in YAML. Comparisons
+that cannot be made are now reported (`EngineConfig.uncomparable`, unreleased).
+The items below are the rest of that plan. They are aimed at
 **1.2.0**, except the last, which changes defaults and waits for **2.0**.
 [How FluxRules Compares Values](../comparing-values.md) shows today's behaviour,
 and the comparison matrix (`tests/engine/comparison_matrix.py`) must keep every
@@ -102,35 +103,6 @@ Decisions already made (2026-11-03):
   **`5 != "5"` is a match**. Only ordering (`>`, `<` and the like) across types
   cannot be made.
 - Safer defaults wait for 2.0.
-
-### Report comparisons that cannot be made (1.2.0)
-
-**What:** A comparison that cannot be made, such as `"abc" > 5`, `None > 5`, a
-`date` against a `datetime`, `NaN` or an invalid regex, is no match today, and
-`NOT` then fires. Make it visible:
-
-- Add `EngineConfig.uncomparable`, modelled on `missing_field`:
-  - `None` (default): no match, as today, plus a warning once per field,
-    operator and pair of types.
-  - `"false"`: no match, silently (1.1 behaviour).
-  - `"unknown"`: the check is unknown, so `NOT` over it does not fire, and
-    `AND` / `OR` follow three-valued logic.
-  - `"raise"`: raise an error naming the field, operator and both types.
-- Add a `ComparisonWarning` class and list each case in the result (for
-  example `result.comparison_issues`), with the field, operator, both types
-  and the reason.
-- Apply it on every path. The comparison matrix grows a column per mode, and
-  the reference page shows each mode.
-
-Under `strict_type_comparison`, make `!=` between different types a match
-(decided above). Today it is no match, so this changes the answer for anyone
-who set that flag.
-
-**Why waiting:** It adds a setting and a warning that existing users will see,
-and the `"unknown"` mode needs three-valued logic in the engine, compiled
-conditions, streaming mode and the reference evaluator. Reuse the
-`missing_field="unknown"` machinery in `fluxrules.domain.conditions.missing_fields`
-rather than adding a second one.
 
 ### Check rule values when rules load (1.2.0)
 
