@@ -71,10 +71,7 @@ class TestValueAgainstOperator:
             ("gt", None, "'>' needs a number"),
             (">", math.nan, "cannot order anything against NaN"),
             (">", Decimal("NaN"), "cannot order anything against NaN"),
-            ("starts_with", 75, "'starts_with' needs text, but got the number 75"),
-            ("ends_with", None, "'ends_with' needs text"),
             ("regex", "(", "the pattern '(' does not compile"),
-            ("regex", 5, "'regex' needs a pattern as text"),
         ],
     )
     def test_warns_when_the_rule_is_created(self, op, value, expected):
@@ -82,6 +79,33 @@ class TestValueAgainstOperator:
             rule = Rule(id=1, name="r", conditions=_leaf(op, value), action="a")
         assert expected in str(caught[0].message)
         assert rule.conditions["value"] == value or value != value  # NaN is kept too
+
+    @pytest.mark.parametrize(
+        ("op", "value", "expected"),
+        [
+            (
+                "starts_with",
+                75,
+                '\'starts_with\' compares text, so the number 75 is read as the text "75". Write "75" to say so.',
+            ),
+            ("ends_with", None, 'so None is read as the text "None"'),
+            ("regex", 5, "'regex' compares text, so the number 5 is read as the text \"5\""),
+        ],
+    )
+    def test_a_value_read_as_text_warns_without_never_match(self, op, value, expected):
+        # starts_with, ends_with and regex compare str() of both sides, so the
+        # rule can match; the warning says how the value is read.
+        with pytest.warns(RuleValueWarning) as caught:
+            Rule(id=1, name="r", conditions=_leaf(op, value), action="a")
+        message = str(caught[0].message)
+        assert expected in message and "never match" not in message
+
+    def test_a_number_read_as_text_still_matches(self):
+        rule = _rule(F("zip").starts_with(75))
+        engine = PhreakEngine()
+        engine.load_rules([rule])
+        assert engine.evaluate({"zip": "75001"}).fired_rules == [1]
+        assert engine.evaluate({"zip": 75001}).fired_rules == [1]
 
     @pytest.mark.parametrize(
         ("op", "value"),
@@ -212,7 +236,6 @@ class TestValueAgainstSchema:
             (F("at") > "2024-05-01", "Write a date and time, such as 2024-05-01T00:00:00."),
             (F("at") > dt.date(2024, 5, 1), "A date and a datetime cannot be compared"),
             (F("amount").isin([1, "2"]), "compares it with the text '2'"),
-            (F("amount").starts_with("1"), "'starts_with' tests text"),
             (F("count").contains("1"), "'contains' needs text or a collection"),
             (F("country").contains(5), "the rule looks for the number 5 in it"),
         ],
@@ -239,6 +262,8 @@ class TestValueAgainstSchema:
             F("at") > dt.datetime(2024, 5, 1, 9),
             F("amount").isin([1, 2.5, None]),
             F("country").starts_with("N"),
+            F("amount").starts_with("1"),
+            F("count").regex("^7"),
             F("country").contains("O"),
             F("either") == "x",
             F("anything") == "x",

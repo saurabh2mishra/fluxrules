@@ -281,6 +281,62 @@ class TestEveryWayOfEvaluating:
         with pytest.raises(UncomparableValuesError):
             engine.insert("Fact", FACT)
 
+    @pytest.mark.parametrize(
+        ("mode", "fires"),
+        [(None, True), ("false", True), ("unknown", False)],
+    )
+    def test_cross_fact_negated_exists_stays_unknown(self, process_config, mode, fires):
+        # "An order with no shipment over 5 kg": a shipment whose weight is
+        # "abc" might weigh more, so under "unknown" the negation does not fire.
+        from fluxrules.engine.cross_fact import CrossFactEngine, CrossFactRule, Exists, Pattern
+
+        process_config(EngineConfig(uncomparable=mode))
+        rule = CrossFactRule(
+            id=1,
+            name="light",
+            patterns=[
+                Pattern("o", "Order", constraints=[("status", "==", "paid")]),
+                Exists(
+                    fact_type="Shipment",
+                    constraints=[("weight", ">", 5)],
+                    joins=[("order_id", "==", "o", "id")],
+                    negated=True,
+                ),
+            ],
+        )
+        engine = CrossFactEngine()
+        engine.load_rules([rule])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", ComparisonWarning)
+            engine.insert("Shipment", {"order_id": 1, "weight": "abc"})
+            engine.insert("Order", {"id": 1, "status": "paid"})
+        assert bool(engine.activations()) is fires
+
+    def test_cross_fact_negated_exists_fires_when_every_fact_fails(self, process_config):
+        from fluxrules.engine.cross_fact import CrossFactEngine, CrossFactRule, Exists, Pattern
+
+        process_config(EngineConfig(uncomparable="unknown"))
+        rule = CrossFactRule(
+            id=1,
+            name="light",
+            patterns=[
+                Pattern("o", "Order", constraints=[("status", "==", "paid")]),
+                Exists(
+                    fact_type="Shipment",
+                    constraints=[("weight", ">", 5)],
+                    joins=[("order_id", "==", "o", "id")],
+                    negated=True,
+                ),
+            ],
+        )
+        engine = CrossFactEngine()
+        engine.load_rules([rule])
+        # A definite failure decides it even beside an unmade comparison.
+        engine.insert("Shipment", {"order_id": 2, "weight": "abc"})
+        engine.insert("Shipment", {"order_id": 1, "weight": 3})
+        engine.insert("Order", {"id": 1, "status": "paid"})
+        assert len(engine.activations()) == 1
+
     def test_prefiltered_evaluator_lists_issues_of_facts_that_fired(self):
         pytest.importorskip("sqlalchemy")
         from sqlalchemy import create_engine

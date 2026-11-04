@@ -496,15 +496,18 @@ See [Comparisons that cannot be made](comparing-values.md#comparisons-that-canno
 
 ### Values that suit the operator
 
-Some values can never match whatever the fact holds. FluxRules warns with
-`RuleValueWarning` when such a rule is created, once per problem. The rule
-still loads and evaluates as before:
+Some values can never match whatever the fact holds, and some are converted
+in a way the rule does not say. FluxRules warns with `RuleValueWarning` when
+such a rule is created, once per problem. The rule still loads and evaluates
+as before:
 
 - `>`, `>=`, `<` and `<=` need a number, text, a date or a time. `None`, a
-  boolean, a list, a mapping and `NaN` warn.
-- `starts_with` and `ends_with` need text. `F("zip").starts_with(75)` warns:
-  write `"75"`.
-- `regex` needs text that compiles as a regular expression.
+  boolean, a list, a mapping and `NaN` warn: the condition can never match.
+- `regex` needs a pattern that compiles. One that does not can never match.
+- `starts_with`, `ends_with` and `regex` compare text: they read both sides
+  with `str()`. So `F("zip").starts_with(75)` matches the fact value `"75001"`
+  and also the number `75001`. It warns, so that you write `"75"` and the rule
+  says what it does.
 - `approx` needs a number. The `_ignore_case` operators need text, and
   `in_ignore_case` a list of text.
 

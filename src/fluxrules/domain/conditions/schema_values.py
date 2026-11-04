@@ -135,7 +135,11 @@ def _check_condition(
             RuleValueError(summary, field=field, rule=rule, schema_name=schema_name, value=value)
         )
 
-    if op in _TEXT_OPS or op in CASE_INSENSITIVE_OPS:
+    if op in _TEXT_OPS:
+        # starts_with, ends_with and regex compare str() of both sides, so a
+        # number field can match (count=75 starts with "7").
+        return node
+    if op in CASE_INSENSITIVE_OPS:
         if kind[0] != "text":
             problem(f"'{op}' tests text", "Compare it with '==' or an ordering operator instead.")
         return node

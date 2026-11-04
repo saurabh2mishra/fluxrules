@@ -200,10 +200,12 @@ evaluation.
 ### `RuleValueWarning`
 
 A `UserWarning` emitted when a rule is created with a value that does not suit
-its operator, so the condition can never match: `>`, `>=`, `<` or `<=` with
-`None`, a boolean, a list, a mapping or `NaN`; `starts_with` or `ends_with`
-with anything but text; a `regex` that does not compile. Emitted once per
-process for each problem. The rule still loads and evaluates as before. See
+its operator. Some can never match: `>`, `>=`, `<` or `<=` with `None`, a
+boolean, a list, a mapping or `NaN`; a `regex` that does not compile; `approx`
+with anything but a number; an `_ignore_case` operator with anything but text.
+Others are converted in a way the rule does not say: `starts_with`, `ends_with`
+or `regex` with a value that is not text, which is read as text. Emitted once
+per process for each problem. The rule still loads and evaluates as before. See
 [Values that suit the operator](../conditions.md#values-that-suit-the-operator).
 
 ### `YamlValueWarning`

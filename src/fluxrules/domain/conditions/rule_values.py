@@ -1,8 +1,9 @@
 """Find rule values that do not suit their operator.
 
-``F("amount") > None``, ``F("code").starts_with(75)`` and a ``regex`` that does
-not compile can never match. :func:`value_problems` lists such conditions, and
-:func:`warn_value_problems` warns the author with
+``F("amount") > None`` and a ``regex`` that does not compile can never match.
+``F("code").starts_with(75)`` does match, but only because ``starts_with``
+reads ``75`` as the text ``"75"``, which the rule does not say. :func:`value_problems`
+lists such conditions, and :func:`warn_value_problems` warns the author with
 :class:`~fluxrules.domain.errors.RuleValueWarning` when the rule is created.
 The rule still loads and evaluates as before.
 """
@@ -57,8 +58,16 @@ def describe_value(value: Any) -> str:
     return f"{value!r} ({kind})"
 
 
+# A problem whose condition still matches some facts: the value is read as text.
+_READ_AS_TEXT = "read as text"
+
+
 def _problem(op: str, value: Any) -> str | None:
-    """Why *value* does not suit *op*, or ``None`` when it does."""
+    """Why *value* does not suit *op*, or ``None`` when it does.
+
+    A message starting with :data:`_READ_AS_TEXT` describes a value that is
+    converted, not one that can never match.
+    """
     op = _ALIASES.get(op, op)
     if op in ORDERING_OPS:
         if isinstance(value, bool) or not isinstance(value, _ORDERABLE):
@@ -68,7 +77,7 @@ def _problem(op: str, value: Any) -> str | None:
         return None
     if op in _TEXT_OPS:
         if not isinstance(value, str):
-            return f"'{op}' needs text, but got {describe_value(value)}"
+            return _read_as_text(op, value)
         return None
     if op == "approx":
         target = approx_parts(value)[0]
@@ -89,12 +98,21 @@ def _problem(op: str, value: Any) -> str | None:
         return None
     if op == "regex":
         if not isinstance(value, str):
-            return f"'regex' needs a pattern as text, but got {describe_value(value)}"
+            return _read_as_text(op, value)
         try:
             re.compile(value)
         except re.error as exc:
             return f"the pattern {value!r} does not compile: {exc}"
     return None
+
+
+def _read_as_text(op: str, value: Any) -> str:
+    """``starts_with``, ``ends_with`` and ``regex`` compare ``str()`` of both sides."""
+    text = str(value)
+    return (
+        f"{_READ_AS_TEXT}'{op}' compares text, so {describe_value(value)} is read as "
+        f'the text "{text}". Write "{text}" to say so'
+    )
 
 
 def value_problems(tree: Any, *, path: str = "root") -> list[str]:
@@ -121,10 +139,12 @@ def _collect(tree: Any, path: str, out: list[str]) -> None:
             problem = _problem(op, tree["value"])
             if problem is not None:
                 where = f" at {path!r}" if path != "root" else ""
-                out.append(
-                    f"Condition{where} on field {tree.get('field')!r}: {problem}. "
-                    "The condition can never match."
-                )
+                if problem.startswith(_READ_AS_TEXT):
+                    problem = problem[len(_READ_AS_TEXT) :]
+                    ending = ""
+                else:
+                    ending = " The condition can never match."
+                out.append(f"Condition{where} on field {tree.get('field')!r}: {problem}.{ending}")
         return
     for key, child in tree.items():
         if isinstance(child, (dict, list)):

@@ -167,8 +167,9 @@ What each field type accepts:
   with `EngineConfig(boolean_string_coercion=True)`, which reads it as `True`.
 - A `date` field needs a date. A `datetime` field needs a date and time.
 - `None` is accepted for every field, because `== None` is a valid test.
-- `starts_with`, `ends_with` and `regex` need a text field. `contains` needs a
-  text field and a text value.
+- `contains` needs a text field and a text value. `starts_with`, `ends_with`
+  and `regex` are accepted on any field, because they read both sides as text:
+  `F("count").starts_with("7")` matches `count=75`.
 - `in` and `not_in` check each value in the list.
 
 An ISO date string compared with a `date` or `datetime` field is converted

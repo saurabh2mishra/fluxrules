@@ -35,8 +35,10 @@ Work that is designed but not yet shipped is listed in the
 - Rule values are checked when rules are created and loaded:
   - A value that does not suit its operator warns with `RuleValueWarning` when
     the rule is created: `>`, `>=`, `<` or `<=` with `None`, a boolean, a list,
-    a mapping or `NaN`; `starts_with` or `ends_with` with anything but text; a
-    `regex` that does not compile. The rule still loads and evaluates as before.
+    a mapping or `NaN`, or a `regex` that does not compile, which can never
+    match; and `starts_with`, `ends_with` or `regex` with a value that is not
+    text, which is read as text (`starts_with(75)` tests `"75"`). The rule
+    still loads and evaluates as before.
   - `fluxrules.validate()` takes `fact_schema=`, and `fluxrules validate` lists
     these problems too.
 - A `RuleValueError` (an `InvalidRuleError` and a `ValueError`) and a

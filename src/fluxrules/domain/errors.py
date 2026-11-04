@@ -116,11 +116,13 @@ class MembershipValueWarning(UserWarning):
 
 
 class RuleValueWarning(UserWarning):
-    """A rule's value does not suit its operator, so the rule can never match.
+    """A rule's value does not suit its operator.
 
-    ``>``, ``>=``, ``<`` and ``<=`` need a number, text, a date or a time;
-    ``starts_with`` and ``ends_with`` need text; ``regex`` needs text that
-    compiles. Emitted when the rule is created. The rule still loads and
+    ``>``, ``>=``, ``<`` and ``<=`` need a number, text, a date or a time, and
+    ``regex`` a pattern that compiles; otherwise the condition can never match.
+    ``starts_with``, ``ends_with`` and ``regex`` read a value that is not text
+    as text (``starts_with(75)`` tests ``"75"``), which the rule does not say.
+    Emitted when the rule is created. The rule still loads and
     evaluates as before; :func:`fluxrules.validate` lists the same problems.
     """
 

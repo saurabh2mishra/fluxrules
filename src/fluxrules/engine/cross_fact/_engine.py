@@ -418,16 +418,40 @@ class CrossFactEngine:
         survivors: list[tuple[tuple[int, ...], dict[str, Any], dict[str, Any]]] = []
         for token in tokens:
             _fact_ids, binding, _aggs = token
-            found = any(
-                fact.id not in _fact_ids
-                and self._alphas_hold(quant, fact)
-                and self._joins_hold(quant, fact, binding)
-                and self._temporals_hold(quant, fact, binding)
-                for fact in self._candidates(quant, binding)
-            )
-            if found != quant.negated:  # exists->found True; not->found False
+            found = False
+            undecided = False
+            for fact in self._candidates(quant, binding):
+                if fact.id in _fact_ids:
+                    continue
+                state = self._match_state(quant, fact, binding)
+                if state:
+                    found = True
+                    break
+                undecided = undecided or state is None
+            if quant.negated:
+                # "No such fact": with uncomparable="unknown", a fact whose
+                # comparison could not be made might be one, so the negation
+                # is unknown and does not fire, as single-fact NOT does.
+                keep = not found and not (undecided and self._cfg.uncomparable == "unknown")
+            else:
+                keep = found
+            if keep:
                 survivors.append(token)
         return survivors
+
+    def _match_state(self, pattern: Any, fact: Any, binding: dict[str, Any]) -> bool | None:
+        """Whether ``fact`` matches ``pattern``: ``None`` when a comparison that
+        could not be made leaves it undecided."""
+        alphas = self._holds(self._alpha_checks(pattern, fact))
+        if alphas is False:
+            return False
+        joins = self._join_checks(pattern, fact, binding)
+        if joins is None:
+            return False
+        joined = self._holds(joins)
+        if joined is False or not self._temporals_hold(pattern, fact, binding):
+            return False
+        return None if alphas is None or joined is None else True
 
     def _apply_accumulate(
         self,
@@ -499,12 +523,22 @@ class CrossFactEngine:
         return self.wm.by_type(pattern.fact_type)
 
     def _alphas_hold(self, pattern: Any, fact: Any) -> bool:
-        return self._all_hold(
+        return self._all_hold(self._alpha_checks(pattern, fact))
+
+    def _alpha_checks(self, pattern: Any, fact: Any) -> list[tuple[Any, ...]]:
+        return [
             (c.op, fact.fields.get(c.field), c.value, c.field in fact.fields, c.field)
             for c in pattern.constraints
-        )
+        ]
 
     def _joins_hold(self, pattern: Any, fact: Any, binding: dict[str, Any]) -> bool:
+        checks = self._join_checks(pattern, fact, binding)
+        return checks is not None and self._all_hold(checks)
+
+    def _join_checks(
+        self, pattern: Any, fact: Any, binding: dict[str, Any]
+    ) -> list[tuple[Any, ...]] | None:
+        """The join comparisons, or ``None`` when a join names an unbound var."""
         checks = []
         for join in pattern.joins:
             other = binding.get(join.other_var)
@@ -514,12 +548,12 @@ class CrossFactEngine:
                     "beta join references unbound var '%s'; treating as no-match",
                     join.other_var,
                 )
-                return False
+                return None
             present = join.this_field in fact.fields and join.other_field in other.fields
             left = fact.fields.get(join.this_field)
             right = other.fields.get(join.other_field)
             checks.append((join.op, left, right, present, join.this_field))
-        return self._all_hold(checks)
+        return checks
 
     def _temporals_hold(self, element: Any, fact: Any, binding: dict[str, Any]) -> bool:
         """Whether ``fact`` satisfies every temporal window of ``element`` (B-δ).
@@ -565,6 +599,11 @@ class CrossFactEngine:
         (warned about or raised, as the process-wide ``EngineConfig.uncomparable``
         says) only when no other check already failed, as on the other paths.
         """
+        return self._holds(checks) is True
+
+    def _holds(self, checks: Any) -> bool | None:
+        """:meth:`_all_hold`, but ``None`` when only comparisons that could not
+        be made stop the checks from holding."""
         unmade: list[Uncomparable] = []
         for op, left, right, present, field in checks:
             outcome = self._op(op, left, right, present, field=field)
@@ -574,7 +613,7 @@ class CrossFactEngine:
                 return False
         for outcome in unmade:
             report(outcome.issue)
-        return not unmade
+        return None if unmade else True
 
     def _op(
         self, op: str, left: Any, right: Any, present: bool, *, field: str = ""
