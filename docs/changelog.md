@@ -5,9 +5,22 @@ summarizes each release. The full list of changes, with migration notes, is in
 [`CHANGELOG.md`](https://github.com/saurabh2mishra/fluxrules/blob/main/CHANGELOG.md)
 in the repository.
 
-**Current release: 1.1.2** (2026-11-03).
+**Current release: 1.1.3** (2026-11-04).
 
 ## Releases
+
+### 1.1.3 (2026-11-04): Wider comparison tests
+
+No answers change in this release.
+
+- The comparison tests now also cover tuple facts, `evaluate_batch` over
+  worker processes, and rules written as `F` expressions or in a YAML file.
+  Every path gives the same answer, and
+  [How FluxRules Compares Values](comparing-values.md) gains a row for tuples.
+- The alpha prefilter uses the engine's own comparison functions, so the two
+  cannot drift apart.
+- Releases are published to PyPI with trusted publishing, and each file
+  carries a digital attestation.
 
 ### 1.1.2 (2026-11-03): Every evaluation path agrees
 
