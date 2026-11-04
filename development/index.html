@@ -2304,6 +2304,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Releasing
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2594,6 +2605,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Releasing
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2675,6 +2697,38 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li>Submit pull request</li>
 </ol>
 <p>See <a href="../contributing/">Contributing</a> for more details.</p>
+<h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
+<p>A release is published by pushing a version tag. No one uploads to PyPI by
+hand.</p>
+<ol>
+<li>In a pull request, set the new version in <code>pyproject.toml</code> and
+   <code>src/fluxrules/version.py</code>, and move the Unreleased entries in
+   <code>CHANGELOG.md</code> under the new version. Merge it.</li>
+<li>
+<p>Tag the merge commit on <code>main</code> and push the tag:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v1.2.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">"fluxrules 1.2.0"</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v1.2.0
+</code></pre></div>
+</li>
+<li>
+<p>The <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/.github/workflows/release.yml">release workflow</a>
+   then runs on its own:</p>
+<ul>
+<li>It refuses a tag that is not on <code>main</code>, or that does not match the
+  version in <code>pyproject.toml</code> and <code>version.py</code>.</li>
+<li>It builds the sdist and wheel, checks them with <code>twine check</code>, and
+  installs each one on Python 3.11 to 3.14.</li>
+<li>It uploads both files to PyPI and creates a GitHub release with them.</li>
+</ul>
+</li>
+</ol>
+<p>The upload uses PyPI
+<a href="https://docs.pypi.org/trusted-publishers/">trusted publishing</a>, so the
+repository holds no PyPI token. PyPI accepts an upload for <code>fluxrules</code> only
+from this repository, the workflow file <code>release.yml</code> and the GitHub
+environment <code>pypi</code>. If you rename the workflow file or the environment,
+update the trusted publisher on PyPI under the project's <strong>Publishing</strong>
+settings first, or the upload is refused.</p>
 
 
 
