@@ -113,7 +113,9 @@ Before opening a PR, ensure linting, typing, tests, and docs build pass locally.
 
 Direct pushes and force-pushes to `main` are disabled; changes land through pull
 requests. Releases are tagged `vX.Y.Z` (matching `__version__`) and published by
-the signed [release workflow](.github/workflows/release.yml).
+the [release workflow](.github/workflows/release.yml) through PyPI trusted
+publishing, with no API token. See
+[Releasing](docs/development/index.md#releasing) for the steps.
 
 ## Reporting Issues
 

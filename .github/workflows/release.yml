@@ -149,11 +149,14 @@ jobs:
   # TestPyPI skipped: name is unavailable on test.pypi.org.
   # Validation is covered by build gates + smoke-test on 3 Python versions.
   #
-  # Requires secret PYPI_API_TOKEN set at:
-  #   https://github.com/saurabh2mishra/fluxrules/settings/secrets/actions
+  # Publishes with PyPI trusted publishing (OpenID Connect): no API token or
+  # secret. PyPI accepts the upload only from this repository, this workflow
+  # file (release.yml) and the `pypi` environment, as registered at:
+  #   https://pypi.org/manage/project/fluxrules/settings/publishing/
+  # The upload also gets digital attestations for each file.
   #
-  # The pypi GitHub environment gate gives a manual confirmation click
-  # before the upload proceeds. Set up at:
+  # Add required reviewers to the pypi environment for a manual confirmation
+  # click before the upload proceeds:
   #   https://github.com/saurabh2mishra/fluxrules/settings/environments
   #
   publish-pypi:
@@ -166,6 +169,7 @@ jobs:
       url: https://pypi.org/p/fluxrules
     permissions:
       contents: write   # create GitHub release
+      id-token: write   # trusted publishing: lets the job prove its identity to PyPI
 
     steps:
       - name: Download dist artifacts
@@ -177,7 +181,6 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
           print-hash: true
           verbose: true
 
