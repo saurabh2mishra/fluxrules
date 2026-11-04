@@ -73,6 +73,12 @@ Work that is designed but not yet shipped is listed in the
   number 1000. FluxRules 1.1 read `NO` as `False`, `0755` as 493, `1:30` as 90
   and `1e3` as text. Each value read differently warns with
   `YamlValueWarning`, naming the file and line.
+- Saved evaluation results (`evaluation_results`, read by `explain()` after a
+  restart) keep their `comparison_issues`. Alembic migration
+  `003_comparison_issues` adds the column, and creates the table on databases
+  where `create_all` never made it. The HTTP API applies it at startup; if you
+  manage the schema yourself, run `alembic upgrade head` before starting
+  1.2.0.
 - An on/off setting in a config file (`strict_type_comparison`,
   `requires_sortable_ids` and the like) must be `true` or `false`; text such
   as `yes` is refused rather than counted as on.

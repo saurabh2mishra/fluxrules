@@ -10,6 +10,7 @@ from sqlalchemy import DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from fluxrules.api.database import Base
+from fluxrules.domain.comparison_issues import ComparisonIssue
 from fluxrules.domain.models import EvaluationResult
 
 logger = logging.getLogger("fluxrules.persistence")
@@ -26,6 +27,10 @@ class EvaluationResultORM(Base):
     fired_rules: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     actions: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     trace: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    # JSON list of ComparisonIssue.to_dict(); added by migration 003.
+    comparison_issues: Mapped[str] = mapped_column(
+        Text, nullable=False, default="[]", server_default="[]"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
@@ -43,6 +48,7 @@ class ExecutionRepository:
             fired_rules=json.dumps(result.fired_rules),
             actions=json.dumps(result.actions),
             trace=json.dumps(result.trace),
+            comparison_issues=json.dumps([issue.to_dict() for issue in result.comparison_issues]),
         )
         self.db.merge(orm)
         self.db.commit()
@@ -62,4 +68,7 @@ class ExecutionRepository:
             fired_rules=json.loads(orm.fired_rules),
             actions=json.loads(orm.actions),
             trace=json.loads(orm.trace),
+            comparison_issues=[
+                ComparisonIssue(**issue) for issue in json.loads(orm.comparison_issues or "[]")
+            ],
         )
