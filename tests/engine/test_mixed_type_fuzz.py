@@ -53,6 +53,7 @@ def _random_config(rng: random.Random) -> EngineConfig:
         strict_type_comparison=rng.random() < 0.3,
         boolean_string_coercion=rng.random() < 0.3,
         missing_field=rng.choice([None, "false", "unknown"]),
+        uncomparable=rng.choice([None, "false", "unknown", "raise"]),
     )
 
 
@@ -108,11 +109,18 @@ def test_paths_agree_on_random_mixed_type_rules(seed):
                 continue
             answers = path.run([], rules, config, facts)
             for fact, ref, got in zip(facts, reference, answers, strict=True):
-                if ref != got:
-                    differing = sorted(ref ^ got)
+                if got is None:
+                    continue  # this path cannot take this fact
+                # Issues are compared only where the path lists them.
+                agree = ref.raised == got.raised and (
+                    got.raised
+                    or (ref.fired == got.fired and (got.issues is None or got.issues == ref.issues))
+                )
+                if not agree:
+                    differing = sorted(ref.fired ^ got.fired)
                     pytest.fail(
-                        f"seed {seed}: {name!r} fired {sorted(got)}, {REFERENCE_PATH!r} "
-                        f"fired {sorted(ref)}\n  config: {config}\n  fact: {fact!r}\n"
+                        f"seed {seed}: {name!r} answered {got}, {REFERENCE_PATH!r} "
+                        f"answered {ref}\n  config: {config}\n  fact: {fact!r}\n"
                         + "\n".join(
                             f"  rule {rid}: {rules[rid - 1].conditions}" for rid in differing
                         )

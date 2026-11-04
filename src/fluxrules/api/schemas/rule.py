@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConditionNode(BaseModel):
@@ -87,6 +87,7 @@ class SimulateResponse(BaseModel):
     explanations: dict[int, str]
     dry_run: bool = True
     stats: SimulateStats | None = None
+    comparison_issues: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class DependencyGraph(BaseModel):

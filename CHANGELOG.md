@@ -7,8 +7,106 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet. Work that is designed but not yet shipped is listed in the
+Work that is designed but not yet shipped is listed in the
 [backlog](docs/development/backlog.md).
+
+### Added
+
+- Comparisons that cannot be made are now reported. `"abc" > 5`, `None > 5`,
+  `float("nan") > 5`, a `date` against a `datetime`, `contains` on a number and
+  an invalid regex have no answer; the condition is still no match, and:
+  - `EvaluationResult.comparison_issues` lists each one that leaves a rule
+    undecided, as a `ComparisonIssue` (field, operator, fact type, rule type,
+    reason). A comparison that decides nothing, such as one inside an `AND`
+    that another check already failed, is not listed.
+  - A `ComparisonWarning` is emitted once per field, operator and pair of
+    types.
+  - The new `EngineConfig.uncomparable` setting chooses what happens:
+    `None` (default) warns, `"false"` stays silent, `"unknown"` treats the
+    comparison as unknown so `NOT` over it does not fire, and `"raise"` raises
+    `UncomparableValuesError`.
+  - Every evaluation path follows it: `PhreakEngine` (interpreted, compiled,
+    streaming, the thread pool), `evaluate_batch` with and without worker
+    processes, `fluxrules.evaluate()`, `CrossFactEngine` (warns and raises),
+    `PreFilteredEvaluator`, the CLI (`uncomparable` in the config file, and
+    `comparison_issues` in its output) and the HTTP API (`comparison_issues` in
+    each evaluation response, and `422` under `"raise"`).
+  - [How FluxRules Compares Values](docs/comparing-values.md) lists every case.
+- Rule values are checked when rules are created and loaded:
+  - A value that does not suit its operator warns with `RuleValueWarning` when
+    the rule is created: `>`, `>=`, `<` or `<=` with `None`, a boolean, a list,
+    a mapping or `NaN`, or a `regex` that does not compile, which can never
+    match; and `starts_with`, `ends_with` or `regex` with a value that is not
+    text, which is read as text (`starts_with(75)` tests `"75"`). The rule
+    still loads and evaluates as before.
+  - `fluxrules.validate()` takes `fact_schema=`, and `fluxrules validate` lists
+    these problems too.
+- A `RuleValueError` (an `InvalidRuleError` and a `ValueError`) and a
+  `YamlValueWarning`.
+- An `approx` operator for numbers that are close enough, using
+  `math.isclose`: `F("total").approx(0.3)` matches `0.1 + 0.2`. Give a
+  tolerance with `F("total").approx(0.3, abs_tol=0.01)` or `rel_tol=`; in a
+  dict or YAML rule it goes in the value, `{"value": 0.3, "abs_tol": 0.01}`.
+  A value that is not a number is reported as a comparison that cannot be made.
+- Case-insensitive text operators, comparing with `str.casefold()`:
+  `equals_ignore_case`, `in_ignore_case`, `contains_ignore_case` (which also
+  finds text in a list), `starts_with_ignore_case` and
+  `ends_with_ignore_case`, each with an `F` method. They compare text only and
+  never convert a value that is not text.
+- [How FluxRules Compares Values](docs/comparing-values.md) shows both, and has
+  a section on dates and numbers stored as text.
+
+### Changed
+
+- With `fact_schema=`, `load_rules` (and `load_rules_from_yaml` and the CLI)
+  now checks each rule value against its field's type and refuses the rules
+  with `RuleValueError` when one can never match, such as `amount: float`
+  compared with `"100.1"`. An ISO date string compared with a `date` or
+  `datetime` field is now loaded as a date, and numeric text compared with a
+  `Decimal` field as a `Decimal`; a float compared with `==`, `!=`, `in` or
+  `not_in` on a `Decimal` field is refused, since `Decimal("10.1") == 10.1` is
+  false. Rules that loaded in 1.1 may be refused;
+  `fluxrules.validate(rules, fact_schema=...)` lists every problem.
+- YAML rule files and config files are now read by YAML 1.2's rules, so each
+  value means what it looks like: `NO`, `yes`, `on` and `off` are text (only
+  `true` and `false` are booleans), `0755` and `1:30` are text, and `1e3` is the
+  number 1000. FluxRules 1.1 read `NO` as `False`, `0755` as 493, `1:30` as 90
+  and `1e3` as text. Each value read differently warns with
+  `YamlValueWarning`, naming the file and line.
+- Saved evaluation results (`evaluation_results`, read by `explain()` after a
+  restart) keep their `comparison_issues`. Alembic migration
+  `003_comparison_issues` adds the column, and creates the table on databases
+  where `create_all` never made it. The HTTP API applies it at startup; if you
+  manage the schema yourself, run `alembic upgrade head` before starting
+  1.2.0.
+- An on/off setting in a config file (`strict_type_comparison`,
+  `requires_sortable_ids` and the like) must be `true` or `false`; text such
+  as `yes` is refused rather than counted as on.
+
+- Under `strict_type_comparison`, values of different types are never equal,
+  so `5 != "5"` is now a match (it was no match). `5 == "5"` is still no
+  match.
+- A `ComparisonWarning` now appears where such a comparison failed silently
+  before. No answer changes under the default settings; set
+  `EngineConfig(uncomparable="false")` to silence the warning.
+- `PreFilteredEvaluator`'s SQL store no longer screens out facts by a boolean
+  value, so the engine can report a boolean that strict types cannot order.
+
+### Fixed
+
+- A `Decimal("NaN")` fact value no longer makes the default engine raise
+  `decimal.InvalidOperation`: the alpha prefilter now keeps the rule for the
+  engine to decide, as it does for other values it cannot compare.
+- With more candidate rules than `EngineConfig.parallel_threshold`, so that
+  rules run in a thread pool, a fact holding a list, a dict or another value
+  that cannot be hashed (`{"tags": ["vip"]}`) no longer raises
+  `TypeError: unhashable type`. The pool's cache, which never saved any work,
+  is gone.
+- Two rules whose values are equal in Python but of different types, such as
+  `v > True` and `v > 1`, no longer share an answer within one evaluation.
+  Under `strict_type_comparison`, `v > True` fired whenever another rule
+  checked `v > 1`, because the engine's per-evaluation cache could not tell
+  `True` from `1`.
 
 ## [1.1.3] - 2026-11-04
 

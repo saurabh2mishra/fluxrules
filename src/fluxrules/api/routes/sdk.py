@@ -21,9 +21,10 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from fluxrules.api.deps import get_rule_service
+from fluxrules.api.schemas import ComparisonIssueResponse, comparison_issues
 
 router = APIRouter(prefix="/v1", tags=["SDK"])
 
@@ -40,6 +41,7 @@ class EvaluateResponse(BaseModel):
     ruleset_group: str
     matched_rules: list[int]
     actions: list[str]
+    comparison_issues: list[ComparisonIssueResponse] = Field(default_factory=list)
 
 
 class SimulateRequest(BaseModel):
@@ -68,6 +70,7 @@ def evaluate_ruleset(
         ruleset_group=result.ruleset_group,
         matched_rules=result.fired_rules,
         actions=result.actions,
+        comparison_issues=comparison_issues(result),
     )
 
 
@@ -87,6 +90,7 @@ def simulate_ruleset(
             ruleset_group=result.ruleset_group,
             matched_rules=result.fired_rules,
             actions=result.actions,
+            comparison_issues=comparison_issues(result),
         )
         for result in results
     ]
@@ -106,4 +110,5 @@ def get_execution(
         ruleset_group=result.ruleset_group,
         matched_rules=result.fired_rules,
         actions=result.actions,
+        comparison_issues=comparison_issues(result),
     )

@@ -32,7 +32,9 @@ from fluxrules.config.deployment import (
     DeploymentConfig,
     DeploymentType,
 )
+from fluxrules.domain.comparison_issues import ComparisonIssue
 from fluxrules.domain.errors import (
+    ComparisonWarning,
     ConditionValidationError,
     CorruptStoredRuleError,
     CyclicDependencyError,
@@ -45,8 +47,12 @@ from fluxrules.domain.errors import (
     LossyConditionViewWarning,
     MembershipValueWarning,
     MissingFieldNotWarning,
+    RuleValueError,
+    RuleValueWarning,
+    UncomparableValuesError,
     UnknownFieldError,
     UnknownOperatorError,
+    YamlValueWarning,
 )
 from fluxrules.domain.field import Condition, F, Field
 from fluxrules.domain.models import EngineRule as _EngineRule
@@ -140,12 +146,38 @@ def evaluate(rules: Rules, facts: object) -> EvaluationResult:
     return result
 
 
-def validate(rules: Rules) -> list[str]:
+def validate(rules: Rules, *, fact_schema: type | None = None) -> list[str]:
     """Validate rules and return human-readable issues.
 
     Accepts the same shapes as :func:`evaluate`. An empty list means valid.
+    Lists structural problems and values that do not suit their operator
+    (``F("amount") > None``). With *fact_schema*, a model class, it also lists
+    every field the schema lacks and every value that does not fit its
+    field's type (``amount: float`` compared with ``"100.1"``), the problems
+    ``load_rules`` would refuse. Nothing is raised.
     """
-    return ValidationService().validate_ruleset(_as_ruleset(rules))
+    from fluxrules.domain.conditions.rule_values import value_problems
+
+    ruleset = _as_ruleset(rules)
+    issues = ValidationService().validate_ruleset(ruleset)
+    issues.extend(
+        f"Rule '{rule.id}': {problem}"
+        for rule in ruleset.rules
+        for problem in value_problems(getattr(rule, "conditions", None))
+    )
+    if fact_schema is not None:
+        from fluxrules.engine.configuration import get_config
+        from fluxrules.facts import schema_info
+
+        info = schema_info(fact_schema)
+        issues.extend(error.summary for error in info.unknown_fields(ruleset.rules))
+        issues.extend(
+            error.summary
+            for error in info.value_errors(
+                ruleset.rules, coerce_bool_strings=get_config().boolean_string_coercion
+            )
+        )
+    return issues
 
 
 def explain(execution_id: str) -> dict[str, object]:
@@ -162,6 +194,8 @@ def explain(execution_id: str) -> dict[str, object]:
 __all__ = [
     "AuditService",
     "BaseEngine",
+    "ComparisonIssue",
+    "ComparisonWarning",
     "Condition",
     "ConditionBuilder",
     "ConfigValidationError",
@@ -193,15 +227,19 @@ __all__ = [
     "Rule",
     "RuleBuilder",
     "RuleIDGenerator",
+    "RuleValueError",
+    "RuleValueWarning",
     "RulePersistencePort",
     "RuleService",
     "Rules",
     "Ruleset",
+    "UncomparableValuesError",
     "UnknownFieldError",
     "UnknownOperatorError",
     "ValidationIssue",
     "ValidationService",
     "Validator",
+    "YamlValueWarning",
     "__version__",
     "evaluate",
     "explain",

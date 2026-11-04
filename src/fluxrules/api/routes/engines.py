@@ -16,6 +16,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from fluxrules.api.config import settings
 from fluxrules.api.database import get_db
 from fluxrules.api.engines import APIEngineAdapter
+from fluxrules.api.schemas import ComparisonIssueResponse
+from fluxrules.domain.errors import UncomparableValuesError
 from fluxrules.engine import get_available_engines, get_engine
 
 router = APIRouter(prefix="/api/v1/engines", tags=["engines"])
@@ -67,6 +69,7 @@ class EvaluationResponse(BaseModel):
     stats: dict[str, Any]
     engine_type: str
     dry_run: bool
+    comparison_issues: list[ComparisonIssueResponse] = Field(default_factory=list)
 
 
 class EngineStatistics(BaseModel):
@@ -136,6 +139,8 @@ def evaluate_event(
         result["dry_run"] = False
         return result
 
+    except UncomparableValuesError:
+        raise  # answered with 422 by the app's exception handler
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except HTTPException:
@@ -172,7 +177,7 @@ def simulate_evaluation(
         result["dry_run"] = True
         return result
 
-    except HTTPException:
+    except (HTTPException, UncomparableValuesError):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

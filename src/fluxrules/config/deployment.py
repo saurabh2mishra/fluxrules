@@ -198,6 +198,7 @@ class DeploymentConfig:
         data = dict(data)  # shallow copy
         requirements = data.pop("requirements", {})
         coordination = data.pop("coordination", {})
+        _check_flags(data, requirements)
 
         return cls(
             deployment_type=data.get("deployment_type", "single"),
@@ -353,6 +354,31 @@ def find_config_file() -> Path | None:
     return next((path for path in config_file_locations() if path.is_file()), None)
 
 
+# On/off settings, by their flat key and their key under ``requirements``.
+_FLAGS = {
+    "requires_sortable_ids": "sortable_ids",
+    "requires_deterministic": "deterministic",
+    "requires_human_readable": "human_readable",
+    "require_no_coordination": "no_coordination",
+    "storage_sensitive": None,
+    "latency_sensitive": None,
+}
+
+
+def _check_flags(data: dict[str, Any], requirements: dict[str, Any]) -> None:
+    """Refuse an on/off setting that is not ``true`` or ``false``.
+
+    YAML files are read as written, so ``yes`` or ``no`` is text, and any
+    text would otherwise count as on.
+    """
+    for flat, nested in _FLAGS.items():
+        for name, source in ((flat, data), (nested, requirements)):
+            if name is None or name not in source:
+                continue
+            if not isinstance(source[name], bool):
+                raise ConfigValidationError(f"{name} must be true or false, got {source[name]!r}")
+
+
 def read_config_file(path: str | Path) -> dict[str, Any]:
     """Parse a config file: YAML for ``.yaml`` / ``.yml``, JSON otherwise.
 
@@ -371,7 +397,10 @@ def read_config_file(path: str | Path) -> dict[str, Any]:
                     "Install it with: pip install pyyaml"
                 ) from None
             try:
-                data = yaml.safe_load(fh) or {}
+                from fluxrules.adapters.loaders.yaml_reading import load_yaml
+
+                # Values are read as written: no is the text "no", not False.
+                data = load_yaml(fh, source=str(path)) or {}
             except yaml.YAMLError as exc:
                 raise ValueError(f"invalid YAML in {path}: {exc}") from exc
         else:

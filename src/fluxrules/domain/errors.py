@@ -11,6 +11,7 @@ These names are part of the public API and are re-exported from
 from typing import Any
 
 __all__ = [
+    "ComparisonWarning",
     "ConditionValidationError",
     "CorruptStoredRuleError",
     "CyclicDependencyError",
@@ -23,8 +24,12 @@ __all__ = [
     "LossyConditionViewWarning",
     "MembershipValueWarning",
     "MissingFieldNotWarning",
+    "RuleValueError",
+    "RuleValueWarning",
+    "UncomparableValuesError",
     "UnknownFieldError",
     "UnknownOperatorError",
+    "YamlValueWarning",
     "canonical_field_name",
     "is_field_typo",
 ]
@@ -108,6 +113,113 @@ class MembershipValueWarning(UserWarning):
     """
 
     code = "MEMBERSHIP_VALUE_NOT_LIST"
+
+
+class RuleValueWarning(UserWarning):
+    """A rule's value does not suit its operator.
+
+    ``>``, ``>=``, ``<`` and ``<=`` need a number, text, a date or a time, and
+    ``regex`` a pattern that compiles; otherwise the condition can never match.
+    ``starts_with``, ``ends_with`` and ``regex`` read a value that is not text
+    as text (``starts_with(75)`` tests ``"75"``), which the rule does not say.
+    Emitted when the rule is created. The rule still loads and
+    evaluates as before; :func:`fluxrules.validate` lists the same problems.
+    """
+
+    code = "RULE_VALUE_MISMATCH"
+
+
+class RuleValueError(InvalidRuleError, ValueError):
+    """A rule's value does not fit the type of its field in the fact schema.
+
+    Checked when rules are loaded into an engine built with ``fact_schema=``.
+    ``amount: float`` compared with the text ``"100.1"`` can never match, so
+    the rules are refused, with a suggested fix.
+
+    Attributes:
+        field: the field the rule compares.
+        rule: the rule's name, or its id, if known.
+        schema_name: the fact schema's class name.
+        value: the rule value.
+        summary: the message, as one sentence.
+    """
+
+    code = "RULE_VALUE_TYPE"
+
+    def __init__(
+        self,
+        summary: str,
+        *,
+        field: str | None = None,
+        rule: str | None = None,
+        schema_name: str | None = None,
+        value: Any = None,
+    ) -> None:
+        super().__init__(summary)
+        self.summary = summary
+        self.field = field
+        self.rule = rule
+        self.schema_name = schema_name
+        self.value = value
+
+    def __reduce__(self) -> Any:
+        return (
+            _rebuild_rule_value_error,
+            (self.summary, self.field, self.rule, self.schema_name, self.value),
+        )
+
+
+def _rebuild_rule_value_error(
+    summary: str, field: Any, rule: Any, schema_name: Any, value: Any
+) -> RuleValueError:
+    return RuleValueError(summary, field=field, rule=rule, schema_name=schema_name, value=value)
+
+
+class YamlValueWarning(UserWarning):
+    """A YAML value is read as written, where FluxRules 1.1 read it differently.
+
+    FluxRules reads YAML files by YAML 1.2's rules: only ``true`` and
+    ``false`` are booleans, so ``NO`` is the text ``"NO"``; ``0755`` and
+    ``1:30`` are text; ``1e3`` is the number 1000. FluxRules 1.1 read ``NO`` as
+    ``False``, ``0755`` as 493, ``1:30`` as 90 and ``1e3`` as text. Emitted
+    once per such value, naming the file and line.
+    """
+
+    code = "YAML_VALUE_READING"
+
+
+class ComparisonWarning(UserWarning):
+    """A comparison could not be made, so its condition was no match.
+
+    ``"abc" > 5``, ``None > 5``, ``float("nan") > 5``, a ``date`` ordered
+    against a ``datetime``, ``contains`` on a number and an invalid regex have
+    no answer. The condition is no match, and ``NOT`` over it fires. Emitted
+    once per field, operator and pair of types under the default
+    ``EngineConfig(uncomparable=None)``. Set ``uncomparable="false"`` to
+    silence it, ``"unknown"`` so ``NOT`` over such a comparison does not fire,
+    or ``"raise"`` to raise :class:`UncomparableValuesError` instead.
+    """
+
+    code = "UNCOMPARABLE_VALUES"
+
+
+class UncomparableValuesError(FluxRulesError, ValueError):
+    """A comparison could not be made, under ``EngineConfig(uncomparable="raise")``.
+
+    Attributes:
+        issue: The :class:`~fluxrules.domain.comparison_issues.ComparisonIssue`
+            naming the field, the operator, both types and the reason.
+    """
+
+    code = "UNCOMPARABLE_VALUES"
+
+    def __init__(self, issue: Any) -> None:
+        super().__init__(issue.describe())
+        self.issue = issue
+
+    def __reduce__(self) -> tuple[Any, ...]:
+        # Rebuilt from the issue, so the error survives a worker process.
+        return (type(self), (self.issue,))
 
 
 class LossyConditionRebuildError(InvalidRuleError):

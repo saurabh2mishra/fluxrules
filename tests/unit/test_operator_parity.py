@@ -44,6 +44,12 @@ _TRUE_CASES = [
     ("starts_with", "hello", "he", True),
     ("ends_with", "hello", "lo", True),
     ("regex", "hello", "h.*o", True),
+    ("approx", 0.1 + 0.2, 0.3, True),
+    ("equals_ignore_case", "STRASSE", "straße", True),
+    ("in_ignore_case", "no", ["NO", "SE"], True),
+    ("contains_ignore_case", ["VIP"], "vip", True),
+    ("starts_with_ignore_case", "Hello", "he", True),
+    ("ends_with_ignore_case", "Hello", "LO", True),
 ]
 
 

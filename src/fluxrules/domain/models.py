@@ -5,6 +5,8 @@ from enum import Enum
 from typing import Any
 from uuid import uuid4
 
+from fluxrules.domain.comparison_issues import ComparisonIssue
+
 Fact = dict[str, Any]
 
 
@@ -221,6 +223,11 @@ class EvaluationResult:
         latency_ms: Measured evaluation latency in milliseconds.
         engine_type: Name of the concrete engine class that produced this.
         explanations: Per-rule human-readable reason a rule fired.
+        comparison_issues: Comparisons that could not be made during this
+            evaluation, such as ``"abc" > 5`` or ``None > 5``, as
+            :class:`~fluxrules.domain.comparison_issues.ComparisonIssue`. Each
+            field, operator and pair of types is listed once. See
+            ``EngineConfig.uncomparable``.
     """
 
     # The result. What matched.
@@ -240,3 +247,6 @@ class EvaluationResult:
     latency_ms: float = 0.0
     engine_type: str = ""
     explanations: dict[int, str] = field(default_factory=dict)
+
+    # Comparisons that could not be made ("abc" > 5, None > 5), each listed once.
+    comparison_issues: list[ComparisonIssue] = field(default_factory=list)

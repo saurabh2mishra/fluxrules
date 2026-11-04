@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from fluxrules.api.database import get_db
 from fluxrules.api.deps import get_current_user
 from fluxrules.api.models.user import User
+from fluxrules.api.schemas import ComparisonIssueResponse, comparison_issues
 from fluxrules.domain.models import EvaluationResult, Ruleset
 from fluxrules.persistence.mappers import orm_rule_to_canonical
 from fluxrules.services.rule_service import RuleService
@@ -44,6 +45,10 @@ class EvaluateResponse(BaseModel):
     matched_rules: list[Any]
     actions: list[str]
     facts: dict[str, Any]
+    comparison_issues: list[ComparisonIssueResponse] = Field(
+        default_factory=list,
+        description='Comparisons that could not be made, such as "abc" > 5',
+    )
 
 
 class BulkEvaluateRequest(BaseModel):
@@ -61,6 +66,7 @@ class BulkEvaluateResult(BaseModel):
     execution_id: str
     matched_rules: list[Any]
     actions: list[str]
+    comparison_issues: list[ComparisonIssueResponse] = Field(default_factory=list)
 
 
 class BulkEvaluateResponse(BaseModel):
@@ -180,6 +186,7 @@ def evaluate(
                 matched_rules=result.fired_rules,
                 actions=result.actions,
                 facts=request.facts,
+                comparison_issues=comparison_issues(result),
             )
             _execution_store[result.execution_id] = resp.model_dump()
             return resp
@@ -201,6 +208,7 @@ def evaluate(
         matched_rules=result.fired_rules,
         actions=result.actions,
         facts=request.facts,
+        comparison_issues=comparison_issues(result),
     )
     _execution_store[result.execution_id] = resp.model_dump()
     return resp
@@ -249,6 +257,7 @@ def evaluate_many(
             "matched_rules": result.fired_rules,
             "actions": result.actions,
             "facts": facts,
+            "comparison_issues": [issue.to_dict() for issue in result.comparison_issues],
         }
         results.append(
             BulkEvaluateResult(
@@ -256,6 +265,7 @@ def evaluate_many(
                 execution_id=result.execution_id,
                 matched_rules=result.fired_rules,
                 actions=result.actions,
+                comparison_issues=comparison_issues(result),
             )
         )
     return ruleset_group, results

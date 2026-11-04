@@ -61,10 +61,26 @@ class EngineConfig:
     # compiled conditions are rebuilt when it changes.
     missing_field: str | None = None
 
+    # What a comparison that cannot be made does ("abc" > 5, None > 5, NaN > 5,
+    # a date ordered against a datetime, contains on a number, an invalid
+    # regex). It is always no match, and is listed in the result's
+    # comparison_issues.
+    # None (default): also emit a ComparisonWarning once per field, operator
+    #   and pair of types.
+    # "false": no warning (the 1.1 behaviour).
+    # "unknown": the comparison is unknown, so NOT over it does not fire.
+    # "raise": raise UncomparableValuesError.
+    uncomparable: str | None = None
+
     def __post_init__(self) -> None:
         if self.missing_field not in (None, "false", "unknown"):
             raise ValueError(
                 f"missing_field must be None, 'false' or 'unknown', got {self.missing_field!r}"
+            )
+        if self.uncomparable not in (None, "false", "unknown", "raise"):
+            raise ValueError(
+                "uncomparable must be None, 'false', 'unknown' or 'raise', "
+                f"got {self.uncomparable!r}"
             )
 
 

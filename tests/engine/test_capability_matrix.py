@@ -40,6 +40,12 @@ _OPERATOR_MATRIX: dict[str, tuple] = {
     "starts_with": ("he", "hello", "world"),
     "ends_with": ("lo", "hello", "world"),
     "regex": ("h.*o", "hello", "world"),
+    "approx": ({"value": 0.3, "abs_tol": 0.001}, 0.1 + 0.2, 0.31),
+    "equals_ignore_case": ("Hello", "HELLO", "world"),
+    "in_ignore_case": (["NO", "SE"], "no", "dk"),
+    "contains_ignore_case": ("ELL", "hello", "world"),
+    "starts_with_ignore_case": ("HE", "hello", "world"),
+    "ends_with_ignore_case": ("LO", "hello", "world"),
 }
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -29,7 +30,8 @@ _CONFIG_HELP = (
 )
 _EVALUATE_CONFIG_HELP = (
     _CONFIG_HELP[:-1] + ". Its comparison settings (strict_null_handling, "
-    "strict_type_comparison, boolean_string_coercion, missing_field) apply too."
+    "strict_type_comparison, boolean_string_coercion, missing_field, uncomparable) apply "
+    "too."
 )
 # EngineConfig fields that `fluxrules evaluate` reads from the config file.
 _COMPARISON_SETTINGS = (
@@ -37,6 +39,7 @@ _COMPARISON_SETTINGS = (
     "strict_type_comparison",
     "boolean_string_coercion",
     "missing_field",
+    "uncomparable",
 )
 _TRUST_HELP = (
     "Allow importing a fact_schema named inside a rule file or a config file found "
@@ -178,6 +181,14 @@ def _config_settings(config: str | None) -> Any:
             if value not in (None, "false", "unknown"):
                 problem(f"{path}: missing_field must be 'false', 'unknown' or null, got {value!r}")
                 return None
+        elif name == "uncomparable":
+            value = "false" if value is False else value
+            if value not in (None, "false", "unknown", "raise"):
+                problem(
+                    f"{path}: uncomparable must be 'false', 'unknown', 'raise' or null, "
+                    f"got {value!r}"
+                )
+                return None
         elif not isinstance(value, bool):
             problem(f"{path}: {name} must be true or false, got {value!r}")
             return None
@@ -280,9 +291,16 @@ def evaluate(
     With a fact schema, rules naming a field the schema lacks are refused
     (exit 1), and --validate-facts checks the event too. Comparison settings
     in the config file (strict_null_handling, strict_type_comparison,
-    boolean_string_coercion, missing_field) apply to the evaluation.
+    boolean_string_coercion, missing_field, uncomparable) apply to the evaluation.
+    Comparisons that could not be made (such as "abc" > 5) are listed after the
+    matches.
     """
-    from fluxrules.domain.errors import FactValidationError, FluxRulesError, UnknownFieldError
+    from fluxrules.domain.errors import (
+        FactValidationError,
+        FluxRulesError,
+        RuleValueError,
+        UnknownFieldError,
+    )
     from fluxrules.engine import get_available_engines, get_engine
     from fluxrules.facts import VALIDATE_FACTS_MODES
 
@@ -316,7 +334,7 @@ def evaluate(
             raise _fail(f"Cannot build engine {engine!r}{detail}: {exc}") from None
         try:
             rule_engine.load_rules(loaded)
-        except UnknownFieldError as exc:
+        except (UnknownFieldError, RuleValueError) as exc:
             raise _fail(exc.summary, code=1) from None
 
         try:
@@ -344,6 +362,7 @@ def evaluate(
                     for rule in matched
                 ],
                 "actions": result.actions,
+                "comparison_issues": [issue.to_dict() for issue in result.comparison_issues],
             }
         )
     else:
@@ -361,6 +380,10 @@ def evaluate(
             )
         console.print(table)
         console.print(f"\n[dim]Actions: {result.actions}[/dim]")
+        if result.comparison_issues:
+            console.print("\n[yellow]Comparisons that could not be made (no match):[/yellow]")
+            for issue in result.comparison_issues:
+                console.print(f"  {issue.describe()}", markup=False)
 
 
 @app.command()
@@ -370,32 +393,62 @@ def validate(
     config: str | None = typer.Option(None, "--config", help=_CONFIG_HELP),
     trust_schema: bool = typer.Option(False, "--trust-schema", help=_TRUST_HELP),
 ) -> None:
-    """Validate rules for structural issues and, with a fact schema, unknown fields.
+    """Validate rules for structural issues and, with a fact schema, field problems.
 
-    Reports empty conditions, duplicate ids, unsupported operators, and every
-    field the fact schema lacks. The schema comes from --schema, else the rule
-    file's fact_schema, else the config file's. Exits 1 when any issue is found
-    and 2 when a rule file or the schema cannot be loaded.
+    Reports empty conditions, duplicate ids, unsupported operators, values that
+    do not suit their operator, YAML values read differently from FluxRules
+    1.1, and, with a fact schema, every field the schema lacks and every value
+    that does not fit its field's type. The schema comes from --schema, else
+    the rule file's fact_schema, else the config file's. Exits 1 when any issue
+    is found and 2 when a rule file or the schema cannot be loaded.
     """
     from fluxrules.domain import Ruleset
+    from fluxrules.domain.conditions.rule_values import value_problems
+    from fluxrules.domain.errors import YamlValueWarning
+    from fluxrules.engine.configuration import get_config
     from fluxrules.facts import schema_info
     from fluxrules.services.validation_service import ValidationService
 
     config_schema = _ConfigSchema(config)
+    # The config file's boolean_string_coercion decides whether "true" fits a
+    # bool field, as it does for `fluxrules evaluate`. A config file found
+    # automatically is not read when --schema is given, so then the process
+    # setting applies.
+    settings = _config_settings(config) if config is not None or schema is None else None
+    coerce = (settings or get_config()).boolean_string_coercion
     issues: list[str] = []
     schemas: list[dict[str, str | None]] = []
     for path in rules:
-        document, loaded = _read_rules(path)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", YamlValueWarning)
+            document, loaded = _read_rules(path)
         prefix = f"{path}: " if len(rules) > 1 else ""
+        for w in caught:
+            if issubclass(w.category, YamlValueWarning):
+                # The file and line are in the message already.
+                issues.append(str(w.message))
+            else:
+                # Other warnings (MembershipValueWarning and the like) are shown
+                # as they would be without the capture.
+                warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
         ruleset = Ruleset(
             group="cli",
             rules=tuple(rule.to_engine_rule() for rule in loaded),
         )
         issues.extend(prefix + issue for issue in ValidationService().validate_ruleset(ruleset))
+        issues.extend(
+            f"{prefix}Rule '{rule.id}': {problem}"
+            for rule in loaded
+            for problem in value_problems(rule.conditions)
+        )
         resolved = _resolve_schema(schema, document, config_schema, trust_schema)
         if resolved is not None:
-            unknown = schema_info(resolved.model).unknown_fields(loaded)
-            issues.extend(prefix + error.summary for error in unknown)
+            info = schema_info(resolved.model)
+            issues.extend(prefix + error.summary for error in info.unknown_fields(loaded))
+            issues.extend(
+                prefix + error.summary
+                for error in info.value_errors(loaded, coerce_bool_strings=coerce)
+            )
         schemas.append(
             {
                 "file": path,

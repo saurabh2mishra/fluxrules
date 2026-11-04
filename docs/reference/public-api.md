@@ -21,7 +21,7 @@ be interchangeable.
 
 | Surface | Label | Entry point | Input/output contract |
 |---|---|---|---|
-| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | One fact in (a mapping or a typed model); `EvaluationResult` out (`fired_rules`, `actions`, explanations, metrics). |
+| Canonical rule evaluation | **Stable** | `Rule` + `PhreakEngine.load_rules()` + `engine.evaluate(facts)` | One fact in (a mapping or a typed model); `EvaluationResult` out (`fired_rules`, `actions`, `comparison_issues`, explanations, metrics). |
 | Reference evaluation | **Stable reference** | `ReferenceEvaluator.evaluate(ruleset, facts)` or top-level `fluxrules.evaluate()` | Rules plus facts in; the same `EvaluationResult` out (`fired_rules`, actions, trace). Used as the oracle for the single-fact subset. |
 | Cross-fact correlation | **Separate contract** | `get_cross_fact_engine()` | `insert`/`update`/`retract` fact handles and activation deltas; not a `BaseEngine` replacement. |
 | Sessions and persistence | **Separate contract** | `RuleService`, persistence ports, session services | Rulesets and snapshots are managed outside the direct PHREAK matcher. |
@@ -42,7 +42,7 @@ From `fluxrules`:
 - `evaluate(rules, facts) → EvaluationResult`: Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. 
 - `facts` may be a plain python `dict` or a model: a Pydantic v2 model, dataclass, attrs class or msgspec `Struct` (a Pydantic v1 model is converted with `.dict()`). Nested models become dotted keys (`customer.age`). See [Typed Facts](../typed-facts.md).
 - `to_fact_dict(facts) → dict`: The conversion `evaluate()` and every engine apply to non-dict facts.
-- `validate(rules) → list[str]`: Validate rules and return issues; accepts the same shapes as `evaluate`
+- `validate(rules, *, fact_schema=None) → list[str]`: Validate rules and return issues; accepts the same shapes as `evaluate`. Lists structural problems and values that do not suit their operator; with `fact_schema` (a model class), also every field the model lacks and every value of the wrong type for its field. Never raises
 - `explain(execution_id: str) → dict[str, object]`: Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
 ## Engines
@@ -103,7 +103,7 @@ From `fluxrules.adapters.loaders`:
 From `fluxrules`:
 
 - `Rule`: Pydantic v2 model: `id`, `name`, `domain`, `tags`, `conditions`, `action`, `actions`, `priority`, `enabled`, `persist`
-- `F` (alias of `Field`) and `Condition`: the recommended way to write `conditions`: `(F("amount") > 5000) & (F("country") == "US")`. See [Authoring Rules](../authoring-rules.md).
+- `F` (alias of `Field`) and `Condition`: the recommended way to write `conditions`: `(F("amount") > 5000) & (F("country") == "US")`. See [Authoring Rules](../authoring-rules.md). Besides the comparison operators, `F` has `isin`, `not_in`, `contains`, `not_contains`, `starts_with`, `ends_with`, `regex`, `exists`, `approx(value, *, abs_tol=None, rel_tol=None)` for numbers that are close enough, and `equals_ignore_case`, `in_ignore_case`, `contains_ignore_case`, `starts_with_ignore_case` and `ends_with_ignore_case` for text compared without case. See [Conditions](../conditions.md#close-numbers).
 - `RuleBuilder`: Fluent authoring; `RuleBuilder.build()` returns a `Rule`. `RuleBuilder.condition()` accepts an `F` expression or a dictionary.
 - `ConditionBuilder`: Deprecated in favor of `F`; it will be removed in a future release.
 - `Ruleset`: Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.
@@ -148,6 +148,7 @@ except FluxRulesError as exc:
 | `ConditionValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `conditions` tree fails strict validation |
 | `FieldNotFoundError` | `FluxRulesError` | `FIELD_NOT_FOUND` | A condition's field is missing but a key in the fact is the same name in another key style (`Amount` / `amount`, `userAge` / `user_age`, `user-age`), or the field is a dotted path into a nested value that was not flattened |
 | `UnknownFieldError` | `InvalidRuleError`, `AttributeError` | `UNKNOWN_FACT_FIELD` | A rule names a field the engine's `fact_schema` lacks (raised by `load_rules`), or `fields(Model)` is asked for one |
+| `RuleValueError` | `InvalidRuleError`, `ValueError` | `RULE_VALUE_TYPE` | A rule value does not fit its field's type in the engine's `fact_schema`, such as `amount: float` compared with `"100.1"` (raised by `load_rules` and `load_rules_from_yaml`); `.field`, `.rule`, `.schema_name`, `.value` and `.summary` hold the details |
 | `FactValidationError` | `FluxRulesError`, `ValueError` | `FACT_VALIDATION_ERROR` | With `validate_facts` on and `on_invalid="raise"`, a fact fails validation; `.errors` holds each field location and error code |
 | `EmptyRuleLogicError` | `InvalidRuleError` | `EMPTY_RULE_LOGIC` | A rule with no condition logic would be stored |
 | `LossyConditionRebuildError` | `InvalidRuleError` | `LOSSY_CONDITION_REBUILD` | A condition tree would be rebuilt from a lossy `.conditions` view |
@@ -169,6 +170,50 @@ from fluxrules import LossyConditionViewWarning
 
 warnings.simplefilter("error", LossyConditionViewWarning)
 ```
+
+### `ComparisonWarning`
+
+A `UserWarning` emitted when a comparison cannot be made and leaves a rule
+undecided, such as `"abc" > 5`, `None > 5` or `float("nan") > 5`. The condition
+is no match. It is emitted once per process for each field, operator and pair
+of types, under the default `EngineConfig(uncomparable=None)`. Set
+`uncomparable="false"` to silence it, `"unknown"` so `NOT` over such a
+comparison does not fire, or `"raise"` to raise `UncomparableValuesError`
+instead. See
+[Comparisons that cannot be made](../comparing-values.md#comparisons-that-cannot-be-made).
+
+### `UncomparableValuesError`
+
+Raised under `EngineConfig(uncomparable="raise")` when a comparison cannot be
+made and leaves a rule undecided. It is a `FluxRulesError` and a `ValueError`,
+with code `UNCOMPARABLE_VALUES`. Its `issue` attribute is the
+`ComparisonIssue`. The HTTP API answers it with `422`.
+
+### `ComparisonIssue`
+
+One comparison that could not be made, as listed in
+`EvaluationResult.comparison_issues`. A frozen dataclass with `field`,
+`operator`, `fact_type`, `rule_type` and `reason`, plus `to_dict()` and
+`describe()`. Each field, operator and pair of types is listed once per
+evaluation.
+
+### `RuleValueWarning`
+
+A `UserWarning` emitted when a rule is created with a value that does not suit
+its operator. Some can never match: `>`, `>=`, `<` or `<=` with `None`, a
+boolean, a list, a mapping or `NaN`; a `regex` that does not compile; `approx`
+with anything but a number; an `_ignore_case` operator with anything but text.
+Others are converted in a way the rule does not say: `starts_with`, `ends_with`
+or `regex` with a value that is not text, which is read as text. Emitted once
+per process for each problem. The rule still loads and evaluates as before. See
+[Values that suit the operator](../conditions.md#values-that-suit-the-operator).
+
+### `YamlValueWarning`
+
+A `UserWarning` emitted when a YAML rule file or config file holds an unquoted
+value that FluxRules 1.1 read differently, such as `NO` (now the text `"NO"`,
+1.1 read it as `False`). It names the file and line. See
+[How values are read](../yaml-rules.md#how-values-are-read).
 
 ### `MembershipValueWarning`
 

@@ -41,6 +41,8 @@ from fluxrules.engine.operators import (
     ORDERING_OPS,
     as_membership_collection,
     coerce_bool_string,
+    is_nan,
+    is_plain_number,
 )
 from fluxrules.prefilter.predicate import (
     LeafPredicate,
@@ -55,18 +57,31 @@ logger = logging.getLogger(__name__)
 _MISSING = object()
 
 
-def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
+def _make_test(
+    op: str, value: Any, strict_types: bool = False, orderable: bool = False
+) -> Callable[[Any], bool]:
     """Compile a leaf predicate into a fast unary test over a fact's field value.
 
     The callable receives the field's value (or ``_MISSING`` when absent) and
-    returns whether the leaf is satisfied. The comparisons come from
+    returns whether the leaf could be satisfied. The comparisons come from
     :data:`fluxrules.engine.operators.COMPARISONS`, the table the engine
-    operator uses, and an absent or ``None`` value fails every constraining
-    operator, as it does in the engine.
+    operator uses. An absent value fails every constraining operator, as it
+    does in the engine.
 
-    A test may raise ``TypeError`` for a value it cannot compare (``"x" > 5``,
-    or an unhashable list tested with ``in``). ``PredicateIndex._eval_nodes``
-    handles that, so the tests themselves stay a single comparison.
+    An ordering test (``>``, ``>=``, ``<``, ``<=``) keeps the rule whenever the
+    engine could not make the comparison: ``None`` or ``NaN`` on either side,
+    or, with *strict_types* (``strict_type_comparison``), a value that is not a
+    plain number. The answer is no match either way, but the engine must see
+    the comparison to report it (warn, list it or raise).
+
+    *orderable* builds the test for a fact known to hold no ``None`` or ``NaN``
+    (see :func:`_orderable`), without strict types: the ordering test is then
+    the comparison alone, which saves a NaN test per failed comparison.
+
+    A test may raise for a value it cannot compare (``"x" > 5``, an unhashable
+    list tested with ``in``, a ``Decimal`` NaN). ``PredicateIndex._eval_nodes``
+    keeps the rule in that case, so the tests themselves stay a single
+    comparison.
     """
     if op == "__exists__":
         # Present-but-unbounded across an OR. A present ``None`` must pass: a
@@ -87,16 +102,35 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
         return lambda v: v is not _MISSING and v in members
     if op in ORDERING_OPS:
         compare = COMPARISONS[op]
-        return lambda v: v is not _MISSING and v is not None and compare(v, value)
+        if value is None or is_nan(value) or (strict_types and not is_plain_number(value)):
+            # The engine cannot order anything against this rule value.
+            return lambda v: v is not _MISSING
+        if orderable:
+            # The fact holds no None or NaN, so the comparison alone decides.
+            return lambda v: v is not _MISSING and compare(v, value)
+        # An int is never NaN, so its class skips the NaN test.
+        if strict_types:
+            return lambda v: (
+                v is not _MISSING
+                and (
+                    not is_plain_number(v)
+                    or compare(v, value)
+                    or (v.__class__ is not int and is_nan(v))
+                )
+            )
+        return lambda v: (
+            v is not _MISSING
+            and (v is None or compare(v, value) or (v.__class__ is not int and is_nan(v)))
+        )
     # Should never reach here: extractor only emits constraining ops.
     return lambda v: True
 
 
 def _test_or_keep(test: Callable[[Any], bool], value: Any) -> bool:
-    """Run one node test, treating a ``TypeError`` as "keep the candidate"."""
+    """Run one node test, treating an error as "keep the candidate"."""
     try:
         return test(value)
-    except TypeError:
+    except Exception:
         return True
 
 
@@ -107,10 +141,12 @@ class _AlphaNode:
     field: str
     op: str
     value_key: Any  # hashable form of the value, for dedup
-    test: Callable[[Any], bool]
-    # The same test with boolean_string_coercion on: the rule value is
-    # converted exactly as the engine operator converts it.
-    coerced_test: Callable[[Any], bool]
+    # One test per setting combination, indexed by
+    # _variant(coerce, strict, orderable). With boolean_string_coercion the
+    # rule value is converted exactly as the engine operator converts it; with
+    # strict_type_comparison an ordering keeps every value that is not a plain
+    # number; an orderable test is for a fact with no None or NaN value.
+    tests: tuple[Callable[[Any], bool], ...]
 
 
 @dataclass
@@ -208,12 +244,19 @@ class PredicateIndex:
         existing = node_cache.get(key)
         if existing is not None:
             return existing
+        coerced = coerce_bool_string(pred.value)
         node = _AlphaNode(
             field=pred.field,
             op=pred.op,
             value_key=value_key,
-            test=_make_test(pred.op, pred.value),
-            coerced_test=_make_test(pred.op, coerce_bool_string(pred.value)),
+            tests=(
+                _make_test(pred.op, pred.value),
+                _make_test(pred.op, pred.value, strict_types=True),
+                _make_test(pred.op, pred.value, orderable=True),
+                _make_test(pred.op, coerced),
+                _make_test(pred.op, coerced, strict_types=True),
+                _make_test(pred.op, coerced, orderable=True),
+            ),
         )
         node_id = len(self._nodes)
         self._nodes.append(node)
@@ -223,34 +266,49 @@ class PredicateIndex:
 
     # streaming screen
 
-    def _eval_nodes(self, fact: dict[str, Any], coerce_bool_strings: bool = False) -> list[bool]:
+    def _eval_nodes(
+        self,
+        fact: dict[str, Any],
+        coerce_bool_strings: bool = False,
+        strict_types: bool = False,
+    ) -> list[bool]:
         """Evaluate every distinct alpha node once for this fact.
 
         The common case is one list comprehension with no per-node overhead. If
-        a value cannot be compared (``"x" > 5``, or an unhashable list tested
-        with ``in``), Python raises ``TypeError``. The fact is then re-evaluated
-        node by node, and a node that raises counts as passing, which keeps its
-        rules as candidates for the engine to decide. That is always sound: the
-        prefilter may keep extra rules, but must never drop one that could fire.
+        a value cannot be compared (``"x" > 5``, an unhashable list tested with
+        ``in``, a ``Decimal`` NaN), the test raises. The fact is then
+        re-evaluated node by node, and a node that raises counts as passing,
+        which keeps its rules as candidates for the engine to decide. That is
+        always sound: the prefilter may keep extra rules, but must never drop
+        one that could fire.
 
         With *coerce_bool_strings* (the engine's ``boolean_string_coercion``),
         the strings ``"true"`` / ``"false"`` on either side are read as booleans
-        first, as the engine operator reads them.
+        first, as the engine operator reads them. *strict_types* is the
+        engine's ``strict_type_comparison``.
+
+        A fact with no ``None`` or ``NaN`` value, the common case, uses the
+        tests built for it, which skip the NaN test of every ordering node.
         """
+        orderable = not strict_types and _orderable(fact)
+        variant = _variant(coerce_bool_strings, strict_types, orderable)
         get = fact.get
         if coerce_bool_strings:
             values = [coerce_bool_string(get(node.field, _MISSING)) for node in self._nodes]
             try:
-                return [node.coerced_test(v) for node, v in zip(self._nodes, values, strict=True)]
-            except TypeError:
+                return [node.tests[variant](v) for node, v in zip(self._nodes, values, strict=True)]
+            except Exception:
                 return [
-                    _test_or_keep(node.coerced_test, v)
+                    _test_or_keep(node.tests[variant], v)
                     for node, v in zip(self._nodes, values, strict=True)
                 ]
         try:
-            return [node.test(get(node.field, _MISSING)) for node in self._nodes]
-        except TypeError:
-            return [_test_or_keep(node.test, get(node.field, _MISSING)) for node in self._nodes]
+            return [node.tests[variant](get(node.field, _MISSING)) for node in self._nodes]
+        except Exception:
+            return [
+                _test_or_keep(node.tests[variant], get(node.field, _MISSING))
+                for node in self._nodes
+            ]
 
     @property
     def signature_count(self) -> int:
@@ -276,7 +334,13 @@ class PredicateIndex:
         """
         return bool(self._signatures)
 
-    def matches(self, fact: dict[str, Any], *, coerce_bool_strings: bool = False) -> bool:
+    def matches(
+        self,
+        fact: dict[str, Any],
+        *,
+        coerce_bool_strings: bool = False,
+        strict_types: bool = False,
+    ) -> bool:
         """Return True if ``fact`` could satisfy the necessary conditions of any rule.
 
         Evaluates each *distinct* alpha node at most once, then checks signatures.
@@ -284,7 +348,7 @@ class PredicateIndex:
         """
         if self.pass_through:
             return True
-        node_results = self._eval_nodes(fact, coerce_bool_strings)
+        node_results = self._eval_nodes(fact, coerce_bool_strings, strict_types)
         for sig in self._signatures:
             if all(node_results[nid] for nid in sig):
                 return True
@@ -296,6 +360,7 @@ class PredicateIndex:
         universe: Iterable[int],
         *,
         coerce_bool_strings: bool = False,
+        strict_types: bool = False,
     ) -> set[int]:
         """Return the subset of ``universe`` whose alpha conditions ``fact`` passes.
 
@@ -315,7 +380,7 @@ class PredicateIndex:
         if not self._signatures:
             # Nothing filterable -> cannot prune anything soundly.
             return set(universe)
-        node_results = self._eval_nodes(fact, coerce_bool_strings)
+        node_results = self._eval_nodes(fact, coerce_bool_strings, strict_types)
         sig_pass = [all(node_results[nid] for nid in sig) for sig in self._signatures]
         if all(sig_pass):
             # No signature failed -> nothing to prune. Avoid all set ops.
@@ -328,7 +393,12 @@ class PredicateIndex:
         return kept & universe
 
     def prune(
-        self, fact: dict[str, Any], universe: list[int], *, coerce_bool_strings: bool = False
+        self,
+        fact: dict[str, Any],
+        universe: list[int],
+        *,
+        coerce_bool_strings: bool = False,
+        strict_types: bool = False,
     ) -> list[int]:
         """Engine-facing prune: like :meth:`candidate_rule_ids` but allocation-light.
 
@@ -338,7 +408,7 @@ class PredicateIndex:
         """
         if not self._signatures:
             return universe
-        node_results = self._eval_nodes(fact, coerce_bool_strings)
+        node_results = self._eval_nodes(fact, coerce_bool_strings, strict_types)
         sig_pass = [all(node_results[nid] for nid in sig) for sig in self._signatures]
         if all(sig_pass):
             return universe  # nothing pruned -> reuse caller's list, zero copy
@@ -355,6 +425,25 @@ class PredicateIndex:
         for fact in facts:
             if match(fact):
                 yield fact
+
+
+def _variant(coerce_bool_strings: bool, strict_types: bool, orderable: bool) -> int:
+    """Index into ``_AlphaNode.tests`` for these settings and this fact."""
+    return (3 if coerce_bool_strings else 0) + (1 if strict_types else 2 if orderable else 0)
+
+
+def _orderable(fact: dict[str, Any]) -> bool:
+    """Whether no value in *fact* is ``None`` or ``NaN``.
+
+    The nodes read top-level fields only (``fact.get``), so these are all the
+    values a test can see. It asks exactly what the full ordering test asks
+    of each value, so the two tests keep the same rules for such a fact.
+    Converting ``"true"`` / ``"false"`` never yields ``None`` or ``NaN``.
+    """
+    for value in fact.values():
+        if value is None or (value.__class__ is not int and is_nan(value)):
+            return False
+    return True
 
 
 def _hashable(value: Any) -> Any:

@@ -23,6 +23,10 @@ their plain boolean fast path. And because a definite three-valued result always
 equals the plain result, a ``NOT`` that evaluates to ``False`` is final in every
 mode: the extra walk only runs when a ``NOT`` fires *and* one of the fields
 under it is missing.
+
+A comparison that cannot be made (``"abc" > 5``) counts as ``False`` here, as it
+does in the plain evaluation. ``EngineConfig.uncomparable`` is applied once per
+rule instead, by :mod:`fluxrules.domain.conditions.uncomparable_rules`.
 """
 
 from __future__ import annotations
@@ -43,8 +47,9 @@ __all__ = [
 MISSING_FIELD_MODES = (None, "false", "unknown")
 
 Tristate = bool | None
-LeafFn = Callable[[dict[str, Any], dict[str, Any]], bool]
-OtherFn = Callable[[dict[str, Any], dict[str, Any]], bool]
+# A leaf returns True, False or an Uncomparable (falsy).
+LeafFn = Callable[[dict[str, Any], dict[str, Any]], Any]
+OtherFn = Callable[[dict[str, Any], dict[str, Any]], Any]
 
 
 def not_child(node: dict[str, Any]) -> dict[str, Any] | None:
@@ -96,18 +101,28 @@ def evaluate_tristate(
     leaf: LeafFn,
     other: OtherFn,
     empty: bool,
+    missing_unknown: bool = True,
 ) -> Tristate:
     """Evaluate a condition tree with Kleene logic: ``True``, ``False`` or ``None``.
 
     Args:
         node: the condition tree.
         facts: the flat fact dict.
-        leaf: evaluates a ``condition`` leaf whose field is present.
+        leaf: evaluates a ``condition`` leaf whose field is present, returning
+            ``True``, ``False`` or an :class:`Uncomparable`.
         other: evaluates node types this walk does not model (``accumulate``,
             unknown types), returning a plain bool.
         empty: the value of an empty ``and`` group or an empty ``not``. Each
             evaluator passes its own, so this walk agrees with it exactly.
+        missing_unknown: a leaf whose field is missing is unknown (else
+            ``False``).
     """
+    kwargs: dict[str, Any] = {
+        "leaf": leaf,
+        "other": other,
+        "empty": empty,
+        "missing_unknown": missing_unknown,
+    }
     if not isinstance(node, dict):
         return False
     ctype = node.get("type")
@@ -119,8 +134,9 @@ def evaluate_tristate(
 
             if is_field_typo(field, facts):
                 raise FieldNotFoundError.for_field(field, facts)
-            return None
-        return leaf(node, facts)
+            return None if missing_unknown else False
+        # An Uncomparable is falsy, so it counts as False, as in the plain walk.
+        return bool(leaf(node, facts))
 
     if ctype in ("and", "or", "group", "composite"):
         if ctype == "and":
@@ -135,7 +151,7 @@ def evaluate_tristate(
                 return empty
             result: Tristate = True
             for child in children:
-                value = evaluate_tristate(child, facts, leaf=leaf, other=other, empty=empty)
+                value = evaluate_tristate(child, facts, **kwargs)
                 if value is False:
                     return False
                 if value is None:
@@ -143,7 +159,7 @@ def evaluate_tristate(
             return result
         result = False
         for child in children:
-            value = evaluate_tristate(child, facts, leaf=leaf, other=other, empty=empty)
+            value = evaluate_tristate(child, facts, **kwargs)
             if value is True:
                 return True
             if value is None:
@@ -154,7 +170,7 @@ def evaluate_tristate(
         inner = not_child(node)
         if inner is None:
             return empty
-        value = evaluate_tristate(inner, facts, leaf=leaf, other=other, empty=empty)
+        value = evaluate_tristate(inner, facts, **kwargs)
         return None if value is None else not value
 
     if ctype == "exists":
@@ -164,7 +180,7 @@ def evaluate_tristate(
         inner = node.get("condition")
         if inner is None:
             return False
-        return evaluate_tristate(inner, facts, leaf=leaf, other=other, empty=empty)
+        return evaluate_tristate(inner, facts, **kwargs)
 
     return other(node, facts)
 

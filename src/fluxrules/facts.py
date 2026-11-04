@@ -35,7 +35,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from fluxrules.domain.errors import UnknownFieldError
+from fluxrules.domain.errors import RuleValueError, UnknownFieldError
 
 logger = logging.getLogger(__name__)
 
@@ -362,6 +362,59 @@ class FactSchemaInfo:
         can report all problems at once.
         """
         return list(self._iter_unknown(rules))
+
+    def prepare_rules(
+        self, rules: Iterable[Any], *, coerce_bool_strings: bool = False
+    ) -> list[Any]:
+        """Check every rule value against its field's type, and convert dates.
+
+        A value that does not fit its field (``amount: float`` compared with
+        ``"100.1"``) raises :class:`~fluxrules.RuleValueError`, for the first
+        such value in rule order. An ISO date string compared with a ``date``
+        or ``datetime`` field becomes a date. Returns the rules, each as a
+        ``Rule``, with a converted copy where a date was converted.
+        *coerce_bool_strings* is ``EngineConfig.boolean_string_coercion``:
+        with it, ``"true"`` and ``"false"`` fit a ``bool`` field.
+        """
+        prepared, errors = self._check_values(rules, coerce_bool_strings)
+        if errors:
+            raise errors[0]
+        return prepared
+
+    def value_errors(
+        self, rules: Iterable[Any], *, coerce_bool_strings: bool = False
+    ) -> list[RuleValueError]:
+        """Every rule value that does not fit its field's type, in rule order.
+
+        Like :meth:`prepare_rules` but collects instead of raising.
+        """
+        return self._check_values(rules, coerce_bool_strings)[1]
+
+    def _check_values(
+        self, rules: Iterable[Any], coerce_bool_strings: bool
+    ) -> tuple[list[Any], list[RuleValueError]]:
+        from fluxrules.domain.conditions.schema_values import check_tree
+        from fluxrules.domain.unified_rule import Rule
+        from fluxrules.engine.infrastructure.global_rule_repository import normalize_rule
+
+        prepared: list[Any] = []
+        errors: list[RuleValueError] = []
+        for rule in rules:
+            canonical = rule if isinstance(rule, Rule) else normalize_rule(rule)
+            label = canonical.name or (str(canonical.id) if canonical.id is not None else None)
+            conditions = getattr(canonical, "conditions", None)
+            converted, found = check_tree(
+                conditions,
+                self.fields,
+                schema_name=self.name,
+                rule=label,
+                coerce_bool_strings=coerce_bool_strings,
+            )
+            errors.extend(found)
+            if converted is not conditions:
+                canonical = canonical.model_copy(update={"conditions": converted})
+            prepared.append(canonical)
+        return prepared, errors
 
     def _iter_unknown(self, rules: Iterable[Any]) -> Iterator[UnknownFieldError]:
         from fluxrules.domain.unified_rule import Rule

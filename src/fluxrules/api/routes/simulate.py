@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from fluxrules.api.deps import get_rule_service
-from fluxrules.api.schemas import EvaluateResponse, SimulateRequest
+from fluxrules.api.schemas import EvaluateResponse, SimulateRequest, comparison_issues
 from fluxrules.services.rule_service import RuleService
 
 router = APIRouter(prefix="/v1/rulesets", tags=["rules"])
@@ -23,6 +23,7 @@ def simulate_ruleset(
             execution_id=result.execution_id,
             matched_rules=result.fired_rules,
             actions=result.actions,
+            comparison_issues=comparison_issues(result),
         )
         for result in results
     ]

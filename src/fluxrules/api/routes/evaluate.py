@@ -3,6 +3,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from fluxrules.api.schemas import ComparisonIssueResponse, comparison_issues
+from fluxrules.domain.errors import UncomparableValuesError
 from fluxrules.domain.models import Ruleset
 from fluxrules.services.rule_service import RuleService
 
@@ -22,6 +24,7 @@ class EvaluateResponse(BaseModel):
     execution_id: str
     matched_rules: list[int]
     actions: list[str]
+    comparison_issues: list[ComparisonIssueResponse] = Field(default_factory=list)
 
 
 _service = RuleService.create()
@@ -37,6 +40,9 @@ def evaluate_ruleset(request: EvaluateRequest) -> EvaluateResponse:
             execution_id=result.execution_id,
             matched_rules=result.fired_rules,
             actions=result.actions,
+            comparison_issues=comparison_issues(result),
         )
+    except UncomparableValuesError:
+        raise  # answered with 422 by the app's exception handler
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

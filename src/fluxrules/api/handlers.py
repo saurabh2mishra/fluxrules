@@ -11,6 +11,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from fluxrules.domain.errors import UncomparableValuesError
 from fluxrules.exceptions import (
     ConditionParseError,
     ConfigurationError,
@@ -97,6 +98,18 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "error": exc.code,
                 "message": str(exc),
                 "engine_type": exc.engine_type,
+            },
+        )
+
+    @app.exception_handler(UncomparableValuesError)
+    async def _uncomparable(request: Request, exc: UncomparableValuesError) -> JSONResponse:
+        """Return 422 when a comparison cannot be made under uncomparable="raise"."""
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": exc.code,
+                "message": str(exc),
+                "comparison_issue": exc.issue.to_dict(),
             },
         )
 

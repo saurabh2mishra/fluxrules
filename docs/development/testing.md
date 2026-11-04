@@ -46,9 +46,9 @@ uv run pytest tests/unit/test_membership_value.py -k "single_dict"
 ## The comparison matrix
 
 FluxRules can evaluate a rule in many ways: `PhreakEngine` with or without the
-alpha prefilter, compiled conditions, streaming mode, `evaluate_batch` (also
-over worker processes), `fluxrules.evaluate()`, `CrossFactEngine`,
-`PreFilteredEvaluator`, the CLI and the HTTP API. A rule can also be written
+alpha prefilter, compiled conditions, streaming mode, the thread pool,
+`evaluate_batch` (also over worker processes), `fluxrules.evaluate()`,
+`CrossFactEngine`, `PreFilteredEvaluator`, the CLI and the HTTP API. A rule can also be written
 as a dict, as an `F` expression or in a YAML file. All of these must give the
 same answer.
 
@@ -57,7 +57,19 @@ operator and rule value, plain and wrapped in `NOT`, `AND` and `OR`, evaluates
 each one against about twenty kinds of fact value (numbers, text, `None`,
 `NaN`, dates, lists, tuples, a missing field and more), under each comparison
 setting, on every path. `tests/engine/test_comparison_matrix.py` fails when
-any path gives a different answer from `PhreakEngine` without the prefilter.
+any path differs from `PhreakEngine` without the prefilter in any of three
+things:
+
+- which rules fired;
+- the `comparison_issues` it lists, for paths that list them;
+- whether it raised `UncomparableValuesError` under
+  `EngineConfig(uncomparable="raise")`.
+
+Each wrapper (plain, `NOT`, `AND`, `OR`) is evaluated in its own engine. An
+issue does not say which rule it came from, so in one engine a `NOT` rule
+would report the same issue as its plain twin. The alpha prefilter never skips
+a `NOT` rule, so a prefilter that wrongly skipped the plain rule would go
+unnoticed.
 
 `tests/engine/test_mixed_type_fuzz.py` does the same with random rule trees
 over several fields. It runs 60 random examples by default; set

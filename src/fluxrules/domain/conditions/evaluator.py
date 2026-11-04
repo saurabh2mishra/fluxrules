@@ -21,8 +21,10 @@ from collections import OrderedDict
 from typing import Any
 
 from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
+from fluxrules.domain.conditions.uncomparable_rules import settle
 from fluxrules.domain.errors import LossyConditionRebuildError
-from fluxrules.domain.predicates import evaluate_operator
+from fluxrules.domain.predicates import compare, evaluate_operator
+from fluxrules.engine import uncomparable
 
 __all__ = [
     "LossyConditionRebuildError",
@@ -120,8 +122,9 @@ def has_logic(conditions: dict | list) -> bool:
     return any(has_logic(child) for child in children)
 
 
-def _eval_present_leaf(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
-    return evaluate_operator(dsl.get("op", "=="), facts[dsl.get("field", "")], dsl.get("value"))
+def _eval_present_leaf(dsl: dict[str, Any], facts: dict[str, Any]) -> Any:
+    field = dsl.get("field", "")
+    return compare(dsl.get("op", "=="), facts[field], dsl.get("value"), field=field)
 
 
 class UnsupportedConditionTreeNodeError(ValueError):
@@ -165,9 +168,37 @@ def _not_state(node: dict[str, Any]) -> NotState:
 def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
     """Evaluate a ``conditions`` tree against a flat fact dict.
 
+    A comparison that cannot be made (``"abc" > 5``) is no match. When one
+    leaves the tree undecided it is reported as the process-wide
+    ``EngineConfig.uncomparable`` says (listed, warned about or raised), and
+    with ``"unknown"`` the tree matches only when it is definitely true.
+
     Raises:
         UnsupportedConditionTreeNodeError: For nodes requiring working memory.
+        UncomparableValuesError: A comparison could not be made, under
+            ``uncomparable="raise"``.
     """
+    before = uncomparable._events
+    result = _evaluate(dsl, facts)
+    if uncomparable._events == before:
+        return result
+    from fluxrules.engine.configuration import get_config
+
+    config = get_config()
+    return settle(
+        dsl,
+        facts,
+        result,
+        leaf=_eval_present_leaf,
+        other=_evaluate,
+        empty=False,
+        missing_field=config.missing_field,
+        mode=config.uncomparable,
+    )
+
+
+def _evaluate(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
+    """:func:`evaluate_conditions` without settling unmade comparisons."""
     if not isinstance(dsl, dict) or not dsl:
         return False
 
@@ -181,7 +212,7 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
             if is_field_typo(field, facts):
                 raise FieldNotFoundError.for_field(field, facts)
             return False
-        return evaluate_operator(dsl.get("op", "=="), facts[field], dsl.get("value"))
+        return evaluate_operator(dsl.get("op", "=="), facts[field], dsl.get("value"), field=field)
 
     if ctype in ("and", "or", "group", "composite"):
         children = dsl.get("children") or dsl.get("conditions") or []
@@ -196,14 +227,14 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
             # match everything by vacuous truth - the failure this whole path
             # exists to avoid.
             return False
-        results = [evaluate_conditions(child, facts) for child in children]
+        results = [_evaluate(child, facts) for child in children]
         return all(results) if logic == "AND" else any(results)
 
     if ctype == "not":
         state = _not_state(dsl)
         if state.child is None:
             return False
-        plain = not evaluate_conditions(state.child, facts)
+        plain = not _evaluate(state.child, facts)
         if not plain:
             return False
         from fluxrules.engine.configuration import get_config
@@ -217,7 +248,7 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
             facts,
             mode,
             leaf=_eval_present_leaf,
-            other=evaluate_conditions,
+            other=_evaluate,
             empty=False,
         )
 
@@ -226,7 +257,7 @@ def evaluate_conditions(dsl: dict[str, Any], facts: dict[str, Any]) -> bool:
         if field:
             return field in facts and facts[field] is not None
         inner = dsl.get("condition")
-        return evaluate_conditions(inner, facts) if inner else False
+        return _evaluate(inner, facts) if inner else False
 
     if ctype in _STATEFUL_NODES:
         raise UnsupportedConditionTreeNodeError(

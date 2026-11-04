@@ -42,6 +42,7 @@ from __future__ import annotations
 
 import os
 import pickle  # nosec B403 - only loads bytes this module produced
+import warnings
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any
@@ -62,11 +63,16 @@ class BatchOutcome:
             order, for facts before ``error`` (a loop would stop there).
         error: The exception raised for the lowest-index failing fact, or
             ``None``.
+        comparison_issues: Every comparison the workers could not make, once
+            each, for facts before ``error``. Worker processes do not emit
+            ``ComparisonWarning``; :func:`warn_comparison_issues` repeats it in
+            the parent, once per issue, as a single process would.
     """
 
     results: list[Any] = field(default_factory=list)
     quarantined: list[Any] = field(default_factory=list)
     error: BaseException | None = None
+    comparison_issues: list[Any] = field(default_factory=list)
 
 
 def _init_worker(engine_class: type, settings: dict[str, Any], rules: list[Any]) -> None:
@@ -89,7 +95,9 @@ def _init_worker_from_payload(payload: bytes) -> None:
 
 def _eval_chunk(
     task: tuple[int, list[Any], bool, bool],
-) -> tuple[list[Any], list[tuple[int, Any]], tuple[int, BaseException] | None]:
+) -> tuple[
+    list[Any], list[tuple[int, Any]], tuple[int, BaseException] | None, list[tuple[int, Any]]
+]:
     """Evaluate one chunk with this process's engine.
 
     ``task`` is ``(start, facts, ids_only, in_worker)``, where ``start`` is the
@@ -97,27 +105,39 @@ def _eval_chunk(
     chunk stops at the first exception, as a loop over ``evaluate`` would. In a
     worker process an exception that cannot be pickled is replaced by a
     ``RuntimeError`` describing it; in this process the original is kept.
+
+    The comparison issues of each fact come back with its index. A worker
+    process does not emit ``ComparisonWarning`` itself: the parent repeats it
+    (see :func:`warn_comparison_issues`), so it is shown once, where the
+    caller can see and filter it.
     """
+    from fluxrules.domain.errors import ComparisonWarning
+
     start, facts, ids_only, in_worker = task
     engine = _WORKER_ENGINE
     intake = getattr(engine, "_fact_intake", None)
     results: list[Any] = []
     quarantined: list[tuple[int, Any]] = []
+    issues: list[tuple[int, Any]] = []
     error: tuple[int, BaseException] | None = None
-    for offset, fact in enumerate(facts):
-        index = start + offset
-        if intake is not None:
-            # Each entry is returned once; the parent keeps the record.
-            intake.quarantine.clear()
-        try:
-            result = engine.evaluate(fact)
-        except Exception as exc:  # noqa: BLE001 - re-raised in the parent
-            error = (index, _picklable(exc) if in_worker else exc)
-            break
-        if intake is not None and intake.quarantine:
-            quarantined.append((index, intake.quarantine[-1]))
-        results.append(list(result.fired_rules) if ids_only else result)
-    return results, quarantined, error
+    with warnings.catch_warnings():
+        if in_worker:
+            warnings.simplefilter("ignore", ComparisonWarning)
+        for offset, fact in enumerate(facts):
+            index = start + offset
+            if intake is not None:
+                # Each entry is returned once; the parent keeps the record.
+                intake.quarantine.clear()
+            try:
+                result = engine.evaluate(fact)
+            except Exception as exc:  # noqa: BLE001 - re-raised in the parent
+                error = (index, _picklable(exc) if in_worker else exc)
+                break
+            if intake is not None and intake.quarantine:
+                quarantined.append((index, intake.quarantine[-1]))
+            issues.extend((index, issue) for issue in result.comparison_issues)
+            results.append(list(result.fired_rules) if ids_only else result)
+    return results, quarantined, error, issues
 
 
 def _picklable(exc: BaseException) -> BaseException:
@@ -211,16 +231,35 @@ def run_sharded(
             chunk_outputs = list(executor.map(_eval_chunk, tasks))
 
     outcome = BatchOutcome()
-    errors = [error for _, _, error in chunk_outputs if error is not None]
+    errors = [error for _, _, error, _ in chunk_outputs if error is not None]
     first_error = min(errors, key=lambda pair: pair[0]) if errors else None
     stop = first_error[0] if first_error is not None else len(facts)
-    for results, quarantined, _ in chunk_outputs:
+    seen: set[Any] = set()
+    for results, quarantined, _, issues in chunk_outputs:
         outcome.results.extend(results)
         outcome.quarantined.extend(entry for index, entry in quarantined if index < stop)
+        for index, issue in issues:
+            if index < stop and issue not in seen:
+                seen.add(issue)
+                outcome.comparison_issues.append(issue)
     if first_error is not None:
         outcome.results = outcome.results[:stop]
         outcome.error = first_error[1]
     return outcome
+
+
+def warn_comparison_issues(issues: list[Any], mode: str | None) -> None:
+    """Emit, in this process, the ``ComparisonWarning`` workers did not.
+
+    Only under the default ``uncomparable=None``, once per issue per process,
+    as :func:`fluxrules.engine.uncomparable.report` does.
+    """
+    if mode is not None:
+        return
+    from fluxrules.engine.uncomparable import warn_once
+
+    for issue in issues:
+        warn_once(issue)
 
 
 def evaluate_batch_parallel(
@@ -231,8 +270,10 @@ def evaluate_batch_parallel(
 ) -> list[list[int]]:
     """Evaluate ``facts`` across ``num_workers`` processes.
 
-    Each worker builds a default ``PhreakEngine`` (only ``streaming_mode`` is
-    passed). To keep every option of an engine you configured, use
+    Each worker builds a ``PhreakEngine`` with ``streaming_mode`` and this
+    process's config (``get_config()``), so comparison settings such as
+    ``uncomparable`` apply in the workers too, whatever the start method. To
+    keep every option of an engine you configured, use
     ``engine.evaluate_batch(facts, workers=N)`` instead.
 
     Args:
@@ -246,20 +287,29 @@ def evaluate_batch_parallel(
         A list parallel to ``facts``; each element is the list of fired rule
         ids for the corresponding fact (identical to single-process results).
     """
+    from fluxrules.engine.configuration import get_config
     from fluxrules.engine.phreak import PhreakEngine
 
+    config = get_config()
     workers = num_workers or os.cpu_count() or 1
     outcome = run_sharded(
         PhreakEngine,
-        {"streaming_mode": streaming_mode},
+        {"streaming_mode": streaming_mode, "config": config},
         rules,
         facts,
         workers,
         ids_only=True,
     )
+    warn_comparison_issues(outcome.comparison_issues, config.uncomparable)
     if outcome.error is not None:
         raise outcome.error
     return outcome.results
 
 
-__all__ = ["BatchOutcome", "build_payload", "evaluate_batch_parallel", "run_sharded"]
+__all__ = [
+    "BatchOutcome",
+    "build_payload",
+    "evaluate_batch_parallel",
+    "run_sharded",
+    "warn_comparison_issues",
+]

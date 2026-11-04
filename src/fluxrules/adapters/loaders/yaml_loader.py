@@ -50,6 +50,9 @@ def load_rules_from_yaml(
         ImportError: When ``pyyaml`` is not installed, or the schema cannot be
             imported.
         UnknownFieldError: When a rule names a field the schema lacks.
+        RuleValueError: When a rule value does not fit its field's type in the
+            schema. An ISO date string compared with a date field is returned
+            as a date.
         ValueError: When the file names a ``fact_schema`` and neither
             ``fact_schema`` nor ``trust_schema=True`` is given.
     """
@@ -70,5 +73,18 @@ def load_rules_from_yaml(
             if isinstance(schema, str)
             else schema
         )
-        schema_info(model).check_rules(document.rules)
+        info = schema_info(model)
+        info.check_rules(document.rules)
+        # Refuse values that do not fit their field; ISO dates become dates.
+        from fluxrules.engine.configuration import get_config
+
+        prepared = info.prepare_rules(
+            document.rules, coerce_bool_strings=get_config().boolean_string_coercion
+        )
+        return [
+            {**original, "conditions": rule.conditions}
+            if isinstance(original, dict) and "conditions" in original
+            else original
+            for rule, original in zip(prepared, document.rules, strict=True)
+        ]
     return document.rules

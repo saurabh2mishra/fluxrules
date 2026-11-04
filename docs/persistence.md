@@ -236,6 +236,29 @@ When `persist=True` is used, fluxrules checks in this order:
 > right choice when you want a zero-config startup with SQLite or a simple
 > PostgreSQL setup.
 
+### Saved evaluation results
+
+With a database, the service saves each evaluation to the
+`evaluation_results` table: the fired rules, the actions, the trace and, from
+1.2.0, the `comparison_issues` (see
+[Comparisons that cannot be made](comparing-values.md#comparisons-that-cannot-be-made)).
+`explain(execution_id)` reads a result back from there once it is no longer in
+memory, for example after a restart.
+
+Alembic migration `003_comparison_issues` adds that column. It also creates
+the table when a database does not have it, because older versions made it
+with `create_all` instead of a migration. The HTTP API runs
+`alembic upgrade head` when it starts. If you manage the schema yourself, run
+it before starting 1.2.0 against an existing database:
+
+```bash
+alembic upgrade head
+```
+
+Saved rows keep their data; their `comparison_issues` is an empty list.
+Downgrading below `003_comparison_issues` keeps saved rows too: it drops the
+table only when it is empty, and otherwise removes just the new column.
+
 ---
 
 ## Next Steps

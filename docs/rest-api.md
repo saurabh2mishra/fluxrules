@@ -133,7 +133,8 @@ Evaluate one fact against the stored rules.
   "ruleset_group": "payments",
   "matched_rules": [1, 2],
   "actions": ["review", "add_vat"],
-  "facts": {"amount": 4200, "country": "DE"}
+  "facts": {"amount": 4200, "country": "DE"},
+  "comparison_issues": []
 }
 ```
 
@@ -143,6 +144,18 @@ Evaluate one fact against the stored rules.
 - `execution_id`: an id for this evaluation. Use it with
   `GET /api/v1/explain/{execution_id}`.
 - `ruleset_group`: the `ruleset_id` you sent, or `"all"`.
+- `comparison_issues`: comparisons that could not be made and left a rule
+  undecided, such as `"abc" > 5`. Each entry has `field`, `operator`,
+  `fact_type`, `rule_type` and `reason`:
+
+    ```json
+    {"field": "amount", "operator": ">", "fact_type": "str", "rule_type": "int",
+     "reason": "these types cannot be ordered"}
+    ```
+
+    The server's `EngineConfig.uncomparable` decides whether such a comparison
+    is also unknown under `NOT`, or fails the request (see [Errors](#errors)).
+    See [Comparisons that cannot be made](comparing-values.md#comparisons-that-cannot-be-made).
 
 ### POST /api/v1/evaluate/bulk (login)
 
@@ -174,7 +187,8 @@ Evaluate several facts against the same rules in one request.
 ```
 
 `results` has one entry per fact, in the order you sent them. `index` is the
-position of the fact in your list.
+position of the fact in your list. Each entry also has `comparison_issues`, as
+for a single fact.
 
 ### GET /api/v1/explain/{execution_id} (login)
 
@@ -232,6 +246,9 @@ Evaluate a fact as a dry run and get an explanation for each matched rule.
   (`candidates_evaluated`), how many matched (`rules_matched`), and how long
   it took in milliseconds (`evaluation_time_ms`). `total_rules` and
   `optimization` are not filled in.
+- `comparison_issues`: comparisons that could not be made and left a rule
+  undecided, as for `POST /api/v1/evaluate`. Under `uncomparable="raise"`
+  the request answers `422` instead (see [Errors](#errors)).
 
 ## Engine endpoints
 
@@ -467,12 +484,24 @@ Errors raised by the rule engine itself use an `error` code and a `message`:
 {"error": "DSL_PARSE_ERROR", "message": "..."}
 ```
 
+When the server's `EngineConfig.uncomparable` is `"raise"`, a comparison that
+cannot be made fails the request with `422`, and `comparison_issue` names it:
+
+```json
+{
+  "error": "UNCOMPARABLE_VALUES",
+  "message": "Cannot compare field 'amount' with '>': these types cannot be ordered (fact value is str, rule value is int).",
+  "comparison_issue": {"field": "amount", "operator": ">", "fact_type": "str", "rule_type": "int", "reason": "these types cannot be ordered"}
+}
+```
+
 Status codes you will see:
 
 - `400`: the request was understood but refused, for example a rule conflict.
 - `401`: the token is missing, wrong or expired.
 - `404`: the rule, session or execution does not exist.
-- `422`: the request body has the wrong shape.
+- `422`: the request body has the wrong shape, or a comparison could not be
+  made under `uncomparable="raise"`.
 - `500` or `503`: a problem on the server, such as the database being
   unavailable.
 

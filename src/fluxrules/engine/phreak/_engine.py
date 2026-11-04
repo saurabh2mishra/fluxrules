@@ -14,13 +14,16 @@ evaluation strategy with integrated optimizations:
 from __future__ import annotations
 
 import concurrent.futures
+import contextvars
 import logging
 import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from fluxrules.domain.conditions.missing_fields import NotState, resolve_not
+from fluxrules.domain.conditions.uncomparable_rules import settle
 from fluxrules.domain.errors import FieldNotFoundError, canonical_field_name, is_field_typo
+from fluxrules.engine import uncomparable
 from fluxrules.engine.base import BaseEngine
 from fluxrules.engine.configuration import EngineConfig, get_config
 from fluxrules.engine.infrastructure.bitmask_linker import BitMaskLinker
@@ -28,11 +31,12 @@ from fluxrules.engine.infrastructure.engine_metrics import EngineMetrics
 from fluxrules.engine.infrastructure.lazy_evaluation import LazyEvaluationMixin
 from fluxrules.engine.infrastructure.node_memory import NodeMemory
 from fluxrules.engine.infrastructure.scope_guard import enforce_single_fact_boundary
-from fluxrules.engine.operators import evaluate_operator
+from fluxrules.engine.operators import compare_operator, evaluate_operator
 from fluxrules.engine.phreak.condition_compiler import (
     CompiledCondition,
     compile_condition,
 )
+from fluxrules.engine.uncomparable import Uncomparable
 from fluxrules.prefilter import PredicateIndex
 
 if TYPE_CHECKING:
@@ -43,6 +47,7 @@ logger = logging.getLogger(__name__)
 #: EngineConfig fields that compiled conditions bind when they are built.
 _CONDITION_FLAGS = (
     "missing_field",
+    "uncomparable",
     "strict_null_handling",
     "strict_type_comparison",
     "boolean_string_coercion",
@@ -210,6 +215,22 @@ def _hashable(value: Any) -> Any:
     except TypeError:
         return _UNHASHABLE
     return _UNHASHABLE
+
+
+def _mapping_key(value: Any) -> Any:
+    """The memo key part of a mapping rule value (an ``approx`` target).
+
+    A leaf memo key carries the rule value's class next to its value, because
+    Python calls ``True`` and ``1``, or ``5.5`` and ``Decimal("5.5")``, equal
+    with one hash, yet they do not always compare alike: under
+    ``strict_type_comparison`` ``5 > True`` cannot be made while ``5 > 1`` is
+    true, and a reported issue names the rule value's type. A mapping carries
+    the class of each value in it for the same reason.
+    """
+    try:
+        return tuple(sorted((k, v.__class__, _hashable(v)) for k, v in value.items()))
+    except TypeError:
+        return _UNHASHABLE
 
 
 def _linker_safe(dsl: Any) -> bool:
@@ -584,7 +605,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
     # Thread-local per-cycle leaf memo accessor
 
     @property
-    def _leaf_memo(self) -> dict[tuple, bool] | None:
+    def _leaf_memo(self) -> dict[tuple, bool | Uncomparable] | None:
         """The current thread's per-cycle leaf memo (``None`` if disabled).
 
         Backed by thread-local storage so concurrent stateless ``evaluate()``
@@ -593,7 +614,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         return getattr(self._thread_local, "leaf_memo", None)
 
     @_leaf_memo.setter
-    def _leaf_memo(self, value: dict[tuple, bool] | None) -> None:
+    def _leaf_memo(self, value: dict[tuple, bool | Uncomparable] | None) -> None:
         self._thread_local.leaf_memo = value
 
     # Rule loading with BitMaskLinker registration
@@ -892,7 +913,10 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             engaged = self._alpha_engage and self._alpha_index is not None
             if engaged and self._alpha_index is not None:
                 candidates = self._alpha_index.prune(
-                    facts, candidates, coerce_bool_strings=self._config.boolean_string_coercion
+                    facts,
+                    candidates,
+                    coerce_bool_strings=self._config.boolean_string_coercion,
+                    strict_types=self._config.strict_type_comparison,
                 )
         else:
             # Stateless: alpha-first (primary) then a pure presence narrow.
@@ -901,7 +925,10 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             engaged = self._alpha_engage and self._alpha_index is not None
             if engaged and self._alpha_index is not None:
                 candidates = self._alpha_index.prune(
-                    facts, candidates, coerce_bool_strings=self._config.boolean_string_coercion
+                    facts,
+                    candidates,
+                    coerce_bool_strings=self._config.boolean_string_coercion,
+                    strict_types=self._config.strict_type_comparison,
                 )
             linked_ids = self._bitmask_linker.linked_subset_for(present_fields, candidates)
             if self._linker_unsafe_rule_ids:
@@ -985,6 +1012,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                     facts,
                     list(reconciled),
                     coerce_bool_strings=self._config.boolean_string_coercion,
+                    strict_types=self._config.strict_type_comparison,
                 )
             )
         # or/not rules bypass the presence linker (F1 + OR-branch variant);
@@ -997,6 +1025,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                         facts,
                         list(self._field_bearing_rule_ids),
                         coerce_bool_strings=self._config.boolean_string_coercion,
+                        strict_types=self._config.strict_type_comparison,
                     )
                 )
             reconciled |= alpha_surviving & self._linker_unsafe_rule_ids
@@ -1197,6 +1226,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         rules_with_priority.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
         # Evaluate using sequential or parallel path
+        before = uncomparable._events
         threshold = self._config.parallel_threshold
         if len(rules_with_priority) > threshold:
             fired, actions, explanations = self._evaluate_parallel(
@@ -1205,6 +1235,18 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         else:
             fired, actions, explanations = self._evaluate_sequential(
                 rules_with_priority, facts, affected_segments
+            )
+        if uncomparable._events != before:
+            # A comparison could not be made: evaluate again, settling each
+            # rule (report its issues; under "unknown", fire it only when
+            # definitely true). A fact whose comparisons all have answers never
+            # gets here, so the loops above pay nothing per rule. The leaf memo
+            # makes this second pass cheap; after the thread pool, which turns
+            # the memo off, start a fresh one.
+            if self._leaf_memo is None:
+                self._leaf_memo = {}
+            fired, actions, explanations = self._evaluate_sequential(
+                rules_with_priority, facts, affected_segments, settled=True
             )
 
         # Step 4: Update dirty tracking for next evaluation (streaming mode only)
@@ -1246,37 +1288,19 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
     # Sequential / parallel evaluation helpers
 
-    def _build_condition_cache_key(
-        self,
-        rid: int,
-        facts: dict[str, Any],
-    ) -> tuple:
-        """Build a hashable cache key using only fields the rule depends on.
-
-        Uses the precomputed ``_rule_relevant_fields_cache``
-        instead of calling ``segment_network.get_segments_for_rule(rid)`` on
-        every invocation, removing a per-rule lookup from the hot path.
-        """
-        relevant_fields = self._rule_relevant_fields_cache.get(rid)
-        if relevant_fields is None:
-            # Fallback for rules registered outside the normal load path.
-            rule_segments = self.segment_network.get_segments_for_rule(rid)
-            field_set: set[str] = set()
-            for seg in rule_segments:
-                field_set.update(seg.fields)
-            relevant_fields = tuple(sorted(field_set))
-        return (
-            rid,
-            tuple((k, facts.get(k)) for k in relevant_fields if k in facts),
-        )
-
     def _evaluate_sequential(
         self,
         rules_with_priority: list[tuple],
         facts: dict[str, Any],
         affected_segments: set[str],
+        *,
+        settled: bool = False,
     ) -> tuple[list[int], list[str], dict[int, str]]:
         """Evaluate rules sequentially with per-cycle condition caching.
+
+        With *settled*, each rule goes through :meth:`_settled_root`, which
+        settles comparisons that could not be made, and skips the streaming
+        cache.
 
         Flat evaluation: every candidate rule's root condition is evaluated in
         priority order. (A prior hierarchical-segment skip path was removed in
@@ -1292,10 +1316,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         # In stateless mode the NodeMemory cache in _evaluate_condition is
         # never consulted, so bind _eval_root directly and shed one call frame
         # per rule. Streaming mode keeps the cache-aware wrapper.
-        if self._streaming_mode:
-            eval_condition: Callable[[dict[str, Any], dict[str, Any], int | None], bool] = (
-                self._evaluate_condition
-            )
+        eval_condition: Callable[[dict[str, Any], dict[str, Any], int | None], bool]
+        if settled:
+            eval_condition = self._settled_root
+        elif self._streaming_mode:
+            eval_condition = self._evaluate_condition
         else:
             eval_condition = self._eval_root
         for _prio, rid, rule in rules_with_priority:
@@ -1321,9 +1346,8 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         function (reads immutable facts + rule DSL, no shared mutable state).
         executor.map preserves input order so priority ordering is maintained.
         """
-        # Disable the per-cycle leaf memo on the parallel path.
-        # A plain dict is not safe for concurrent writes across worker threads,
-        # and the parallel path already deduplicates via its own condition_cache.
+        # Disable the per-cycle leaf memo on the parallel path: a plain dict is
+        # not safe for concurrent writes across worker threads.
         self._leaf_memo = None
 
         fired: list[int] = []
@@ -1335,19 +1359,20 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         def _eval_one(
             item: tuple,
         ) -> tuple[int, Any, bool]:
+            # Each rule runs once per evaluation, so there is nothing to cache.
+            # (A cache keyed by the fact's values also failed on a list value.)
             _prio, rid, rule = item
-            cache_key = self._build_condition_cache_key(rid, facts)
-            cached = condition_cache.get(cache_key)
-            if cached is not None:
-                return rid, rule, cached
-            result = self._evaluate_condition(rule.conditions, facts, rid)
-            condition_cache[cache_key] = result
-            return rid, rule, result
+            return rid, rule, self._evaluate_condition(rule.conditions, facts, rid)
 
-        condition_cache: dict[tuple, bool] = {}
         workers = self._config.parallel_workers
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            results = list(executor.map(_eval_one, rules_with_priority))
+            # Each task runs in a copy of this thread's context, so comparisons
+            # that cannot be made are listed in this evaluation's result.
+            futures = [
+                executor.submit(contextvars.copy_context().run, _eval_one, item)
+                for item in rules_with_priority
+            ]
+            results = [future.result() for future in futures]
 
         for rid, rule, matched in results:
             if matched:
@@ -1390,14 +1415,19 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 if cached_result is not None:
                     return cached_result
 
+                before = uncomparable.events()
                 result = self._eval_root(condition, facts, rule_id)
-                self._node_memory.put(
-                    rule_id,
-                    "root",
-                    relevant_values,
-                    result,
-                    relevant_fields=relevant_fields,
-                )
+                # A result that depended on a comparison that could not be made
+                # is not cached: the next fact must report it too (warn, list
+                # or raise), which a cache hit would skip.
+                if uncomparable.events() == before:
+                    self._node_memory.put(
+                        rule_id,
+                        "root",
+                        relevant_values,
+                        result,
+                        relevant_fields=relevant_fields,
+                    )
                 return result
 
         # No caching available (stateless mode, no rule_id, or unregistered rule)
@@ -1413,13 +1443,43 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
         when the rule was compiled at load time, use its closure
         (inlined boolean structure); otherwise fall back to the recursive
-        interpreter. Results are identical by construction.
+        interpreter. Results are identical by construction. A comparison that
+        could not be made counts as no match here; see :meth:`_settled_root`.
         """
         if rule_id is not None:
             compiled = self._compiled_conditions.get(rule_id)
             if compiled is not None:
-                return compiled(facts)
-        return self._evaluate_condition_inner(condition, facts)
+                return compiled(facts)  # type: ignore[no-any-return]
+        return self._evaluate_condition_inner(condition, facts)  # type: ignore[return-value]
+
+    def _settled_root(
+        self,
+        condition: dict[str, Any],
+        facts: dict[str, Any],
+        rule_id: int | None,
+    ) -> bool:
+        """:meth:`_eval_root`, then settle any comparison that could not be made.
+
+        When a comparison under the rule had no answer (the counter in
+        :mod:`fluxrules.engine.uncomparable` moved), the rule is walked again
+        with three-valued logic, to report the issues that leave it undecided
+        and, with ``uncomparable="unknown"``, to fire it only when definitely
+        true.
+        """
+        before = uncomparable._events
+        result = self._eval_root(condition, facts, rule_id)
+        if uncomparable._events == before:
+            return result
+        return settle(
+            condition,
+            facts,
+            result,
+            leaf=self._eval_leaf,
+            other=self._evaluate_condition_inner,
+            empty=True,
+            missing_field=self._config.missing_field,
+            mode=self._config.uncomparable,
+        )
 
     def _make_interpreter_fallback(self, condition: dict[str, Any]) -> CompiledCondition:
         """Capture the interpreter as a closure for non-compilable subtrees."""
@@ -1440,7 +1500,9 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         field = condition.get("field", "")
         op = condition.get("op", "==")
         value = condition.get("value")
-        value_key = _hashable(value)
+        # The same key as _eval_leaf builds, so the two paths share entries.
+        value_class = value.__class__
+        value_key = _hashable(value) if value_class is not dict else _mapping_key(value)
         snh = flags.strict_null_handling
         stc = flags.strict_type_comparison
         bsc = flags.boolean_string_coercion
@@ -1450,22 +1512,25 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
         # No per-leaf typo check: ``_candidate_rule_ids`` already scanned every
         # rule field against this fact before any leaf runs (see there).
-        def _leaf(facts: dict[str, Any]) -> bool:
+        def _leaf(facts: dict[str, Any]) -> bool | Uncomparable:
             present = field in facts
             fact_val = facts.get(field)
             memo = self._leaf_memo
             if memo is not None and value_memoizable:
                 fact_key = _hashable(fact_val)
                 if fact_key is not _UNHASHABLE:
-                    memo_key = (field, op, value_key, present, fact_key)
+                    memo_key = (field, op, value_class, value_key, present, fact_key)
                     cached = memo.get(memo_key)
                     if cached is not None:
                         if self._metrics is not None:
                             self._metrics.record_leaf(hit=True)
+                        if cached.__class__ is Uncomparable:
+                            # Counted again, so the rule reading it settles it.
+                            uncomparable.note()
                         return cached
                     if self._metrics is not None:
                         self._metrics.record_leaf(hit=False)
-                    result = evaluate_operator(
+                    result = compare_operator(
                         op,
                         fact_val,
                         value,
@@ -1473,10 +1538,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                         strict_null_handling=snh,
                         strict_type_comparison=stc,
                         boolean_string_coercion=bsc,
+                        field=field,
                     )
                     memo[memo_key] = result
                     return result
-            return evaluate_operator(
+            return compare_operator(
                 op,
                 fact_val,
                 value,
@@ -1484,6 +1550,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                 strict_null_handling=snh,
                 strict_type_comparison=stc,
                 boolean_string_coercion=bsc,
+                field=field,
             )
 
         return _leaf
@@ -1492,7 +1559,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         self,
         condition: dict[str, Any],
         facts: dict[str, Any],
-    ) -> bool:
+    ) -> bool | Uncomparable:
         """Inner evaluation logic (without caching)."""
         if not isinstance(condition, dict):
             return False
@@ -1550,7 +1617,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         self,
         condition: dict[str, Any],
         facts: dict[str, Any],
-    ) -> bool:
+    ) -> bool | Uncomparable:
         field = condition.get("field", "")
         op = condition.get("op", "==")
         value = condition.get("value")
@@ -1567,18 +1634,24 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         if memo is not None:
             present = field in facts
             fact_val = facts.get(field)
-            value_key = _hashable(value)
+            # The value's class is in the key (see _mapping_key); inline here, as
+            # this runs for every leaf, with the helper only for a mapping.
+            value_class = value.__class__
+            value_key = _hashable(value) if value_class is not dict else _mapping_key(value)
             fact_key = _hashable(fact_val)
             if value_key is not _UNHASHABLE and fact_key is not _UNHASHABLE:
-                memo_key = (field, op, value_key, present, fact_key)
+                memo_key = (field, op, value_class, value_key, present, fact_key)
                 cached = memo.get(memo_key)
                 if cached is not None:
                     if self._metrics is not None:
                         self._metrics.record_leaf(hit=True)
+                    if cached.__class__ is Uncomparable:
+                        # Counted again, so the rule reading it settles it.
+                        uncomparable.note()
                     return cached
                 if self._metrics is not None:
                     self._metrics.record_leaf(hit=False)
-                result = evaluate_operator(
+                result = compare_operator(
                     op,
                     fact_val,
                     value,
@@ -1586,11 +1659,12 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
                     strict_null_handling=self._config.strict_null_handling,
                     strict_type_comparison=self._config.strict_type_comparison,
                     boolean_string_coercion=self._config.boolean_string_coercion,
+                    field=field,
                 )
                 memo[memo_key] = result
                 return result
 
-        return evaluate_operator(
+        return compare_operator(
             op,
             facts.get(field),
             value,
@@ -1598,6 +1672,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
             strict_null_handling=self._config.strict_null_handling,
             strict_type_comparison=self._config.strict_type_comparison,
             boolean_string_coercion=self._config.boolean_string_coercion,
+            field=field,
         )
 
     def _eval_accumulate(

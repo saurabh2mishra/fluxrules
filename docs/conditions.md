@@ -276,6 +276,67 @@ Both sides are coerced to strings before matching.
 | `F("x").ends_with(".com")` | `"ends_with"` | `str(x).endswith(...)` |
 | `F("x").regex("^4[0-9]{12}")` | `"regex"` | `re.search(pattern, str(x))`. It matches anywhere in the string, so add `^` to anchor at the start |
 
+### Close numbers
+
+`0.1 + 0.2 == 0.3` is false in Python, because floats are not exact. `approx`
+asks whether a number is close enough, using `math.isclose`:
+
+| F expression | Dict `"value"` | Meaning |
+|---|---|---|
+| `F("x").approx(0.3)` | `0.3` | Within the default tolerance: `rel_tol=1e-09`, `abs_tol=0` |
+| `F("x").approx(0.3, abs_tol=0.01)` | `{"value": 0.3, "abs_tol": 0.01}` | At most `0.01` away |
+| `F("x").approx(100, rel_tol=0.02)` | `{"value": 100, "rel_tol": 0.02}` | At most 2% away |
+
+The dict `"op"` is `"approx"`. In a YAML file the tolerance goes inside the
+value too: `value: {value: 0.3, abs_tol: 0.01}`. Unknown keys in that mapping,
+a missing `value`, or a negative tolerance raise `ConditionValidationError`
+when the rule is created.
+
+```python
+from fluxrules import F, Rule, evaluate
+
+assert evaluate(
+    Rule(name="total", conditions=F("total").approx(0.3), action="ok"),
+    {"total": 0.1 + 0.2},
+).fired_rules
+```
+
+- `rel_tol` is a fraction of the larger of the two numbers. `abs_tol` is a
+  fixed distance, which is what you want near zero: with the default,
+  `approx(0)` matches only `0` itself.
+- `approx` compares numbers only: `int`, `float` and `Decimal`. Text such as
+  `"0.3"`, `None`, a boolean or `NaN` cannot be compared, and is reported in
+  `comparison_issues` (see
+  [Comparisons that cannot be made](comparing-values.md#comparisons-that-cannot-be-made)).
+- For money, keep amounts in `Decimal`, where `==` is exact and no tolerance is
+  needed.
+
+### Text without case
+
+These compare text with `str.casefold()`, which also folds letters such as
+`ß` (so `"STRASSE"` equals `"straße"`):
+
+| F expression | Dict `"op"` | Meaning |
+|---|---|---|
+| `F("x").equals_ignore_case("oslo")` | `"equals_ignore_case"` | Same text, any case |
+| `F("x").in_ignore_case(["NO", "SE"])` | `"in_ignore_case"` | One of these texts, any case |
+| `F("x").contains_ignore_case("vip")` | `"contains_ignore_case"` | The text contains it, or the list holds it, any case |
+| `F("x").starts_with_ignore_case("adm")` | `"starts_with_ignore_case"` | The text starts with it, any case |
+| `F("x").ends_with_ignore_case(".COM")` | `"ends_with_ignore_case"` | The text ends with it, any case |
+
+They compare text only, and never convert: `5` is not `"5"`.
+`equals_ignore_case` and `in_ignore_case` answer no match for a fact value
+that is not text, as `==` does. The other three cannot look inside a value
+that is not text, so it is reported in `comparison_issues`, as `contains` on a
+number is. `in_ignore_case` takes a list, like `isin`.
+
+```python
+assert evaluate(
+    Rule(name="nordic", conditions=F("country").in_ignore_case(["no", "se"]), action="ok"),
+    {"country": "NO"},
+).fired_rules
+```
+
 ### Boolean composition (F DSL)
 
 | Operator | Meaning | Dict equivalent |
@@ -418,7 +479,7 @@ config object takes effect on that engine's next evaluation. See
 
 ### Value types must match
 
-A numeric field compared with a string will not raise, but will silently not
+A numeric field compared with a string will not raise: the condition does not
 match. Match the value type to the field type:
 
 ```python
@@ -426,6 +487,46 @@ F("amount") > 5000      # number field → number value
 F("status") == "active" # string field → string value
 F("tags").contains("vip")  # list field → scalar value to find in it
 ```
+
+When a comparison cannot be made, such as `"abc" > 5000` or `None > 5000`,
+FluxRules emits a `ComparisonWarning` and lists it in the result's
+`comparison_issues`. `EngineConfig(uncomparable="unknown")` stops `NOT` from
+firing over such a comparison, and `uncomparable="raise"` makes it an error.
+See [Comparisons that cannot be made](comparing-values.md#comparisons-that-cannot-be-made).
+
+### Values that suit the operator
+
+Some values can never match whatever the fact holds, and some are converted
+in a way the rule does not say. FluxRules warns with `RuleValueWarning` when
+such a rule is created, once per problem. The rule still loads and evaluates
+as before:
+
+- `>`, `>=`, `<` and `<=` need a number, text, a date or a time. `None`, a
+  boolean, a list, a mapping and `NaN` warn: the condition can never match.
+- `regex` needs a pattern that compiles. One that does not can never match.
+- `starts_with`, `ends_with` and `regex` compare text: they read both sides
+  with `str()`. So `F("zip").starts_with(75)` matches the fact value `"75001"`
+  and also the number `75001`. It warns, so that you write `"75"` and the rule
+  says what it does.
+- `approx` needs a number. The `_ignore_case` operators need text, and
+  `in_ignore_case` a list of text.
+
+```python
+import warnings
+
+from fluxrules import RuleValueWarning
+
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter("always")
+    Rule(name="bad", conditions=F("amount") > None, action="flag")
+print(caught[0].message)
+# Condition on field 'amount': '>' needs a number, text, a date or a time, but
+# got None. The condition can never match.
+```
+
+`validate()` lists the same problems, and with a fact schema it also checks
+each value against its field's type (see
+[Rule values are checked too](typed-facts.md#rule-values-are-checked-too)).
 
 ### `isin` takes a list, not positional args
 
@@ -491,6 +592,12 @@ if issues:
 else:
     print("All rules valid")
 ```
+
+`validate()` reports structural problems and values that do not suit their
+operator. Pass `fact_schema=` (a model class) to also report every field the
+model lacks and every value of the wrong type for its field, the problems
+`load_rules` would refuse: `validate(rules, fact_schema=Order)`. It never
+raises.
 
 `validate()` returns a list of human-readable strings. An empty list means all
 rules passed. Use it in CI before deploying a new ruleset.

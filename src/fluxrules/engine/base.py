@@ -133,12 +133,26 @@ class BaseEngine(ABC):
 
         Populates rule_repository, segment_network, and field_index.
 
+        With a ``fact_schema``, an ISO date string compared with a ``date`` or
+        ``datetime`` field is loaded as a date.
+
         Raises:
             UnknownFieldError: when the engine has a ``fact_schema`` and a rule
                 references a field the schema lacks. Nothing is loaded.
+            RuleValueError: when the engine has a ``fact_schema`` and a rule
+                value does not fit its field's type (``amount: float``
+                compared with ``"100.1"``). Nothing is loaded.
         """
         if self._fact_schema_info is not None:
             self._fact_schema_info.check_rules(rules)
+            from fluxrules.engine.configuration import get_config
+
+            # An engine without its own config follows the process-wide one.
+            config = getattr(self, "_config", None) or get_config()
+            rules = self._fact_schema_info.prepare_rules(
+                rules,
+                coerce_bool_strings=bool(getattr(config, "boolean_string_coercion", False)),
+            )
         self.rule_repository.add_rules(rules)
         self.segment_network.add_rules(rules)
         self.field_index.build_from_rules(rules)
@@ -311,14 +325,19 @@ class BaseEngine(ABC):
 
         start = time.time()
 
-        # Step 1: discover applicable rules (engine-specific strategy hook).
-        candidate_rule_ids = self._candidate_rule_ids(facts, filters=filters)
+        from fluxrules.engine.uncomparable import comparison_scope
 
-        # Step 2: delegate to concrete engine strategy
-        fired_rules, actions, explanations = self._evaluate_rules(
-            candidate_rule_ids,
-            facts,
-        )
+        # Comparisons that cannot be made are collected for this evaluation,
+        # and warn or raise as the engine's ``uncomparable`` setting says.
+        with comparison_scope(self._uncomparable_mode()) as comparisons:
+            # Step 1: discover applicable rules (engine-specific strategy hook).
+            candidate_rule_ids = self._candidate_rule_ids(facts, filters=filters)
+
+            # Step 2: delegate to concrete engine strategy
+            fired_rules, actions, explanations = self._evaluate_rules(
+                candidate_rule_ids,
+                facts,
+            )
 
         # Step 3: group by domain/tag
         rules_by_domain = self._group_by_domain(fired_rules)
@@ -335,7 +354,17 @@ class BaseEngine(ABC):
             engine_type=type(self).__name__,
             actions=actions,
             explanations=explanations,
+            comparison_issues=comparisons.issues,
         )
+
+    def _uncomparable_mode(self) -> str | None:
+        """``EngineConfig.uncomparable`` of this engine, or of the process."""
+        config = getattr(self, "_config", None)
+        if config is None:
+            from fluxrules.engine.configuration import get_config
+
+            config = get_config()
+        return getattr(config, "uncomparable", None)
 
     # Convenience methods
 
@@ -430,11 +459,12 @@ class BaseEngine(ABC):
         payload: bytes,
     ) -> list[EvaluationResult]:
         """Run the batch in worker processes and merge quarantine and errors back."""
-        from fluxrules.engine.runtime.worker_pool import run_sharded
+        from fluxrules.engine.runtime.worker_pool import run_sharded, warn_comparison_issues
 
         outcome = run_sharded(engine_class, settings, rules, facts, workers, payload=payload)
         if self._fact_intake is not None:
             self._fact_intake.quarantine.extend(outcome.quarantined)
+        warn_comparison_issues(outcome.comparison_issues, self._uncomparable_mode())
         if outcome.error is not None:
             raise outcome.error
         return outcome.results

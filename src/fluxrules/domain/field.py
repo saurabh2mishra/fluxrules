@@ -79,7 +79,8 @@ class Field:
     All operators accepted by ``VALID_OPERATORS`` are available either as Python
     dunder methods (``>``, ``>=``, ``<``, ``<=``, ``==``, ``!=``) or as named
     methods (``isin``, ``not_in``, ``contains``, ``not_contains``, ``starts_with``,
-    ``ends_with``, ``regex``, ``exists``).
+    ``ends_with``, ``regex``, ``approx``, the ``_ignore_case`` methods and
+    ``exists``).
     """
 
     def __init__(self, name: str) -> None:
@@ -92,7 +93,7 @@ class Field:
 
     def _cond(self, op: str, value: Any) -> Condition:
         node = {"type": "condition", "field": self._name, "op": op, "value": value}
-        if op in ("in", "not_in"):
+        if op in ("in", "not_in", "in_ignore_case"):
             from fluxrules.domain.conditions.membership import normalize_membership_values
 
             node = normalize_membership_values(node, path="")
@@ -147,6 +148,49 @@ class Field:
     def regex(self, pattern: str) -> Condition:
         """Field value matches regular expression *pattern*."""
         return self._cond("regex", pattern)
+
+    def approx(
+        self,
+        value: Any,
+        *,
+        abs_tol: float | None = None,
+        rel_tol: float | None = None,
+    ) -> Condition:
+        """Field value is a number close to *value*, by ``math.isclose``.
+
+        ``F("total").approx(0.3)`` matches ``0.1 + 0.2``. The default tolerance
+        is ``rel_tol=1e-09`` and ``abs_tol=0``, so near zero give *abs_tol*:
+        ``F("balance").approx(0, abs_tol=0.005)``. With a tolerance, the
+        condition's value is ``{"value": value, "abs_tol": ..., "rel_tol": ...}``.
+        """
+        if abs_tol is None and rel_tol is None:
+            return self._cond("approx", value)
+        target: dict[str, Any] = {"value": value}
+        if abs_tol is not None:
+            target["abs_tol"] = abs_tol
+        if rel_tol is not None:
+            target["rel_tol"] = rel_tol
+        return self._cond("approx", target)
+
+    def equals_ignore_case(self, value: str) -> Condition:
+        """Field value is the text *value*, ignoring case (``str.casefold``)."""
+        return self._cond("equals_ignore_case", value)
+
+    def in_ignore_case(self, values: Any) -> Condition:
+        """Field value is one of the texts in *values*, ignoring case."""
+        return self._cond("in_ignore_case", values)
+
+    def contains_ignore_case(self, value: str) -> Condition:
+        """Field text contains *value*, or a field list holds it, ignoring case."""
+        return self._cond("contains_ignore_case", value)
+
+    def starts_with_ignore_case(self, prefix: str) -> Condition:
+        """Field text starts with *prefix*, ignoring case."""
+        return self._cond("starts_with_ignore_case", prefix)
+
+    def ends_with_ignore_case(self, suffix: str) -> Condition:
+        """Field text ends with *suffix*, ignoring case."""
+        return self._cond("ends_with_ignore_case", suffix)
 
     def exists(self) -> Condition:
         """Field is present in the fact map (EXISTS node)."""

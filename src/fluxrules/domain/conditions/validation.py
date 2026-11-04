@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from fluxrules.domain.errors import ConditionValidationError
-from fluxrules.engine.operators import VALID_OPERATORS
+from fluxrules.engine.operators import APPROX_KEYS, VALID_OPERATORS
 
 __all__ = ["ConditionValidationError", "validate_conditions"]
 
@@ -103,6 +103,31 @@ def _validate_condition(dsl: dict[str, Any], path: str) -> None:
 
     if "value" not in dsl:
         raise ConditionValidationError(f"Condition at '{path}' missing required 'value' key")
+    if dsl["op"] == "approx" and isinstance(dsl["value"], dict):
+        _validate_approx(dsl["value"], path)
+
+
+def _validate_approx(value: dict[str, Any], path: str) -> None:
+    """An ``approx`` value given as a mapping: the target and its tolerances."""
+    extra = set(value) - APPROX_KEYS
+    if extra:
+        raise ConditionValidationError(
+            f"Unknown keys {sorted(extra)} in the 'approx' value at '{path}'. "
+            f"Valid keys: {sorted(APPROX_KEYS)}"
+        )
+    if "value" not in value:
+        raise ConditionValidationError(
+            f"The 'approx' value at '{path}' is missing its 'value' (the target number)"
+        )
+    for key in ("abs_tol", "rel_tol"):
+        tol = value.get(key)
+        if key in value and (
+            isinstance(tol, bool) or not isinstance(tol, (int, float)) or not tol >= 0
+        ):
+            raise ConditionValidationError(
+                f"'{key}' in the 'approx' value at '{path}' must be a number of 0 or "
+                f"more, got {tol!r}"
+            )
 
 
 def _validate_group(dsl: dict[str, Any], path: str) -> None:

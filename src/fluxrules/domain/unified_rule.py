@@ -177,7 +177,12 @@ class Rule(BaseModel):
     @field_validator("conditions")
     @classmethod
     def validate_conditions(cls, v: dict[str, Any]) -> dict[str, Any]:
-        """Validate conditions tree structure."""
+        """Validate conditions tree structure.
+
+        A value that does not suit its operator (``F("amount") > None``)
+        warns with :class:`~fluxrules.RuleValueWarning`; the rule still loads.
+        """
+        from fluxrules.domain.conditions.rule_values import warn_value_problems
         from fluxrules.domain.conditions.validation import (
             validate_conditions as _deep_validate,
         )
@@ -187,6 +192,7 @@ class Rule(BaseModel):
             _deep_validate(v)
         except ConditionValidationError as e:
             raise ValueError(str(e)) from e
+        warn_value_problems(v)
         return v
 
     @field_validator("actions", mode="before")
