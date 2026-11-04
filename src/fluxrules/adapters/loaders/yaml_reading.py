@@ -158,25 +158,21 @@ def _warn(source: str, node: Any, new_value: Any, old_value: Any) -> None:
 
 
 def _describe(value: Any) -> str:
+    """A value YAML 1.1 or 1.2 reads a plain scalar as, where the two differ:
+    a boolean, a number or text (null and dates read alike in both)."""
     if isinstance(value, bool):
         return f"the boolean {'true' if value else 'false'}"
     if isinstance(value, (int, float)):
         return f"the number {_literal(value)}"
-    if isinstance(value, str):
-        return f'the text "{value}"'
-    return repr(value)
+    return f'the text "{value}"'
 
 
 def _literal(value: Any) -> str:
-    """*value* as it would be written in YAML."""
+    """A boolean or number as it would be written in YAML.
+
+    Only YAML 1.1's reading is written this way, as the fix for a value now
+    read as text; ``.inf`` and ``.nan`` read alike in both, so never reach here.
+    """
     if isinstance(value, bool):
         return "true" if value else "false"
-    if isinstance(value, float):
-        if math.isnan(value):
-            return ".nan"
-        if math.isinf(value):
-            return ".inf" if value > 0 else "-.inf"
-        return repr(value)
-    if isinstance(value, str):
-        return f'"{value}"'
-    return str(value)
+    return repr(value) if isinstance(value, float) else str(value)

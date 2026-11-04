@@ -20,7 +20,12 @@ from typing import Any
 
 from fluxrules.domain.conditions.rule_values import describe_value
 from fluxrules.domain.errors import RuleValueError
-from fluxrules.engine.operators import CASE_INSENSITIVE_OPS, MEMBERSHIP_OPS, ORDERING_OPS
+from fluxrules.engine.operators import (
+    CASE_INSENSITIVE_OPS,
+    MEMBERSHIP_OPS,
+    ORDERING_OPS,
+    approx_parts,
+)
 
 __all__ = ["check_tree", "field_kind"]
 
@@ -146,7 +151,15 @@ def _check_condition(
     if op == "approx":
         if kind[0] != "number":
             problem("'approx' compares numbers", "Compare it with '==' instead.")
-        return node
+            return node
+        # The target must fit the number field too; on a Decimal field,
+        # numeric text loads as a Decimal, as for '=='.
+        target = approx_parts(value)[0]
+        new = _check_value(kind, target, op, coerce_bool_strings, problem)
+        if new is target:
+            return node
+        new_value = {**value, "value": new} if isinstance(value, dict) else new
+        return {**node, "value": new_value}
     if op in _CONTAINS_OPS:
         if kind[0] != "text":
             problem(f"'{op}' needs text or a collection to look in")
@@ -213,7 +226,10 @@ def _check_value(
             return value
         if isinstance(value, str) and value.lower() in ("true", "false"):
             if coerce_bool_strings:
-                return value
+                # Read as boolean_string_coercion reads it. A list member must
+                # be converted here: the engine coerces the whole rule value,
+                # so True in ["true"] would be false.
+                return value.lower() == "true"
             problem(compares, f"Write {value.lower()} without quotes.")
         else:
             problem(compares, "Write true or false.")

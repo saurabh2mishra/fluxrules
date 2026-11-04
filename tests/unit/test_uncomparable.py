@@ -697,6 +697,29 @@ pytest.importorskip("fastapi")
 
 
 class TestHttpApi:
+    def test_the_simulate_route_lists_issues_and_404s(self):
+        # fluxrules.api.routes.simulate is not mounted by create_app() either.
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from fluxrules import _as_ruleset
+        from fluxrules.api.deps import get_rule_service
+        from fluxrules.api.routes import simulate as route
+        from fluxrules.services.rule_service import RuleService
+
+        service = RuleService.create()
+        service.repository.save(_as_ruleset([NOT_GT], group="g"))
+        app = FastAPI()
+        app.include_router(route.router)
+        app.dependency_overrides[get_rule_service] = lambda: service
+        client = TestClient(app)
+        response = client.post("/v1/rulesets/g/simulate", json={"samples": [FACT]})
+        assert response.status_code == 200, response.text
+        (body,) = response.json()
+        assert body["matched_rules"] == [1]
+        assert [i["reason"] for i in body["comparison_issues"]] == ["these types cannot be ordered"]
+        assert client.post("/v1/rulesets/nope/simulate", json={"samples": []}).status_code == 404
+
     def test_the_sdk_evaluate_route_answers_422(self, monkeypatch):
         # fluxrules.api.routes.evaluate is not mounted by create_app(); mounted
         # on its own, its catch-all must still let the 422 handler answer.

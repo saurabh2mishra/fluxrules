@@ -270,8 +270,10 @@ def evaluate_batch_parallel(
 ) -> list[list[int]]:
     """Evaluate ``facts`` across ``num_workers`` processes.
 
-    Each worker builds a default ``PhreakEngine`` (only ``streaming_mode`` is
-    passed). To keep every option of an engine you configured, use
+    Each worker builds a ``PhreakEngine`` with ``streaming_mode`` and this
+    process's config (``get_config()``), so comparison settings such as
+    ``uncomparable`` apply in the workers too, whatever the start method. To
+    keep every option of an engine you configured, use
     ``engine.evaluate_batch(facts, workers=N)`` instead.
 
     Args:
@@ -285,20 +287,20 @@ def evaluate_batch_parallel(
         A list parallel to ``facts``; each element is the list of fired rule
         ids for the corresponding fact (identical to single-process results).
     """
+    from fluxrules.engine.configuration import get_config
     from fluxrules.engine.phreak import PhreakEngine
 
+    config = get_config()
     workers = num_workers or os.cpu_count() or 1
     outcome = run_sharded(
         PhreakEngine,
-        {"streaming_mode": streaming_mode},
+        {"streaming_mode": streaming_mode, "config": config},
         rules,
         facts,
         workers,
         ids_only=True,
     )
-    from fluxrules.engine.configuration import get_config
-
-    warn_comparison_issues(outcome.comparison_issues, get_config().uncomparable)
+    warn_comparison_issues(outcome.comparison_issues, config.uncomparable)
     if outcome.error is not None:
         raise outcome.error
     return outcome.results
