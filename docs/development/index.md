@@ -82,3 +82,34 @@ pip install -e . --group dev     # editable, with dev tooling (pip >= 25.1)
 6. Submit pull request
 
 See [Contributing](../contributing.md) for more details.
+
+## Releasing
+
+A release is published by pushing a version tag. No one uploads to PyPI by
+hand.
+
+1. In a pull request, set the new version in `pyproject.toml` and
+   `src/fluxrules/version.py`, and move the Unreleased entries in
+   `CHANGELOG.md` under the new version. Merge it.
+2. Tag the merge commit on `main` and push the tag:
+
+    ```bash
+    git tag -a v1.2.0 -m "fluxrules 1.2.0"
+    git push origin v1.2.0
+    ```
+
+3. The [release workflow](https://github.com/saurabh2mishra/fluxrules/blob/main/.github/workflows/release.yml)
+   then runs on its own:
+    - It refuses a tag that is not on `main`, or that does not match the
+      version in `pyproject.toml` and `version.py`.
+    - It builds the sdist and wheel, checks them with `twine check`, and
+      installs each one on Python 3.11 to 3.14.
+    - It uploads both files to PyPI and creates a GitHub release with them.
+
+The upload uses PyPI
+[trusted publishing](https://docs.pypi.org/trusted-publishers/), so the
+repository holds no PyPI token. PyPI accepts an upload for `fluxrules` only
+from this repository, the workflow file `release.yml` and the GitHub
+environment `pypi`. If you rename the workflow file or the environment,
+update the trusted publisher on PyPI under the project's **Publishing**
+settings first, or the upload is refused.
