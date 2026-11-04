@@ -8,6 +8,8 @@ that could not be made (``EvaluationResult.comparison_issues``), so
 by a migration, so a database may or may not have it. This migration brings
 the table under Alembic: it creates the table when it is missing, and
 otherwise adds the column, keeping every saved row (their issues are ``[]``).
+Downgrading keeps saved rows too: it drops the table only when it is empty,
+and otherwise removes just the new column.
 
 Revision ID: 003_comparison_issues
 Revises: 002_rename_conditions
@@ -59,7 +61,15 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # The table is Alembic's from this migration on, so going below it drops
-    # the table, as downgrading 001 drops the tables 001 created.
-    op.drop_index("ix_evaluation_results_execution_id", table_name="evaluation_results")
-    op.drop_table("evaluation_results")
+    # Never lose saved history. A table with rows (one this migration found,
+    # or one used since) keeps them and loses only the new column; an empty
+    # table, such as one this migration created on a fresh database, is
+    # dropped, as downgrading 001 drops the tables 001 created.
+    bind = op.get_bind()
+    has_rows = bind.execute(sa.text("SELECT 1 FROM evaluation_results LIMIT 1")).first()
+    if has_rows is None:
+        op.drop_index("ix_evaluation_results_execution_id", table_name="evaluation_results")
+        op.drop_table("evaluation_results")
+        return
+    with op.batch_alter_table("evaluation_results") as batch_op:
+        batch_op.drop_column("comparison_issues")

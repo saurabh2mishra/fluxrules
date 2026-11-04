@@ -233,13 +233,14 @@ def _check_value(
     if name == "bool":
         if isinstance(value, bool):
             return value
-        if isinstance(value, str) and value.lower() in ("true", "false"):
+        text = value.strip().lower() if isinstance(value, str) else None
+        if text in ("true", "false"):
             if coerce_bool_strings:
-                # Read as boolean_string_coercion reads it. A list member must
-                # be converted here: the engine coerces the whole rule value,
-                # so True in ["true"] would be false.
-                return value.lower() == "true"
-            problem(compares, f"Write {value.lower()} without quotes.")
+                # Read as boolean_string_coercion reads it (case and spaces
+                # ignored). A list member must be converted here: the engine
+                # coerces the whole rule value, so True in ["true"] is false.
+                return text == "true"
+            problem(compares, f"Write {text} without quotes.")
         else:
             problem(compares, "Write true or false.")
         return value

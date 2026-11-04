@@ -283,3 +283,13 @@ class TestThirdReviewFixes:
         PhreakEngine(fact_schema=Event).load_rules(
             [_rule(F("country").in_ignore_case(["no", "se"]))]
         )
+
+
+class TestFifthReviewFixes:
+    @pytest.mark.parametrize("member", [" true ", "TRUE", "True"])
+    def test_boolean_text_is_read_as_the_engine_reads_it(self, member):
+        config = EngineConfig(boolean_string_coercion=True)
+        engine = PhreakEngine(fact_schema=Account, config=config)
+        engine.load_rules([_rule(F("vip").isin([member]))])
+        (rule,) = engine.rule_repository.rules.values()
+        assert rule.conditions["value"] == [True]

@@ -97,7 +97,7 @@ def test_upgrade_adds_the_column_and_keeps_saved_rows(tmp_path: Path):
     assert tuple(row) == ("[1]", "[]")
 
 
-def test_downgrade_drops_the_table(tmp_path: Path):
+def test_downgrade_drops_an_empty_table(tmp_path: Path):
     from alembic.command import downgrade, upgrade
 
     db = tmp_path / "down.db"
@@ -106,3 +106,24 @@ def test_downgrade_drops_the_table(tmp_path: Path):
     downgrade(cfg, "002_rename_conditions")
     engine = create_engine(f"sqlite:///{db}")
     assert not inspect(engine).has_table("evaluation_results")
+
+
+def test_downgrade_keeps_a_table_with_saved_rows(tmp_path: Path):
+    from alembic.command import downgrade, upgrade
+
+    db = tmp_path / "kept.db"
+    cfg = _cfg(db)
+    upgrade(cfg, "head")
+    engine = create_engine(f"sqlite:///{db}")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO evaluation_results (execution_id, fired_rules, actions, trace, "
+                "comparison_issues, created_at) VALUES ('e', '[1]', '[]', '[]', '[]', "
+                "'2026-01-01')"
+            )
+        )
+    downgrade(cfg, "002_rename_conditions")
+    assert "comparison_issues" not in _columns(db)
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT execution_id FROM evaluation_results")).scalar() == "e"

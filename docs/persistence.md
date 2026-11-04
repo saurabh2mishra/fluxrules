@@ -256,6 +256,8 @@ alembic upgrade head
 ```
 
 Saved rows keep their data; their `comparison_issues` is an empty list.
+Downgrading below `003_comparison_issues` keeps saved rows too: it drops the
+table only when it is empty, and otherwise removes just the new column.
 
 ---
 
