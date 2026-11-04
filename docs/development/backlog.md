@@ -83,7 +83,9 @@ building them on `fluxrules.facts`.
 ## Comparing values
 
 1.1.2 made every evaluation path give the same answer (Phases 0 and 1 of the
-comparison plan). The items below are the rest of that plan. They are aimed at
+comparison plan), and the comparison matrix now also covers tuples,
+`evaluate_batch(workers=2)` and rules written with `F` or in YAML. The items
+below are the rest of that plan. They are aimed at
 **1.2.0**, except the last, which changes defaults and waits for **2.0**.
 [How FluxRules Compares Values](../comparing-values.md) shows today's behaviour,
 and the comparison matrix (`tests/engine/comparison_matrix.py`) must keep every
@@ -100,22 +102,6 @@ Decisions already made (2026-11-03):
   **`5 != "5"` is a match**. Only ordering (`>`, `<` and the like) across types
   cannot be made.
 - Safer defaults wait for 2.0.
-
-### Close the remaining matrix gaps (1.2.0)
-
-**What:** Add to the comparison matrix what 1.1.2 left out:
-
-- `tuple` fact values;
-- rules written as `F` expressions and loaded from YAML, not only as dicts;
-- `evaluate_batch(workers=2)`, which runs in worker processes.
-
-Also make the alpha prefilter call the same comparison functions as the engine
-(for example one `operator.gt` table in `fluxrules.engine.operators`) instead of
-its own copies.
-
-**Why waiting:** The matrix already proves the paths agree, so these close
-coverage gaps rather than fix known bugs. Do them first in 1.2.0, so every
-later item is tested on every path.
 
 ### Report comparisons that cannot be made (1.2.0)
 

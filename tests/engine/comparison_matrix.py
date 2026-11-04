@@ -45,6 +45,7 @@ FACT_VALUES: dict[str, Any] = {
     "datetime": datetime(2026, 6, 1, 12, 0),
     "ISO date str": "2026-06-01",
     "list [5]": [5],
+    "tuple (5,)": (5,),
     "dict": {"a": 5},
     "missing": MISSING,
 }
@@ -211,10 +212,95 @@ def _engine_path(name: str, **options: Any) -> EvalPath:
     return EvalPath(name, run)
 
 
-def _batch_run(cases, rules, config, facts):
-    engine = PhreakEngine(config=config)
-    engine.load_rules(rules)
-    return [frozenset(r.fired_rules) for r in engine.evaluate_batch(facts)]
+def _batch_path(name: str, workers: int | None) -> EvalPath:
+    def run(cases, rules, config, facts):
+        engine = PhreakEngine(config=config)
+        engine.load_rules(rules)
+        return [frozenset(r.fired_rules) for r in engine.evaluate_batch(facts, workers=workers)]
+
+    return EvalPath(name, run)
+
+
+# --- the same rules written another way -------------------------------------
+
+_F_METHODS = {
+    "in": "isin",
+    "not_in": "not_in",
+    "contains": "contains",
+    "not_contains": "not_contains",
+    "starts_with": "starts_with",
+    "ends_with": "ends_with",
+    "regex": "regex",
+}
+
+
+def f_condition(case: Case) -> Any:
+    """The case as an ``F`` expression, the way an author writes it in Python."""
+    from fluxrules import F
+    from fluxrules.engine.operators import COMPARISONS
+
+    field = F(FIELD)
+    if case.op in COMPARISONS:
+        leaf = COMPARISONS[case.op](field, case.value)
+    else:
+        leaf = getattr(field, _F_METHODS[case.op])(case.value)
+    if case.wrapper == "NOT":
+        return ~leaf
+    if case.wrapper == "AND":
+        return leaf & (F("always") == 1)
+    if case.wrapper == "OR":
+        return leaf | (F("always") == 0)
+    return leaf
+
+
+def _f_run(cases, rules, config, facts):
+    with quiet():
+        f_rules = [
+            Rule(id=c.rule_id, name=f"case_{c.rule_id}", conditions=f_condition(c), action="hit")
+            for c in cases
+        ]
+    return _engine_path("", alpha_prefilter=False).run(cases, f_rules, config, facts)
+
+
+def is_yaml_value(value: Any) -> bool:
+    """True when *value* survives a YAML round trip with the same type."""
+    if value is None or isinstance(value, (bool, int, float, str, date)):
+        return True
+    if isinstance(value, list):
+        return all(is_yaml_value(v) for v in value)
+    if isinstance(value, dict):
+        return all(isinstance(k, str) and is_yaml_value(v) for k, v in value.items())
+    return False
+
+
+def _yaml_supports(case: Case) -> bool:
+    return is_yaml_value(case.value)
+
+
+def yaml_path(workdir: Any) -> EvalPath:
+    """Rules written to a YAML file and read back with ``load_rules_from_yaml``."""
+    import yaml
+
+    from fluxrules.adapters.loaders.yaml_loader import load_rules_from_yaml
+
+    def run(cases, rules, config, facts):
+        document = [
+            {
+                "id": c.rule_id,
+                "name": f"case_{c.rule_id}",
+                "action": "hit",
+                "conditions": _wrap(c.wrapper, _leaf(c.op, c.value)),
+            }
+            for c in cases
+            if _yaml_supports(c)
+        ]
+        path = workdir / "rules.yaml"
+        path.write_text(yaml.safe_dump(document, sort_keys=False))
+        with quiet():
+            loaded = [Rule(**data) for data in load_rules_from_yaml(str(path))]
+        return _engine_path("", alpha_prefilter=False).run(cases, loaded, config, facts)
+
+    return EvalPath("YAML rule file", run, _yaml_supports)
 
 
 def _evaluate_run(cases, rules, config, facts):
@@ -282,8 +368,10 @@ PATHS: dict[str, EvalPath] = {
         _engine_path("engine, no prefilter", alpha_prefilter=False),
         _engine_path("engine, compiled", compile_conditions=True),
         _engine_path("engine, streaming", streaming_mode=True),
-        EvalPath("evaluate_batch", _batch_run),
+        _batch_path("evaluate_batch", workers=None),
+        _batch_path("evaluate_batch(workers=2)", workers=2),
         EvalPath("fluxrules.evaluate()", _evaluate_run),
+        EvalPath("rules written with F", _f_run),
         EvalPath("CrossFactEngine", _cross_fact_run, _cross_fact_supports),
         EvalPath("PreFilteredEvaluator (SQLite)", _sql_prefilter_run),
     )
@@ -493,7 +581,15 @@ def run_matrix(
 
 # --- known disagreements ----------------------------------------------------
 
-PREFILTERED_PATHS = frozenset({"engine", "engine, compiled", "engine, streaming", "evaluate_batch"})
+PREFILTERED_PATHS = frozenset(
+    {
+        "engine",
+        "engine, compiled",
+        "engine, streaming",
+        "evaluate_batch",
+        "evaluate_batch(workers=2)",
+    }
+)
 
 
 @dataclass(frozen=True)

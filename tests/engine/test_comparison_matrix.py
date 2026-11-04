@@ -3,11 +3,13 @@
 ``comparison_matrix`` evaluates each operator against each kind of value
 (numbers, Decimal, booleans, strings, None, NaN, dates, lists, a missing
 field), plain and wrapped in NOT, AND and OR, under each comparison setting.
-It runs on the in-process paths, ``CrossFactEngine``, ``PreFilteredEvaluator``
-over a SQLite store, the CLI and the HTTP API, and compares every path with
-``engine, no prefilter``. A path is only
-compared on the cases and facts it can express: ``CrossFactEngine`` has no
-NOT or OR, and the CLI and HTTP API take JSON only.
+It runs on the in-process paths (including ``evaluate_batch`` over worker
+processes), ``CrossFactEngine``, ``PreFilteredEvaluator`` over a SQLite store,
+the CLI and the HTTP API, and with the rules written as ``F`` expressions and
+read from a YAML file. Every path is compared with ``engine, no prefilter``. A
+path is only compared on the cases and facts it can express: ``CrossFactEngine``
+has no NOT or OR, the CLI and HTTP API take JSON only, and a YAML file cannot
+hold a ``Decimal`` or a tuple.
 
 Known disagreements are listed in ``comparison_matrix.KNOWN`` with the bug
 behind them; the reference page shows the same list. The test
@@ -30,12 +32,13 @@ from tests.engine.comparison_matrix import (
     cli_path,
     http_path,
     run_matrix,
+    yaml_path,
 )
 
 
 @pytest.fixture(scope="module")
 def matrix(app, tmp_path_factory) -> MatrixResult:
-    """Run the whole matrix once, including the CLI and HTTP API paths."""
+    """Run the whole matrix once, including the CLI, HTTP API and YAML paths."""
     pytest.importorskip("fastapi")
     pytest.importorskip("typer")
     from fastapi.testclient import TestClient
@@ -60,6 +63,7 @@ def matrix(app, tmp_path_factory) -> MatrixResult:
                 extra_paths=[
                     cli_path(tmp_path_factory.mktemp("cli")),
                     http_path(client, TestingSessionLocal),
+                    yaml_path(tmp_path_factory.mktemp("yaml")),
                 ]
             )
     finally:
@@ -79,13 +83,13 @@ def test_the_matrix_covers_every_path_setting_and_operator():
     word_aliases = {"eq", "ne", "gt", "gte", "lt", "lte"}  # normalised to symbols first
     assert {c.op for c in cases} == VALID_OPERATORS - word_aliases
     assert REFERENCE_PATH in PATHS
-    assert len(PATHS) >= 8 and len(CONFIGS) >= 6
-    assert len(build_facts()) >= 19
+    assert len(PATHS) >= 10 and len(CONFIGS) >= 6
+    assert len(build_facts()) >= 20
 
 
 def test_every_path_was_compared_under_every_setting(matrix):
     """No path silently skipped: each compared answers under each setting."""
-    names = set(PATHS) | {"CLI", "HTTP API"}
+    names = set(PATHS) | {"CLI", "HTTP API", "YAML rule file"}
     for name in names:
         for config in CONFIGS:
             assert matrix.compared.get((name, config), 0) > 0, (name, config)

@@ -228,10 +228,12 @@ def render(result: MatrixResult | None = None) -> str:
         out.append(
             "None. Every evaluation path gives the answers above under every setting: "
             "`PhreakEngine` with and without the alpha prefilter, compiled conditions, "
-            "streaming mode, `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine` "
-            "(for the rules it can express), `PreFilteredEvaluator` over a SQL fact "
-            "store, the CLI and the HTTP API. The tests fail "
-            "if any of them starts to differ."
+            "streaming mode, `evaluate_batch` in this process and over worker "
+            "processes, `fluxrules.evaluate()`, `CrossFactEngine` (for the rules it "
+            "can express), `PreFilteredEvaluator` over a SQL fact store, the CLI and "
+            "the HTTP API. The answers are also the same whether a rule is written as "
+            "a dict, as an `F` expression or in a YAML file. The tests fail if any of "
+            "them starts to differ."
         )
     out += [
         "",

@@ -36,7 +36,12 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
-from fluxrules.engine.operators import as_membership_collection, coerce_bool_string
+from fluxrules.engine.operators import (
+    COMPARISONS,
+    ORDERING_OPS,
+    as_membership_collection,
+    coerce_bool_string,
+)
 from fluxrules.prefilter.predicate import (
     LeafPredicate,
     PredicateExtractor,
@@ -54,8 +59,10 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
     """Compile a leaf predicate into a fast unary test over a fact's field value.
 
     The callable receives the field's value (or ``_MISSING`` when absent) and
-    returns whether the leaf is satisfied. Mirrors the engine's operator
-    semantics: an absent or ``None`` value fails every constraining operator.
+    returns whether the leaf is satisfied. The comparisons come from
+    :data:`fluxrules.engine.operators.COMPARISONS`, the table the engine
+    operator uses, and an absent or ``None`` value fails every constraining
+    operator, as it does in the engine.
 
     A test may raise ``TypeError`` for a value it cannot compare (``"x" > 5``,
     or an unhashable list tested with ``in``). ``PredicateIndex._eval_nodes``
@@ -66,7 +73,8 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
         # branch such as ``x == None`` can match it under strict null handling.
         return lambda v: v is not _MISSING
     if op == "==":
-        return lambda v: v is not _MISSING and v == value
+        equal = COMPARISONS["=="]
+        return lambda v: v is not _MISSING and equal(v, value)
     if op == "in":
         collection = as_membership_collection(value)
         try:
@@ -77,14 +85,9 @@ def _make_test(op: str, value: Any) -> Callable[[Any], bool]:
             # list does.
             members = tuple(collection)
         return lambda v: v is not _MISSING and v in members
-    if op == ">":
-        return lambda v: v is not _MISSING and v is not None and v > value
-    if op == ">=":
-        return lambda v: v is not _MISSING and v is not None and v >= value
-    if op == "<":
-        return lambda v: v is not _MISSING and v is not None and v < value
-    if op == "<=":
-        return lambda v: v is not _MISSING and v is not None and v <= value
+    if op in ORDERING_OPS:
+        compare = COMPARISONS[op]
+        return lambda v: v is not _MISSING and v is not None and compare(v, value)
     # Should never reach here: extractor only emits constraining ops.
     return lambda v: True
 
