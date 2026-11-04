@@ -2278,10 +2278,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#run-tests" class="md-nav__link">
+  <a href="#run-the-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Run Tests
+        Run the tests
       
     </span>
   </a>
@@ -2289,10 +2289,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#test-structure" class="md-nav__link">
+  <a href="#how-the-tests-are-organized" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test Structure
+        How the tests are organized
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-comparison-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The comparison matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checks-before-a-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checks before a pull request
       
     </span>
   </a>
@@ -2303,18 +2325,7 @@
   <a href="#test-standards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test Standards
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#linting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Linting
+        Test standards
       
     </span>
   </a>
@@ -2473,10 +2484,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#run-tests" class="md-nav__link">
+  <a href="#run-the-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Run Tests
+        Run the tests
       
     </span>
   </a>
@@ -2484,10 +2495,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#test-structure" class="md-nav__link">
+  <a href="#how-the-tests-are-organized" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test Structure
+        How the tests are organized
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-comparison-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The comparison matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checks-before-a-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checks before a pull request
       
     </span>
   </a>
@@ -2498,18 +2531,7 @@
   <a href="#test-standards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test Standards
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#linting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Linting
+        Test standards
       
     </span>
   </a>
@@ -2537,37 +2559,160 @@
 
 
 <h1 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h1>
-<p>Guidelines for running and writing tests.</p>
-<h2 id="run-tests">Run Tests<a class="headerlink" href="#run-tests" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># All tests</span>
-pytest<span class="w"> </span>tests/<span class="w"> </span>-v
-
-<span class="c1"># With coverage</span>
-pytest<span class="w"> </span>--cov<span class="o">=</span>app<span class="w"> </span>--cov-report<span class="o">=</span>term-missing<span class="w"> </span>tests/
-
-<span class="c1"># Specific test file</span>
-pytest<span class="w"> </span>tests/test_engine.py<span class="w"> </span>-v
-
-<span class="c1"># Parallel (faster)</span>
-pytest<span class="w"> </span>tests/<span class="w"> </span>-n<span class="w"> </span>auto
+<p>How to run the tests, how they are organized, and the checks a change must
+pass before it is merged.</p>
+<h2 id="run-the-tests">Run the tests<a class="headerlink" href="#run-the-tests" title="Permanent link">&para;</a></h2>
+<p>The <code>make</code> targets run everything through uv, so they use the project
+environment:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it runs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>make test-full</code></td>
+<td>Every test except benchmarks, in parallel. Run this before a pull request.</td>
+</tr>
+<tr>
+<td><code>make test-fast</code></td>
+<td><code>tests/unit</code> and <code>tests/integration</code> only, in parallel.</td>
+</tr>
+<tr>
+<td><code>make test</code></td>
+<td>Every test except benchmarks, one at a time, with each test named.</td>
+</tr>
+<tr>
+<td><code>make test-cov</code></td>
+<td>Every test, with line coverage of <code>src/fluxrules</code>.</td>
+</tr>
+<tr>
+<td><code>make test-examples</code></td>
+<td>The example scripts in <code>examples/</code>.</td>
+</tr>
+<tr>
+<td><code>make test-perf</code></td>
+<td>The benchmarks only (tests marked <code>performance</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>To run one file or one test, call pytest directly:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/engine/test_comparison_matrix.py
+uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/test_membership_value.py<span class="w"> </span>-k<span class="w"> </span><span class="s2">"single_dict"</span>
 </code></pre></div>
-<h2 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>tests/
-├── test_engine.py          - Engine tests
-├── test_conditions.py      - Condition tree tests
-├── test_integration.py     - End-to-end scenarios
-└── performance/            - Benchmarks
+<h2 id="how-the-tests-are-organized">How the tests are organized<a class="headerlink" href="#how-the-tests-are-organized" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>What it tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tests/unit</code></td>
+<td>One module or function at a time.</td>
+</tr>
+<tr>
+<td><code>tests/engine</code></td>
+<td>The engines: PHREAK, streaming, batches and the comparison matrix.</td>
+</tr>
+<tr>
+<td><code>tests/prefilter</code></td>
+<td>The alpha prefilter and the SQL fact store.</td>
+</tr>
+<tr>
+<td><code>tests/api</code></td>
+<td>The HTTP API.</td>
+</tr>
+<tr>
+<td><code>tests/integration</code></td>
+<td>Several parts working together, end to end.</td>
+</tr>
+<tr>
+<td><code>tests/contract</code></td>
+<td>What the public API and every engine promise, including the quickstart.</td>
+</tr>
+<tr>
+<td><code>tests/docs</code></td>
+<td>The code snippets in the docs, and generated pages being up to date.</td>
+</tr>
+<tr>
+<td><code>tests/examples</code></td>
+<td>The scripts in <code>examples/</code>.</td>
+</tr>
+<tr>
+<td><code>tests/regression</code></td>
+<td>Behaviour that once broke, so it cannot break again.</td>
+</tr>
+<tr>
+<td><code>tests/security</code></td>
+<td>Hardening against bad input and failures.</td>
+</tr>
+<tr>
+<td><code>tests/performance</code></td>
+<td>Benchmarks, marked <code>performance</code> and skipped by default.</td>
+</tr>
+<tr>
+<td><code>tests/infrastructure</code></td>
+<td>Engine memory: the node cache and the working-memory watchdog.</td>
+</tr>
+<tr>
+<td><code>tests/observability</code></td>
+<td>Engine metrics.</td>
+</tr>
+<tr>
+<td><code>tests/plugins</code></td>
+<td>Actions and the action registry.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-comparison-matrix">The comparison matrix<a class="headerlink" href="#the-comparison-matrix" title="Permanent link">&para;</a></h2>
+<p>FluxRules can evaluate a rule in many ways: <code>PhreakEngine</code> with or without the
+alpha prefilter, compiled conditions, streaming mode, <code>evaluate_batch</code> (also
+over worker processes), <code>fluxrules.evaluate()</code>, <code>CrossFactEngine</code>,
+<code>PreFilteredEvaluator</code>, the CLI and the HTTP API. A rule can also be written
+as a dict, as an <code>F</code> expression or in a YAML file. All of these must give the
+same answer.</p>
+<p><code>tests/engine/comparison_matrix.py</code> checks that. It builds a rule for every
+operator and rule value, plain and wrapped in <code>NOT</code>, <code>AND</code> and <code>OR</code>, evaluates
+each one against about twenty kinds of fact value (numbers, text, <code>None</code>,
+<code>NaN</code>, dates, lists, tuples, a missing field and more), under each comparison
+setting, on every path. <code>tests/engine/test_comparison_matrix.py</code> fails when
+any path gives a different answer from <code>PhreakEngine</code> without the prefilter.</p>
+<p><code>tests/engine/test_mixed_type_fuzz.py</code> does the same with random rule trees
+over several fields. It runs 60 random examples by default; set
+<code>FLUXRULES_FUZZ_EXAMPLES</code> for a longer run:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">FLUXRULES_FUZZ_EXAMPLES</span><span class="o">=</span><span class="m">1000</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/engine/test_mixed_type_fuzz.py<span class="w"> </span>-n<span class="w"> </span>auto
 </code></pre></div>
-<h2 id="test-standards">Test Standards<a class="headerlink" href="#test-standards" title="Permanent link">&para;</a></h2>
+<p>The <a href="../../comparing-values/">How FluxRules Compares Values</a> page is generated
+from the matrix. After any change to how values compare, regenerate it and
+commit the result:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs-tables
+</code></pre></div>
+<p><code>tests/docs/test_comparing_values_page.py</code> fails when the committed page is
+out of date.</p>
+<p>When you add an operator or an evaluation path, add it to the matrix too.
+<code>test_the_matrix_covers_every_path_setting_and_operator</code> fails when an
+operator is missing.</p>
+<h2 id="checks-before-a-pull-request">Checks before a pull request<a class="headerlink" href="#checks-before-a-pull-request" title="Permanent link">&para;</a></h2>
+<p>CI runs these on Python 3.11 to 3.14. Run them locally first:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>lint<span class="w">          </span><span class="c1"># ruff check</span>
+make<span class="w"> </span>type-check<span class="w">    </span><span class="c1"># mypy</span>
+make<span class="w"> </span>test-full<span class="w">     </span><span class="c1"># tests</span>
+make<span class="w"> </span>docs<span class="w">          </span><span class="c1"># strict docs build: broken links and anchors fail</span>
+</code></pre></div>
+<h2 id="test-standards">Test standards<a class="headerlink" href="#test-standards" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Write tests for new features</li>
-<li>Update tests for behavior changes</li>
-<li>Aim for &gt;80% code coverage</li>
-<li>Use fixtures for common setups</li>
+<li>Add a test for every new feature, and a regression test for every bug fix.</li>
+<li>When a change alters behaviour, update the tests that describe it.</li>
+<li>Keep coverage of new code high. Codecov reports coverage of the lines each
+  pull request changes.</li>
+<li>Use fixtures for shared setup, and restore any process-wide setting (such
+  as <code>set_config</code>) that a test changes.</li>
 </ul>
-<h2 id="linting">Linting<a class="headerlink" href="#linting" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>ruff<span class="w"> </span>check<span class="w"> </span>src/<span class="w"> </span>tests/
-</code></pre></div>
 
 
 
