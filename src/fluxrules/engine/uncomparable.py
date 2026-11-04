@@ -32,6 +32,7 @@ import warnings
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
+from typing import Any
 
 from fluxrules.domain.comparison_issues import ComparisonIssue
 
@@ -130,16 +131,25 @@ def current_mode() -> str | None:
     return get_config().uncomparable
 
 
-def report(issue: ComparisonIssue) -> None:
-    """Record, warn about or raise for *issue*, as the current mode says."""
+_CURRENT = object()
+
+
+def report(issue: ComparisonIssue, *, mode: Any = _CURRENT) -> None:
+    """Record, warn about or raise for *issue*, as the current mode says.
+
+    *mode* overrides the open scope's mode (or the process-wide config's), for
+    an engine that keeps its own config, such as ``CrossFactEngine``.
+    """
     scope = _scope.get()
     if scope is not None:
         scope.add(issue)
-        mode = scope.mode
-    else:
-        from fluxrules.engine.configuration import get_config
+    if mode is _CURRENT:
+        if scope is not None:
+            mode = scope.mode
+        else:
+            from fluxrules.engine.configuration import get_config
 
-        mode = get_config().uncomparable
+            mode = get_config().uncomparable
     if mode == "raise":
         from fluxrules.domain.errors import UncomparableValuesError
 

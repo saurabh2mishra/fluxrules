@@ -398,11 +398,7 @@ class CrossFactEngine:
             for candidate in self._candidates(pattern, binding):
                 if candidate.id in fact_ids:
                     continue  # a fact may not bind two patterns in one match
-                if not self._alphas_hold(pattern, candidate):
-                    continue
-                if not self._joins_hold(pattern, candidate, binding):
-                    continue
-                if not self._temporals_hold(pattern, candidate, binding):
+                if self._match_state(pattern, candidate, binding) is not True:
                     continue
                 new_binding = dict(binding)
                 new_binding[pattern.var] = candidate
@@ -441,17 +437,27 @@ class CrossFactEngine:
 
     def _match_state(self, pattern: Any, fact: Any, binding: dict[str, Any]) -> bool | None:
         """Whether ``fact`` matches ``pattern``: ``None`` when a comparison that
-        could not be made leaves it undecided."""
-        alphas = self._holds(self._alpha_checks(pattern, fact))
+        could not be made leaves it undecided.
+
+        Its alpha, join and temporal checks are one conjunction, so a
+        comparison that cannot be made is reported only once all of them have
+        run and none failed: a candidate that fails a join is no match whatever
+        its alpha checks say.
+        """
+        alphas, unmade = self._check(self._alpha_checks(pattern, fact))
         if alphas is False:
             return False
         joins = self._join_checks(pattern, fact, binding)
         if joins is None:
             return False
-        joined = self._holds(joins)
+        joined, unmade_joins = self._check(joins)
         if joined is False or not self._temporals_hold(pattern, fact, binding):
             return False
-        return None if alphas is None or joined is None else True
+        unmade += unmade_joins
+        if unmade:
+            self._report(unmade)
+            return None
+        return True
 
     def _apply_accumulate(
         self,
@@ -464,10 +470,7 @@ class CrossFactEngine:
             matched = [
                 fact
                 for fact in self._candidates(acc, binding)
-                if fact.id not in fact_ids
-                and self._alphas_hold(acc, fact)
-                and self._joins_hold(acc, fact, binding)
-                and self._temporals_hold(acc, fact, binding)
+                if fact.id not in fact_ids and self._match_state(acc, fact, binding) is True
             ]
             value = self._aggregate(acc, matched)
             if acc.having is not None:
@@ -522,18 +525,11 @@ class CrossFactEngine:
                 return self.wm.by_equality(pattern.fact_type, join.this_field, probe)
         return self.wm.by_type(pattern.fact_type)
 
-    def _alphas_hold(self, pattern: Any, fact: Any) -> bool:
-        return self._all_hold(self._alpha_checks(pattern, fact))
-
     def _alpha_checks(self, pattern: Any, fact: Any) -> list[tuple[Any, ...]]:
         return [
             (c.op, fact.fields.get(c.field), c.value, c.field in fact.fields, c.field)
             for c in pattern.constraints
         ]
-
-    def _joins_hold(self, pattern: Any, fact: Any, binding: dict[str, Any]) -> bool:
-        checks = self._join_checks(pattern, fact, binding)
-        return checks is not None and self._all_hold(checks)
 
     def _join_checks(
         self, pattern: Any, fact: Any, binding: dict[str, Any]
@@ -596,24 +592,38 @@ class CrossFactEngine:
 
         The checks are a conjunction: one definite failure decides it. A
         comparison that cannot be made counts as no match, and is reported
-        (warned about or raised, as the process-wide ``EngineConfig.uncomparable``
+        (warned about or raised, as this engine's ``EngineConfig.uncomparable``
         says) only when no other check already failed, as on the other paths.
         """
-        return self._holds(checks) is True
+        state, unmade = self._check(checks)
+        if unmade and state is None:
+            self._report(unmade)
+        return state is True
 
-    def _holds(self, checks: Any) -> bool | None:
-        """:meth:`_all_hold`, but ``None`` when only comparisons that could not
-        be made stop the checks from holding."""
+    def _check(self, checks: Any) -> tuple[bool | None, list[Uncomparable]]:
+        """``(state, unmade)`` for a conjunction of checks, reporting nothing.
+
+        *state* is ``False`` on a definite failure, ``None`` when only
+        comparisons that could not be made (*unmade*) stop it from holding,
+        else ``True``.
+        """
         unmade: list[Uncomparable] = []
         for op, left, right, present, field in checks:
             outcome = self._op(op, left, right, present, field=field)
             if outcome.__class__ is Uncomparable:
                 unmade.append(outcome)  # type: ignore[arg-type]
             elif not outcome:
-                return False
+                return False, []
+        return (None if unmade else True), unmade
+
+    def _report(self, unmade: list[Uncomparable]) -> None:
+        """Report each comparison that could not be made, with this engine's mode.
+
+        The engine keeps the config it was created with, so a later
+        ``set_config`` does not change how it reports.
+        """
         for outcome in unmade:
-            report(outcome.issue)
-        return None if unmade else True
+            report(outcome.issue, mode=self._cfg.uncomparable)
 
     def _op(
         self, op: str, left: Any, right: Any, present: bool, *, field: str = ""

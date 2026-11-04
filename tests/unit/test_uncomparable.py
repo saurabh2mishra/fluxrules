@@ -337,6 +337,54 @@ class TestEveryWayOfEvaluating:
         engine.insert("Order", {"id": 1, "status": "paid"})
         assert len(engine.activations()) == 1
 
+    def test_cross_fact_reports_only_a_candidate_left_undecided(self, process_config):
+        # The shipment's weight cannot be compared, but its order_id already
+        # fails the join, so it is no match whatever it weighs: nothing to raise.
+        from fluxrules.engine.cross_fact import CrossFactEngine, CrossFactRule, Pattern
+
+        process_config(EngineConfig(uncomparable="raise"))
+        rule = CrossFactRule(
+            id=1,
+            name="heavy",
+            patterns=[
+                Pattern("o", "Order", constraints=[("status", "==", "paid")]),
+                Pattern(
+                    "s",
+                    "Shipment",
+                    constraints=[("weight", ">", 5)],
+                    joins=[("order_id", "==", "o", "id")],
+                ),
+            ],
+        )
+        engine = CrossFactEngine()
+        engine.load_rules([rule])
+        engine.insert("Order", {"id": 1, "status": "paid"})
+        engine.insert("Shipment", {"order_id": 2, "weight": "abc"})
+        assert engine.activations() == []
+        with pytest.raises(UncomparableValuesError):
+            engine.insert("Shipment", {"order_id": 1, "weight": "abc"})
+
+    def test_cross_fact_keeps_the_mode_it_was_created_with(self, process_config):
+        from fluxrules.engine.cross_fact import CrossFactEngine, CrossFactRule, Pattern
+
+        process_config(EngineConfig(uncomparable="false"))
+        engine = CrossFactEngine()
+        engine.load_rules(
+            [
+                CrossFactRule(
+                    id=1,
+                    name="c",
+                    patterns=[Pattern(var="f", fact_type="Fact", constraints=[("v", ">", 5)])],
+                    action="hit",
+                )
+            ]
+        )
+        process_config(EngineConfig(uncomparable="raise"))
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", ComparisonWarning)
+            engine.insert("Fact", FACT)  # neither raises nor warns
+        assert engine.activations() == []
+
     def test_prefiltered_evaluator_lists_issues_of_facts_that_fired(self):
         pytest.importorskip("sqlalchemy")
         from sqlalchemy import create_engine
@@ -649,6 +697,28 @@ pytest.importorskip("fastapi")
 
 
 class TestHttpApi:
+    def test_the_sdk_evaluate_route_answers_422(self, monkeypatch):
+        # fluxrules.api.routes.evaluate is not mounted by create_app(); mounted
+        # on its own, its catch-all must still let the 422 handler answer.
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from fluxrules.api.handlers import register_exception_handlers
+        from fluxrules.api.routes import evaluate as route
+
+        def raising(*_args, **_kwargs):
+            raise UncomparableValuesError(ComparisonIssue("v", ">", "str", "int", "x"))
+
+        monkeypatch.setattr(route._service, "evaluate_inline", raising)
+        app = FastAPI()
+        register_exception_handlers(app)
+        app.include_router(route.router)
+        response = TestClient(app).post(
+            "/evaluate", json={"ruleset": {"group": "g", "rules": []}, "facts": {}}
+        )
+        assert response.status_code == 422, response.text
+        assert response.json()["error"] == "UNCOMPARABLE_VALUES"
+
     def test_raise_returns_422_with_the_issue(self):
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
