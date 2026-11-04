@@ -7,8 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet. Work that is designed but not yet shipped is listed in the
+Work that is designed but not yet shipped is listed in the
 [backlog](docs/development/backlog.md).
+
+### Changed
+
+- The alpha prefilter now calls the same comparison functions as the engine
+  operator (`fluxrules.engine.operators.COMPARISONS`) instead of its own
+  copies, so the two cannot drift apart. Answers are unchanged.
+- The comparison matrix also covers tuple fact values,
+  `evaluate_batch(workers=2)`, and rules written as `F` expressions or read
+  from a YAML file. Every path still gives the same answer, and
+  [How FluxRules Compares Values](docs/comparing-values.md) gains a row for
+  tuples.
 
 ## [1.1.2] - 2026-11-03
 

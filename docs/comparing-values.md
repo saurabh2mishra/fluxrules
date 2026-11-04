@@ -42,6 +42,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
 | `"2026-06-01"` | no | no | no | no | no | no | no |
 | `[5]` | no | no | no | no | no | no | no |
+| `(5,)` | no | no | no | no | no | no | no |
 | `{"a": 5}` | no | no | no | no | no | no | no |
 | (missing) | no | no | no | no | no | no | no |
 
@@ -66,6 +67,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | yes | yes | yes | yes | yes | yes | yes |
 | `"2026-06-01"` | yes | yes | yes | yes | yes | yes | yes |
 | `[5]` | yes | yes | yes | yes | yes | yes | yes |
+| `(5,)` | yes | yes | yes | yes | yes | yes | yes |
 | `{"a": 5}` | yes | yes | yes | yes | yes | yes | yes |
 | (missing) | no | no | no | no | no | no | no |
 
@@ -90,6 +92,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
 | `"2026-06-01"` | no | no | no | no | no | no | no |
 | `[5]` | no | no | no | no | no | no | no |
+| `(5,)` | no | no | no | no | no | no | no |
 | `{"a": 5}` | no | no | no | no | no | no | no |
 | (missing) | no | no | no | no | no | no | no |
 
@@ -114,6 +117,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
 | `"2026-06-01"` | no | no | no | no | no | no | no |
 | `[5]` | no | no | no | no | no | no | no |
+| `(5,)` | no | no | no | no | no | no | no |
 | `{"a": 5}` | no | no | no | no | no | no | no |
 | (missing) | no | no | no | no | no | no | no |
 
@@ -138,6 +142,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
 | `"2026-06-01"` | no | no | yes | yes | no | no | no |
 | `[5]` | no | no | no | no | no | no | no |
+| `(5,)` | no | no | no | no | no | no | no |
 | `{"a": 5}` | no | no | no | no | no | no | no |
 | (missing) | no | no | no | no | no | no | no |
 
@@ -162,6 +167,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no | no |
 | `"2026-06-01"` | no | no | yes | yes | no | no | no |
 | `[5]` | no | no | no | no | no | no | no |
+| `(5,)` | no | no | no | no | no | no | no |
 | `{"a": 5}` | no | no | no | no | no | no | no |
 | (missing) | no | no | no | no | no | no | no |
 
@@ -186,6 +192,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no | no | no | no |
 | `"2026-06-01"` | no | no | no | no | no | no |
 | `[5]` | no | no | no | no | yes | no |
+| `(5,)` | no | no | no | no | no | no |
 | `{"a": 5}` | no | no | no | no | yes | yes |
 | (missing) | no | no | no | no | no | no |
 
@@ -210,6 +217,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | yes | yes | yes | yes | yes | yes |
 | `"2026-06-01"` | yes | yes | yes | yes | yes | yes |
 | `[5]` | yes | yes | yes | yes | no | yes |
+| `(5,)` | yes | yes | yes | yes | yes | yes |
 | `{"a": 5}` | yes | yes | yes | yes | no | no |
 | (missing) | no | no | no | no | no | no |
 
@@ -234,6 +242,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
 | `"2026-06-01"` | no | no | no |
 | `[5]` | no | no | no |
+| `(5,)` | no | no | no |
 | `{"a": 5}` | yes | no | no |
 | (missing) | no | no | no |
 
@@ -258,6 +267,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
 | `"2026-06-01"` | yes | yes | yes |
 | `[5]` | yes | yes | yes |
+| `(5,)` | yes | yes | yes |
 | `{"a": 5}` | no | yes | yes |
 | (missing) | no | no | no |
 
@@ -282,6 +292,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
 | `"2026-06-01"` | no | no | no |
 | `[5]` | no | no | no |
+| `(5,)` | no | no | yes |
 | `{"a": 5}` | no | no | no |
 | (missing) | no | no | no |
 
@@ -306,6 +317,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
 | `"2026-06-01"` | no | no | no |
 | `[5]` | no | no | no |
+| `(5,)` | no | no | no |
 | `{"a": 5}` | no | no | no |
 | (missing) | no | no | no |
 
@@ -330,6 +342,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | no | no | no |
 | `"2026-06-01"` | no | no | no |
 | `[5]` | no | yes | no |
+| `(5,)` | no | yes | no |
 | `{"a": 5}` | yes | yes | no |
 | (missing) | no | no | no |
 
@@ -356,6 +369,7 @@ Each table is one operator under the default settings. A row is the value in the
 | `datetime(2026, 6, 1, 12, 0)` | yes | no | yes | yes | yes | yes |
 | `"2026-06-01"` | yes | no | yes | yes | yes | yes |
 | `[5]` | yes | no | yes | yes | yes | yes |
+| `(5,)` | yes | no | yes | yes | yes | yes |
 | `{"a": 5}` | yes | no | yes | yes | yes | yes |
 | (missing) | yes | yes | yes | yes | yes | yes |
 
@@ -397,6 +411,7 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `v != 5` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
 | `v != 5` | `"2026-06-01"` | yes | no |
 | `v != 5` | `[5]` | yes | no |
+| `v != 5` | `(5,)` | yes | no |
 | `v != 5` | `{"a": 5}` | yes | no |
 | `v != 5.5` | `True` | yes | no |
 | `v != 5.5` | `False` | yes | no |
@@ -408,6 +423,7 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `v != 5.5` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
 | `v != 5.5` | `"2026-06-01"` | yes | no |
 | `v != 5.5` | `[5]` | yes | no |
+| `v != 5.5` | `(5,)` | yes | no |
 | `v != 5.5` | `{"a": 5}` | yes | no |
 | `v != "5"` | `5` | yes | no |
 | `v != "5"` | `0` | yes | no |
@@ -420,6 +436,7 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `v != "5"` | `date(2026, 6, 1)` | yes | no |
 | `v != "5"` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
 | `v != "5"` | `[5]` | yes | no |
+| `v != "5"` | `(5,)` | yes | no |
 | `v != "5"` | `{"a": 5}` | yes | no |
 | `v != "abc"` | `5` | yes | no |
 | `v != "abc"` | `0` | yes | no |
@@ -432,6 +449,7 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `v != "abc"` | `date(2026, 6, 1)` | yes | no |
 | `v != "abc"` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
 | `v != "abc"` | `[5]` | yes | no |
+| `v != "abc"` | `(5,)` | yes | no |
 | `v != "abc"` | `{"a": 5}` | yes | no |
 | `v != True` | `5` | yes | no |
 | `v != True` | `0` | yes | no |
@@ -447,6 +465,7 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `v != True` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
 | `v != True` | `"2026-06-01"` | yes | no |
 | `v != True` | `[5]` | yes | no |
+| `v != True` | `(5,)` | yes | no |
 | `v != True` | `{"a": 5}` | yes | no |
 | `v != date(2026, 1, 1)` | `5` | yes | no |
 | `v != date(2026, 1, 1)` | `0` | yes | no |
@@ -463,6 +482,7 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `v != date(2026, 1, 1)` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
 | `v != date(2026, 1, 1)` | `"2026-06-01"` | yes | no |
 | `v != date(2026, 1, 1)` | `[5]` | yes | no |
+| `v != date(2026, 1, 1)` | `(5,)` | yes | no |
 | `v != date(2026, 1, 1)` | `{"a": 5}` | yes | no |
 | `v != None` | `5` | yes | no |
 | `v != None` | `0` | yes | no |
@@ -480,6 +500,7 @@ Each table lists the answers that differ from the default settings. Where a sett
 | `v != None` | `datetime(2026, 6, 1, 12, 0)` | yes | no |
 | `v != None` | `"2026-06-01"` | yes | no |
 | `v != None` | `[5]` | yes | no |
+| `v != None` | `(5,)` | yes | no |
 | `v != None` | `{"a": 5}` | yes | no |
 | `v > 5` | `Decimal("5.5")` | yes | no |
 | `v > "5"` | `"true"` | yes | no |
@@ -638,7 +659,7 @@ With the matrix's rules and facts, this setting changes no answers.
 
 ## Known differences between paths
 
-None. Every evaluation path gives the answers above under every setting: `PhreakEngine` with and without the alpha prefilter, compiled conditions, streaming mode, `evaluate_batch`, `fluxrules.evaluate()`, `CrossFactEngine` (for the rules it can express), `PreFilteredEvaluator` over a SQL fact store, the CLI and the HTTP API. The tests fail if any of them starts to differ.
+None. Every evaluation path gives the answers above under every setting: `PhreakEngine` with and without the alpha prefilter, compiled conditions, streaming mode, `evaluate_batch` in this process and over worker processes, `fluxrules.evaluate()`, `CrossFactEngine` (for the rules it can express), `PreFilteredEvaluator` over a SQL fact store, the CLI and the HTTP API. The answers are also the same whether a rule is written as a dict, as an `F` expression or in a YAML file. The tests fail if any of them starts to differ.
 
 ## Avoiding surprises
 

@@ -164,3 +164,22 @@ def test_prune_drops_rules_whose_signature_fails() -> None:
     assert pruned == [3, 1]  # rule 2 dropped, caller's order preserved
     assert pruned is not universe
     assert index.candidate_rule_ids(fact, universe) == {1, 3}
+
+
+@pytest.mark.parametrize("op", [">", ">=", "<", "<="])
+def test_ordering_tests_use_the_engine_comparisons(op: str) -> None:
+    from fluxrules.engine.operators import COMPARISONS
+    from fluxrules.prefilter.predicate_index import _make_test
+
+    test = _make_test(op, 5)
+    for v in (4, 5, 6):
+        assert test(v) is COMPARISONS[op](v, 5)
+
+
+def test_an_operator_the_index_does_not_know_keeps_the_rule() -> None:
+    # The extractor only emits operators the index can test. Anything else
+    # must keep the rule as a candidate, never drop it.
+    from fluxrules.prefilter.predicate_index import _MISSING, _make_test
+
+    test = _make_test("contains", "x")
+    assert all(test(v) for v in ("abc", 5, None, _MISSING))

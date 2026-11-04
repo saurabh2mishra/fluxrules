@@ -8,7 +8,9 @@ semantics. Defaults preserve current behavior unless strict flags are enabled.
 from __future__ import annotations
 
 import logging
+import operator
 import re
+from collections.abc import Callable
 from typing import Any
 
 from fluxrules.utils.metrics import get_metrics
@@ -55,6 +57,18 @@ _ALIAS_TO_SYMBOL: dict[str, str] = {
     "lte": "<=",
 }
 
+# The comparison behind each symbolic operator. The engine operator and the
+# alpha prefilter both call these, so they cannot drift apart.
+COMPARISONS: dict[str, Callable[[Any, Any], Any]] = {
+    "==": operator.eq,
+    "!=": operator.ne,
+    ">": operator.gt,
+    ">=": operator.ge,
+    "<": operator.lt,
+    "<=": operator.le,
+}
+ORDERING_OPS: frozenset[str] = frozenset({">", ">=", "<", "<="})
+
 # ``in`` / ``not_in`` test membership of a list of values. A single value is a
 # one-item list, never a container to search: ``"U"`` is not a member of
 # ``"US"``. The engine operator, the alpha prefilter and the rule-time
@@ -98,7 +112,7 @@ def _is_numeric_non_bool(value: Any) -> bool:
 
 
 def _strict_type_compatible(op: str, left: Any, right: Any) -> bool:
-    if op in {">", ">=", "<", "<="}:
+    if op in ORDERING_OPS:
         return _is_numeric_non_bool(left) and _is_numeric_non_bool(right)
 
     if op in {"==", "!="}:
@@ -163,18 +177,9 @@ def evaluate_operator(
         return False
 
     try:
-        if op == ">":
-            return left > right
-        if op == ">=":
-            return left >= right
-        if op == "<":
-            return left < right
-        if op == "<=":
-            return left <= right
-        if op == "==":
-            return left == right
-        if op == "!=":
-            return left != right
+        compare = COMPARISONS.get(op)
+        if compare is not None:
+            return bool(compare(left, right))
         if op == "in":
             return left in as_membership_collection(right)
         if op == "not_in":
