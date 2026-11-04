@@ -17,7 +17,13 @@ from decimal import Decimal
 from typing import Any
 
 from fluxrules.domain.errors import RuleValueWarning
-from fluxrules.engine.operators import ORDERING_OPS, is_nan
+from fluxrules.engine.operators import (
+    CASE_INSENSITIVE_OPS,
+    ORDERING_OPS,
+    approx_parts,
+    is_membership_collection,
+    is_nan,
+)
 from fluxrules.utils.warn import caller_stacklevel
 
 __all__ = ["reset_value_warnings", "value_problems", "warn_value_problems"]
@@ -61,6 +67,23 @@ def _problem(op: str, value: Any) -> str | None:
             return f"'{op}' cannot order anything against NaN"
         return None
     if op in _TEXT_OPS:
+        if not isinstance(value, str):
+            return f"'{op}' needs text, but got {describe_value(value)}"
+        return None
+    if op == "approx":
+        target = approx_parts(value)[0]
+        if isinstance(target, bool) or not isinstance(target, (int, float, Decimal)):
+            return f"'approx' needs a number, but got {describe_value(target)}"
+        if is_nan(target):
+            return "'approx' cannot match NaN"
+        return None
+    if op == "in_ignore_case":
+        members = value if is_membership_collection(value) else (value,)
+        others = [m for m in members if not isinstance(m, str)]
+        if others:
+            return f"'in_ignore_case' compares text, but got {describe_value(others[0])}"
+        return None
+    if op in CASE_INSENSITIVE_OPS:
         if not isinstance(value, str):
             return f"'{op}' needs text, but got {describe_value(value)}"
         return None

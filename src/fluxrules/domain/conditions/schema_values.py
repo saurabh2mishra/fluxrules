@@ -4,8 +4,8 @@ With ``fact_schema=``, a rule comparing ``amount: float`` with the text
 ``"100.1"`` can never match, so :func:`check_tree` reports it as a
 :class:`~fluxrules.domain.errors.RuleValueError` that suggests writing
 ``100.1``. An ISO date string compared with a ``date`` or ``datetime`` field
-is converted to a date, because JSON rule files have no other way to write
-one. Fields whose type is unclear (a union, ``Any``, an enum, ``Literal``, a
+is converted to a date, and numeric text compared with a ``Decimal`` field to a
+``Decimal``, because JSON rule files have no other way to write one. Fields whose type is unclear (a union, ``Any``, an enum, ``Literal``, a
 list) are not checked.
 """
 
@@ -20,11 +20,13 @@ from typing import Any
 
 from fluxrules.domain.conditions.rule_values import describe_value
 from fluxrules.domain.errors import RuleValueError
-from fluxrules.engine.operators import MEMBERSHIP_OPS, ORDERING_OPS
+from fluxrules.engine.operators import CASE_INSENSITIVE_OPS, MEMBERSHIP_OPS, ORDERING_OPS
 
 __all__ = ["check_tree", "field_kind"]
 
 _COMPARE_OPS = ORDERING_OPS | {"==", "!="}
+# Operators that need an exact value: a float on a Decimal field never equals.
+_EXACT_OPS = frozenset({"==", "!=", "in", "not_in"})
 _ALIASES = {"eq": "==", "ne": "!=", "gt": ">", "gte": ">=", "lt": "<", "lte": "<="}
 _TEXT_OPS = frozenset({"starts_with", "ends_with", "regex"})
 _CONTAINS_OPS = frozenset({"contains", "not_contains"})
@@ -133,9 +135,13 @@ def _check_condition(
             RuleValueError(summary, field=field, rule=rule, schema_name=schema_name, value=value)
         )
 
-    if op in _TEXT_OPS:
+    if op in _TEXT_OPS or op in CASE_INSENSITIVE_OPS:
         if kind[0] != "text":
             problem(f"'{op}' tests text", "Compare it with '==' or an ordering operator instead.")
+        return node
+    if op == "approx":
+        if kind[0] != "number":
+            problem("'approx' compares numbers", "Compare it with '==' instead.")
         return node
     if op in _CONTAINS_OPS:
         if kind[0] != "text":
@@ -175,9 +181,17 @@ def _check_value(
     name = kind[0]
     compares = f"the rule compares it with {describe_value(value)}"
     if name == "number":
+        exact = kind[1] == "Decimal"
+        if isinstance(value, float) and exact and op in _EXACT_OPS:
+            # Decimal("10.1") == 10.1 is false: a float is never exactly 10.1.
+            problem(compares, f'Write "{value}" in quotes, which loads as an exact Decimal.')
+            return value
         if isinstance(value, (int, float, Decimal)) and not isinstance(value, bool):
             return value
         if isinstance(value, str) and _is_number_text(value):
+            if exact:
+                # A rule file has no other way to write an exact Decimal.
+                return Decimal(value.strip())
             problem(compares, f"Write {value.strip()} without quotes to compare numbers.")
         else:
             problem(compares, "Write a number.")

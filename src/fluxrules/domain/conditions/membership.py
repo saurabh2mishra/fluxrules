@@ -1,4 +1,4 @@
-"""Turn a single ``in`` / ``not_in`` value into a one-item list.
+"""Turn a single ``in`` / ``not_in`` / ``in_ignore_case`` value into a one-item list.
 
 ``{"op": "in", "value": "US"}`` means "is one of these values", so its value
 should be a list. :func:`normalize_membership_values` rewrites such a value to
@@ -18,10 +18,16 @@ from fluxrules.utils.warn import caller_stacklevel
 __all__ = ["normalize_membership_values"]
 
 
+# Operators whose value is a list of members.
+_LIST_OPS = MEMBERSHIP_OPS | {"in_ignore_case"}
+# The operator that compares one value, for each.
+_SINGLE = {"in": "==", "not_in": "!=", "in_ignore_case": "equals_ignore_case"}
+
+
 def _warn(path: str, node: dict[str, Any]) -> None:
     op = node["op"]
     value = node["value"]
-    single = "==" if op == "in" else "!="
+    single = _SINGLE[op]
     warnings.warn(
         f"Condition{f' at {path!r}' if path else ''} on field {node.get('field')!r}: "
         f"'{op}' expects a list "
@@ -53,7 +59,7 @@ def normalize_membership_values(tree: Any, *, path: str = "root", warn: bool = T
 
     if tree.get("type") == "condition":
         if (
-            tree.get("op") in MEMBERSHIP_OPS
+            tree.get("op") in _LIST_OPS
             and "value" in tree
             and not is_membership_collection(tree["value"])
         ):

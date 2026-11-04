@@ -103,7 +103,7 @@ From `fluxrules.adapters.loaders`:
 From `fluxrules`:
 
 - `Rule`: Pydantic v2 model: `id`, `name`, `domain`, `tags`, `conditions`, `action`, `actions`, `priority`, `enabled`, `persist`
-- `F` (alias of `Field`) and `Condition`: the recommended way to write `conditions`: `(F("amount") > 5000) & (F("country") == "US")`. See [Authoring Rules](../authoring-rules.md).
+- `F` (alias of `Field`) and `Condition`: the recommended way to write `conditions`: `(F("amount") > 5000) & (F("country") == "US")`. See [Authoring Rules](../authoring-rules.md). Besides the comparison operators, `F` has `isin`, `not_in`, `contains`, `not_contains`, `starts_with`, `ends_with`, `regex`, `exists`, `approx(value, *, abs_tol=None, rel_tol=None)` for numbers that are close enough, and `equals_ignore_case`, `in_ignore_case`, `contains_ignore_case`, `starts_with_ignore_case` and `ends_with_ignore_case` for text compared without case. See [Conditions](../conditions.md#close-numbers).
 - `RuleBuilder`: Fluent authoring; `RuleBuilder.build()` returns a `Rule`. `RuleBuilder.condition()` accepts an `F` expression or a dictionary.
 - `ConditionBuilder`: Deprecated in favor of `F`; it will be removed in a future release.
 - `Ruleset`: Optional named collection of rules (`group: str`, `rules: tuple[...]`). `evaluate()` accepts bare rules, so you only need this to name a group.

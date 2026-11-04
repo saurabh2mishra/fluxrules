@@ -29,6 +29,7 @@ from fluxrules.domain.errors import (
     UncomparableValuesError,
 )
 from fluxrules.engine.configuration import EngineConfig, get_config, set_config
+from fluxrules.engine.operators import CASE_INSENSITIVE_OPS
 from fluxrules.engine.phreak import PhreakEngine
 
 FIELD = "v"
@@ -45,6 +46,7 @@ FACT_VALUES: dict[str, Any] = {
     "str '5'": "5",
     "str 'true'": "true",
     "str 'abc'": "abc",
+    "str 'ABC'": "ABC",
     "str ''": "",
     "None": None,
     "NaN": math.nan,
@@ -59,10 +61,14 @@ FACT_VALUES: dict[str, Any] = {
     "missing": MISSING,
 }
 
-# Rule values tested with each operator, by label.
+# Rule values tested with each operator, by label. Some pairs are equal in
+# Python but of different types (1 and True, 5.5 and Decimal 5.5), so a cache
+# that mixes them up gives a different answer.
 ORDERED_RULE_VALUES: dict[str, Any] = {
     "int 5": 5,
+    "int 1": 1,
     "float 5.5": 5.5,
+    "Decimal 5.5": Decimal("5.5"),
     "str '5'": "5",
     "str 'abc'": "abc",
     "bool True": True,
@@ -80,12 +86,38 @@ MEMBERSHIP_RULE_VALUES: dict[str, Any] = {
 }
 TEXT_RULE_VALUES: dict[str, Any] = {"'a'": "a", "'5'": "5", "'('": "("}
 
+APPROX_RULE_VALUES: dict[str, Any] = {
+    "int 5": 5,
+    "float 5.5": 5.5,
+    "Decimal 5.5": Decimal("5.5"),
+    "5.4 within 0.2": {"value": 5.4, "abs_tol": 0.2},
+    "str '5'": "5",
+    "None": None,
+}
+CASE_RULE_VALUES: dict[str, Any] = {"'abc'": "abc", "'A'": "A", "int 5": 5}
+CASE_MEMBERSHIP_RULE_VALUES: dict[str, Any] = {
+    "['ABC', 'x']": ["ABC", "x"],
+    "'abc' (single)": "abc",
+    "[5]": [5],
+}
+
 OPERATOR_VALUES: dict[str, dict[str, Any]] = {
     **dict.fromkeys(("==", "!=", ">", ">=", "<", "<="), ORDERED_RULE_VALUES),
     "in": MEMBERSHIP_RULE_VALUES,
     "not_in": MEMBERSHIP_RULE_VALUES,
     **dict.fromkeys(
         ("contains", "not_contains", "starts_with", "ends_with", "regex"), TEXT_RULE_VALUES
+    ),
+    "approx": APPROX_RULE_VALUES,
+    "in_ignore_case": CASE_MEMBERSHIP_RULE_VALUES,
+    **dict.fromkeys(
+        (
+            "equals_ignore_case",
+            "contains_ignore_case",
+            "starts_with_ignore_case",
+            "ends_with_ignore_case",
+        ),
+        CASE_RULE_VALUES,
     ),
 }
 
@@ -281,6 +313,8 @@ _F_METHODS = {
     "starts_with": "starts_with",
     "ends_with": "ends_with",
     "regex": "regex",
+    "approx": "approx",
+    **{op: op for op in CASE_INSENSITIVE_OPS},
 }
 
 

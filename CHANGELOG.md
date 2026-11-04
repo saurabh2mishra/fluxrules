@@ -41,6 +41,18 @@ Work that is designed but not yet shipped is listed in the
     these problems too.
 - A `RuleValueError` (an `InvalidRuleError` and a `ValueError`) and a
   `YamlValueWarning`.
+- An `approx` operator for numbers that are close enough, using
+  `math.isclose`: `F("total").approx(0.3)` matches `0.1 + 0.2`. Give a
+  tolerance with `F("total").approx(0.3, abs_tol=0.01)` or `rel_tol=`; in a
+  dict or YAML rule it goes in the value, `{"value": 0.3, "abs_tol": 0.01}`.
+  A value that is not a number is reported as a comparison that cannot be made.
+- Case-insensitive text operators, comparing with `str.casefold()`:
+  `equals_ignore_case`, `in_ignore_case`, `contains_ignore_case` (which also
+  finds text in a list), `starts_with_ignore_case` and
+  `ends_with_ignore_case`, each with an `F` method. They compare text only and
+  never convert a value that is not text.
+- [How FluxRules Compares Values](docs/comparing-values.md) shows both, and has
+  a section on dates and numbers stored as text.
 
 ### Changed
 
@@ -48,8 +60,11 @@ Work that is designed but not yet shipped is listed in the
   now checks each rule value against its field's type and refuses the rules
   with `RuleValueError` when one can never match, such as `amount: float`
   compared with `"100.1"`. An ISO date string compared with a `date` or
-  `datetime` field is now loaded as a date. Rules that loaded in 1.1 may be
-  refused; `fluxrules.validate(rules, fact_schema=...)` lists every problem.
+  `datetime` field is now loaded as a date, and numeric text compared with a
+  `Decimal` field as a `Decimal`; a float compared with `==`, `!=`, `in` or
+  `not_in` on a `Decimal` field is refused, since `Decimal("10.1") == 10.1` is
+  false. Rules that loaded in 1.1 may be refused;
+  `fluxrules.validate(rules, fact_schema=...)` lists every problem.
 - YAML rule files and config files are now read by YAML 1.2's rules, so each
   value means what it looks like: `NO`, `yes`, `on` and `off` are text (only
   `true` and `false` are booleans), `0755` and `1:30` are text, and `1e3` is the
@@ -79,6 +94,11 @@ Work that is designed but not yet shipped is listed in the
   that cannot be hashed (`{"tags": ["vip"]}`) no longer raises
   `TypeError: unhashable type`. The pool's cache, which never saved any work,
   is gone.
+- Two rules whose values are equal in Python but of different types, such as
+  `v > True` and `v > 1`, no longer share an answer within one evaluation.
+  Under `strict_type_comparison`, `v > True` fired whenever another rule
+  checked `v > 1`, because the engine's per-evaluation cache could not tell
+  `True` from `1`.
 
 ## [1.1.3] - 2026-11-04
 

@@ -157,6 +157,11 @@ What each field type accepts:
 
 - A number field (`int`, `float`, `Decimal`) needs a number. Text such as
   `"100.1"` is refused, even though it looks like a number: write `100.1`.
+- A `Decimal` field is exact, so it is the one exception. Numeric text such as
+  `"10.10"` is loaded as `Decimal("10.10")`, because a JSON or YAML rule file
+  has no other way to write an exact amount. A float with `==`, `!=`, `in` or
+  `not_in` is refused, because `Decimal("10.1") == 10.1` is false: write
+  `"10.1"` instead. A float with `>` or `approx` is accepted.
 - A text field (`str`) needs text. The number `5` is refused: write `"5"`.
 - A `bool` field needs `true` or `false`. The text `"true"` is accepted only
   with `EngineConfig(boolean_string_coercion=True)`, which reads it as `True`.

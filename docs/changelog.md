@@ -166,13 +166,6 @@ These items are designed but not yet shipped. The
 - Safer comparison defaults: a comparison that cannot be made is unknown,
   `True` no longer equals `1`, and types are strict with a fact schema.
 
-**Comparing values (1.2.0)**
-
-- Check rule values when rules load: against their operator, against the fact
-  schema, and for YAML values read differently from how they look.
-- Make common comparisons easy: `approx`, case-insensitive text operators, and
-  documented date and number conversion with a fact schema.
-
 **Typed facts**
 
 - A strict mode that raises when a fact lacks a field a rule needs.

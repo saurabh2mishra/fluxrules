@@ -85,10 +85,10 @@ building them on `fluxrules.facts`.
 1.1.2 made every evaluation path give the same answer (Phases 0 and 1 of the
 comparison plan), and the comparison matrix now also covers tuples,
 `evaluate_batch(workers=2)` and rules written with `F` or in YAML. Comparisons
-that cannot be made are now reported (`EngineConfig.uncomparable`), and rule
-values are checked when rules load (both unreleased).
-The items below are the rest of that plan. They are aimed at
-**1.2.0**, except the last, which changes defaults and waits for **2.0**.
+that cannot be made are now reported (`EngineConfig.uncomparable`), rule
+values are checked when rules load, and `approx` and the case-insensitive text
+operators are added (all for 1.2.0, unreleased). The item below is the rest of
+that plan; it changes defaults and waits for **2.0**.
 [How FluxRules Compares Values](../comparing-values.md) shows today's behaviour,
 and the comparison matrix (`tests/engine/comparison_matrix.py`) must keep every
 path in agreement as each item lands: run `make docs-tables` after any change
@@ -104,28 +104,6 @@ Decisions already made (2026-11-03):
   **`5 != "5"` is a match**. Only ordering (`>`, `<` and the like) across types
   cannot be made.
 - Safer defaults wait for 2.0.
-
-### Make common comparisons easy (1.2.0)
-
-**What:**
-
-- **Floats and money:** an `approx` operator, `F("total").approx(0.3)`, using
-  `math.isclose` with optional absolute and relative tolerances, plus guidance
-  to keep money in `Decimal`.
-- **Text:** case-insensitive operators: `equals_ignore_case`,
-  `in_ignore_case`, `contains_ignore_case`, `starts_with_ignore_case` and
-  `ends_with_ignore_case`, comparing with `str.casefold()`.
-- **Dates and numeric text in facts:** with a fact schema and
-  `validate_facts="normalize"`, ISO date strings already become dates and
-  numeric text becomes numbers. Add tests and a section on the Comparing
-  Values page; no conversion happens without a schema (decided above).
-
-Every new operator needs an `F` method, a dict and YAML form, an entry in the
-matrix and the reference page, and a sound rule in the alpha prefilter (it may
-simply leave the rule unscreened).
-
-**Why waiting:** New operators are new public API, so they belong in a minor
-release.
 
 ### Safer comparison defaults (2.0)
 

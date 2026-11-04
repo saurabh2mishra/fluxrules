@@ -8,6 +8,7 @@ semantics. Defaults preserve current behavior unless strict flags are enabled.
 from __future__ import annotations
 
 import logging
+import math
 import operator
 import re
 from collections.abc import Callable
@@ -45,6 +46,13 @@ VALID_OPERATORS: frozenset[str] = frozenset(
         "starts_with",
         "ends_with",
         "regex",
+        # Numbers that are close enough, and text compared without case
+        "approx",
+        "equals_ignore_case",
+        "in_ignore_case",
+        "contains_ignore_case",
+        "starts_with_ignore_case",
+        "ends_with_ignore_case",
     }
 )
 
@@ -79,6 +87,37 @@ ORDERING_OPS: frozenset[str] = frozenset({">", ">=", "<", "<="})
 # normalisation all use these helpers, so every path agrees.
 MEMBERSHIP_OPS: frozenset[str] = frozenset({"in", "not_in"})
 _MEMBERSHIP_COLLECTIONS = (list, tuple, set, frozenset)
+
+# The ``_ignore_case`` operators compare text with ``str.casefold()``, so
+# ``"STRASSE"`` equals ``"straße"``. They compare text only: a value that is
+# not text is never converted (``5`` is not ``"5"``).
+CASE_INSENSITIVE_OPS: frozenset[str] = frozenset(
+    {
+        "equals_ignore_case",
+        "in_ignore_case",
+        "contains_ignore_case",
+        "starts_with_ignore_case",
+        "ends_with_ignore_case",
+    }
+)
+
+# ``approx`` compares two numbers with ``math.isclose``. Its rule value is the
+# target number, or a mapping with the target and the tolerances:
+# ``{"value": 0.3, "abs_tol": 0.01, "rel_tol": 1e-6}``.
+APPROX_KEYS: frozenset[str] = frozenset({"value", "abs_tol", "rel_tol"})
+APPROX_REL_TOL = 1e-09
+APPROX_ABS_TOL = 0.0
+
+
+def approx_parts(value: Any) -> tuple[Any, Any, Any]:
+    """``(target, rel_tol, abs_tol)`` of an ``approx`` rule value."""
+    if isinstance(value, dict):
+        return (
+            value.get("value"),
+            value.get("rel_tol", APPROX_REL_TOL),
+            value.get("abs_tol", APPROX_ABS_TOL),
+        )
+    return value, APPROX_REL_TOL, APPROX_ABS_TOL
 
 
 def is_membership_collection(value: Any) -> bool:
@@ -146,6 +185,9 @@ REASON_STRICT = "strict_type_comparison orders two numbers only"
 REASON_ORDER = "these types cannot be ordered"
 REASON_CONTAINS = "the fact value cannot contain the rule value"
 REASON_MEMBERSHIP = "the fact value cannot be looked up in the rule's values"
+REASON_APPROX = "approx compares numbers only"
+REASON_APPROX_NAN = "NaN is not close to any number"
+REASON_TEXT = "the _ignore_case operators compare text only"
 REASON_REGEX = "the rule value is not a valid regular expression"
 
 
@@ -220,6 +262,8 @@ def compare_operator(
                 return rule_value is not None
         if op in ORDERING_OPS:
             return _uncomparable(field, op, None, rule_value, REASON_NONE)
+        if op == "approx":
+            return _uncomparable(field, op, None, approx_parts(rule_value)[0], REASON_APPROX)
         return False
 
     left = _coerce_bool_string(event_value, boolean_string_coercion)
@@ -274,6 +318,10 @@ def compare_operator(
             return str(left).endswith(str(right))
         if op == "regex":
             return bool(re.search(str(right), str(left)))
+        if op == "approx":
+            return _approx(field, left, right)
+        if op in CASE_INSENSITIVE_OPS:
+            return _ignore_case(field, op, left, right)
         return False
     except Exception as exc:
         logger.debug(
@@ -284,6 +332,57 @@ def compare_operator(
             exc_info=True,
         )
         return _uncomparable(field, op, left, right, _failure_reason(op, left, right, exc))
+
+
+def _is_number(value: Any) -> bool:
+    return isinstance(value, (int, float, Decimal)) and not isinstance(value, bool)
+
+
+def _approx(field: str, left: Any, right: Any) -> bool | Uncomparable:
+    """``left`` is close to the target in ``right``, by ``math.isclose``."""
+    target, rel_tol, abs_tol = approx_parts(right)
+    if not (_is_number(left) and _is_number(target)):
+        return _uncomparable(field, "approx", left, target, REASON_APPROX)
+    if is_nan(left) or is_nan(target):
+        return _uncomparable(field, "approx", left, target, REASON_APPROX_NAN)
+    return math.isclose(left, target, rel_tol=rel_tol, abs_tol=abs_tol)
+
+
+def _same_text(member: Any, key: str) -> bool:
+    return isinstance(member, str) and member.casefold() == key
+
+
+def _ignore_case(field: str, op: str, left: Any, right: Any) -> bool | Uncomparable:
+    """The ``_ignore_case`` operators: text compared with ``str.casefold()``.
+
+    ``equals_ignore_case`` and ``in_ignore_case`` work like ``==`` and
+    ``in``: a value that is not text is simply not equal. The others look
+    inside the fact's text, so a fact value that is not text (or, for
+    ``contains_ignore_case``, a list of text) cannot be looked in.
+    """
+    if op == "equals_ignore_case":
+        return (
+            isinstance(left, str) and isinstance(right, str) and _same_text(right, left.casefold())
+        )
+    if op == "in_ignore_case":
+        if not isinstance(left, str):
+            return False
+        key = left.casefold()
+        return any(_same_text(member, key) for member in as_membership_collection(right))
+    if not isinstance(right, str):
+        return _uncomparable(field, op, left, right, REASON_TEXT)
+    needle = right.casefold()
+    if op == "contains_ignore_case":
+        if isinstance(left, str):
+            return needle in left.casefold()
+        if is_membership_collection(left):
+            return any(_same_text(member, needle) for member in left)
+        return _uncomparable(field, op, left, right, REASON_TEXT)
+    if not isinstance(left, str):
+        return _uncomparable(field, op, left, right, REASON_TEXT)
+    if op == "starts_with_ignore_case":
+        return left.casefold().startswith(needle)
+    return left.casefold().endswith(needle)
 
 
 def evaluate_operator(

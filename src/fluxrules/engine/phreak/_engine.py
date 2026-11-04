@@ -217,6 +217,25 @@ def _hashable(value: Any) -> Any:
     return _UNHASHABLE
 
 
+def _value_key(value: Any) -> Any:
+    """The rule value's part of a leaf memo key: its type and its value.
+
+    Python calls ``True`` and ``1``, or ``5.5`` and ``Decimal("5.5")``, equal,
+    with one hash, but they do not always compare alike: under
+    ``strict_type_comparison`` ``5 > True`` cannot be made while ``5 > 1`` is
+    true, and a reported issue names the rule value's type. So the key carries
+    the type, and for a mapping (an ``approx`` target and its tolerances) the
+    type of each value in it.
+    """
+    if value.__class__ is dict:
+        try:
+            return (dict, tuple(sorted((k, v.__class__, _hashable(v)) for k, v in value.items())))
+        except TypeError:
+            return _UNHASHABLE
+    key = _hashable(value)
+    return key if key is _UNHASHABLE else (value.__class__, key)
+
+
 def _linker_safe(dsl: Any) -> bool:
     """Whether the presence linker may narrow candidacy by this rule's fields.
 
@@ -1481,7 +1500,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         field = condition.get("field", "")
         op = condition.get("op", "==")
         value = condition.get("value")
-        value_key = _hashable(value)
+        value_key = _value_key(value)
         snh = flags.strict_null_handling
         stc = flags.strict_type_comparison
         bsc = flags.boolean_string_coercion
@@ -1613,7 +1632,7 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         if memo is not None:
             present = field in facts
             fact_val = facts.get(field)
-            value_key = _hashable(value)
+            value_key = _value_key(value)
             fact_key = _hashable(fact_val)
             if value_key is not _UNHASHABLE and fact_key is not _UNHASHABLE:
                 memo_key = (field, op, value_key, present, fact_key)
