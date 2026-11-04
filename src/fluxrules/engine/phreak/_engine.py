@@ -1632,10 +1632,13 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         if memo is not None:
             present = field in facts
             fact_val = facts.get(field)
-            value_key = _value_key(value)
+            # The value's class is in the key (see _value_key); inline here, as
+            # this runs for every leaf, with the helper only for a mapping.
+            value_class = value.__class__
+            value_key = _hashable(value) if value_class is not dict else _value_key(value)
             fact_key = _hashable(fact_val)
             if value_key is not _UNHASHABLE and fact_key is not _UNHASHABLE:
-                memo_key = (field, op, value_key, present, fact_key)
+                memo_key = (field, op, value_class, value_key, present, fact_key)
                 cached = memo.get(memo_key)
                 if cached is not None:
                     if self._metrics is not None:
