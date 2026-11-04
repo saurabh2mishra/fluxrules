@@ -826,6 +826,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../comparing-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparing Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../complex-conditions/" class="md-nav__link">
         
   
@@ -2375,6 +2403,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#112-2026-11-03-every-evaluation-path-agrees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.2 (2026-11-03): Every evaluation path agrees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#111-2026-11-02-documentation-reorganized" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2580,6 +2619,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#112-2026-11-03-every-evaluation-path-agrees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.2 (2026-11-03): Every evaluation path agrees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#111-2026-11-02-documentation-reorganized" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2763,8 +2813,23 @@
 summarizes each release. The full list of changes, with migration notes, is in
 <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/CHANGELOG.md"><code>CHANGELOG.md</code></a>
 in the repository.</p>
-<p><strong>Current release: 1.1.1</strong> (2026-11-02).</p>
+<p><strong>Current release: 1.1.2</strong> (2026-11-03).</p>
 <h2 id="releases">Releases<a class="headerlink" href="#releases" title="Permanent link">&para;</a></h2>
+<h3 id="112-2026-11-03-every-evaluation-path-agrees">1.1.2 (2026-11-03): Every evaluation path agrees<a class="headerlink" href="#112-2026-11-03-every-evaluation-path-agrees" title="Permanent link">&para;</a></h3>
+<ul>
+<li>A single <code>in</code> / <code>not_in</code> value counts as a one-item list on every path, so
+  <code>isin("US")</code> no longer matches <code>"U"</code>, and a <code>MembershipValueWarning</code> tells
+  the author to write the list.</li>
+<li><code>boolean_string_coercion</code> works with the alpha prefilter;
+  <code>fluxrules.evaluate()</code> and the HTTP API follow all comparison settings; and
+  <code>fluxrules evaluate</code> applies the settings in its config file.</li>
+<li><code>PreFilteredEvaluator</code> no longer drops facts with text, boolean, <code>Decimal</code>
+  or very large integer values, and its SQL fact store saves <code>Decimal</code>, dates
+  and tuples exactly.</li>
+<li>New page: <a href="../comparing-values/">How FluxRules Compares Values</a>, generated
+  from a test matrix that compares ten evaluation paths.</li>
+<li><code>EngineConfig.use_optimized_engine</code> is deprecated: nothing reads it.</li>
+</ul>
 <h3 id="111-2026-11-02-documentation-reorganized">1.1.1 (2026-11-02): Documentation reorganized<a class="headerlink" href="#111-2026-11-02-documentation-reorganized" title="Permanent link">&para;</a></h3>
 <p>The library code is unchanged; only the version number moves to 1.1.1.</p>
 <ul>
@@ -2886,6 +2951,19 @@ transforms, the optional FastAPI server and fact pipelines.</p>
 <li>Make <code>missing_field="unknown"</code> the default, so <code>NOT</code> over a missing field no
   longer fires. 1.1.0 ships the opt-in and a warning that names affected
   fields.</li>
+<li>Safer comparison defaults: a comparison that cannot be made is unknown,
+  <code>True</code> no longer equals <code>1</code>, and types are strict with a fact schema.</li>
+</ul>
+<p><strong>Comparing values (1.2.0)</strong></p>
+<ul>
+<li>Close the remaining gaps in the comparison matrix: tuples, <code>F</code> and YAML
+  rules, <code>evaluate_batch(workers=2)</code>, and one set of comparison functions.</li>
+<li>Report comparisons that cannot be made: a warning by default, and settings
+  to stay silent, treat them as unknown or raise.</li>
+<li>Check rule values when rules load: against their operator, against the fact
+  schema, and for YAML values read differently from how they look.</li>
+<li>Make common comparisons easy: <code>approx</code>, case-insensitive text operators, and
+  documented date and number conversion with a fact schema.</li>
 </ul>
 <p><strong>Typed facts</strong></p>
 <ul>

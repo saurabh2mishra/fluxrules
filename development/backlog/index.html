@@ -828,6 +828,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../comparing-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparing Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../complex-conditions/" class="md-nav__link">
         
   
@@ -2372,6 +2400,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#comparing-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparing values
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparing values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#close-the-remaining-matrix-gaps-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Close the remaining matrix gaps (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#report-comparisons-that-cannot-be-made-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report comparisons that cannot be made (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-rule-values-when-rules-load-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check rule values when rules load (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make-common-comparisons-easy-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Make common comparisons easy (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safer-comparison-defaults-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safer comparison defaults (2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#http-api" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2639,6 +2739,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#comparing-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparing values
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparing values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#close-the-remaining-matrix-gaps-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Close the remaining matrix gaps (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#report-comparisons-that-cannot-be-made-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report comparisons that cannot be made (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-rule-values-when-rules-load-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check rule values when rules load (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make-common-comparisons-easy-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Make common comparisons easy (1.2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safer-comparison-defaults-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safer comparison defaults (2.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#http-api" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2765,6 +2937,114 @@ optional and point to <code>fluxrules[api]</code>, although Pydantic is a core
 dependency. Remove the fallback branch and the stale install hint, and consider
 building them on <code>fluxrules.facts</code>.</p>
 <p><strong>Why waiting:</strong> Cosmetic; no behaviour change.</p>
+<h2 id="comparing-values">Comparing values<a class="headerlink" href="#comparing-values" title="Permanent link">&para;</a></h2>
+<p>1.1.2 made every evaluation path give the same answer (Phases 0 and 1 of the
+comparison plan). The items below are the rest of that plan. They are aimed at
+<strong>1.2.0</strong>, except the last, which changes defaults and waits for <strong>2.0</strong>.
+<a href="../../comparing-values/">How FluxRules Compares Values</a> shows today's behaviour,
+and the comparison matrix (<code>tests/engine/comparison_matrix.py</code>) must keep every
+path in agreement as each item lands: run <code>make docs-tables</code> after any change
+to how values compare.</p>
+<p>Decisions already made (2026-11-03):</p>
+<ul>
+<li>A comparison that cannot be made keeps its answer (no match) in 1.x, but
+  <strong>warns by default</strong>.</li>
+<li>Text that looks like a number is converted <strong>only when a fact schema asks</strong>
+  for it, never silently.</li>
+<li>Under <code>strict_type_comparison</code>, values of different types are never equal, so
+  <strong><code>5 != "5"</code> is a match</strong>. Only ordering (<code>&gt;</code>, <code>&lt;</code> and the like) across types
+  cannot be made.</li>
+<li>Safer defaults wait for 2.0.</li>
+</ul>
+<h3 id="close-the-remaining-matrix-gaps-120">Close the remaining matrix gaps (1.2.0)<a class="headerlink" href="#close-the-remaining-matrix-gaps-120" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong> Add to the comparison matrix what 1.1.2 left out:</p>
+<ul>
+<li><code>tuple</code> fact values;</li>
+<li>rules written as <code>F</code> expressions and loaded from YAML, not only as dicts;</li>
+<li><code>evaluate_batch(workers=2)</code>, which runs in worker processes.</li>
+</ul>
+<p>Also make the alpha prefilter call the same comparison functions as the engine
+(for example one <code>operator.gt</code> table in <code>fluxrules.engine.operators</code>) instead of
+its own copies.</p>
+<p><strong>Why waiting:</strong> The matrix already proves the paths agree, so these close
+coverage gaps rather than fix known bugs. Do them first in 1.2.0, so every
+later item is tested on every path.</p>
+<h3 id="report-comparisons-that-cannot-be-made-120">Report comparisons that cannot be made (1.2.0)<a class="headerlink" href="#report-comparisons-that-cannot-be-made-120" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong> A comparison that cannot be made, such as <code>"abc" &gt; 5</code>, <code>None &gt; 5</code>, a
+<code>date</code> against a <code>datetime</code>, <code>NaN</code> or an invalid regex, is no match today, and
+<code>NOT</code> then fires. Make it visible:</p>
+<ul>
+<li>Add <code>EngineConfig.uncomparable</code>, modelled on <code>missing_field</code>:</li>
+<li><code>None</code> (default): no match, as today, plus a warning once per field,
+    operator and pair of types.</li>
+<li><code>"false"</code>: no match, silently (1.1 behaviour).</li>
+<li><code>"unknown"</code>: the check is unknown, so <code>NOT</code> over it does not fire, and
+    <code>AND</code> / <code>OR</code> follow three-valued logic.</li>
+<li><code>"raise"</code>: raise an error naming the field, operator and both types.</li>
+<li>Add a <code>ComparisonWarning</code> class and list each case in the result (for
+  example <code>result.comparison_issues</code>), with the field, operator, both types
+  and the reason.</li>
+<li>Apply it on every path. The comparison matrix grows a column per mode, and
+  the reference page shows each mode.</li>
+</ul>
+<p>Under <code>strict_type_comparison</code>, make <code>!=</code> between different types a match
+(decided above). Today it is no match, so this changes the answer for anyone
+who set that flag.</p>
+<p><strong>Why waiting:</strong> It adds a setting and a warning that existing users will see,
+and the <code>"unknown"</code> mode needs three-valued logic in the engine, compiled
+conditions, streaming mode and the reference evaluator. Reuse the
+<code>missing_field="unknown"</code> machinery in <code>fluxrules.domain.conditions.missing_fields</code>
+rather than adding a second one.</p>
+<h3 id="check-rule-values-when-rules-load-120">Check rule values when rules load (1.2.0)<a class="headerlink" href="#check-rule-values-when-rules-load-120" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong> Catch rules that can never match, before they run:</p>
+<ul>
+<li><strong>Value against operator:</strong> <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code> and <code>&lt;=</code> need a number, text or a
+  date; <code>starts_with</code> and <code>ends_with</code> need text; a <code>regex</code> must compile.
+  Anything else warns when the rule is created.</li>
+<li><strong>Value against the fact schema:</strong> with <code>fact_schema=</code>, compare each rule
+  value with its field's type. <code>amount: float</code> compared with <code>"100.1"</code> is an
+  error that suggests writing <code>100.1</code>. An ISO date string compared with a
+  <code>date</code> field is converted to a date, because JSON rule files have no other
+  way to write one. Unclear annotations (unions, <code>Any</code>) are skipped.</li>
+<li><strong>YAML traps:</strong> warn when a rule value in a YAML file was read differently
+  from how it looks: <code>NO</code> / <code>yes</code> / <code>on</code> became a boolean, <code>0755</code> an octal
+  number, <code>1:30</code> a number of seconds, or <code>1e3</code> text. Detect these from the YAML
+  node text, before the values are built.</li>
+<li>Report every one of these through <code>validate()</code> and <code>fluxrules validate</code>.</li>
+</ul>
+<p><strong>Why waiting:</strong> A rule that loaded quietly in 1.1 may now warn or, with a fact
+schema, refuse to load. That needs a minor release and a changelog entry
+under Changed.</p>
+<h3 id="make-common-comparisons-easy-120">Make common comparisons easy (1.2.0)<a class="headerlink" href="#make-common-comparisons-easy-120" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong></p>
+<ul>
+<li><strong>Floats and money:</strong> an <code>approx</code> operator, <code>F("total").approx(0.3)</code>, using
+  <code>math.isclose</code> with optional absolute and relative tolerances, plus guidance
+  to keep money in <code>Decimal</code>.</li>
+<li><strong>Text:</strong> case-insensitive operators: <code>equals_ignore_case</code>,
+  <code>in_ignore_case</code>, <code>contains_ignore_case</code>, <code>starts_with_ignore_case</code> and
+  <code>ends_with_ignore_case</code>, comparing with <code>str.casefold()</code>.</li>
+<li><strong>Dates and numeric text in facts:</strong> with a fact schema and
+  <code>validate_facts="normalize"</code>, ISO date strings already become dates and
+  numeric text becomes numbers. Add tests and a section on the Comparing
+  Values page; no conversion happens without a schema (decided above).</li>
+</ul>
+<p>Every new operator needs an <code>F</code> method, a dict and YAML form, an entry in the
+matrix and the reference page, and a sound rule in the alpha prefilter (it may
+simply leave the rule unscreened).</p>
+<p><strong>Why waiting:</strong> New operators are new public API, so they belong in a minor
+release.</p>
+<h3 id="safer-comparison-defaults-20">Safer comparison defaults (2.0)<a class="headerlink" href="#safer-comparison-defaults-20" title="Permanent link">&para;</a></h3>
+<p><strong>What:</strong> Flip the defaults that 1.2.0 makes opt-in:</p>
+<ul>
+<li><code>uncomparable="unknown"</code> by default, so <code>NOT</code> never fires because a
+  comparison could not be made (alongside <code>missing_field="unknown"</code> above);</li>
+<li><code>True</code> no longer equals <code>1</code> (a boolean is not a number);</li>
+<li>strict types whenever a fact schema is given.</li>
+</ul>
+<p><strong>Why waiting:</strong> Each one changes which rules fire. Ship the opt-in settings
+and warnings in 1.2.0 first, so users can find affected rules before the
+defaults change.</p>
 <h2 id="http-api">HTTP API<a class="headerlink" href="#http-api" title="Permanent link">&para;</a></h2>
 <h3 id="define-what-evaluation_modestateful-means-for-stored-rules">Define what <code>evaluation_mode="stateful"</code> means for stored rules<a class="headerlink" href="#define-what-evaluation_modestateful-means-for-stored-rules" title="Permanent link">&para;</a></h3>
 <p><strong>What:</strong> Rules stored through the HTTP API have an <code>evaluation_mode</code> field

@@ -687,6 +687,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="evaluate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comparison-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -990,6 +1007,34 @@
     
   
     Conditions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../comparing-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparing Values
   
 
     
@@ -2581,6 +2626,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="evaluate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comparison-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2844,7 +2906,7 @@ rules (a table by default, or JSON with <code>--format json</code>).</p>
 </tr>
 <tr>
 <td><code>--config PATH</code></td>
-<td>Config file to read <code>fact_schema</code> from.</td>
+<td>Config file to read <code>fact_schema</code> and the comparison settings from. See <a href="#comparison-settings">Comparison settings</a>.</td>
 </tr>
 <tr>
 <td><code>--validate-facts off\|normalize\|strict</code></td>
@@ -2856,6 +2918,28 @@ rules (a table by default, or JSON with <code>--format json</code>).</p>
 field, when the event fails validation, or when the engine reports an error
 such as a nested event without <code>--validate-facts</code> (<code>FieldNotFoundError</code>). It
 exits <code>2</code> when a file or the schema cannot be loaded.</p>
+<h3 id="comparison-settings">Comparison settings<a class="headerlink" href="#comparison-settings" title="Permanent link">&para;</a></h3>
+<p><code>evaluate</code> applies the comparison settings it finds in the config file, the
+same file it reads <code>fact_schema</code> from (see
+<a href="#where-the-schema-comes-from">Where the schema comes from</a> for how it is
+found):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># fluxrules.yaml</span>
+<span class="nt">strict_null_handling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">     </span><span class="c1"># true: == None matches a None value</span>
+<span class="nt">strict_type_comparison</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># true: values of different types never match</span>
+<span class="nt">boolean_string_coercion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">  </span><span class="c1"># true: "true" / "false" are read as booleans</span>
+<span class="nt">missing_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unknown</span><span class="w">          </span><span class="c1"># NOT over a missing field does not fire</span>
+</code></pre></div>
+<p>Each setting means what the <a href="../usage/configuration/"><code>EngineConfig</code></a> field of
+the same name means, and a setting the file leaves out keeps its default. The
+settings apply to whichever engine <code>--engine</code> names, including a custom engine
+you registered (see <a href="../custom-engines/">Custom Engines</a>). For
+<code>missing_field</code>, <code>false</code> (with or without quotes) keeps the 1.x behaviour,
+<code>unknown</code> adopts the 2.0 behaviour, and leaving it out keeps the default.
+A wrong value, such as <code>strict_type_comparison: maybe</code>, stops the command
+when the file was named with <code>--config</code>. In a file found automatically, it is
+reported and the file's settings are ignored.</p>
+<p><a href="../comparing-values/">How FluxRules Compares Values</a> shows exactly which
+answers each setting changes.</p>
 <h2 id="fact-schemas">Fact schemas<a class="headerlink" href="#fact-schemas" title="Permanent link">&para;</a></h2>
 <h3 id="naming-a-schema">Naming a schema<a class="headerlink" href="#naming-a-schema" title="Permanent link">&para;</a></h3>
 <p>A schema is named by an import string, in one of two forms:</p>
@@ -2923,9 +3007,13 @@ model class means updating those files.</p>
 <div class="highlight"><pre><span></span><code>fluxrules<span class="w"> </span>init<span class="w"> </span>--dir<span class="w"> </span>my-project
 </code></pre></div>
 <p>Writes <code>rules.json</code>, <code>input.json</code> and <code>fluxrules.yaml</code> into the directory,
-skipping any that already exist. The config includes a commented-out
-<code>fact_schema</code> line to fill in:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># fact_schema: myapp.models:Order</span>
+skipping any that already exist. The config sets the three comparison flags to
+their defaults, ready to change (see <a href="#comparison-settings">Comparison settings</a>),
+and includes a commented-out <code>fact_schema</code> line to fill in:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">strict_null_handling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">strict_type_comparison</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">boolean_string_coercion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="c1"># fact_schema: myapp.models:Order</span>
 </code></pre></div>
 <h2 id="serve">serve<a class="headerlink" href="#serve" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'fluxrules[api]'</span>

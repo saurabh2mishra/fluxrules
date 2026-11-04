@@ -949,6 +949,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../comparing-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparing Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../complex-conditions/" class="md-nav__link">
         
   
@@ -2593,8 +2621,11 @@ changes):</p>
 </code></pre></div>
 <p><code>set_config(new_config)</code> is different: it replaces the process-wide object
 instead of changing it. Engines created before the call keep the object they
-already had. Engines created afterwards, and <code>fluxrules.evaluate()</code>, use the
-new one.</p>
+already had. Engines created afterwards use the new one. <code>fluxrules.evaluate()</code>
+and the HTTP API read the process-wide config on every call, so they follow
+<code>set_config</code> straight away.</p>
+<p>The CLI reads the comparison settings from its config file; see
+<a href="../../cli/#comparison-settings">CLI: Comparison settings</a>.</p>
 <p><code>evaluate_batch(facts, workers=N)</code> sends the config's current values to its
 worker processes when you call it.</p>
 <h2 id="strict-fact-validation">Strict Fact Validation<a class="headerlink" href="#strict-fact-validation" title="Permanent link">&para;</a></h2>

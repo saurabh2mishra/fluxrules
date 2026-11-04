@@ -828,6 +828,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../comparing-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparing Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../complex-conditions/" class="md-nav__link">
         
   
@@ -2201,6 +2229,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#membershipvaluewarning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MembershipValueWarning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#missingfieldnotwarning" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2662,6 +2701,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#membershipvaluewarning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MembershipValueWarning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#missingfieldnotwarning" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2984,6 +3034,13 @@ boolean structure is not in the result; see
 
 <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">LossyConditionViewWarning</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="membershipvaluewarning"><code>MembershipValueWarning</code><a class="headerlink" href="#membershipvaluewarning" title="Permanent link">&para;</a></h3>
+<p>A <code>UserWarning</code> emitted when an <code>in</code> or <code>not_in</code> condition is given a single
+value instead of a list, such as <code>F("country").isin("US")</code>. The value is
+treated as a one-item list (<code>["US"]</code>) on every evaluation path, and the warning
+names the field and its position in the condition tree. Write the list, or use
+<code>==</code> / <code>!=</code> for a single value, to silence it. See
+<a href="../../conditions/#collection-membership">Conditions</a>.</p>
 <h3 id="missingfieldnotwarning"><code>MissingFieldNotWarning</code><a class="headerlink" href="#missingfieldnotwarning" title="Permanent link">&para;</a></h3>
 <p>A <code>FutureWarning</code> emitted once per <code>NOT</code> condition when it fires only because a
 field it tests is missing from the fact. In 2.0 such a <code>NOT</code> will not fire.

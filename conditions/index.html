@@ -16,7 +16,7 @@
         <link rel="prev" href="../pydantic-rule-guide/">
       
       
-        <link rel="next" href="../complex-conditions/">
+        <link rel="next" href="../comparing-values/">
       
       
         
@@ -1186,6 +1186,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../comparing-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparing Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -3300,6 +3328,28 @@ the message suggests <code>account</code>:</p>
 </tr>
 </tbody>
 </table>
+<p>Give <code>isin</code> and <code>not_in</code> a list. A single value counts as a list with one item,
+so <code>F("country").isin("US")</code> means the same as <code>F("country").isin(["US"])</code>. It
+does not search inside the text: <code>"U"</code> is not a member of <code>"US"</code>. FluxRules
+converts the value when the rule is created and warns you with
+<code>MembershipValueWarning</code>, so you can write the list yourself:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fluxrules</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span><span class="p">,</span> <span class="n">MembershipValueWarning</span>
+
+<span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">caught</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"always"</span><span class="p">)</span>
+    <span class="n">condition</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s2">"country"</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="s2">"US"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()[</span><span class="s2">"value"</span><span class="p">])</span>  <span class="c1"># ['US']</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">category</span> <span class="ow">is</span> <span class="n">MembershipValueWarning</span><span class="p">)</span>  <span class="c1"># True</span>
+</code></pre></div>
+<p>The same applies to <code>{"op": "in", "value": "US"}</code> in a dict, a YAML file or the
+HTTP API, and to rules read back from a database. To compare one value, <code>==</code>
+and <code>!=</code> say it more directly.</p>
+<p>To see how every operator treats each kind of value (numbers stored as text,
+<code>None</code>, dates, booleans, a missing field), see
+<a href="../comparing-values/">How FluxRules Compares Values</a>.</p>
 <h3 id="string-collection-containment">String / collection containment<a class="headerlink" href="#string-collection-containment" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
