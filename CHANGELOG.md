@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Work that is designed but not yet shipped is listed in the
+Nothing yet. Work that is designed but not yet shipped is listed in the
 [backlog](docs/development/backlog.md).
+
+## [1.1.3] - 2026-11-04
+
+No answers change. The comparison tests cover more ways of writing and
+running rules, the prefilter shares the engine's comparison functions, and
+releases are published to PyPI without an API token.
 
 ### Changed
 
@@ -20,6 +26,15 @@ Work that is designed but not yet shipped is listed in the
   from a YAML file. Every path still gives the same answer, and
   [How FluxRules Compares Values](docs/comparing-values.md) gains a row for
   tuples.
+- Releases are published to PyPI with trusted publishing instead of an API
+  token, and each uploaded file now carries a digital attestation.
+
+### Documentation
+
+- [Testing](docs/development/testing.md) describes the real test layout, the
+  `make` targets, the comparison matrix and `make docs-tables`.
+- [Development](docs/development/index.md#releasing) gains a Releasing section:
+  the version bump, the tag, and what the release workflow checks.
 
 ## [1.1.2] - 2026-11-03
 
