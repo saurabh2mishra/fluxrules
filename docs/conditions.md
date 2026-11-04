@@ -433,6 +433,35 @@ FluxRules emits a `ComparisonWarning` and lists it in the result's
 firing over such a comparison, and `uncomparable="raise"` makes it an error.
 See [Comparisons that cannot be made](comparing-values.md#comparisons-that-cannot-be-made).
 
+### Values that suit the operator
+
+Some values can never match whatever the fact holds. FluxRules warns with
+`RuleValueWarning` when such a rule is created, once per problem. The rule
+still loads and evaluates as before:
+
+- `>`, `>=`, `<` and `<=` need a number, text, a date or a time. `None`, a
+  boolean, a list, a mapping and `NaN` warn.
+- `starts_with` and `ends_with` need text. `F("zip").starts_with(75)` warns:
+  write `"75"`.
+- `regex` needs text that compiles as a regular expression.
+
+```python
+import warnings
+
+from fluxrules import RuleValueWarning
+
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter("always")
+    Rule(name="bad", conditions=F("amount") > None, action="flag")
+print(caught[0].message)
+# Condition on field 'amount': '>' needs a number, text, a date or a time, but
+# got None. The condition can never match.
+```
+
+`validate()` lists the same problems, and with a fact schema it also checks
+each value against its field's type (see
+[Rule values are checked too](typed-facts.md#rule-values-are-checked-too)).
+
 ### `isin` takes a list, not positional args
 
 ```python
@@ -497,6 +526,12 @@ if issues:
 else:
     print("All rules valid")
 ```
+
+`validate()` reports structural problems and values that do not suit their
+operator. Pass `fact_schema=` (a model class) to also report every field the
+model lacks and every value of the wrong type for its field, the problems
+`load_rules` would refuse: `validate(rules, fact_schema=Order)`. It never
+raises.
 
 `validate()` returns a list of human-readable strings. An empty list means all
 rules passed. Use it in CI before deploying a new ruleset.

@@ -1269,30 +1269,6 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
 
     # Sequential / parallel evaluation helpers
 
-    def _build_condition_cache_key(
-        self,
-        rid: int,
-        facts: dict[str, Any],
-    ) -> tuple:
-        """Build a hashable cache key using only fields the rule depends on.
-
-        Uses the precomputed ``_rule_relevant_fields_cache``
-        instead of calling ``segment_network.get_segments_for_rule(rid)`` on
-        every invocation, removing a per-rule lookup from the hot path.
-        """
-        relevant_fields = self._rule_relevant_fields_cache.get(rid)
-        if relevant_fields is None:
-            # Fallback for rules registered outside the normal load path.
-            rule_segments = self.segment_network.get_segments_for_rule(rid)
-            field_set: set[str] = set()
-            for seg in rule_segments:
-                field_set.update(seg.fields)
-            relevant_fields = tuple(sorted(field_set))
-        return (
-            rid,
-            tuple((k, facts.get(k)) for k in relevant_fields if k in facts),
-        )
-
     def _evaluate_sequential(
         self,
         rules_with_priority: list[tuple],
@@ -1351,9 +1327,8 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         function (reads immutable facts + rule DSL, no shared mutable state).
         executor.map preserves input order so priority ordering is maintained.
         """
-        # Disable the per-cycle leaf memo on the parallel path.
-        # A plain dict is not safe for concurrent writes across worker threads,
-        # and the parallel path already deduplicates via its own condition_cache.
+        # Disable the per-cycle leaf memo on the parallel path: a plain dict is
+        # not safe for concurrent writes across worker threads.
         self._leaf_memo = None
 
         fired: list[int] = []
@@ -1365,16 +1340,11 @@ class PhreakEngine(LazyEvaluationMixin, BaseEngine):
         def _eval_one(
             item: tuple,
         ) -> tuple[int, Any, bool]:
+            # Each rule runs once per evaluation, so there is nothing to cache.
+            # (A cache keyed by the fact's values also failed on a list value.)
             _prio, rid, rule = item
-            cache_key = self._build_condition_cache_key(rid, facts)
-            cached = condition_cache.get(cache_key)
-            if cached is not None:
-                return rid, rule, cached
-            result = self._evaluate_condition(rule.conditions, facts, rid)
-            condition_cache[cache_key] = result
-            return rid, rule, result
+            return rid, rule, self._evaluate_condition(rule.conditions, facts, rid)
 
-        condition_cache: dict[tuple, bool] = {}
         workers = self._config.parallel_workers
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
             # Each task runs in a copy of this thread's context, so comparisons

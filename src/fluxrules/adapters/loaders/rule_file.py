@@ -57,12 +57,15 @@ def read_rule_file(path: str | Path) -> RuleFile:
             data = json.load(f)
         else:
             try:
-                import yaml  # type: ignore[import]
+                import yaml  # type: ignore[import]  # noqa: F401
             except ImportError as exc:
                 raise ImportError(
                     "pyyaml is required for YAML rule loading. Install it with: pip install pyyaml"
                 ) from exc
-            data = yaml.safe_load(f)
+            from fluxrules.adapters.loaders.yaml_reading import load_yaml
+
+            # Values are read as written: NO is the text "NO", not False.
+            data = load_yaml(f, source=str(path))
     return parse_rule_document(data, path)
 
 

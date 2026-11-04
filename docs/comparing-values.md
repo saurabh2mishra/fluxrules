@@ -1162,7 +1162,7 @@ With the matrix's rules and facts, this setting changes no answers.
 
 ## Known differences between paths
 
-None. Every evaluation path gives the answers above under every setting: `PhreakEngine` with and without the alpha prefilter, compiled conditions, streaming mode, `evaluate_batch` in this process and over worker processes, `fluxrules.evaluate()`, `CrossFactEngine` (for the rules it can express), `PreFilteredEvaluator` over a SQL fact store, the CLI and the HTTP API. The answers are also the same whether a rule is written as a dict, as an `F` expression or in a YAML file. The tests fail if any of them starts to differ.
+None. Every evaluation path gives the answers above under every setting: `PhreakEngine` with and without the alpha prefilter, compiled conditions, streaming mode, the thread pool, `evaluate_batch` in this process and over worker processes, `fluxrules.evaluate()`, `CrossFactEngine` (for the rules it can express), `PreFilteredEvaluator` over a SQL fact store, the CLI and the HTTP API. The answers are also the same whether a rule is written as a dict, as an `F` expression or in a YAML file. The tests fail if any of them starts to differ.
 
 ## Avoiding surprises
 
@@ -1171,3 +1171,4 @@ None. Every evaluation path gives the answers above under every setting: `Phreak
 - **Use `Decimal` for money,** and avoid `==` on floats: compare with `>=` or `<=` instead.
 - **Parse dates first.** An ISO date string is text, and a `date` does not compare with a `datetime`.
 - **Write `in` values as a list,** and use `==` when you mean one value.
+- **Check rules before they run.** With a fact schema, `load_rules` refuses a rule value of the wrong type for its field, such as the text `"100.1"` for a `float` field, and loads an ISO date string on a `date` field as a date. `fluxrules.validate()` and `fluxrules validate` list every such problem. See [Rule values are checked too](typed-facts.md#rule-values-are-checked-too).

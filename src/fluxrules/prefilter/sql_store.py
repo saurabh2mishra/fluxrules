@@ -159,7 +159,9 @@ class FactPreFilterStore:
             v = fact.get(f)
             # A boolean fact is never screened out: under strict_type_comparison
             # the engine cannot order it against a number, and must see it to
-            # report that. The rule side still screens numbers with True / False.
+            # report that. A boolean rule value screens only with ``==``: the
+            # extractor never makes a range check from one, so ``v > True``
+            # keeps every fact for the engine.
             row[_col(f)] = None if isinstance(v, bool) else _sql_number(v)
             row[_present_col(f)] = 1 if f in fact else 0
         return row

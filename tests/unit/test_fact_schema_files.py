@@ -193,7 +193,7 @@ class TestYamlLoaderSchema:
         (rules_dir / "models.py").write_text(MODELS)
         path = _yaml(
             rules_dir / "payments.yaml",
-            {"fact_schema": "models.py:Payment", "rules": [_rule("account.country")]},
+            {"fact_schema": "models.py:Payment", "rules": [_rule("account.age_days")]},
         )
         assert load_rules_from_yaml(str(path), trust_schema=True)[0]["name"] == "r1"
 

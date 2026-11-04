@@ -42,7 +42,7 @@ From `fluxrules`:
 - `evaluate(rules, facts) → EvaluationResult`: Evaluate facts against rules. `rules` may be a single `Rule`, any iterable of `Rule`, or a `Ruleset`. 
 - `facts` may be a plain python `dict` or a model: a Pydantic v2 model, dataclass, attrs class or msgspec `Struct` (a Pydantic v1 model is converted with `.dict()`). Nested models become dotted keys (`customer.age`). See [Typed Facts](../typed-facts.md).
 - `to_fact_dict(facts) → dict`: The conversion `evaluate()` and every engine apply to non-dict facts.
-- `validate(rules) → list[str]`: Validate rules and return issues; accepts the same shapes as `evaluate`
+- `validate(rules, *, fact_schema=None) → list[str]`: Validate rules and return issues; accepts the same shapes as `evaluate`. Lists structural problems and values that do not suit their operator; with `fact_schema` (a model class), also every field the model lacks and every value of the wrong type for its field. Never raises
 - `explain(execution_id: str) → dict[str, object]`: Get an explanation payload for a past execution; keys: `execution_id`, `fired_rules`, `actions`, `trace`
 
 ## Engines
@@ -148,6 +148,7 @@ except FluxRulesError as exc:
 | `ConditionValidationError` | `InvalidRuleError` | `DSL_VALIDATION_ERROR` | A `conditions` tree fails strict validation |
 | `FieldNotFoundError` | `FluxRulesError` | `FIELD_NOT_FOUND` | A condition's field is missing but a key in the fact is the same name in another key style (`Amount` / `amount`, `userAge` / `user_age`, `user-age`), or the field is a dotted path into a nested value that was not flattened |
 | `UnknownFieldError` | `InvalidRuleError`, `AttributeError` | `UNKNOWN_FACT_FIELD` | A rule names a field the engine's `fact_schema` lacks (raised by `load_rules`), or `fields(Model)` is asked for one |
+| `RuleValueError` | `InvalidRuleError`, `ValueError` | `RULE_VALUE_TYPE` | A rule value does not fit its field's type in the engine's `fact_schema`, such as `amount: float` compared with `"100.1"` (raised by `load_rules` and `load_rules_from_yaml`); `.field`, `.rule`, `.schema_name`, `.value` and `.summary` hold the details |
 | `FactValidationError` | `FluxRulesError`, `ValueError` | `FACT_VALIDATION_ERROR` | With `validate_facts` on and `on_invalid="raise"`, a fact fails validation; `.errors` holds each field location and error code |
 | `EmptyRuleLogicError` | `InvalidRuleError` | `EMPTY_RULE_LOGIC` | A rule with no condition logic would be stored |
 | `LossyConditionRebuildError` | `InvalidRuleError` | `LOSSY_CONDITION_REBUILD` | A condition tree would be rebuilt from a lossy `.conditions` view |
@@ -195,6 +196,22 @@ One comparison that could not be made, as listed in
 `operator`, `fact_type`, `rule_type` and `reason`, plus `to_dict()` and
 `describe()`. Each field, operator and pair of types is listed once per
 evaluation.
+
+### `RuleValueWarning`
+
+A `UserWarning` emitted when a rule is created with a value that does not suit
+its operator, so the condition can never match: `>`, `>=`, `<` or `<=` with
+`None`, a boolean, a list, a mapping or `NaN`; `starts_with` or `ends_with`
+with anything but text; a `regex` that does not compile. Emitted once per
+process for each problem. The rule still loads and evaluates as before. See
+[Values that suit the operator](../conditions.md#values-that-suit-the-operator).
+
+### `YamlValueWarning`
+
+A `UserWarning` emitted when a YAML rule file or config file holds an unquoted
+value that FluxRules 1.1 read differently, such as `NO` (now the text `"NO"`,
+1.1 read it as `False`). It names the file and line. See
+[How values are read](../yaml-rules.md#how-values-are-read).
 
 ### `MembershipValueWarning`
 

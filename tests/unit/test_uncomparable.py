@@ -296,6 +296,36 @@ class TestEveryWayOfEvaluating:
         assert [_keys(r) for r in results] == [{ISSUE}]
 
 
+class TestPrefilteredEvaluatorKeepsBooleanThresholds:
+    """``v > True`` under strict types cannot be ordered for any fact.
+
+    The SQL store must not screen ``{"v": 0}`` out as ``0 > 1``, or the
+    issue would go unreported and ``"raise"`` would not raise.
+    """
+
+    @pytest.mark.parametrize("mode", [None, "raise"])
+    def test_a_number_fact_reaches_the_engine(self, mode):
+        from sqlalchemy import create_engine
+
+        from fluxrules.prefilter import PreFilteredEvaluator
+        from fluxrules.prefilter.sql_store import FactPreFilterStore
+
+        config = EngineConfig(strict_type_comparison=True, uncomparable=mode)
+        engine = PhreakEngine(config=config)
+        engine.load_rules([_rule(1, F("v") > True)])
+        store = FactPreFilterStore(engine=create_engine("sqlite://"))
+        try:
+            if mode == "raise":
+                with pytest.raises(UncomparableValuesError):
+                    PreFilteredEvaluator(engine, store).run([{"v": 0}])
+            else:
+                with pytest.warns(ComparisonWarning):
+                    _, stats = PreFilteredEvaluator(engine, store).run([{"v": 0}])
+                assert stats.candidate_facts == 1
+        finally:
+            store.dispose()
+
+
 class TestPrefilterKeepsWhatTheEngineMustReport:
     @pytest.mark.parametrize("value", [None, math.nan, Decimal("NaN")])
     def test_none_and_nan_reach_the_engine(self, value):
@@ -335,6 +365,153 @@ class TestPrefilterKeepsWhatTheEngineMustReport:
         engine = _engine(_rule(1, F("v") > 0), strict_type_comparison=True)
         result = engine.evaluate({"v": False})
         assert _keys(result) == {("v", ">", "bool", "int")}
+
+
+class TestRelevanceWalk:
+    """``evaluate_with_issues`` on every node type it knows."""
+
+    @staticmethod
+    def _walk(node, facts):
+        from fluxrules.domain.conditions.uncomparable_rules import evaluate_with_issues
+
+        def leaf(n, f):
+            return compare_operator(
+                n["op"],
+                f[n["field"]],
+                n["value"],
+                field_present=True,
+                strict_null_handling=False,
+                strict_type_comparison=False,
+                boolean_string_coercion=False,
+                field=n["field"],
+            )
+
+        value, issues = evaluate_with_issues(
+            node,
+            facts,
+            leaf=leaf,
+            other=lambda n, f: True,
+            empty=True,
+            missing_unknown=False,
+        )
+        return value, [i.reason for i in issues]
+
+    BAD = {"type": "condition", "field": "v", "op": ">", "value": 5}
+
+    @pytest.mark.parametrize(
+        ("node", "expected"),
+        [
+            ("not a node", (False, [])),
+            ({"type": "and", "conditions": [BAD]}, (None, ["these types cannot be ordered"])),
+            ({"type": "or", "conditions": [BAD, {"type": "custom"}]}, (True, [])),
+            ({"type": "group", "op": "AND", "children": []}, (True, [])),
+            ({"type": "not"}, (True, [])),
+            ({"type": "exists", "field": "v"}, (True, [])),
+            ({"type": "exists", "field": "w"}, (False, [])),
+            ({"type": "exists", "condition": BAD}, (None, ["these types cannot be ordered"])),
+            ({"type": "exists"}, (False, [])),
+            ({"type": "accumulate"}, (True, [])),
+        ],
+    )
+    def test_node_types(self, node, expected):
+        assert self._walk(node, {"v": "abc"}) == expected
+
+
+class TestReasons:
+    def test_a_comparison_that_raises_names_its_reason(self):
+        from decimal import InvalidOperation
+
+        from fluxrules.engine.operators import REASON_MEMBERSHIP, REASON_NAN, _failure_reason
+
+        assert _failure_reason(">", Decimal("NaN"), 1, InvalidOperation()) == REASON_NAN
+        assert _failure_reason(">", 1, 2, ValueError()) == "the comparison raised ValueError"
+        assert _failure_reason("in", 1, 2, TypeError()) == REASON_MEMBERSHIP
+        assert _failure_reason("starts_with", 1, 2, ValueError()) == (
+            "the comparison raised ValueError"
+        )
+
+    def test_compare_refuses_an_unknown_operator(self):
+        from fluxrules.domain.errors import UnknownOperatorError
+        from fluxrules.domain.predicates import compare
+
+        with pytest.raises(UnknownOperatorError):
+            compare("???", 1, 2)
+
+    def test_current_mode_reads_the_scope_or_the_config(self, process_config):
+        from fluxrules.engine.uncomparable import comparison_scope, current_mode
+
+        set_config(EngineConfig(uncomparable="unknown"))
+        assert current_mode() == "unknown"
+        with comparison_scope("raise"):
+            assert current_mode() == "raise"
+
+
+class TestFlatRules:
+    """The reference evaluator's flat conjunction, for rules with no tree."""
+
+    @staticmethod
+    def _rule(*conditions):
+        from types import SimpleNamespace
+
+        from fluxrules.domain.models import RuleCondition
+
+        nodes = tuple(RuleCondition(fact=f, operator=o, value=v) for f, o, v in conditions)
+        return SimpleNamespace(id=1, conditions=None, condition_nodes=nodes)
+
+    def _evaluate(self, rule, facts, mode=None):
+        from fluxrules.engine.uncomparable import comparison_scope
+        from fluxrules.services.reference_evaluator import ReferenceEvaluator
+
+        with comparison_scope(mode) as scope:
+            fired = ReferenceEvaluator()._evaluate_rule(rule, facts)
+        return fired, [i.reason for i in scope.issues]
+
+    def test_reports_an_unmade_comparison_when_nothing_else_decides(self):
+        rule = self._rule(("v", ">", 5), ("w", "==", 1))
+        assert self._evaluate(rule, {"v": "abc", "w": 1}, "false") == (
+            False,
+            ["these types cannot be ordered"],
+        )
+
+    def test_a_definite_false_decides_without_a_report(self):
+        rule = self._rule(("v", ">", 5), ("w", "==", 1))
+        assert self._evaluate(rule, {"v": "abc", "w": 2}, "false") == (False, [])
+
+    def test_true_and_missing(self):
+        rule = self._rule(("v", ">", 5))
+        assert self._evaluate(rule, {"v": 6}) == (True, [])
+        assert self._evaluate(rule, {"x": 6}) == (False, [])
+
+    def test_a_typo_raises(self):
+        from fluxrules.domain.errors import FieldNotFoundError
+
+        with pytest.raises(FieldNotFoundError):
+            self._evaluate(self._rule(("Amount", ">", 5)), {"amount": 6})
+
+
+class TestWorkerChunk:
+    def test_a_worker_lists_issues_without_warning(self):
+        from fluxrules.engine.runtime import worker_pool
+
+        worker_pool._init_worker(PhreakEngine, {}, [_rule(1, ~(F("v") > 5))])
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", ComparisonWarning)
+                results, _, error, issues = worker_pool._eval_chunk((0, [{"v": "abc"}], True, True))
+        finally:
+            worker_pool._WORKER_ENGINE = None
+        assert error is None and results == [[1]]
+        assert [(i, issue.reason) for i, issue in issues] == [(0, "these types cannot be ordered")]
+
+
+class TestCompiledLeafWithoutMemo:
+    def test_an_unhashable_fact_value_reports(self):
+        # The memo cannot key a bytearray, so the leaf compares directly.
+        engine = PhreakEngine(compile_conditions=True)
+        engine.load_rules([_rule(1, ~(F("v") > 5))])
+        result = engine.evaluate({"v": bytearray(b"a")})
+        assert result.fired_rules == [1]
+        assert _keys(result) == {("v", ">", "bytearray", "int")}
 
 
 pytest.importorskip("typer")
@@ -394,6 +571,12 @@ class TestCli:
         result = runner.invoke(app, ["evaluate", "rules.json", "fact.json"])
         assert result.exit_code == 1
         assert "Cannot compare field 'v'" in " ".join(result.output.split())
+
+    def test_a_bad_value_in_a_found_config_is_ignored(self, project):
+        (project / "fluxrules.yaml").write_text("uncomparable: maybe\n")
+        result = runner.invoke(app, ["evaluate", "rules.json", "fact.json", "--format", "json"])
+        assert result.exit_code == 0, result.output
+        assert "Ignoring" in result.stderr
 
     def test_a_bad_value_in_an_explicit_config_fails(self, project):
         (project / "settings.yaml").write_text("uncomparable: maybe\n")

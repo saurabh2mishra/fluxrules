@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -294,7 +295,12 @@ def evaluate(
     Comparisons that could not be made (such as "abc" > 5) are listed after the
     matches.
     """
-    from fluxrules.domain.errors import FactValidationError, FluxRulesError, UnknownFieldError
+    from fluxrules.domain.errors import (
+        FactValidationError,
+        FluxRulesError,
+        RuleValueError,
+        UnknownFieldError,
+    )
     from fluxrules.engine import get_available_engines, get_engine
     from fluxrules.facts import VALIDATE_FACTS_MODES
 
@@ -328,7 +334,7 @@ def evaluate(
             raise _fail(f"Cannot build engine {engine!r}{detail}: {exc}") from None
         try:
             rule_engine.load_rules(loaded)
-        except UnknownFieldError as exc:
+        except (UnknownFieldError, RuleValueError) as exc:
             raise _fail(exc.summary, code=1) from None
 
         try:
@@ -387,14 +393,18 @@ def validate(
     config: str | None = typer.Option(None, "--config", help=_CONFIG_HELP),
     trust_schema: bool = typer.Option(False, "--trust-schema", help=_TRUST_HELP),
 ) -> None:
-    """Validate rules for structural issues and, with a fact schema, unknown fields.
+    """Validate rules for structural issues and, with a fact schema, field problems.
 
-    Reports empty conditions, duplicate ids, unsupported operators, and every
-    field the fact schema lacks. The schema comes from --schema, else the rule
-    file's fact_schema, else the config file's. Exits 1 when any issue is found
-    and 2 when a rule file or the schema cannot be loaded.
+    Reports empty conditions, duplicate ids, unsupported operators, values that
+    do not suit their operator, YAML values read differently from FluxRules
+    1.1, and, with a fact schema, every field the schema lacks and every value
+    that does not fit its field's type. The schema comes from --schema, else
+    the rule file's fact_schema, else the config file's. Exits 1 when any issue
+    is found and 2 when a rule file or the schema cannot be loaded.
     """
     from fluxrules.domain import Ruleset
+    from fluxrules.domain.conditions.rule_values import value_problems
+    from fluxrules.domain.errors import YamlValueWarning
     from fluxrules.facts import schema_info
     from fluxrules.services.validation_service import ValidationService
 
@@ -402,17 +412,27 @@ def validate(
     issues: list[str] = []
     schemas: list[dict[str, str | None]] = []
     for path in rules:
-        document, loaded = _read_rules(path)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", YamlValueWarning)
+            document, loaded = _read_rules(path)
         prefix = f"{path}: " if len(rules) > 1 else ""
+        # The file and line are in the message already.
+        issues.extend(str(w.message) for w in caught if issubclass(w.category, YamlValueWarning))
         ruleset = Ruleset(
             group="cli",
             rules=tuple(rule.to_engine_rule() for rule in loaded),
         )
         issues.extend(prefix + issue for issue in ValidationService().validate_ruleset(ruleset))
+        issues.extend(
+            f"{prefix}Rule '{rule.id}': {problem}"
+            for rule in loaded
+            for problem in value_problems(rule.conditions)
+        )
         resolved = _resolve_schema(schema, document, config_schema, trust_schema)
         if resolved is not None:
-            unknown = schema_info(resolved.model).unknown_fields(loaded)
-            issues.extend(prefix + error.summary for error in unknown)
+            info = schema_info(resolved.model)
+            issues.extend(prefix + error.summary for error in info.unknown_fields(loaded))
+            issues.extend(prefix + error.summary for error in info.value_errors(loaded))
         schemas.append(
             {
                 "file": path,

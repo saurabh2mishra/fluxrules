@@ -24,9 +24,12 @@ __all__ = [
     "LossyConditionViewWarning",
     "MembershipValueWarning",
     "MissingFieldNotWarning",
+    "RuleValueError",
+    "RuleValueWarning",
     "UncomparableValuesError",
     "UnknownFieldError",
     "UnknownOperatorError",
+    "YamlValueWarning",
     "canonical_field_name",
     "is_field_typo",
 ]
@@ -110,6 +113,77 @@ class MembershipValueWarning(UserWarning):
     """
 
     code = "MEMBERSHIP_VALUE_NOT_LIST"
+
+
+class RuleValueWarning(UserWarning):
+    """A rule's value does not suit its operator, so the rule can never match.
+
+    ``>``, ``>=``, ``<`` and ``<=`` need a number, text, a date or a time;
+    ``starts_with`` and ``ends_with`` need text; ``regex`` needs text that
+    compiles. Emitted when the rule is created. The rule still loads and
+    evaluates as before; :func:`fluxrules.validate` lists the same problems.
+    """
+
+    code = "RULE_VALUE_MISMATCH"
+
+
+class RuleValueError(InvalidRuleError, ValueError):
+    """A rule's value does not fit the type of its field in the fact schema.
+
+    Checked when rules are loaded into an engine built with ``fact_schema=``.
+    ``amount: float`` compared with the text ``"100.1"`` can never match, so
+    the rules are refused, with a suggested fix.
+
+    Attributes:
+        field: the field the rule compares.
+        rule: the rule's name, or its id, if known.
+        schema_name: the fact schema's class name.
+        value: the rule value.
+        summary: the message, as one sentence.
+    """
+
+    code = "RULE_VALUE_TYPE"
+
+    def __init__(
+        self,
+        summary: str,
+        *,
+        field: str | None = None,
+        rule: str | None = None,
+        schema_name: str | None = None,
+        value: Any = None,
+    ) -> None:
+        super().__init__(summary)
+        self.summary = summary
+        self.field = field
+        self.rule = rule
+        self.schema_name = schema_name
+        self.value = value
+
+    def __reduce__(self) -> Any:
+        return (
+            _rebuild_rule_value_error,
+            (self.summary, self.field, self.rule, self.schema_name, self.value),
+        )
+
+
+def _rebuild_rule_value_error(
+    summary: str, field: Any, rule: Any, schema_name: Any, value: Any
+) -> RuleValueError:
+    return RuleValueError(summary, field=field, rule=rule, schema_name=schema_name, value=value)
+
+
+class YamlValueWarning(UserWarning):
+    """A YAML value is read as written, where FluxRules 1.1 read it differently.
+
+    FluxRules reads YAML files by YAML 1.2's rules: only ``true`` and
+    ``false`` are booleans, so ``NO`` is the text ``"NO"``; ``0755`` and
+    ``1:30`` are text; ``1e3`` is the number 1000. FluxRules 1.1 read ``NO`` as
+    ``False``, ``0755`` as 493, ``1:30`` as 90 and ``1e3`` as text. Emitted
+    once per such value, naming the file and line.
+    """
+
+    code = "YAML_VALUE_READING"
 
 
 class ComparisonWarning(UserWarning):

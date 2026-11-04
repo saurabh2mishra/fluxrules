@@ -46,9 +46,9 @@ uv run pytest tests/unit/test_membership_value.py -k "single_dict"
 ## The comparison matrix
 
 FluxRules can evaluate a rule in many ways: `PhreakEngine` with or without the
-alpha prefilter, compiled conditions, streaming mode, `evaluate_batch` (also
-over worker processes), `fluxrules.evaluate()`, `CrossFactEngine`,
-`PreFilteredEvaluator`, the CLI and the HTTP API. A rule can also be written
+alpha prefilter, compiled conditions, streaming mode, the thread pool,
+`evaluate_batch` (also over worker processes), `fluxrules.evaluate()`,
+`CrossFactEngine`, `PreFilteredEvaluator`, the CLI and the HTTP API. A rule can also be written
 as a dict, as an `F` expression or in a YAML file. All of these must give the
 same answer.
 

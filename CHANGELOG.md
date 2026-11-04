@@ -32,8 +32,33 @@ Work that is designed but not yet shipped is listed in the
     `comparison_issues` in its output) and the HTTP API (`comparison_issues` in
     each evaluation response, and `422` under `"raise"`).
   - [How FluxRules Compares Values](docs/comparing-values.md) lists every case.
+- Rule values are checked when rules are created and loaded:
+  - A value that does not suit its operator warns with `RuleValueWarning` when
+    the rule is created: `>`, `>=`, `<` or `<=` with `None`, a boolean, a list,
+    a mapping or `NaN`; `starts_with` or `ends_with` with anything but text; a
+    `regex` that does not compile. The rule still loads and evaluates as before.
+  - `fluxrules.validate()` takes `fact_schema=`, and `fluxrules validate` lists
+    these problems too.
+- A `RuleValueError` (an `InvalidRuleError` and a `ValueError`) and a
+  `YamlValueWarning`.
 
 ### Changed
+
+- With `fact_schema=`, `load_rules` (and `load_rules_from_yaml` and the CLI)
+  now checks each rule value against its field's type and refuses the rules
+  with `RuleValueError` when one can never match, such as `amount: float`
+  compared with `"100.1"`. An ISO date string compared with a `date` or
+  `datetime` field is now loaded as a date. Rules that loaded in 1.1 may be
+  refused; `fluxrules.validate(rules, fact_schema=...)` lists every problem.
+- YAML rule files and config files are now read by YAML 1.2's rules, so each
+  value means what it looks like: `NO`, `yes`, `on` and `off` are text (only
+  `true` and `false` are booleans), `0755` and `1:30` are text, and `1e3` is the
+  number 1000. FluxRules 1.1 read `NO` as `False`, `0755` as 493, `1:30` as 90
+  and `1e3` as text. Each value read differently warns with
+  `YamlValueWarning`, naming the file and line.
+- An on/off setting in a config file (`strict_type_comparison`,
+  `requires_sortable_ids` and the like) must be `true` or `false`; text such
+  as `yes` is refused rather than counted as on.
 
 - Under `strict_type_comparison`, values of different types are never equal,
   so `5 != "5"` is now a match (it was no match). `5 == "5"` is still no
@@ -49,6 +74,11 @@ Work that is designed but not yet shipped is listed in the
 - A `Decimal("NaN")` fact value no longer makes the default engine raise
   `decimal.InvalidOperation`: the alpha prefilter now keeps the rule for the
   engine to decide, as it does for other values it cannot compare.
+- With more candidate rules than `EngineConfig.parallel_threshold`, so that
+  rules run in a thread pool, a fact holding a list, a dict or another value
+  that cannot be hashed (`{"tags": ["vip"]}`) no longer raises
+  `TypeError: unhashable type`. The pool's cache, which never saved any work,
+  is gone.
 
 ## [1.1.3] - 2026-11-04
 

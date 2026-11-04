@@ -23,7 +23,9 @@ fluxrules --help
 ## Rule files
 
 `validate` and `evaluate` read `.json` files as JSON and `.yaml` / `.yml`
-files as YAML (YAML needs the `yaml` extra). A rule file holds one of:
+files as YAML (YAML needs the `yaml` extra). YAML values are read as written,
+so `NO` is the text `"NO"`; see [How values are read](yaml-rules.md#how-values-are-read).
+A rule file holds one of:
 
 - a list of rule mappings,
 - a single rule mapping,
@@ -54,9 +56,20 @@ fluxrules validate rules/payments.yaml
 fluxrules validate rules/*.yaml --schema myapp.models:Payment
 ```
 
-Reports empty conditions, duplicate ids and unsupported operators. With a fact
-schema it also reports every field a rule names that the model lacks, each with
-a "did you mean" hint, not only the first. Output is JSON:
+Reports every problem it finds, not only the first:
+
+- empty conditions, duplicate ids and unsupported operators;
+- values that do not suit their operator, such as `amount > null` or a
+  `regex` that does not compile (see
+  [Values that suit the operator](conditions.md#values-that-suit-the-operator));
+- YAML values that FluxRules 1.1 read differently, such as `NO` (see
+  [How values are read](yaml-rules.md#how-values-are-read)).
+
+With a fact schema it also reports every field a rule names that the model
+lacks, each with a "did you mean" hint, and every value of the wrong type for
+its field (see
+[Rule values are checked too](typed-facts.md#rule-values-are-checked-too)).
+Output is JSON:
 
 ```json
 {
@@ -88,7 +101,7 @@ several files, each issue starts with its file name.
 | Code | Meaning |
 |---|---|
 | `0` | Every file is valid |
-| `1` | At least one issue (structural or unknown field) |
+| `1` | At least one issue (structural, a value, or an unknown field) |
 | `2` | A rule file, config file or schema could not be loaded |
 
 So a CI step is a single line:
@@ -147,7 +160,10 @@ For `uncomparable`, `false` silences the warning, `unknown` makes such a
 comparison unknown, and `raise` stops the command with exit code `1` and a
 message naming the field, the operator and both types.
 A wrong value, such as `strict_type_comparison: maybe`, stops the command
-when the file was named with `--config`. In a file found automatically, it is
+when the file was named with `--config`. The file's values are read as written
+(see [How values are read](yaml-rules.md#how-values-are-read)), so
+`strict_type_comparison: yes` is the text `"yes"` and is refused: write `true`
+or `false`. In a file found automatically, it is
 reported and the file's settings are ignored.
 
 [How FluxRules Compares Values](comparing-values.md) shows exactly which

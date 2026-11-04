@@ -75,6 +75,48 @@ document.rules  # list of rule mappings
 document.fact_schema  # "myapp.models:Payment", or None
 ```
 
+## How values are read
+
+FluxRules reads a YAML value as it is written. PyYAML on its own follows an
+older version of YAML (1.1), where some unquoted values mean something other
+than what they look like: `NO` is the boolean `False`, so a rule written for
+Norway would compare `country` with `False` and never match. FluxRules follows
+YAML 1.2 instead:
+
+- `true` and `false` (also `True`, `TRUE`, `False`, `FALSE`) are booleans.
+  `yes`, `no`, `on`, `off`, `y` and `n` are text: `value: NO` is the text
+  `"NO"`.
+- A number with a leading zero, such as `0755`, is text, as postcodes and
+  codes are. Write `0o755` for an octal number.
+- `1:30` is text, not 90.
+- `1e3` and `1.5e3` are numbers. A number written with underscores, such as
+  `1_000`, is text.
+- `0x1F` is the hex number 31. `null`, `~` and an empty value are `None`.
+  `2024-05-01` is a date, as before.
+- A quoted value (`"NO"`, `'0755'`) is always text.
+
+For example, this rule matches a fact with `"country": "NO"`:
+
+```yaml
+- id: 1
+  name: norway
+  action: review
+  conditions: {type: condition, field: country, op: "==", value: NO}
+```
+
+FluxRules 1.1 read some of these values differently. Each one in a file warns
+once with `YamlValueWarning`, naming the file and line and what to write for
+the other reading:
+
+```text
+rules.yaml, line 4: NO is read as the text "NO"; FluxRules 1.1 read it as the
+boolean false. Write false if you mean the boolean false.
+```
+
+`fluxrules validate` lists the same warnings as issues. The config file,
+`fluxrules.yaml`, is read the same way; see
+[CLI: Comparison settings](cli.md#comparison-settings).
+
 ## Canonical validation boundary
 
 The raw loader intentionally returns dictionaries so applications can inspect,
@@ -112,7 +154,10 @@ catches it when the file is loaded.
 
 Put `fact_schema` next to `rules`, as above. `load_rules_from_yaml` then checks
 every field each rule references, including `exists` fields, and raises
-`UnknownFieldError` with a suggestion before returning anything:
+`UnknownFieldError` with a suggestion before returning anything. It also
+checks each rule value against its field's type, raising `RuleValueError` for
+a value that can never match, and returns ISO dates on date fields as dates
+(see [Rule values are checked too](typed-facts.md#rule-values-are-checked-too)):
 
 ```text
 UnknownFieldError: Rule 'high_value' references unknown field 'amout' (not in

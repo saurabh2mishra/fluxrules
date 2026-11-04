@@ -11,8 +11,8 @@ FluxRules and get three things in return:
 1. **Pass models straight in.** `engine.evaluate(order)` works for Pydantic
    models, dataclasses, attrs classes and msgspec structs.
 2. **Rules checked against the model.** With `fact_schema=Order`, `load_rules`
-   refuses a rule that names a field `Order` does not have. This costs nothing
-   per fact.
+   refuses a rule that names a field `Order` does not have, or compares a field
+   with a value of the wrong type. This costs nothing per fact.
 3. **Incoming keys normalized (opt-in).** With `validate_facts="normalize"`,
    each dict is validated by Pydantic, so `userAge`, `UserAge` and `user-age`
    all arrive as `user_age`, and `"42"` arrives as `42`.
@@ -122,6 +122,74 @@ How the check reads the model:
   depth, so any dotted path below that field is accepted (`child.v`,
   `child.child.v`).
 - Computed fields (`@computed_field`) are fields like any other.
+
+### Rule values are checked too
+
+Each rule value is also checked against the type of its field. A value that
+can never match raises `RuleValueError`, with a suggested fix, and nothing
+from that `load_rules` call is loaded:
+
+```python
+import datetime as dt
+
+from fluxrules import RuleValueError
+
+
+class Payment(BaseModel):
+    amount: float
+    country: str
+    paid_on: dt.date
+
+
+payments = PhreakEngine(fact_schema=Payment)
+
+try:
+    payments.load_rules(
+        [Rule(id=1, name="big", conditions=F("amount") > "100.1", action="review")]
+    )
+except RuleValueError as exc:
+    print(exc)
+    # Rule 'big': field 'amount' is float in Payment, but the rule compares it
+    # with the text '100.1'. Write 100.1 without quotes to compare numbers.
+```
+
+What each field type accepts:
+
+- A number field (`int`, `float`, `Decimal`) needs a number. Text such as
+  `"100.1"` is refused, even though it looks like a number: write `100.1`.
+- A text field (`str`) needs text. The number `5` is refused: write `"5"`.
+- A `bool` field needs `true` or `false`. The text `"true"` is accepted only
+  with `EngineConfig(boolean_string_coercion=True)`, which reads it as `True`.
+- A `date` field needs a date. A `datetime` field needs a date and time.
+- `None` is accepted for every field, because `== None` is a valid test.
+- `starts_with`, `ends_with` and `regex` need a text field. `contains` needs a
+  text field and a text value.
+- `in` and `not_in` check each value in the list.
+
+An ISO date string compared with a `date` or `datetime` field is converted
+before the rule is stored, because JSON rule files have no other way to write
+a date. The text must match the field exactly:
+
+- `"2024-05-01"` on a `date` field becomes `date(2024, 5, 1)`.
+- `"2024-05-01T09:30:00"` on a `datetime` field becomes
+  `datetime(2024, 5, 1, 9, 30)`.
+- `"2024-05-01"` on a `datetime` field is refused, because it has no time:
+  write `"2024-05-01T00:00:00"`. A date and time on a `date` field is refused
+  too.
+
+```python
+payments.load_rules(
+    [Rule(id=2, name="may", conditions=F("paid_on") >= "2024-05-01", action="review")]
+)
+fact = {"amount": 5.0, "country": "NO", "paid_on": dt.date(2024, 6, 1)}
+assert payments.evaluate(fact).fired_rules == [2]
+```
+
+The rule you pass in is not changed; the engine stores a converted copy.
+
+A field whose type is not one plain type is not checked: a union of two types
+(`int | str`), `Any`, an enum, a `Literal` or a list. `Optional[X]` (or
+`X | None`) counts as `X`.
 
 ## Write rules with checked field references
 
@@ -270,7 +338,8 @@ at the top level of a module. See
 
 Rules kept in JSON or YAML files can be checked against the model before they
 reach an engine. `fluxrules validate` (from `pip install 'fluxrules[cli]'`)
-reports every field the model lacks, not only the first:
+reports every field the model lacks and every value of the wrong type, not
+only the first:
 
 ```bash
 fluxrules validate rules/payments.yaml --schema myapp.models:Payment
@@ -289,7 +358,8 @@ fluxrules validate rules/payments.yaml --schema myapp.models:Payment
 ```
 
 The command exits `0` when the rules are valid, `1` when it finds an issue
-(an unknown field or a structural problem such as a duplicate id), and `2` when
+(an unknown field, a value of the wrong type, or a structural problem such as a
+duplicate id), and `2` when
 a rule file or the schema cannot be loaded. Pass several files at once
 (`fluxrules validate rules/*.yaml ...`); issues are then prefixed with their
 file.
@@ -305,9 +375,12 @@ and the exit codes.
 ### From Python
 
 `load_rules_from_yaml` checks a rule file's own `fact_schema` when it loads the
-file (with `trust_schema=True`, since loading the schema runs its code), and
-raises `UnknownFieldError` on the first unknown field. Pass `fact_schema=` (a
-class or an import string) to choose the model yourself:
+file (with `trust_schema=True`, since loading the schema runs its code). It
+raises `UnknownFieldError` on the first unknown field and `RuleValueError` on
+the first value of the wrong type, and returns ISO dates converted to dates.
+Pass `fact_schema=` (a class or an import string) to choose the model
+yourself. `fluxrules.validate(rules, fact_schema=Payment)` lists every problem
+without raising:
 
 ```python
 # python skip
@@ -320,6 +393,8 @@ rows = load_rules_from_yaml("rules/payments.yaml", fact_schema=Payment)
 info = schema_info(load_schema("myapp.models:Payment"))
 for error in info.unknown_fields(rows):
     print(error.rule, error.field, error.suggestion)
+for error in info.value_errors(rows):
+    print(error.rule, error.field, error.value)
 ```
 
 ## Without a schema

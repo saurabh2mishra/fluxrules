@@ -85,7 +85,8 @@ building them on `fluxrules.facts`.
 1.1.2 made every evaluation path give the same answer (Phases 0 and 1 of the
 comparison plan), and the comparison matrix now also covers tuples,
 `evaluate_batch(workers=2)` and rules written with `F` or in YAML. Comparisons
-that cannot be made are now reported (`EngineConfig.uncomparable`, unreleased).
+that cannot be made are now reported (`EngineConfig.uncomparable`), and rule
+values are checked when rules load (both unreleased).
 The items below are the rest of that plan. They are aimed at
 **1.2.0**, except the last, which changes defaults and waits for **2.0**.
 [How FluxRules Compares Values](../comparing-values.md) shows today's behaviour,
@@ -103,28 +104,6 @@ Decisions already made (2026-11-03):
   **`5 != "5"` is a match**. Only ordering (`>`, `<` and the like) across types
   cannot be made.
 - Safer defaults wait for 2.0.
-
-### Check rule values when rules load (1.2.0)
-
-**What:** Catch rules that can never match, before they run:
-
-- **Value against operator:** `>`, `>=`, `<` and `<=` need a number, text or a
-  date; `starts_with` and `ends_with` need text; a `regex` must compile.
-  Anything else warns when the rule is created.
-- **Value against the fact schema:** with `fact_schema=`, compare each rule
-  value with its field's type. `amount: float` compared with `"100.1"` is an
-  error that suggests writing `100.1`. An ISO date string compared with a
-  `date` field is converted to a date, because JSON rule files have no other
-  way to write one. Unclear annotations (unions, `Any`) are skipped.
-- **YAML traps:** warn when a rule value in a YAML file was read differently
-  from how it looks: `NO` / `yes` / `on` became a boolean, `0755` an octal
-  number, `1:30` a number of seconds, or `1e3` text. Detect these from the YAML
-  node text, before the values are built.
-- Report every one of these through `validate()` and `fluxrules validate`.
-
-**Why waiting:** A rule that loaded quietly in 1.1 may now warn or, with a fact
-schema, refuse to load. That needs a minor release and a changelog entry
-under Changed.
 
 ### Make common comparisons easy (1.2.0)
 

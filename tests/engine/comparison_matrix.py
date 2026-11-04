@@ -15,7 +15,7 @@ import math
 import warnings
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
@@ -237,8 +237,12 @@ class EvalPath:
     supports: Callable[[Case], bool] = lambda case: True
 
 
-def _engine_path(name: str, **options: Any) -> EvalPath:
+def _engine_path(name: str, *, thread_pool: bool = False, **options: Any) -> EvalPath:
+    """The engine with *options*; with *thread_pool*, every rule runs in the pool."""
+
     def run(cases, rules, config, facts):
+        if thread_pool:
+            config = replace(config, parallel_threshold=0)
         out: list[Answer] = []
         for fact in facts:
             # Streaming must see each fact first, so it gets a fresh engine.
@@ -429,6 +433,7 @@ PATHS: dict[str, EvalPath] = {
         _engine_path("engine, no prefilter", alpha_prefilter=False),
         _engine_path("engine, compiled", compile_conditions=True),
         _engine_path("engine, streaming", streaming_mode=True),
+        _engine_path("engine, thread pool", thread_pool=True),
         _batch_path("evaluate_batch", workers=None),
         _batch_path("evaluate_batch(workers=2)", workers=2),
         EvalPath("fluxrules.evaluate()", _evaluate_run),
@@ -774,6 +779,7 @@ PREFILTERED_PATHS = frozenset(
         "engine",
         "engine, compiled",
         "engine, streaming",
+        "engine, thread pool",
         "evaluate_batch",
         "evaluate_batch(workers=2)",
     }

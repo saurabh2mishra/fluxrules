@@ -133,12 +133,23 @@ class BaseEngine(ABC):
 
         Populates rule_repository, segment_network, and field_index.
 
+        With a ``fact_schema``, an ISO date string compared with a ``date`` or
+        ``datetime`` field is loaded as a date.
+
         Raises:
             UnknownFieldError: when the engine has a ``fact_schema`` and a rule
                 references a field the schema lacks. Nothing is loaded.
+            RuleValueError: when the engine has a ``fact_schema`` and a rule
+                value does not fit its field's type (``amount: float``
+                compared with ``"100.1"``). Nothing is loaded.
         """
         if self._fact_schema_info is not None:
             self._fact_schema_info.check_rules(rules)
+            config = getattr(self, "_config", None)
+            rules = self._fact_schema_info.prepare_rules(
+                rules,
+                coerce_bool_strings=bool(getattr(config, "boolean_string_coercion", False)),
+            )
         self.rule_repository.add_rules(rules)
         self.segment_network.add_rules(rules)
         self.field_index.build_from_rules(rules)
