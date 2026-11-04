@@ -143,6 +143,24 @@ def test_normalize_returns_the_same_tree_when_nothing_changes():
     assert normalize_membership_values(tree) is tree
 
 
+def test_normalize_can_skip_the_warning():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        tree = normalize_membership_values(_condition("in", "US"), warn=False)
+    assert tree["value"] == ["US"]
+
+
+def test_normalize_passes_malformed_trees_through():
+    # Plain values in a list are left for the validator to report.
+    items = ["US", 1, None]
+    assert normalize_membership_values(items, warn=False) is items
+    # Every changed child of one node lands in the same copy.
+    tree = {"left": _condition("in", "US"), "right": _condition("not_in", "DE")}
+    out = normalize_membership_values(tree, warn=False)
+    assert (out["left"]["value"], out["right"]["value"]) == (["US"], ["DE"])
+    assert tree["left"]["value"] == "US", "the input is not modified"
+
+
 # (rule value, fact value, should fire): members that cannot be hashed
 UNHASHABLE = [
     ([{"a": 1}], {"a": 1}, True),

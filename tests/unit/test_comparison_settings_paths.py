@@ -190,6 +190,16 @@ class TestCliAppliesConfigSettings:
         assert "missing_field must be 'false', 'unknown' or null" in " ".join(result.stderr.split())
         assert [r["id"] for r in json.loads(result.stdout)["matched_rules"]] == [2]
 
+    def test_a_bad_boolean_in_a_found_config_is_reported_and_ignored(self, project):
+        (project / "fluxrules.yaml").write_text(
+            "boolean_string_coercion: true\nstrict_type_comparison: maybe\n"
+        )
+        result = runner.invoke(app, ["evaluate", "rules.json", "fact.json", "--format", "json"])
+        assert result.exit_code == 0
+        assert "strict_type_comparison must be true or false" in " ".join(result.stderr.split())
+        # The whole file is ignored, so coercion stays off too.
+        assert [r["id"] for r in json.loads(result.stdout)["matched_rules"]] == [2]
+
 
 class _DocumentedCustomEngine:
     """Built lazily: the custom engine docs/custom-engines.md shows, with no ``config``."""

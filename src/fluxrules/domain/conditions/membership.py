@@ -44,7 +44,7 @@ def _caller_stacklevel() -> int:
             return level
         frame = frame.f_back
         level += 1
-    return level
+    return level  # pragma: no cover - defensive: some caller is always outside fluxrules
 
 
 def _warn(path: str, node: dict[str, Any]) -> None:

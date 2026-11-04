@@ -21,7 +21,7 @@ from sqlalchemy import create_engine  # noqa: E402
 
 from fluxrules import F, Rule  # noqa: E402
 from fluxrules.engine.phreak import PhreakEngine  # noqa: E402
-from fluxrules.prefilter import PreFilteredEvaluator  # noqa: E402
+from fluxrules.prefilter import PredicateExtractor, PreFilteredEvaluator  # noqa: E402
 from fluxrules.prefilter.sql_store import (  # noqa: E402
     FactPreFilterStore,
     decode_fact,
@@ -70,6 +70,24 @@ def test_a_rule_value_sql_cannot_compare_exactly_is_not_used_to_screen():
     assert stats.candidate_facts == 2
 
 
+def test_a_nan_rule_value_is_not_used_to_screen():
+    fired, expected, stats = _run(F("x") > math.nan, [{"x": 1}, {"x": 2}])
+    assert (fired, expected) == (0, 0)
+    assert stats.candidate_facts == 2
+
+
+def test_a_field_missing_from_the_table_is_not_used_to_screen():
+    rule = Rule(id=1, name="r", conditions=F("y") > 5, action="hit")
+    store = FactPreFilterStore(engine=create_engine("sqlite://"))
+    try:
+        store.ensure_schema(["x"])
+        store.bulk_load([{"x": 1}, {"y": 9}])
+        found = list(store.candidates(PredicateExtractor().from_rules([rule])))
+    finally:
+        store.dispose()
+    assert found == [{"x": 1}, {"y": 9}]
+
+
 @pytest.mark.parametrize(
     "fact",
     [
@@ -77,6 +95,7 @@ def test_a_rule_value_sql_cannot_compare_exactly_is_not_used_to_screen():
         {"day": date(2026, 6, 1), "at": datetime(2026, 6, 1, 12, 30), "t": time(9, 15)},
         {"pair": (1, "a"), "tags": {"x", "y"}, "frozen": frozenset({1}), "items": [1, (2, 3)]},
         {"nested": {"inner": Decimal("1.1"), "__fluxrules_type__": "user data"}},
+        {"plain": {"a": 1, "b": [Decimal("2")]}},
         {"big": 2**70, "text": "Ünïcode"},
     ],
 )
@@ -102,3 +121,8 @@ def test_nan_and_inf_round_trip():
 def test_values_the_store_cannot_save_raise_a_clear_error(fact, message):
     with pytest.raises(TypeError, match=message):
         encode_fact(fact)
+
+
+def test_an_unknown_stored_type_raises_a_clear_error():
+    with pytest.raises(ValueError, match="unknown stored value type 'mystery'"):
+        decode_fact('{"x": {"__fluxrules_type__": "mystery", "v": 1}}')
