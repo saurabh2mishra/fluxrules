@@ -2403,6 +2403,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#113-2026-11-04-wider-comparison-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.3 (2026-11-04): Wider comparison tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#112-2026-11-03-every-evaluation-path-agrees" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2619,6 +2630,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#113-2026-11-04-wider-comparison-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.3 (2026-11-04): Wider comparison tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#112-2026-11-03-every-evaluation-path-agrees" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2813,8 +2835,20 @@
 summarizes each release. The full list of changes, with migration notes, is in
 <a href="https://github.com/saurabh2mishra/fluxrules/blob/main/CHANGELOG.md"><code>CHANGELOG.md</code></a>
 in the repository.</p>
-<p><strong>Current release: 1.1.2</strong> (2026-11-03).</p>
+<p><strong>Current release: 1.1.3</strong> (2026-11-04).</p>
 <h2 id="releases">Releases<a class="headerlink" href="#releases" title="Permanent link">&para;</a></h2>
+<h3 id="113-2026-11-04-wider-comparison-tests">1.1.3 (2026-11-04): Wider comparison tests<a class="headerlink" href="#113-2026-11-04-wider-comparison-tests" title="Permanent link">&para;</a></h3>
+<p>No answers change in this release.</p>
+<ul>
+<li>The comparison tests now also cover tuple facts, <code>evaluate_batch</code> over
+  worker processes, and rules written as <code>F</code> expressions or in a YAML file.
+  Every path gives the same answer, and
+  <a href="../comparing-values/">How FluxRules Compares Values</a> gains a row for tuples.</li>
+<li>The alpha prefilter uses the engine's own comparison functions, so the two
+  cannot drift apart.</li>
+<li>Releases are published to PyPI with trusted publishing, and each file
+  carries a digital attestation.</li>
+</ul>
 <h3 id="112-2026-11-03-every-evaluation-path-agrees">1.1.2 (2026-11-03): Every evaluation path agrees<a class="headerlink" href="#112-2026-11-03-every-evaluation-path-agrees" title="Permanent link">&para;</a></h3>
 <ul>
 <li>A single <code>in</code> / <code>not_in</code> value counts as a one-item list on every path, so
